@@ -97,6 +97,8 @@
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #' 
 #' @references
 #' - `AR()` is based on the TMB function
@@ -211,6 +213,8 @@ AR <- function(n_coef = 2,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #' 
 #' @references
 #' - `AR1()` is based on the TMB function
@@ -269,6 +273,8 @@ AR1 <- function(s = 1,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' Known(-2.3)
@@ -348,6 +354,8 @@ Known <- function(values) {
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' Lin()
@@ -466,6 +474,8 @@ Lin <- function(s = 1,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' Lin_AR()
@@ -593,6 +603,8 @@ Lin_AR <- function(n_coef = 2,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @references
 #' - The defaults for `min` and `max` are based on the
@@ -675,6 +687,8 @@ Lin_AR1 <- function(s = 1,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' N()
@@ -716,6 +730,8 @@ N <- function(s = 1) {
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #' 
 #' @examples
 #' NFix()
@@ -792,6 +808,8 @@ NFix <- function(sd = 1) {
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' RW()
@@ -914,6 +932,8 @@ RW <- function(s = 1,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' RW_Seas(n_seas = 4)               ## seasonal effects fixed
@@ -1052,6 +1072,8 @@ RW_Seas <- function(n_seas,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' RW2()
@@ -1152,6 +1174,8 @@ RW2 <- function(s = 1,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' RW2_Infant()
@@ -1254,6 +1278,8 @@ RW2_Infant <- function(s = 1,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' RW2_Seas(n_seas = 4)               ## seasonal effects fixed
@@ -1383,6 +1409,8 @@ RW2_Seas <- function(n_seas,
 #'   main effect, or interaction
 #' - [splines::bs()] Function used by **bage** to construct
 #'   spline basis functions
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @references
 #' - Eilers, P.H.C. and Marx B. (1996).
@@ -1611,8 +1639,9 @@ Sp <- function(n_comp = NULL,
 #'
 #' @references
 #' - For details of the construction of
-#'   scaled SVDS see the vignette
-#'   [here](https://bayesiandemography.github.io/bage/articles/vig2_math.html).
+#'   scaled SVDS see the
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' SVD(HMD) 
@@ -1753,8 +1782,9 @@ SVD <- function(ssvd,
 #'
 #' @references
 #' - For details of the construction of
-#'   scaled SVDS see the vignette
-#'   [here](https://bayesiandemography.github.io/bage/articles/vig2_math.html).
+#'   scaled SVDS see the
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' SVD_AR1(HMD)

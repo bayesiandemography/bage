@@ -54,7 +54,9 @@ mod
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Model specification and class
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
 \item \link[=fit]{fit.bage_mod()} and \code{\link[=is_fitted]{is_fitted()}} Model fitting
 \item \link{priors} Overview of priors for model terms
 \item \link[=tidy]{tidy.bage_mod()} Number of parameters,

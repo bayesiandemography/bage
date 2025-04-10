@@ -11,6 +11,17 @@
 #' which depend on the type of term (eg an intercept, an age main effect,
 #' or an age-time interaction.)
 #'
+#' @section Specifying exposure:
+#'
+#' The `exposure` argument can take three forms:
+#'
+#' - the name of a variable in `data`, with or without
+#'   quote marks, eg `"population"` or `population`;
+#' - the number `1`, in which case a pure "counts" model
+#'   with no exposure, is produced; or
+#' - a formula, which is evaluated with `data` as its
+#'   environment (see below for example).
+#' 
 #' @section Mathematical details:
 #'
 #' The likelihood is
@@ -19,7 +30,7 @@
 #'
 #' where
 #'
-#' - subscript \eqn{i} identifies some combination of
+#' - subscript \eqn{i} identifies some combination of the
 #'   classifying variables, such as age, sex, and time;
 #' - \eqn{y_i} is an outcome, such as deaths;
 #' - \eqn{\gamma_i} is rates; and
@@ -56,16 +67,9 @@
 #'
 #' The prior for \eqn{\xi} is described in [set_disp()].
 #'
-#' @section Specifying exposure:
-#'
-#' The `exposure` argument can take three forms:
-#'
-#' - the name of a variable in `data`, with or without
-#'   quote marks, eg `"population"` or `population`;
-#' - the number `1`, in which case a pure "counts" model
-#'   with no exposure, is produced; or
-#' - a formula, which is evaluated with `data` as its
-#'   environment (see below for example).
+#' The model for \eqn{\mu_i}
+#' can also include covariates,
+#' as described in [set_covariates()].
 #'
 #' @param formula An R [formula][stats::formula()],
 #' specifying the outcome and predictors.
@@ -82,8 +86,15 @@
 #' - [set_prior()] Specify non-default prior for term
 #' - [set_disp()] Specify non-default prior for dispersion
 #' - [fit()] Fit a model
+#' - [augment()] Extract values for rates,
+#'   means, or probabilities, together with original data
+#' - [components()] Extract values for hyper-parameters
 #' - [forecast()] Forecast a model
-#' - [report_sim()] Do a simulation study on a model
+#' - [report_sim()] Do a simulation study
+#' - [replicate_data()] Generate replicate
+#'   data for a model
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' ## specify a model with exposure
@@ -156,6 +167,15 @@ mod_pois <- function(formula, data, exposure) {
 #' which depend on the type of term (eg an intercept, an age main effect,
 #' or an age-time interaction.)
 #'
+#' @section Specifying size:
+#'
+#' The `size` argument can take two forms:
+#'
+#' - the name of a variable in `data`, with or without
+#'   quote marks, eg `"population"` or `population`; or
+#' - a formula, which is evaluated with `data` as its
+#'   environment (see below for example).
+#' 
 #' @section Mathematical details:
 #'
 #' The likelihood is
@@ -164,8 +184,9 @@ mod_pois <- function(formula, data, exposure) {
 #'
 #' where
 #'
-#' - \eqn{y_i} is a count, such of number of births, for some
-#'   combination \eqn{i} of classifying variables,
+#' - subscript \eqn{i} identifies some combination of the the
+#'   classifying variables, such as age, sex, and time;
+#' - \eqn{y_i} is a count, such of number of births,
 #'   such as age, sex, and region;
 #' - \eqn{\gamma_i} is a probability of 'success'; and
 #' - \eqn{w_i} is the number of trials.
@@ -197,14 +218,9 @@ mod_pois <- function(formula, data, exposure) {
 #'
 #' The prior for \eqn{\xi} is described in [set_disp()].
 #'
-#' @section Specifying size:
-#'
-#' The `size` argument can take two forms:
-#'
-#' - the name of a variable in `data`, with or without
-#'   quote marks, eg `"population"` or `population`; or
-#' - a formula, which is evaluated with `data` as its
-#'   environment (see below for example).
+#' The model for \eqn{\mu_i}
+#' can also include covariates,
+#' as described in [set_covariates()].
 #' 
 #' @param formula An R [formula][stats::formula()],
 #' specifying the outcome and predictors.
@@ -221,8 +237,15 @@ mod_pois <- function(formula, data, exposure) {
 #' - [set_prior()] Specify non-default prior for term
 #' - [set_disp()] Specify non-default prior for dispersion
 #' - [fit()] Fit a model
+#' - [augment()] Extract values for rates,
+#'   means, or probabilities, together with original data
+#' - [components()] Extract values for hyper-parameters
 #' - [forecast()] Forecast a model
-#' - [report_sim()] Do a simulation study on a model
+#' - [report_sim()] Do a simulation study
+#' - [replicate_data()] Generate replicate
+#'   data for a model
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette with detailed mathematical descriptions of models
 #'
 #' @examples
 #' mod <- mod_binom(oneperson ~ age:region + age:year,
@@ -288,49 +311,28 @@ mod_binom <- function(formula, data, size) {
 #' which depend on the type of term (eg an intercept, an age main effect,
 #' or an age-time interaction.)
 #'
-#' Internally, the outcome
-#' variable scaled to have mean 0 and sd 1.
+#' @section Scaling of outcome and weights:
 #'
-#' @section Mathematical details:
+#' Internally, `mod_norm()` scales the outcome variable
+#' to have mean 0 and standard deviation 1, and
+#' scales the weights to have mean 1.
+#' This scaling allows `mod_norm()` to use the
+#' same menu of priors as `mod_pois()` and `mod_binom()`.
+#' (`mod_pois()` works on the log scale,
+#' and `mod_binom()` works on the logit scale.)
 #'
-#' The likelihood is
+#' When extracting parameter estimates
+#' from a `mod_norm()` model,
+#' it make sense to use values based on
+#' the original scales for the outcome and
+#' weights variables,
+#' and sometimes makes sense to use
+#' values based on the transformed scales.
+#' By default, [augment()] uses the original scales,
+#' and [components()] uses the transformed scales.
+#' See the documentation for [augment()] and [components()]
+#' for the details.
 #' 
-#' \deqn{y_i \sim \text{N}(\mu_i, \xi^2 / w_i)}
-#'
-#' where
-#'
-#' - \eqn{y_i} is a scaled value for an, such of the log of income, for some
-#'   combination \eqn{i} of classifying variables,
-#'   such as age, sex, and region;
-#' - \eqn{\mu_i} is a mean;
-#' - \eqn{\xi} is a standard deviation parameter; and
-#' - \eqn{w_i} is a weight.
-#'
-#' The scaling of the outcome variable is done internally.
-#' If \eqn{y_i^*} is the original, then \eqn{y_i = (y_i^* - m)/s}
-#' where \eqn{m} and \eqn{s} are the sample mean and standard
-#' deviation of \eqn{y_i^*}. 
-#'
-#' In some applications, \eqn{w_i} is set to 1
-#' for all \eqn{i}.
-#'
-#' The means \eqn{\mu_i} equal the sum of terms formed
-#' from classifying variables,
-#'
-#' \deqn{\mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
-#'
-#' where
-#'
-#' - \eqn{\beta^{0}} is an intercept;
-#' - \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
-#'   or interaction; and
-#' - \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
-#'   cell \eqn{i}.
-#'
-#' The \eqn{\beta^{(m)}} are given priors, as described in [priors].
-#'
-#' The prior for \eqn{\xi} is described in [set_disp()].
-#'
 #' @section Specifying weights:
 #'
 #' The `weights` argument can take three forms:
@@ -340,6 +342,58 @@ mod_binom <- function(formula, data, size) {
 #' - the number `1`, in which no weights are used; or
 #' - a formula, which is evaluated with `data` as its
 #'   environment (see below for example).
+#'
+#'
+#' @section Mathematical details:
+#'
+#' The likelihood is
+#' 
+#' \deqn{\tilde{y}_i \sim \text{N}(\mu_i, \xi^2 / \tilde{w}_i)}
+#'
+#' where
+#'
+#' \deqn{\tilde{y}_i = (y_i - \bar{y}) / s}
+#'
+#' and
+#'
+#' \deqn{\tilde{w}_i = w_i / \bar{w},}
+#'
+#' and where
+#'
+#' - subscript \eqn{i} identifies some combination of the
+#'   classifying variables, such as age, sex, and time,
+#' - \eqn{y_i} is the value of the outcome variable,
+#' - \eqn{w_i} is a weight,
+#' - \eqn{\bar{y}} is the mean across \eqn{i} of \eqn{y_i},
+#' - \eqn{s} is the sample standard deviation across \eqn{i} of \eqn{y_i},
+#' - \eqn{\bar{w}} is the mean across \eqn{i} of \eqn{w_i},
+#' - \eqn{\mu_i} is a mean parameter, and
+#' - \eqn{\xi} is a standard deviation parameter.
+#'
+#' In some applications, \eqn{w_i} is set to 1
+#' for all \eqn{i}.
+#'
+#' The mean parameter \eqn{\mu_i} is modelled as
+#' the sum of terms formed
+#' from classifying variables and covariates,
+#'
+#' \deqn{\mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
+#'
+#' where
+#'
+#' - \eqn{\beta^{0}} is an intercept;
+#' - \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
+#'   or interaction; and
+#' - \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
+#'   cell \eqn{i},
+#'
+#' The \eqn{\beta^{(m)}} are given priors, as described in [priors].
+#'
+#' The prior for \eqn{\xi} is described in [set_disp()].
+#'
+#' The model for \eqn{\mu_i}
+#' can also include covariates,
+#' as described in [set_covariates()].
 #' 
 #' @param formula An R [formula][stats::formula()],
 #' specifying the outcome and predictors.
@@ -356,8 +410,16 @@ mod_binom <- function(formula, data, size) {
 #' - [set_prior()] Specify non-default prior for term
 #' - [set_disp()] Specify non-default prior for standard deviation
 #' - [fit()] Fit a model
+#' - [augment()] Extract values for rates,
+#'   means, or probabilities,
+#'   together with original data
+#' - [components()] Extract values for hyper-parameters
 #' - [forecast()] Forecast a model
-#' - [report_sim()] Do a simulation study on a model
+#' - [report_sim()] Do a simulation study
+#' - [replicate_data()] Generate replicate
+#'   data for a model
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' mod <- mod_norm(value ~ diag:age + year,
@@ -413,6 +475,7 @@ mod_norm <- function(formula, data, weights) {
   ans <- c(args,
            list(offset = offset,
                 nm_offset_data = nm_offset_data,
+                offset_mean = offset_mean,
                 outcome_mean = outcome_mean,
                 outcome_sd = outcome_sd))
   class(ans) <- c("bage_mod_norm", "bage_mod")

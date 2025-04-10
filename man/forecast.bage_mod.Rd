@@ -55,7 +55,8 @@ and \code{output} is \code{"augment"},
 draw values for outcome.
 }
 
-\code{vignette("vig2_math")} has the technical details.
+\href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+describles the process in more detail.
 }
 
 \section{Output}{
@@ -158,7 +159,15 @@ mod_births |>
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to specify a model
-\item \code{\link[=fit]{fit()}} to fit a model
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
+\item \code{\link[=fit]{fit()}} Fit a model
+\item \code{\link[=augment]{augment()}} Extract values for rates,
+probabilities, or means, together
+with original data
+\item \code{\link[=components]{components()}} Extract values for hyper-parameters
+\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+vignette
 }
 }

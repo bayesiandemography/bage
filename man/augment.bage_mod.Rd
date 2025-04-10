@@ -4,7 +4,7 @@
 \alias{augment.bage_mod}
 \title{Extract Data and Modelled Values}
 \usage{
-\method{augment}{bage_mod}(x, quiet = FALSE, ...)
+\method{augment}{bage_mod}(x, quiet = FALSE, original_scale = TRUE, ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_mod"}, typically
@@ -13,6 +13,13 @@ or \code{\link[=mod_norm]{mod_norm()}}.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
+
+\item{original_scale}{Whether \code{.fitted}
+is based on the original or transformed
+versions of the outcome and weights variables.
+Used only if \code{x} was
+created with \code{\link[=mod_norm]{mod_norm()}}.
+Default is \code{TRUE}.}
 
 \item{...}{Unused. Included for generic consistency only.}
 }
@@ -78,6 +85,19 @@ then \code{augment()} creates a new variable \code{.var} containing
 estimates of the true value for the outcome.
 }
 
+\section{Scaling and Normal models}{
+
+
+Internally, Normal models
+are fitted using transformed versions of the
+outcome and weights variables. (For details,
+see \code{\link[=mod_norm]{mod_norm()}}). By default, when \code{augment()}
+is used with a Normal model, it returns values for \code{.fitted}
+that are on the original, untransformed
+scale. To obtain values on the transformed scale,
+set \code{original_scale} to \code{FALSE}.
+}
+
 \examples{
 ## specify model
 mod <- mod_pois(divorces ~ age + sex + time,
@@ -117,10 +137,28 @@ mod_pois(divorces ~ age + sex + time,
   set_datamod_outcome_rr3() |>
   fit() |>
   augment()
+
+## fit a Normal model
+df <- tibble::tibble(age = 0:100,
+                     income = rnorm(n = 101,
+                                    mean = 1000 * age,
+                                    sd = 300))
+mod <- mod_norm(income ~ age,
+                data = df,
+                weights = 1) |>
+  fit()
+
+## 'original_scale' is 'TRUE' (the default)
+mod |>
+  augment() 
+
+## 'original_scale' is FALSE 
+mod |>
+  augment(original_scale = FALSE)
 }
 \seealso{
 \itemize{
-\item \code{\link[=components]{components()}} Extract values for hyper-parameters from a model
+\item \code{\link[=components]{components()}} Extract values for hyper-parameters
 \item \code{\link[=tidy]{tidy()}} Short summary of a model
 \item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
 \item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model

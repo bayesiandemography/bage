@@ -918,6 +918,99 @@ test_that("'check_old_version' raises error with invalid version", {
 })
 
 
+## 'check_origina_scale_augment' ----------------------------------------------
+
+test_that("'check_original_scale_augment' returns TRUE with valid inputs - Poisson", {
+  data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age + sex,
+                  data = data,
+                  exposure = popn)
+  expect_true(check_original_scale_augment(original_scale = TRUE,
+                                           mod = mod))
+})
+
+test_that("'check_original_scale_augment' returns TRUE with valid inputs - normal", {
+  data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_norm(deaths ~ age + sex,
+                  data = data,
+                  weights = popn)
+  expect_true(check_original_scale_augment(original_scale = TRUE,
+                                           mod = mod))
+  expect_true(check_original_scale_augment(original_scale = FALSE,
+                                           mod = mod))
+})
+
+test_that("'check_original_scale_augment' raises warning when 'original_scale' ignored", {
+  data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age + sex,
+                  data = data,
+                  exposure = popn)
+  expect_warning(check_original_scale_augment(original_scale = FALSE,
+                                              mod = mod),
+                 paste("`augment\\(\\)` ignores `original_scale` if `x` was not created",
+                       "with `mod_norm\\(\\)`."))
+})
+
+
+## 'check_original_scale_components' ----------------------------------------------
+
+test_that("'check_original_scale_components' returns TRUE with valid inputs - Poisson", {
+  data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age + sex,
+                  data = data,
+                  exposure = popn)
+  expect_true(check_original_scale_components(original_scale = FALSE,
+                                              mod = mod))
+})
+
+test_that("'check_original_scale_components' returns TRUE with valid inputs - normal", {
+  data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_norm(deaths ~ age + sex,
+                  data = data,
+                  weights = popn)
+  expect_true(check_original_scale_components(original_scale = TRUE,
+                                              mod = mod))
+  expect_true(check_original_scale_components(original_scale = FALSE,
+                                              mod = mod))
+})
+
+test_that("'check_original_scale_components' returns TRUE with valid inputs - covariates", {
+  data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  mod <- mod_pois(deaths ~ age + sex,
+                  data = data,
+                  exposure = popn) |>
+    set_covariates(~income)
+  expect_true(check_original_scale_components(original_scale = FALSE,
+                                              mod = mod))
+})
+
+test_that("'check_original_scale_components' raises warning when 'original_scale' ignored", {
+  data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age + sex,
+                  data = data,
+                  exposure = popn)
+  expect_warning(check_original_scale_components(original_scale = TRUE,
+                                                 mod = mod),
+                 paste("`components\\(\\)` ignores `original_scale` if `x` was not created",
+                       "with `mod_norm\\(\\)` and does not have covariates."))
+})
+              
+
 ## 'check_resp_le_offset' -----------------------------------------------------
 
 test_that("'check_resp_le_offset' returns TRUE with valid inputs - formula", {

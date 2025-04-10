@@ -28,19 +28,20 @@
 #' | **Prior** |   **Description**        | **Uses**                     | **Forecast** | **Along** |
 #' |-----------|--------------------------|------------------------------|------|-----|
 #' | [N()]     | Elements drawn from normal distribution | Term with no natural order | Yes | No |
-#' | [NFix()]  | As for `N()`, but standard deviation fixed | Term with few elements | Yes | No |
-#' | [Known()] | Values  treated as known | Simulations,  prior knowledge | No | No |
+#' | [NFix()]  | `N()` with standard deviation fixed | Term with few elements | Yes | No |
+#' | [Known()] | Values treated as known | Simulations,  prior knowledge | No | No |
 #' | [RW()]    | Random walk | Smoothing | Yes | Yes |
 #' | [RW2()]   | Second-order random walk | Like `RW()`, but smoother | Yes | Yes |
-#' | [RW_Seas()] | Random walk, with seasonal effect | Terms involving time | Yes | Yes |
-#' | [RW2_Seas()] | Second-order random walk, with seasonal effect | Term involving time | Yes | Yes |
+#' | [RW2_Infant()]   | `RW2()` with infant indicator | Mortality age profiles | No | Yes |
+#' | [RW_Seas()] | `RW()`, with seasonal effect | Terms involving time | Yes | Yes |
+#' | [RW2_Seas()] | `RW2()`, with seasonal effect | Term involving time | Yes | Yes |
 #' | [AR()]    | Auto-regressive prior of order *k* | Mean reversion | Yes | Yes |
-#' | [AR1()]   | Auto-regressive prior of order 1 Special case of `AR()` | Mean reversion | Yes | Yes |
-#' | [Lin()]   | Linear trend, with independent normal | Parsimonious model for time | Yes | Yes |
-#' | [Lin_AR()] | Linear trend, with autoregressive errors | Term involving time | Yes | Yes |
+#' | [AR1()]   | Special case of `AR()` | Mean reversion | Yes | Yes |
+#' | [Lin()]   | Linear trend, with independent errors | Parsimonious model for time | Yes | Yes |
+#' | [Lin_AR()] | Linear trend, with AR errors | Term involving time | Yes | Yes |
 #' | [Lin_AR1()] | Linear trend, with AR1 errors | Terms involving time | Yes | Yes |
 #' | [Sp()]    | P-Spline (penalised spline) | Smoothing, eg over age | No | Yes |
-#' | [SVD()]   | Age or age-sex profile based on SVD of database | Age or age-sex | No | No |
+#' | [SVD()]   | Age-sex profile based on SVD | Age or age-sex | No | No |
 #' | [SVD_AR()] | `SVD()`, but coefficients follow `AR()` | Age or age-sex and time | Yes | Yes |
 #' | [SVD_AR1()] | `SVD()`, but coefficients follow `AR1()` | Age or age-sex and time | Yes | Yes |
 #' | [SVD_RW()] | `SVD()`, but coefficients follow `RW()` | Age or age-sex and time | Yes | Yes |

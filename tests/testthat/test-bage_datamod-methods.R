@@ -155,15 +155,15 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, no na", {
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_from_components(mod = mod,
+  scale_linpred <- get_fun_scale_linpred(mod)
+  vals_fitted <- scale_linpred(make_linpred_from_components(mod = mod,
                                                             components = vals_components,
                                                             data = mod$data,
                                                             dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "norm",
-                                         outcome_obs = scale_outcome(mod$outcome),
+                                         outcome_obs = scale_linpred(mod$outcome),
                                          fitted = vals_fitted,
                                          disp = mod$outcome_sd * vals_disp,
                                          offset = mod$offset)
@@ -191,15 +191,15 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, has NA", {
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- mod$outcome_sd * vals_disp
-  scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_from_components(mod = mod,
+  scale_linpred <- get_fun_scale_linpred(mod)
+  vals_fitted <- scale_linpred(make_linpred_from_components(mod = mod,
                                                             components = vals_components,
                                                             data = mod$data,
                                                             dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "norm",
-                                         outcome_obs = scale_outcome(mod$outcome),
+                                         outcome_obs = scale_linpred(mod$outcome),
                                          fitted = vals_fitted,
                                          disp = vals_disp,
                                          offset = mod$offset)

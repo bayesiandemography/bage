@@ -92,10 +92,12 @@ report_sim(mod_est = mod_est,
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
-model
-\item \code{\link[=components]{components()}}, \code{\link[=augment]{augment()}} Draw from joint prior
-or posterior distribution of model
+\item \code{\link[=mod_pois]{mod_pois()}} Specify binomial model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify binomial model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify normal model
+\item \code{\link[=set_prior]{set_prior()}} Specify non-default prior for term
+\item \code{\link[=set_disp]{set_disp()}} Specify non-default prior for dispersion
+\item \code{\link[=fit]{fit()}} Fit a model
 \item \code{\link[=replicate_data]{replicate_data()}} Generate replicate
 data for a model
 }

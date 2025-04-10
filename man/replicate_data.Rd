@@ -116,8 +116,17 @@ mod_pois(injuries ~ age:sex + ethnicity + year,
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Create model.
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
 \item \code{\link[=fit]{fit()}} Fit model.
+\item \code{\link[=augment]{augment()}} Extract values for rates,
+probabilities, or means, together
+with original data
+\item \code{\link[=components]{components()}} Extract values for hyper-parameters
+\item \code{\link[=forecast]{forecast()}} Forecast, based on a model
 \item \code{\link[=report_sim]{report_sim()}} Simulation study of model.
+\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+vignette
 }
 }
