@@ -1143,12 +1143,14 @@ perform_comp <- function(est,
 #' tibble called `"augment"`.
 #'
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
-#' model
-#' - [components()], [augment()] Draw from joint prior
-#' or posterior distribution of model
+#' - [mod_pois()] Specify binomial model
+#' - [mod_binom()] Specify binomial model
+#' - [mod_norm()] Specify normal model
+#' - [set_prior()] Specify non-default prior for term
+#' - [set_disp()] Specify non-default prior for dispersion
+#' - [fit()] Fit a model
 #' - [replicate_data()] Generate replicate
-#' data for a model
+#'   data for a model
 #'
 #' @examples
 #' ## results random, so set seed

@@ -343,21 +343,46 @@ test_that("'draw_vals_augment_fitted' works with binomial, no disp", {
                      c(names(data), c(".observed", ".fitted")))
 })
 
-test_that("'draw_vals_augment_fitted' works with normal", {
+test_that("'draw_vals_augment_fitted' works with normal - original_scale is TRUE", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                         KEEP.OUT.ATTRS = FALSE)
     data$deaths <- rpois(n = nrow(data), lambda = 100)
+    data$deaths[1] <- NA
+    data$wt <- runif(n = nrow(data), max = 1000)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_norm(formula = formula,
+                    data = data,
+                    weights = wt)
+    mod_fitted <- fit(mod)
+    ans <- draw_vals_augment_fitted(mod_fitted, original_scale = TRUE)
+    expect_true(is.data.frame(ans))
+    expect_setequal(names(ans),
+                    c(names(data), ".deaths", ".fitted"))
+    expect_equal(rvec::draws_mean(mean(ans$.fitted)), mean(data$deaths, na.rm = TRUE), tolerance = 0.1)
+    expect_equal(rvec::draws_mean(mean(ans$.deaths)), mean(data$deaths, na.rm = TRUE), tolerance = 0.1)
+})
+
+test_that("'draw_vals_augment_fitted' works with normal - original_scale is FALSE", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$deaths <- rpois(n = nrow(data), lambda = 100)
+    data$deaths[1] <- NA
+    data$wt <- runif(n = nrow(data), max = 1000)
     formula <- deaths ~ age + sex + time
     mod <- mod_norm(formula = formula,
                     data = data,
                     weights = 1)
     mod_fitted <- fit(mod)
-    ans <- draw_vals_augment_fitted(mod_fitted)
+    ans <- draw_vals_augment_fitted(mod_fitted, original_scale = FALSE)
     expect_true(is.data.frame(ans))
-    expect_identical(names(ans),
-                     c(names(data), ".fitted"))
+    expect_setequal(names(ans),
+                    c(names(data), ".deaths", ".fitted"))
+    expect_equal(rvec::draws_mean(mean(ans$.fitted)), 0, tolerance = 0.1)
+    expect_equal(rvec::draws_mean(ans$.deaths[[1]]), 0, tolerance = 0.1)
 })
+
 
 test_that("'draw_vals_augment_fitted' works with Poisson, has rr3", {
   set.seed(0)
@@ -372,7 +397,7 @@ test_that("'draw_vals_augment_fitted' works with Poisson, has rr3", {
                   set_datamod_outcome_rr3() |>
                   set_n_draw(5)
   mod_fitted <- fit(mod)
-  ans <- draw_vals_augment_fitted(mod_fitted)
+  ans <- draw_vals_augment_fitted(mod_fitted, original_scale = TRUE)
   expect_true(is.data.frame(ans))
   expect_identical(names(ans),
                    c(names(data), c(".deaths", ".observed", ".fitted", ".expected")))
@@ -397,7 +422,7 @@ test_that("'draw_vals_augment_fitted' works with binomial, has rr3", {
                    set_datamod_outcome_rr3() |>
                    set_n_draw(5)
   mod_fitted <- fit(mod)
-  ans <- draw_vals_augment_fitted(mod_fitted)
+  ans <- draw_vals_augment_fitted(mod_fitted, original_scale = TRUE)
   expect_true(is.data.frame(ans))
   expect_identical(names(ans),
                    c(names(data), c(".deaths", ".observed", ".fitted", ".expected")))
@@ -421,10 +446,28 @@ test_that("'draw_vals_augment_unfitted' works with normal", {
   mod <- mod_norm(formula = formula,
                   data = data,
                   weights = 1)
-  ans <- draw_vals_augment_unfitted(mod)
+  ans <- draw_vals_augment_unfitted(mod, original_scale = TRUE)
   expect_true(is.data.frame(ans))
   expect_identical(names(ans), c(names(data), ".fitted"))
+  expect_true(abs(rvec::draws_mean(mean(ans$.fitted)) - 100) < 1)
+  expect_true(abs(rvec::draws_mean(mean(ans$.fitted)) - 100) < 1)
 })
+
+test_that("'draw_vals_augment_unfitted' works with normal - original_scale is FALSE", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                      KEEP.OUT.ATTRS = FALSE)
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = 1)
+  ans <- draw_vals_augment_unfitted(mod, original_scale = FALSE)
+  expect_true(is.data.frame(ans))
+  expect_identical(names(ans), c(names(data), ".fitted"))
+  expect_true(abs(rvec::draws_mean(mean(ans$.fitted))) < 0.2)
+})
+
 
 test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", {
   set.seed(0)
@@ -435,7 +478,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", 
                   data = data,
                   exposure = 1)
   mod <- set_n_draw(mod, 10)
-  ans_obtained <- draw_vals_augment_unfitted(mod)
+  ans_obtained <- draw_vals_augment_unfitted(mod, original_scale = TRUE)
   vals_components <- draw_vals_components_unfitted(mod, n_sim = 10)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_from_components(mod = mod,
@@ -473,7 +516,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - no disp", {
                   exposure = popn)
   mod <- set_disp(mod, mean = 0)
   mod <- set_n_draw(mod, 10)
-  ans_obtained <- draw_vals_augment_unfitted(mod)
+  ans_obtained <- draw_vals_augment_unfitted(mod, original_scale = TRUE)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_fitted <- exp(make_linpred_from_components(mod = mod,
@@ -499,7 +542,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
   set.seed(0)
   n_sim <- 10
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$income <- rnorm(n = nrow(data), mean = 20, sd = 3)
+  data$income <- rnorm(n = nrow(data), mean = 200, sd = 30)
   data$wt <- rpois(n = nrow(data), lambda = 100)
   formula <- income ~ age + sex + time
   mod <- mod_norm(formula = formula,
@@ -507,13 +550,13 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
                   weights = wt)
   mod <- set_n_draw(mod, 10)
   set.seed(1)
-  ans_obtained <- draw_vals_augment_unfitted(mod)
+  ans_obtained <- draw_vals_augment_unfitted(mod, original_scale = TRUE)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- mod$outcome_sd * vals_disp
-  scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_from_components(mod = mod,
+  scale_linpred <- get_fun_scale_linpred(mod)
+  vals_fitted <- scale_linpred(make_linpred_from_components(mod = mod,
                                                             components = vals_components,
                                                             data = mod$data,
                                                             dimnames_term = mod$dimnames_terms))
@@ -529,6 +572,9 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
   ans_expected$.fitted <- vals_fitted
   expect_equal(ans_obtained, ans_expected)
   expect_identical(names(augment(fit(mod))), names(ans_obtained))
+  ans_scaled <- draw_vals_augment_unfitted(mod, original_scale = FALSE)
+  expect_true(abs(rvec::draws_mean(mean(ans_scaled$.fitted))) < 2)
+  expect_true(abs(rvec::draws_mean(sd(ans_scaled$.fitted))) < 2)
 })
 
 
@@ -1748,12 +1794,10 @@ test_that("'get_fun_inv_transform' works with valid inputs", {
 })
 
 
-## 'get_fun_scale_outcome' --------------------------------------------------------
+## 'get_fun_scale_linpred' --------------------------------------------------------
 
-test_that("'get_fun_scale_outcome' works with valid inputs", {
-    expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_pois", "bage_mod")))(1), 1)
-    expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_binom", "bage_mod")))(1), 1)
-    expect_equal(get_fun_scale_outcome(structure(list(outcome_mean = 3, outcome_sd = 2),
+test_that("'get_fun_scale_linpred' works with valid inputs", {
+    expect_equal(get_fun_scale_linpred(structure(list(outcome_mean = 3, outcome_sd = 2),
                                                  class = c("bage_mod_norm", "bage_mod")))(1), 5)
 })
 

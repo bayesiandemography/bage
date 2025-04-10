@@ -30,52 +30,29 @@ as age, sex, and time. The terms for these dimension themselves
 have models, as described in \link{priors}. These priors all have defaults,
 which depend on the type of term (eg an intercept, an age main effect,
 or an age-time interaction.)
-
-Internally, the outcome
-variable scaled to have mean 0 and sd 1.
 }
-\section{Mathematical details}{
+\section{Scaling of outcome and weights}{
 
 
-The likelihood is
+Internally, \code{mod_norm()} scales the outcome variable
+to have mean 0 and standard deviation 1, and
+scales the weights to have mean 1.
+This scaling allows \code{mod_norm()} to use the
+same menu of priors as \code{mod_pois()} and \code{mod_binom()}.
+(\code{mod_pois()} works on the log scale,
+and \code{mod_binom()} works on the logit scale.)
 
-\deqn{y_i \sim \text{N}(\mu_i, \xi^2 / w_i)}
-
-where
-\itemize{
-\item \eqn{y_i} is a scaled value for an, such of the log of income, for some
-combination \eqn{i} of classifying variables,
-such as age, sex, and region;
-\item \eqn{\mu_i} is a mean;
-\item \eqn{\xi} is a standard deviation parameter; and
-\item \eqn{w_i} is a weight.
-}
-
-The scaling of the outcome variable is done internally.
-If \eqn{y_i^*} is the original, then \eqn{y_i = (y_i^* - m)/s}
-where \eqn{m} and \eqn{s} are the sample mean and standard
-deviation of \eqn{y_i^*}.
-
-In some applications, \eqn{w_i} is set to 1
-for all \eqn{i}.
-
-The means \eqn{\mu_i} equal the sum of terms formed
-from classifying variables,
-
-\deqn{\mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
-
-where
-\itemize{
-\item \eqn{\beta^{0}} is an intercept;
-\item \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
-or interaction; and
-\item \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
-cell \eqn{i}.
-}
-
-The \eqn{\beta^{(m)}} are given priors, as described in \link{priors}.
-
-The prior for \eqn{\xi} is described in \code{\link[=set_disp]{set_disp()}}.
+When extracting parameter estimates
+from a \code{mod_norm()} model,
+it make sense to use values based on
+the original scales for the outcome and
+weights variables,
+and sometimes makes sense to use
+values based on the transformed scales.
+By default, \code{\link[=augment]{augment()}} uses the original scales,
+and \code{\link[=components]{components()}} uses the transformed scales.
+See the documentation for \code{\link[=augment]{augment()}} and \code{\link[=components]{components()}}
+for the details.
 }
 
 \section{Specifying weights}{
@@ -89,6 +66,61 @@ quote marks, eg \code{"wt"} or \code{wt};
 \item a formula, which is evaluated with \code{data} as its
 environment (see below for example).
 }
+}
+
+\section{Mathematical details}{
+
+
+The likelihood is
+
+\deqn{\tilde{y}_i \sim \text{N}(\mu_i, \xi^2 / \tilde{w}_i)}
+
+where
+
+\deqn{\tilde{y}_i = (y_i - \bar{y}) / s}
+
+and
+
+\deqn{\tilde{w}_i = w_i / \bar{w},}
+
+and where
+\itemize{
+\item subscript \eqn{i} identifies some combination of the
+classifying variables, such as age, sex, and time,
+\item \eqn{y_i} is the value of the outcome variable,
+\item \eqn{w_i} is a weight,
+\item \eqn{\bar{y}} is the mean across \eqn{i} of \eqn{y_i},
+\item \eqn{s} is the sample standard deviation across \eqn{i} of \eqn{y_i},
+\item \eqn{\bar{w}} is the mean across \eqn{i} of \eqn{w_i},
+\item \eqn{\mu_i} is a mean parameter, and
+\item \eqn{\xi} is a standard deviation parameter.
+}
+
+In some applications, \eqn{w_i} is set to 1
+for all \eqn{i}.
+
+The mean parameter \eqn{\mu_i} is modelled as
+the sum of terms formed
+from classifying variables and covariates,
+
+\deqn{\mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
+
+where
+\itemize{
+\item \eqn{\beta^{0}} is an intercept;
+\item \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
+or interaction; and
+\item \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
+cell \eqn{i},
+}
+
+The \eqn{\beta^{(m)}} are given priors, as described in \link{priors}.
+
+The prior for \eqn{\xi} is described in \code{\link[=set_disp]{set_disp()}}.
+
+The model for \eqn{\mu_i}
+can also include covariates,
+as described in \code{\link[=set_covariates]{set_covariates()}}.
 }
 
 \examples{
@@ -108,7 +140,15 @@ mod <- mod_norm(value ~ diag:age + year,
 \item \code{\link[=set_prior]{set_prior()}} Specify non-default prior for term
 \item \code{\link[=set_disp]{set_disp()}} Specify non-default prior for standard deviation
 \item \code{\link[=fit]{fit()}} Fit a model
+\item \code{\link[=augment]{augment()}} Extract values for rates,
+means, or probabilities,
+together with original data
+\item \code{\link[=components]{components()}} Extract values for hyper-parameters
 \item \code{\link[=forecast]{forecast()}} Forecast a model
-\item \code{\link[=report_sim]{report_sim()}} Do a simulation study on a model
+\item \code{\link[=report_sim]{report_sim()}} Do a simulation study
+\item \code{\link[=replicate_data]{replicate_data()}} Generate replicate
+data for a model
+\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+vignette
 }
 }

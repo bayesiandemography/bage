@@ -1962,6 +1962,7 @@ make_unconstr_dimnames_by <- function(i_along, dimnames_term) {
 paste_dot <- function(x, y) paste(x, y, sep = ".")
 
 
+
 #' Given Estimates of Effect and Slope, Rescale Intercept for Lines
 #'
 #' @param slope Rvec of length n_by holding slope estimates
@@ -1971,17 +1972,24 @@ paste_dot <- function(x, y) paste(x, y, sep = ".")
 #' @returns An rvec of length 'n_by'
 #'
 #' @noRd
-rescale_lin_intercept <- function(slope, effect, matrix_along_by) {
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
-  ans <- slope
-  for (i_by in seq_len(n_by)) {
-    i_along <- matrix_along_by[, i_by] + 1L
-    mean_effect <- mean(effect[i_along])
-    mean_incr <- 0.5 * (1 + n_along) * slope[[i_by]]
-    ans[[i_by]] <- mean_effect - mean_incr
-  }
-  ans
+rescale_components <- function(components, mod) {
+  ## is_norm <- inherits(object, "bage_mod_norm")
+  ## has_covariates <- has_covariates(object)
+  ## if (is_norm) {
+    
+  ##   is_intercept <- components$term == "(Intercept)"
+    
+  ## is_norm <- inherits(mod, "bage_mod_norm")
+  ## n_along <- nrow(matrix_along_by)
+  ## n_by <- ncol(matrix_along_by)
+  ## ans <- slope
+  ## for (i_by in seq_len(n_by)) {
+  ##   i_along <- matrix_along_by[, i_by] + 1L
+  ##   mean_effect <- mean(effect[i_along])
+  ##   mean_incr <- 0.5 * (1 + n_along) * slope[[i_by]]
+  ##   ans[[i_by]] <- mean_effect - mean_incr
+  ## }
+  ## ans
 }
 
 

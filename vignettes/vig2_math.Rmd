@@ -109,7 +109,7 @@ The normal model is
 where $\tilde{y}_i$ is a standardized version of outcome $y_i$, and $\tilde{w}_i$ is a standardized version of weight $w_i$. The standardization is carried out using
 \begin{align}
   \tilde{y}_i & = \frac{y_i - \bar{y}}{s} \\
-  \tilde{w}_i & = \frac{w_i}{\bar{w}}.
+  \tilde{w}_i & = \frac{w_i}{\bar{w}},
 \end{align}
 where
 \begin{align}
@@ -121,7 +121,8 @@ where
 Standardizing allows us to apply the same priors as we use for the Poisson and binomial models.
 
 
-# Model for prior means
+# Model for prior means {#sec:means}
+
 
 Let $\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}$. Our model for $\pmb{\mu}$ is
 \begin{equation}
@@ -1138,32 +1139,27 @@ Use the original disaggregated data, or, if the original data contains more then
 
 Running TMB yields a set of means $\pmb{m}$, and a precision matrix $\pmb{Q}^{-1}$, which together define the approximate joint posterior distribution of
 
-- $\pmb{\beta}^{(m)}$ for terms with independent normal, fixed normal, multivariate normal, random walk, second-order random walk, AR1, Linear, and Linear-AR1 priors,
-- $\pmb{\alpha}$ for terms with Spline and SVD priors,
-- hyper-parameters for $\pmb{\beta}^{(m)}$ and $\pmb{\alpha}^{(m)}$ typically transformed to another scale, such as a log scale,
-- dispersion term $\xi$, and
-- seasonal effects $\pmb{\lambda}$, together with associated hyper-parameters $\tau_{\lambda}$ (on a log scale).
+- intercept, main effects, and internactions $\pmb{\beta}^{(m)}$, $m = 0, \cdots, M$,
+- typically, hyper-parameters for the $\pmb{\beta}^{(m)}$, in many cases transformed to another scale, such as a log scale,
+- optionally, dispersion term $\xi$, and
+- optionally, covariate cofficients vector $\pmb{zeta}$.
 
-We use $\tilde{\pmb{\theta}}$ to denote a vector containing all these quantities.
-
-We perform a Cholesky decomposition of $\pmb{Q}^{-1}$, to obtain $\pmb{R}$ such that
-\begin{equation}
-  \pmb{R}^{\top} \pmb{R} = \pmb{Q}^{-1}
-\end{equation}
-We store $\pmb{R}$ as part of the model object.
-
-We draw generate values for $\tilde{\pmb{\theta}}$ by generating a vector of standard normal variates $\pmb{z}$, back-solving the equation
-\begin{equation}
-  \pmb{R} \pmb{v} = \pmb{z}
-\end{equation}
-and setting
-\begin{equation}
-  \tilde{\pmb{\theta}} = \pmb{v} + \pmb{m}.
-\end{equation}
+Let $\tilde{\pmb{\theta}}$ to denote a vector containing all these quantities. We draw values for $\tilde{\pmb{\theta}} \mid \pmb{m}, \pmb{Q}^{-1}$, typically using sparse matrix methods (as implemented in package **sparseMVN**.
 
 Next we convert any transformed hyper-parameters back to the original units, and insert values for $\pmb{\beta}^{(m)}$ for terms that have Known priors. We denote the resulting vector $\pmb{\theta}$.
 
-Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}$ using the methods described in Sections \@ref(sec:pois)-\@ref(sec:norm).
+We draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}$ using the methods described in Sections \@ref(sec:pois)-\@ref(sec:norm).
+
+Output from the Normal model receives special treatment. As described in section \@ref(sec:norm) and \@ref(sec:means), the Normal model is
+\begin{align}
+  \frac{y_i - \bar{y}}{s} & \sim \text{N}\left(\mu_i, \frac{\bar{w}}{w_i} \xi^2\right) \\
+  \mu_i & = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)} + (\pmb{Z} \pmb{\zeta})_i
+\end{align}
+
+
+
+
+
 
 
 # Simulation

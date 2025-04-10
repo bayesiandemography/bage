@@ -45,7 +45,7 @@ generics::augment
 #' for the outcome variable `var`,
 #' then `augment()` creates a new variable `.var` containing
 #' estimates of the true value for the outcome.
-#' 
+#'
 #' @param x Object of class `"bage_mod"`, typically
 #' created with [mod_pois()], [mod_binom()],
 #' or [mod_norm()].
@@ -74,7 +74,7 @@ generics::augment
 #' [rvecs][rvec::rvec()].
 #'
 #' @seealso
-#' - [components()] Extract values for hyper-parameters from a model
+#' - [components()] Extract values for hyper-parameters
 #' - [tidy()] Short summary of a model
 #' - [mod_pois()] Specify a Poisson model
 #' - [mod_binom()] Specify a binomial model
@@ -123,7 +123,6 @@ generics::augment
 #'   set_datamod_outcome_rr3() |>
 #'   fit() |>
 #'   augment()
-#' @export
 augment.bage_mod <- function(x,
                              quiet = FALSE,
                              ...) {
@@ -132,11 +131,11 @@ augment.bage_mod <- function(x,
   check_flag(x = quiet, nm_x = "quiet")
   check_has_no_dots(...)
   if (is_fitted)
-    ans <- draw_vals_augment_fitted(x)
+    ans <- draw_vals_augment_fitted(mod)
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
-    ans <- draw_vals_augment_unfitted(x)
+    ans <- draw_vals_augment_unfitted(mod)
   }
   ans
 }
@@ -171,11 +170,28 @@ generics::components
 #' model priors, and by any `exposure`, `size`, or `weights`
 #' argument in the model, but not by the observed outcomes.
 #'
+#' @section Scaling and Normal models:
+#'
+#' Internally, Normal models
+#' are fitted using transformed versions of the
+#' outcome and weights variables. (For details,
+#' see [mod_norm()]). By default, when `components()`
+#' is used with a Normal model, it returns values for `.fitted`
+#' that are on the transformed scale.
+#' To obtain values on the original, untransformed scale,
+#' set `original_scale` to `TRUE`.
+#'
 #' @inheritParams augment.bage_mod
 #' @param object Object of class `"bage_mod"`,
 #' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
-#'
+#' @param original_scale Whether `.fitted`
+#' is based on the original or transformed 
+#' versions of the outcome and weights variables.
+#' Used only if `object` was
+#' created with [mod_norm()].
+#' Default is `FALSE`.
+#' 
 #' @returns
 #' A [tibble][tibble::tibble-package]
 #' with four columns columns:
@@ -189,8 +205,9 @@ generics::components
 #'   draws from the posterior distribution.
 #'
 #' @seealso
-#' - [augment()] Extract data and values for rates,
-#'   means, or probabilities
+#' - [augment()] Extract values for rates,
+#'   means, or probabilities,
+#'   together with original data
 #' - [tidy()] Extract a one-line summary of a model
 #' - [mod_pois()] Specify a Poisson model
 #' - [mod_binom()] Specify a binomial model
@@ -221,19 +238,31 @@ generics::components
 #' @export
 components.bage_mod <- function(object,
                                 quiet = FALSE,
+                                original_scale = FALSE,
                                 ...) {
   check_old_version(x = object, nm_x = "object")
   check_flag(x = quiet, nm_x = "quiet")
+  check_original_scale_augment(original_scale = original_scale,
+                               mod = x)
   is_fitted <- is_fitted(object)
+  is_norm <- inherits(object, "bage_mod_norm")
+  has_covariates <- has_covariates(object)
   check_has_no_dots(...)
+  if ((is_norm || has_covariates) && !original_scale)
+    cli::cli_alert_info(paste("Values for {.arg .fitted} are on the transformed scale.",
+                              "See the documentation for {.fun components} for details."))
   if (is_fitted)
     ans <- draw_vals_components_fitted(object)
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
     n_draw <- object$n_draw
-    ans <- draw_vals_components_unfitted(mod = object, n_sim = n_draw)
   }
+  ans <- draw_vals_components_unfitted(mod = object,
+                                       n_sim = n_draw)
+  if ((is_norm || has_covariates) && original_scale)
+    components <- rescale_components(components = components,
+                                     mod = object)
   ans <- sort_components(components = ans, mod = object)
   ans
 }
@@ -297,17 +326,18 @@ computations.bage_mod <- function(object) {
 #' Draw '.fitted' and Possibly '.expected' from Fitted Model
 #'
 #' @param mod A fitted object of class 'bage_mod'
+#' @param original_scale Whether '.fitted' should be on original scale.
 #'
 #' @returns A tibble
 #'
 #' @noRd
-draw_vals_augment_fitted <- function(mod) {
+draw_vals_augment_fitted <- function(mod, original_scale) {
   UseMethod("draw_vals_augment_fitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_fitted.bage_mod <- function(mod) {
+draw_vals_augment_fitted.bage_mod <- function(mod, original_scale) {
   outcome <- mod$outcome
   offset <- mod$offset
   seed_augment <- mod$seed_augment
@@ -365,7 +395,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
+draw_vals_augment_fitted.bage_mod_norm <- function(mod, original_scale) {
   outcome <- mod$outcome
   offset <- mod$offset
   datamod_outcome <- mod$datamod_outcome
@@ -373,10 +403,16 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   nm_distn <- nm_distn(mod)
   ans <- mod$data
   linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
-  scale_outcome <- get_fun_scale_outcome(mod)
   if (is_not_testing_or_snapshot())
-      cli::cli_progress_message("Drawing {.var .fitted}...")
-  .fitted <- scale_outcome(linpred)
+    cli::cli_progress_message("Drawing {.var .fitted}...")
+  if (original_scale) {
+    scale_linpred <- get_fun_scale_linpred(mod)
+    offset_mean <- mod$offset_mean
+    .fitted <- scale_linpred(linpred)
+    offset <- offset_mean * offset
+  }
+  else
+    .fitted <- linpred
   ans$.fitted <- .fitted
   outcome_has_na <- anyNA(outcome)
   has_datamod_outcome <- !is.null(datamod_outcome)
@@ -414,13 +450,13 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_augment_unfitted <- function(mod) {
+draw_vals_augment_unfitted <- function(mod, original_scale) {
   UseMethod("draw_vals_augment_unfitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod <- function(mod) {
+draw_vals_augment_unfitted.bage_mod <- function(mod, original_scale) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
@@ -479,7 +515,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
+draw_vals_augment_unfitted.bage_mod_norm <- function(mod, original_scale) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
@@ -489,13 +525,19 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   nm_distn <- nm_distn(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw)
-  scale_outcome <- get_fun_scale_outcome(mod)
   nm_outcome_data <- get_nm_outcome_data(mod)
   vals_linpred <- make_linpred_from_components(mod = mod,
                                                components = vals_components,
                                                data = data,
                                                dimnames_terms = dimnames_terms)
-  vals_fitted <- scale_outcome(vals_linpred)
+  if (original_scale) {
+    scale_linpred <- get_fun_scale_linpred(mod)
+    offset_mean <- mod$offset_mean
+    vals_fitted <- scale_linpred(vals_linpred)
+    offset <- offset_mean * offset
+  }
+  else
+    vals_fitted <- vals_linpred
   is_disp <- vals_components$component == "disp"
   vals_disp <- vals_components$.fitted[is_disp]
   vals_disp <- outcome_sd * vals_disp
@@ -638,13 +680,19 @@ generics::fit
 #' @returns A `bage_mod` object
 #'
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
-#' - [augment()], [components()], [tidy()] Examine
-#'   output from a model
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_binom()] Specify a binomial model
+#' - [mod_norm()] Specify a normal model
+#' - [augment()] Extract values for rates,
+#'   probabilities, or means, together
+#'   with original data
+#' - [components()] Extract values for hyper-parameters
 #' - [forecast()] Forecast, based on a model
 #' - [report_sim()] Simulation study of a model
 #' - [unfit()] Reset a model
 #' - [is_fitted()] Check if a model has been fitted
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #' 
 #' @examples
 #' ## specify model
@@ -728,7 +776,8 @@ generics::forecast
 #'    and `output` is `"augment"`,
 #'    draw values for outcome.
 #'
-#' `vignette("vig2_math")` has the technical details.
+#' [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' describles the process in more detail.
 #'
 #' @section Output:
 #'
@@ -790,8 +839,16 @@ generics::forecast
 #' A [tibble][tibble::tibble-package].
 #'
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] to specify a model
-#' - [bage::fit()] to fit a model
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_binom()] Specify a binomial model
+#' - [mod_norm()] Specify a normal model
+#' - [bage::fit()] Fit a model
+#' - [augment()] Extract values for rates,
+#'   probabilities, or means, together
+#'   with original data
+#' - [components()] Extract values for hyper-parameters
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' ## specify and fit model
@@ -1052,7 +1109,7 @@ forecast_augment.bage_mod_norm <- function(mod,
   nm_outcome_data_true <- paste0(".", nm_outcome_data)
   nm_offset_data <- get_nm_offset_data(mod)
   has_offset_est <- !is.null(nm_offset_data)
-  scale_outcome <- get_fun_scale_outcome(mod)
+  scale_linpred <- get_fun_scale_linpred(mod)
   has_datamod_outcome <- !is.null(datamod_outcome)
   has_imputed_outcome_est <- anyNA(outcome_est)
   blank <- rep(NA_real_, times = nrow(data_forecast))
@@ -1063,7 +1120,7 @@ forecast_augment.bage_mod_norm <- function(mod,
   has_offset_forecast <- !all(is.na(offset_forecast))
   ans <- data_forecast
   ## Derive fitted
-  fitted <- scale_outcome(linpred_forecast)
+  fitted <- scale_linpred(linpred_forecast)
   ans$.fitted <- fitted
   ## Derive outcome and observed. If have data model
   ## or imputed outcomes in historical estimates,
@@ -1188,11 +1245,11 @@ get_fun_inv_transform.bage_mod_binom <- function(mod)
 get_fun_inv_transform.bage_mod_norm <- function(mod) identity
 
 
-## 'get_fun_scale_outcome' ----------------------------------------------------
+## 'get_fun_scale_linpred' ----------------------------------------------------
 
-#' Get function to scale outcome, if necessary
+#' Get Function to Scale Linear Predictor, in Normal Models
 #'
-#' Get function to scale outcome, if necessary.
+#' Get function to scale linear predictor, if necessary.
 #' The scaling consists of multiplying by the sd
 #' of the original outcome, and then adding the
 #' mean. Applied only to the normal model.
@@ -1204,15 +1261,12 @@ get_fun_inv_transform.bage_mod_norm <- function(mod) identity
 #' @returns TRUE or FALSE
 #'
 #' @noRd
-get_fun_scale_outcome <- function(mod) {
-    UseMethod("get_fun_scale_outcome")
+get_fun_scale_linpred <- function(mod) {
+    UseMethod("get_fun_scale_linpred")
 }
 
 #' @export
-get_fun_scale_outcome.bage_mod <- function(mod) identity
-
-#' @export
-get_fun_scale_outcome.bage_mod_norm <- function(mod) {
+get_fun_scale_linpred.bage_mod_norm <- function(mod) {
     mean <- mod$outcome_mean
     sd <- mod$outcome_sd
     function(x) x * sd + mean
@@ -1773,7 +1827,9 @@ nm_distn.bage_mod_norm <- function(mod) "norm"
 #' @returns `x`, invisibly.
 #'
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] Model specification and class
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_binom()] Specify a binomial model
+#' - [mod_norm()] Specify a normal model
 #' - [fit.bage_mod()][fit()] and [is_fitted()] Model fitting
 #' - [priors] Overview of priors for model terms
 #' - [tidy.bage_mod()][tidy()] Number of parameters,
@@ -1983,9 +2039,18 @@ print.bage_mod <- function(x, ...) {
 #' 
 #' 
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] Create model.
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_binom()] Specify a binomial model
+#' - [mod_norm()] Specify a normal model
 #' - [fit()] Fit model.
+#' - [augment()] Extract values for rates,
+#'   probabilities, or means, together
+#'   with original data
+#' - [components()] Extract values for hyper-parameters
+#' - [forecast()] Forecast, based on a model
 #' - [report_sim()] Simulation study of model.
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -2204,8 +2269,9 @@ generics::tidy
 #' @returns A [tibble][tibble::tibble-package]
 #'
 #' @seealso
-#' - [augment()] Extract data, and values for rates,
-#'   probabilities, or means
+#' - [augment()] Extract values for rates,
+#'   probabilities, or means, together
+#'   with original data
 #' - [components()] Extract values for hyper-parameters
 #'
 #' @references `std_dev` is modified from Gelman et al. (2014)

@@ -4,7 +4,7 @@
 \alias{components.bage_mod}
 \title{Extract Values for Hyper-Parameters}
 \usage{
-\method{components}{bage_mod}(object, quiet = FALSE, ...)
+\method{components}{bage_mod}(object, quiet = FALSE, original_scale = FALSE, ...)
 }
 \arguments{
 \item{object}{Object of class \code{"bage_mod"},
@@ -12,6 +12,13 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 
 \item{quiet}{Whether to suppress messages.
+Default is \code{FALSE}.}
+
+\item{original_scale}{Whether \code{.fitted}
+is based on the original or transformed
+versions of the outcome and weights variables.
+Used only if \code{object} was
+created with \code{\link[=mod_norm]{mod_norm()}}.
 Default is \code{FALSE}.}
 
 \item{...}{Unused. Included for generic consistency only.}
@@ -52,6 +59,19 @@ model priors, and by any \code{exposure}, \code{size}, or \code{weights}
 argument in the model, but not by the observed outcomes.
 }
 
+\section{Scaling and Normal models}{
+
+
+Internally, Normal models
+are fitted using transformed versions of the
+outcome and weights variables. (For details,
+see \code{\link[=mod_norm]{mod_norm()}}). By default, when \code{components()}
+is used with a Normal model, it returns values for \code{.fitted}
+that are on the transformed scale.
+To obtain values on the original, untransformed scale,
+set \code{original_scale} to \code{TRUE}.
+}
+
 \examples{
 ## specify model
 mod <- mod_pois(injuries ~ age + sex + year,
@@ -74,8 +94,9 @@ mod |>
 }
 \seealso{
 \itemize{
-\item \code{\link[=augment]{augment()}} Extract data and values for rates,
-means, or probabilities
+\item \code{\link[=augment]{augment()}} Extract values for rates,
+means, or probabilities,
+together with original data
 \item \code{\link[=tidy]{tidy()}} Extract a one-line summary of a model
 \item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
 \item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model

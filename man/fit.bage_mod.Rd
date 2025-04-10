@@ -114,12 +114,18 @@ comp
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a model
-\item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}}, \code{\link[=tidy]{tidy()}} Examine
-output from a model
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
+\item \code{\link[=augment]{augment()}} Extract values for rates,
+probabilities, or means, together
+with original data
+\item \code{\link[=components]{components()}} Extract values for hyper-parameters
 \item \code{\link[=forecast]{forecast()}} Forecast, based on a model
 \item \code{\link[=report_sim]{report_sim()}} Simulation study of a model
 \item \code{\link[=unfit]{unfit()}} Reset a model
 \item \code{\link[=is_fitted]{is_fitted()}} Check if a model has been fitted
+\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+vignette
 }
 }

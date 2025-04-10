@@ -2585,23 +2585,6 @@ test_that("'paste_dot' works with valid inputs", {
 })
 
 
-## 'rescale_lin_intercept' ----------------------------------------------------
-
-test_that("'rescale_lin_intercept' works with valid inputs", {
-  set.seed(0)
-  slope <- rvec::rnorm_rvec(n = 4, n_draw = 10)
-  effect <- rvec::rnorm_rvec(n = 20, n_draw = 10)
-  matrix_along_by <- matrix(0:19, nrow = 5)
-  ans_obtained <- rescale_lin_intercept(slope = slope,
-                                        effect = effect,
-                                        matrix_along_by = matrix_along_by)
-  ans_expected <- slope
-  for (i in 1:4)
-    ans_expected[i] <- mean(effect[1:5 + (i - 1) * 5]) - mean(slope[i] * (1:5))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
 ## 'make_transforms_hyper' ----------------------------------------------------
 
 test_that("'make_transforms_hyper' works", {
