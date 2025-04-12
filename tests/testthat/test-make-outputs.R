@@ -285,58 +285,6 @@ test_that("'get_disp' works - fitted", {
 })  
 
 
-## 'insert_after' -------------------------------------------------------
-
-test_that("'insert_after' works with data frames", {
-  df <- data.frame(x = 1:3, y = 3:1)
-  x <- 11:13
-  nm_x = "new"
-  ans_obtained <- insert_after(df = df,
-                               nm_after = "x",
-                               x = x,
-                               nm_x = nm_x)
-  ans_expected <- data.frame(x = 1:3, new = 11:13, y = 3:1)
-  expect_identical(ans_obtained, ans_expected)
-  ans_obtained <- insert_after(df = df,
-                               nm_after = "y",
-                               x = x,
-                               nm_x = nm_x)
-  ans_expected <- data.frame(x = 1:3, y = 3:1, new = 11:13)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'insert_after' works with tibbles", {
-  df <- tibble::tibble(x = 1:3, y = 3:1)
-  x <- 11:13
-  nm_x = "new"
-  ans_obtained <- insert_after(df = df,
-                               nm_after = "x",
-                               x = x,
-                               nm_x = nm_x)
-  ans_expected <- tibble(x = 1:3, new = 11:13, y = 3:1)
-  expect_identical(ans_obtained, ans_expected)
-  ans_obtained <- insert_after(df = df,
-                               nm_after = "y",
-                               x = x,
-                               nm_x = nm_x)
-  ans_expected <- tibble(x = 1:3, y = 3:1, new = 11:13)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'is_same_class' ------------------------------------------------------------
-
-test_that("'is_same_class' returns TRUE when classes same", {
-    expect_true(is_same_class(AR1(), AR1()))
-    expect_true(is_same_class(1L, 2L))
-})
-
-test_that("'is_same_class' returns FALSE when classes different", {
-    expect_false(is_same_class(AR1(), N()))
-    expect_false(is_same_class(1L, FALSE))
-})
-
-
 ## 'make_combined_matrix_effect_outcome' -----------------------------------------
 
 test_that("'make_combined_matrix_effect_outcome' works with valid inputs", {
@@ -898,6 +846,90 @@ test_that("'fit_inner_outer' throws error when 'start_oldpar' is TRUE", {
                "`start_oldpar` must be FALSE when using \"inner-outer\" method.")
 })
 
+
+## 'infer_trend_cyc_seas_err_forecast' --------------------------------------------
+
+test_that("'infer_trend_cyc_seas_err_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_prior(time ~ RW2()) |>
+    set_prior(sex:time ~ Lin()) |>
+    fit()
+  mod <- set_n_draw(mod, 5)
+  mod <- fit(mod)
+  comp_est <- components(mod)
+  comp_forecast <- forecast(mod, labels = 2006:2007, output = "components")
+  dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                          var_time = mod$var_time,
+                                                          labels_forecast = 2006:2007,
+                                                          time_only = TRUE)
+  ans_obtained <- infer_trend_cyc_seas_err_forecast(components = comp_forecast,
+                                                    priors = mod$priors,
+                                                    dimnames_terms = dimnames_terms_forecast,
+                                                    var_time = mod$var_time,
+                                                    var_age = mod$var_age)
+  expect_equal(ans_obtained[1:3], comp_forecast[1:3])
+})
+
+
+## 'infer_trend_cyc_seas_err_seasfix_forecast' --------------------------------
+
+test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3)) |>
+                  set_n_draw(n = 10) |>
+                  fit()
+  components <- components(mod)
+  ans <- infer_trend_cyc_seas_err_seasfix_forecast(prior = mod$priors[["sex:time"]],
+                                                   dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                                   var_time = mod$var_time,
+                                                   var_age = mod$var_age,
+                                                   components = components)
+  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
+  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
+  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
+  expect_equal(effect, season + trend)
+})
+
+
+## 'infer_trend_cyc_seas_err_seasvary_forecast' -------------------------------
+
+test_that("'infer_trend_cyc_seas_err_seasvary_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3, s = 1)) |>
+                  set_n_draw(n = 10) |>
+                  fit()
+  components <- components(mod)
+  ans <- infer_trend_cyc_seas_err_seasvary_forecast(prior = mod$priors[["sex:time"]],
+                                                    dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                                    var_time = mod$var_time,
+                                                    var_age = mod$var_age,
+                                                    components = components)
+  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
+  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
+  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
+  expect_equal(effect, season + trend)
+})
 
 
 ## 'make_along_mod' -----------------------------------------------------------
@@ -1669,8 +1701,6 @@ test_that("'make_levels_svd_term' works - indep, age:time:reg, con is 'by'", {
 })
 
 
-
-
 ## 'make_lin_trend' -----------------------------------------------------------
 
 test_that("'make_lin_trend' works with valid inputs - n_by = 1", {
@@ -1814,7 +1844,6 @@ test_that("'make_stored_point' works with valid inputs - with covariates", {
   expect_identical(ans$point_disp, exp(est$log_disp))
   expect_identical(ans$point_coef_covariates, est$coef_covariates)
 })
-
 
 
 ## 'make_par_disp' ------------------------------------------------------------
@@ -2249,27 +2278,6 @@ test_that("'make_point_est_effects' throws correct error when not fitted", {
 })
 
 
-## 'make_scaled_eigen' --------------------------------------------------------
-
-## See also tests for rvnorm_eigen
-
-test_that("'make_scaled_eigen' works with positive definite matrix", {
-    set.seed(0)
-    prec <- solve(crossprod(matrix(rnorm(25), 5)))
-    ans <- make_scaled_eigen(prec)
-    expect_identical(dim(ans), dim(prec))
-})
-
-test_that("'make_scaled_eigen' works with non-negative definite matrix", {
-    set.seed(0)
-    prec <- solve(crossprod(matrix(rnorm(25), 5)))
-    prec[5,] <- 0
-    prec[,5] <- 0
-    ans <- make_scaled_eigen(prec)
-    expect_identical(dim(ans), dim(prec))
-})
-
-
 ## 'make_spline' --------------------------------------------------------------
 
 test_that("'make_spline' works", {
@@ -2578,13 +2586,6 @@ test_that("'make_unconstr_dimnames_by' works", {
 })
 
 
-## 'paste_dot' ----------------------------------------------------------------
-
-test_that("'paste_dot' works with valid inputs", {
-  expect_identical(paste_dot(1:3, 3:1), c("1.3", "2.2", "3.1"))
-})
-
-
 ## 'make_transforms_hyper' ----------------------------------------------------
 
 test_that("'make_transforms_hyper' works", {
@@ -2604,120 +2605,51 @@ test_that("'make_transforms_hyper' works", {
 })
 
 
-## 'infer_trend_cyc_seas_err_forecast' --------------------------------------------
+## 'rescale_components' -------------------------------------------------------
 
-test_that("'infer_trend_cyc_seas_err_forecast' works", {
+test_that("'rescale_components' works", {
   set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2011,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$wt <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
+  formula <- income ~ age * sex + region * time
+  mod <- mod_norm(formula = formula,
                   data = data,
-                  exposure = popn) |>
-    set_prior(time ~ RW2()) |>
-    set_prior(sex:time ~ Lin()) |>
+                  weights = wt) |>
+    set_prior(time ~ Lin_AR1()) |>
+    set_prior(region:time ~ RW_Seas(n = 2)) |>
+    set_n_draw(n = 4) |>
     fit()
-  mod <- set_n_draw(mod, 5)
-  mod <- fit(mod)
-  comp_est <- components(mod)
-  comp_forecast <- forecast(mod, labels = 2006:2007, output = "components")
-  dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
-                                                          var_time = mod$var_time,
-                                                          labels_forecast = 2006:2007,
-                                                          time_only = TRUE)
-  ans_obtained <- infer_trend_cyc_seas_err_forecast(components = comp_forecast,
-                                                    priors = mod$priors,
-                                                    dimnames_terms = dimnames_terms_forecast,
-                                                    var_time = mod$var_time,
-                                                    var_age = mod$var_age)
-  expect_equal(ans_obtained[1:3], comp_forecast[1:3])
+  components <- components(mod, quiet = TRUE)
+  ans_obtained <- rescale_components(components = components,
+                                     mod = mod)
+  ans_expected <- components
+  ans_expected$.fitted[[1]] <- ans_expected$.fitted[[1]] * sd(data$income) + mean(data$income)
+  is_not_hyp_int <- ans_expected$component != "hyper" & ans_expected$level != "(Intercept)"
+  ans_expected$.fitted[is_not_hyp_int] <- ans_expected$.fitted[is_not_hyp_int] * sd(data$income)
+  expect_equal(ans_obtained, ans_expected)
 })
 
-
-## 'infer_trend_cyc_seas_err_seasfix_forecast' --------------------------------
-
-test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
+test_that("'rescale_components' raises correct error if mod not normal", {
   set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2011,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$wt <- rpois(n = nrow(data), lambda = 10)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age * sex + region * time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n = 3)) |>
-                  set_n_draw(n = 10) |>
-                  fit()
-  components <- components(mod)
-  ans <- infer_trend_cyc_seas_err_seasfix_forecast(prior = mod$priors[["sex:time"]],
-                                                   dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                                   var_time = mod$var_time,
-                                                   var_age = mod$var_age,
-                                                   components = components)
-  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
-  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
-  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
-  expect_equal(effect, season + trend)
-})
-
-
-## 'infer_trend_cyc_seas_err_seasvary_forecast' -------------------------------
-
-test_that("'infer_trend_cyc_seas_err_seasvary_forecast' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n = 3, s = 1)) |>
-                  set_n_draw(n = 10) |>
-                  fit()
-  components <- components(mod)
-  ans <- infer_trend_cyc_seas_err_seasvary_forecast(prior = mod$priors[["sex:time"]],
-                                                    dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                                    var_time = mod$var_time,
-                                                    var_age = mod$var_age,
-                                                    components = components)
-  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
-  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
-  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
-  expect_equal(effect, season + trend)
-})
-
-
-## 'rvec_to_mean' -------------------------------------------------------------
-
-test_that("'rvec_to_mean' works with valid inputs", {
-  data <- tibble::tibble(a = 1:3,
-                         b = rvec::rvec(matrix(1:12, nr = 3)),
-                         c = rvec::rvec(matrix(FALSE, nr = 3, nc = 2)),
-                         d = c("a", "b", "c"))
-  ans_obtained <- rvec_to_mean(data)
-  ans_expected <- tibble::tibble(a = 1:3,
-                         b = rowMeans(matrix(1:12, nr = 3)),
-                         c = rowMeans(matrix(FALSE, nr = 3, nc = 2)),
-                         d = c("a", "b", "c"))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'rmvnorm_chol', 'rmvnorm_eigen' --------------------------------------------
-
-test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
-    set.seed(0)
-    prec <- crossprod(matrix(rnorm(25), 5))
-    mean <- rnorm(5)
-    R_prec <- chol(prec)
-    scaled_eigen <- make_scaled_eigen(prec)
-    ans_chol <- rmvnorm_chol(n = 100000, mean = mean, R_prec = R_prec)
-    ans_eigen <- rmvnorm_eigen(n = 100000, mean = mean, scaled_eigen = scaled_eigen)
-    expect_equal(rowMeans(ans_chol), rowMeans(ans_eigen), tolerance = 0.02)
-    expect_equal(cov(t(ans_chol)), cov(t(ans_eigen)), tolerance = 0.02)
-})
+                  exposure = wt)
+  components <- components(mod, quiet = TRUE)
+  expect_error(rescale_components(components = components,
+                                  mod = mod),
+               "Internal error: `mod` has class")
+})  
 
 
 ## 'sort_components' ----------------------------------------------------------

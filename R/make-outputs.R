@@ -457,55 +457,102 @@ get_term_from_est <- function(est, index_term) {
 
 
 ## HAS_TESTS
-#' Insert a Into a Data Frame
+#' Reformat Parts of Forecasted 'components' Data Frame Dealing with
+#' Hyper-Parameters that are Treated as Random Effects
 #'
-#' Insert a variable into a dataframe, immediately
-#' after another variable.
+#' @param components_forecast A data frame with forecasted
+#' (time-varying) parameters
+#' @param components A data frame with estimated
+#' (time-varying and non-time-varying) parameters
+#' @param priors List of objects of class 'bage_prior'.
+#' @param dimnames_terms Dimnames for array representations of terms
+#' being forecast
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
 #'
-#' Currently assumes that not inserting
-#' at start of 'df'.
-#'
-#' @param df A data frame (including a tibble)
-#' @param nm_after Name of the variable that the
-#' 'x' should come after
-#' @param x New variable
-#' @param nm_x Name of new variable
-#'
-#' @returns A modified version of 'df'
+#' @returns A modified version of 'components'
 #'
 #' @noRd
-insert_after <- function(df, nm_after, x, nm_x) {
-  nms_df <- names(df)
-  n_df <- length(nms_df)
-  i_after <- match(nm_after, names(df))
-  if (i_after < n_df) {
-    s_before <- seq_len(i_after)
-    s_after <- seq.int(from = i_after + 1L, to = n_df)
-    ans <- vctrs::vec_cbind(df[s_before],
-                            x,
-                            df[s_after],
-                            .name_repair = "universal_quiet")
+infer_trend_cyc_seas_err_forecast <- function(components,
+                                              priors,
+                                              dimnames_terms,
+                                              var_time,
+                                              var_age) {
+  nms <- names(dimnames_terms)
+  for (nm in nms) {
+    prior <- priors[[nm]]
+    dimnames_term <- dimnames_terms[[nm]]
+    components <- infer_trend_cyc_seas_err_forecast_one(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age,
+                                                        components = components)
   }
-  else {
-    ans <- vctrs::vec_cbind(df,
-                            x,
-                            .name_repair = "universal_quiet")
-  }
-  names(ans)[[i_after + 1L]] <- nm_x
-  ans
+  components
 }
-  
+
 
 ## HAS_TESTS
-#' Test Whether Two Objects Have the Same Class
+#' Derive 'Components' Output for Terms with Fixed Seasonal Effect
+#' - Forecasts
 #'
-#' @param x,y Objects
+#' Derive 'seasonal' from 'effect' and 'trend'
 #'
-#' @returns TRUE or FALSE
+#' @param prior Object of class 'bage_prior'.
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param components A data frame.
+#'
+#' @returns A modifed version of 'components'
 #'
 #' @noRd
-is_same_class <- function(x, y)
-  identical(class(x)[[1L]], class(y)[[1L]])
+infer_trend_cyc_seas_err_seasfix_forecast <- function(prior,
+                                                      dimnames_term,
+                                                      var_time,
+                                                      var_age,
+                                                      components) {
+  nm <- dimnames_to_nm(dimnames_term)
+  is_season <- with(components, (term == nm) & (component == "season"))
+  is_trend <- with(components, (term == nm) & (component == "trend"))
+  is_effect <- with(components, (term == nm) & (component == "effect"))
+  trend <- components$.fitted[is_trend]
+  effect <- components$.fitted[is_effect]
+  season <- effect - trend
+  components$.fitted[is_season] <- season
+  components
+}
+
+
+## HAS_TESTS
+#' Derive 'Components' Output for Terms with Varying Seasonal Effect - Forecasts
+#'
+#' Derive 'seasonal' from 'effect' and 'trend'
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param components A data frame.
+#'
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+infer_trend_cyc_seas_err_seasvary_forecast <- function(prior,
+                                                       dimnames_term,
+                                                       var_time,
+                                                       var_age,
+                                                       components) {
+  nm <- dimnames_to_nm(dimnames_term)
+  is_trend <- with(components, (term == nm) & (component == "trend"))
+  is_season <- with(components, (term == nm) & (component == "season"))
+  is_effect <- with(components, (term == nm) & (component == "effect"))
+  trend <- components$.fitted[is_trend]
+  effect <- components$.fitted[is_effect]
+  season <- effect - trend
+  components$.fitted[is_season] <- season
+  components
+}
 
 
 ## HAS_TESTS
@@ -644,8 +691,8 @@ make_comp_components <- function(mod) {
 make_comp_covariates <- function(mod) {
   if (!has_covariates(mod))
     return(character())
-  nms_covariates <- mod$nms_covariates
-  n_covariates <- length(nms_covariates)
+  covariates_nms <- mod$covariates_nms
+  n_covariates <- length(covariates_nms)
   rep("coef", times = n_covariates)
 }
 
@@ -919,6 +966,7 @@ make_draws_post <- function(est, prec, map, n_draw) {
 }
 
 
+## HAS_TESTS
 #' Make Values for Hyperrand
 #'
 #' Includes converting from unconstrained to constrained where necessary
@@ -1381,8 +1429,8 @@ make_level_components <- function(mod) {
 make_level_covariates <- function(mod) {
   if (!has_covariates(mod))
     return(character())
-  nms_covariates <- mod$nms_covariates
-  nms_covariates
+  covariates_nms <- mod$covariates_nms
+  covariates_nms
 }
 
 
@@ -1612,6 +1660,7 @@ make_lin_trend <- function(slope,
 }
 
 
+## HAS_TESTS
 #' Make Linear Predictor from Components
 #'
 #' @param mod Object of class 'bage_mod'
@@ -1646,8 +1695,8 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
   }
   if (has_covariates(mod)) {
     formula_covariates <- mod$formula_covariates
-    nms_covariates <- mod$nms_covariates
-    key_covariates <- paste("covariates", "coef", nms_covariates)
+    covariates_nms <- mod$covariates_nms
+    key_covariates <- paste("covariates", "coef", covariates_nms)
     indices_covariates <- match(key_covariates, key_comp)
     coef_covariates <- fitted[indices_covariates]
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
@@ -1657,7 +1706,6 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
   }
   ans
 }
-
 
 
 ## HAS_TESTS
@@ -1690,6 +1738,7 @@ make_linpred_from_stored_draws <- function(mod, point) {
 }
 
 
+## HAS_TESTS
 #' Calculate the Contribution of Covariates to the Linear Predictor
 #'
 #' @param mod Object of class "bage_mod"
@@ -1755,32 +1804,6 @@ make_point_est_effects <- function(mod) {
 
 
 ## HAS_TESTS
-#' Use a precision matrix to construct scaled eigen vectors
-#'
-#' The scaled eigen vectors can be used to draw from a
-#' multivariate normal distribution with the given
-#' pecision matrix.
-#'
-#' @param prec A symmetric positive definite matrix.
-#'
-#' @returns A matrix with the same dimensions as 'prec'
-#'
-#' @noRd
-make_scaled_eigen <- function(prec) {
-    tolerance <- 1e-6
-    eigen <- eigen(prec, symmetric = TRUE)
-    vals <- eigen$values
-    vecs <- eigen$vectors
-    min_valid_val <- -tolerance * abs(vals[[1L]]) ## based on MASS::mvrnorm
-    if (any(vals < min_valid_val))
-        cli::cli_abort("Estimated precision matrix not positive definite.")  ## nocov
-    vals <- pmax(vals, abs(min_valid_val))
-    sqrt_inv_vals <- sqrt(1 / vals)
-    vecs %*% diag(sqrt_inv_vals)
-}
-
-
-## HAS_TESTS
 #' Extract Posterior Draws for Free Parameters used in Spline Priors
 #'
 #' @param mod Fitted object of class 'bage_mod'
@@ -1815,6 +1838,7 @@ make_spline <- function(mod, effectfree) {
 }
 
 
+## HAS_TESTS
 #' Extract Posterior Draws for Free Parameters used in SVD Priors
 #'
 #' Where necessary, append zeros to start of time dimension.
@@ -1951,45 +1975,40 @@ make_unconstr_dimnames_by <- function(i_along, dimnames_term) {
 }
 
 
-#' Paste Two Vectors Separated by a Dot
+## HAS_TESTS
+#' Put Some Elements from 'components' on to
+#' Scale of Inputs
 #'
-#' @param x A vector
-#' @param y A vector
+#' Only used if 'mod' is 'bage_mod_norm'.
+#' Put "effect", "trend", "season", "error", and "disp"
+#' on to scale of inputs.
 #'
-#' @returns A character vector
+#' @param components A tibble
+#' @param mod Object of class 'bage_mod_norm'
 #'
-#' @noRd
-paste_dot <- function(x, y) paste(x, y, sep = ".")
-
-
-
-#' Given Estimates of Effect and Slope, Rescale Intercept for Lines
-#'
-#' @param slope Rvec of length n_by holding slope estimates
-#' @param effect Rvec holding estimates for effect
-#' @param matrix_along_by Mapping matrix
-#'
-#' @returns An rvec of length 'n_by'
+#' @returns A modified version of 'components'
 #'
 #' @noRd
 rescale_components <- function(components, mod) {
-  ## is_norm <- inherits(object, "bage_mod_norm")
-  ## has_covariates <- has_covariates(object)
-  ## if (is_norm) {
-    
-  ##   is_intercept <- components$term == "(Intercept)"
-    
-  ## is_norm <- inherits(mod, "bage_mod_norm")
-  ## n_along <- nrow(matrix_along_by)
-  ## n_by <- ncol(matrix_along_by)
-  ## ans <- slope
-  ## for (i_by in seq_len(n_by)) {
-  ##   i_along <- matrix_along_by[, i_by] + 1L
-  ##   mean_effect <- mean(effect[i_along])
-  ##   mean_incr <- 0.5 * (1 + n_along) * slope[[i_by]]
-  ##   ans[[i_by]] <- mean_effect - mean_incr
-  ## }
-  ## ans
+  comp_rescale <- c("effect",
+                    "trend",
+                    "season",
+                    "error",
+                    "disp")
+  is_norm <- inherits(mod, "bage_mod_norm")
+  if (!is_norm)
+    cli::cli_abort("Internal error: {.arg mod} has class {.cls {class(mod)}}.")
+  mean <- mod$outcome_mean
+  sd <- mod$outcome_sd
+  is_intercept <- components$term == "(Intercept)"
+  is_rescale <- (components$component %in% comp_rescale) & !is_intercept
+  intercept <- components$.fitted[is_intercept]
+  rescale <- components$.fitted[is_rescale]
+  intercept <- sd * intercept + mean
+  rescale <- sd * rescale
+  components$.fitted[is_intercept] <- intercept
+  components$.fitted[is_rescale] <- rescale
+  components
 }
 
 
@@ -2112,8 +2131,8 @@ make_term_components <- function(mod) {
 make_term_covariates <- function(mod) {
   if (!has_covariates(mod))
     return(character())
-  nms_covariates <- mod$nms_covariates
-  n_covariates <- length(nms_covariates)
+  covariates_nms <- mod$covariates_nms
+  n_covariates <- length(covariates_nms)
   rep.int("covariates", times = n_covariates)
 }
 
@@ -2136,160 +2155,6 @@ make_transforms_hyper <- function(mod) {
   ans <- lapply(priors, transform_hyper)
   ans <- unlist(ans, recursive = FALSE)
   ans
-}
-
-
-## HAS_TESTS
-#' Reformat Parts of Forecasted 'components' Data Frame Dealing with
-#' Hyper-Parameters that are Treated as Random Effects
-#'
-#' @param components_forecast A data frame with forecasted
-#' (time-varying) parameters
-#' @param components A data frame with estimated
-#' (time-varying and non-time-varying) parameters
-#' @param priors List of objects of class 'bage_prior'.
-#' @param dimnames_terms Dimnames for array representations of terms
-#' being forecast
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#'
-#' @returns A modified version of 'components'
-#'
-#' @noRd
-infer_trend_cyc_seas_err_forecast <- function(components,
-                                              priors,
-                                              dimnames_terms,
-                                              var_time,
-                                              var_age) {
-  nms <- names(dimnames_terms)
-  for (nm in nms) {
-    prior <- priors[[nm]]
-    dimnames_term <- dimnames_terms[[nm]]
-    components <- infer_trend_cyc_seas_err_forecast_one(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age,
-                                                        components = components)
-  }
-  components
-}
-
-
-## HAS_TESTS
-#' Derive 'Components' Output for Terms with Fixed Seasonal Effect
-#' - Forecasts
-#'
-#' Derive 'seasonal' from 'effect' and 'trend'
-#'
-#' @param prior Object of class 'bage_prior'.
-#' @param dimnames_term Dimnames for array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param components A data frame.
-#'
-#' @returns A modifed version of 'components'
-#'
-#' @noRd
-infer_trend_cyc_seas_err_seasfix_forecast <- function(prior,
-                                                      dimnames_term,
-                                                      var_time,
-                                                      var_age,
-                                                      components) {
-  nm <- dimnames_to_nm(dimnames_term)
-  is_season <- with(components, (term == nm) & (component == "season"))
-  is_trend <- with(components, (term == nm) & (component == "trend"))
-  is_effect <- with(components, (term == nm) & (component == "effect"))
-  trend <- components$.fitted[is_trend]
-  effect <- components$.fitted[is_effect]
-  season <- effect - trend
-  components$.fitted[is_season] <- season
-  components
-}
-
-
-## HAS_TESTS
-#' Derive 'Components' Output for Terms with Varying Seasonal Effect - Forecasts
-#'
-#' Derive 'seasonal' from 'effect' and 'trend'
-#'
-#' @param prior Object of class 'bage_prior'.
-#' @param dimnames_term Dimnames for array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param components A data frame.
-#'
-#' @returns A modifed version of 'components'
-#'
-#' @noRd
-infer_trend_cyc_seas_err_seasvary_forecast <- function(prior,
-                                                       dimnames_term,
-                                                       var_time,
-                                                       var_age,
-                                                       components) {
-  nm <- dimnames_to_nm(dimnames_term)
-  is_trend <- with(components, (term == nm) & (component == "trend"))
-  is_season <- with(components, (term == nm) & (component == "season"))
-  is_effect <- with(components, (term == nm) & (component == "effect"))
-  trend <- components$.fitted[is_trend]
-  effect <- components$.fitted[is_effect]
-  season <- effect - trend
-  components$.fitted[is_season] <- season
-  components
-}
-
-
-## HAS_TESTS
-#' Draw from multivariate normal, using results
-#' from a Cholesky decomposition
-#'
-#' @param n Number of draws
-#' @param mean Mean of distribution
-#' @param R_prec Cholesky decomposition of precision matrix
-#'
-#' @returns A matrix, with each columns being one draw
-#'
-#' @noRd
-rmvnorm_chol <- function(n, mean, R_prec) {
-    n_val <- length(mean)
-    Z <- matrix(stats::rnorm(n = n_val * n),
-                nrow = n_val,
-                ncol = n)
-    mean + backsolve(R_prec, Z)
-}
-
-
-## HAS_TESTS
-#' Draw from multivariate normal, using results
-#' from an eigen decomposition
-#'
-#' @param n Number of draws
-#' @param mean Mean of distribution
-#' @param scaled_eigen Matrix of scaled eigenvalues
-#'
-#' @returns A matrix, with each columns being one draw
-#'
-#' @noRd
-rmvnorm_eigen <- function(n, mean, scaled_eigen) {
-    n_val <- length(mean)
-    Z <- matrix(stats::rnorm(n = n_val * n),
-                nrow = n_val,
-                ncol = n)
-    mean + scaled_eigen %*% Z
-}
-
-
-## HAS_TESTS
-#' Convert Rvec Columns to Numeric Columns by Taking Means
-#'
-#' @param data A data frame
-#'
-#' @return A data frame
-#'
-#' @noRd
-rvec_to_mean <- function(data) {
-  is_rvec <- vapply(data, rvec::is_rvec, TRUE)
-  data[is_rvec] <- lapply(data[is_rvec], rvec::draws_mean)
-  data
 }
 
 

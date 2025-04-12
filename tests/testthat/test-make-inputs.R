@@ -1188,60 +1188,64 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 ## 'make_matrix_covariates' ---------------------------------------------------
 
 test_that("'make_matrix_covariates' works with valid inputs - all numeric", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9,
-                        region = c("a", "b"),
-                        sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    data$income <- runif(n = nrow(data))
-    data$distance <- runif(n = nrow(data))
-    formula <- ~ income + distance
-    ans_obtained <- make_matrix_covariates(formula = formula, data = data)
-    data_scaled <- data
-    data_scaled$income <- scale(data_scaled$income)
-    data_scaled$distance <- scale(data_scaled$distance)
-    ans_expected <- model.matrix(~income + distance - 1, data = data_scaled)
-    rownames(ans_expected) <- NULL
-    attributes(ans_expected)$assign <- NULL
-    rownames(ans_expected) <- NULL
-    expect_identical(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- runif(n = nrow(data))
+  data$distance <- runif(n = nrow(data))
+  formula <- ~ income + distance
+  ans_obtained <- make_matrix_covariates(formula = formula, data = data)
+  ans_expected <- model.matrix(~income + distance - 1, data = data)
+  ans_expected[,"income"] <- scale(ans_expected[,"income"])
+  ans_expected[,"distance"] <- scale(ans_expected[,"distance"])
+  rownames(ans_expected) <- NULL
+  attributes(ans_expected)$assign <- NULL
+  rownames(ans_expected) <- NULL
+  expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_covariates' works with valid inputs - not all numeric - has intercept", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9,
-                        region = c("a", "b"),
-                        sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    data$income <- runif(n = nrow(data))
-    formula <- ~ income * region
-    ans_obtained <- make_matrix_covariates(formula = formula, data = data)
-    data_scaled <- data
-    data_scaled$income <- scale(data_scaled$income)
-    ans_expected <- model.matrix(~income*region, data = data_scaled)[,-1]
-    rownames(ans_expected) <- NULL
-    expect_identical(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- runif(n = nrow(data))
+  formula <- ~ income * region
+  ans_obtained <- make_matrix_covariates(formula = formula, data = data)
+  data_scaled <- data
+  data_scaled$income <- as.numeric(scale(data_scaled$income))
+  ans_expected <- model.matrix(~income*region, data = data_scaled)[,-1]
+  for (i in seq_len(ncol(ans_expected)))
+    ans_expected[,i] <- as.numeric(scale(ans_expected[,i]))
+  attr(ans_expected, "assign") <- NULL
+  rownames(ans_expected) <- NULL
+  expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_covariates' works with valid inputs - not all numeric - no intercept", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9,
-                        region = c("a", "b"),
-                        sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    data$income <- runif(n = nrow(data))
-    formula <- ~ income * region - 1
-    ans_obtained <- make_matrix_covariates(formula = formula, data = data)
-    data_scaled <- data
-    data_scaled$income <- scale(data_scaled$income)
-    ans_expected <- model.matrix(~income*region, data = data_scaled)[,-1]
-    rownames(ans_expected) <- NULL
-    expect_identical(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- runif(n = nrow(data))
+  formula <- ~ income * region - 1
+  ans_obtained <- make_matrix_covariates(formula = formula, data = data)
+  data_scaled <- data
+  data_scaled$income <- as.numeric(scale(data_scaled$income))
+  ans_expected <- model.matrix(~income*region, data = data_scaled)[,-1]
+  for (i in seq_len(ncol(ans_expected)))
+    ans_expected[,i] <- as.numeric(scale(ans_expected[,i]))
+  attr(ans_expected, "assign") <- NULL
+  rownames(ans_expected) <- NULL
+  expect_identical(ans_obtained, ans_expected)
 })
-
 
 
 ## 'make_offset' --------------------------------------------------------------
@@ -1470,10 +1474,11 @@ test_that("'make_outcome_offset_matrices' works with model with categorical cova
                                                                               mod$dimnames_terms),
                        matrix_covariates = cbind(time2 = rep(c(0L, 1L, 0L), times = 40),
                                                  time3 = rep(c(0L, 0L, 1L), times = 40)))
+  ans_expected$matrix_covariates <- scale(ans_expected$matrix_covariates)
+  attr(ans_expected$matrix_covariates, "scaled:center") <- NULL
+  attr(ans_expected$matrix_covariates, "scaled:scale") <- NULL
   expect_equal(ans_obtained, ans_expected)
 })
-
-
 
 
 ## 'make_prior_class' ---------------------------------------------------------

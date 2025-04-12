@@ -1,98 +1,6 @@
 
 ## User-visible functions that look like methods, but technically are not
 
-
-## 'set_seeds' --------------------------------------------------------------
-
-## HAS_TESTS
-#' Reset Random Seeds in Model Object
-#'
-#' Reset random seeds stored in a model object.
-#' When `new_seeds` is `NULL` (the default),
-#' the new seeds are generated randomly; otherwise
-#' they are taken from `new_seeds`.
-#'
-#' When an object of class `"bage_mod"` is first created,
-#' values are generated four four random seeds:
-#'
-#' - `seed_components`
-#' - `seed_augment`
-#' - `seed_forecast_components`
-#' - `seed_forecast_augment`
-#'
-#' When [fit()], [components()], [augment()],
-#' and [forecast()] are called on the model object,
-#' the seeds are used internally to ensure that
-#' he same inputs generate the same outputs, even
-#' when the outputs involve random draws.
-#'
-#' End users are unlikely to call `set_seeds()` in
-#' a data analysis, though it may occasionally by useful
-#' when building a simulation from scratch.
-#'
-#' @param mod An object of class `"bage_mod"`,
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param new_seeds `NULL` (the default) or a list
-#' of integers with names `"seed_components"`
-#' `"seed_augment"`, `"seed_forecast_components"`,
-#' and `"seed_forecast_augment"`.
-#'
-#' @returns A modified version of `mod`.
-#'
-#' @seealso
-#' - [report_sim()] Do a simulation study. (`report_sim()`
-#'   calls `set_seeds()` internally.)
-#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
-#' - [fit()] Fit a model
-#' - [unfit()] Reset model, deleting estimates
-#'
-#' @examples
-#' ## fit model
-#' mod <- mod_pois(injuries ~ age,
-#'                 data = nzl_injuries,
-#'                 exposure = popn) |>
-#'   fit()
-#'
-#' ## call 'components()'
-#' components(mod)
-#'
-#' ## call 'components()' again - same results
-#' components(mod)
-#'
-#' ## reset seeds
-#' mod <- set_seeds(mod)
-#'
-#' ## calling 'set_seeds' unfits the model
-#' is_fitted(mod)
-#'
-#' ## so we fit it again
-#' mod <- fit(mod)
-#'
-#' ## when we call components, we get
-#' ## different results from earlier
-#' components(mod)
-#' @export
-set_seeds <- function(mod, new_seeds = NULL) {
-  check_bage_mod(x = mod, nm_x = "mod")
-  if (is.null(new_seeds)) {
-    mod$seed_components <- make_seed()
-    mod$seed_augment <- make_seed()
-    mod$seed_forecast_components <- make_seed()
-    mod$seed_forecast_augment <- make_seed()
-  }
-  else {
-    check_new_seeds(new_seeds)
-    mod$seed_components <- new_seeds$seed_components
-    mod$seed_augment <- new_seeds$seed_augment
-    mod$seed_forecast_components <- new_seeds$seed_forecast_components
-    mod$seed_forecast_augment <- new_seeds$seed_forecast_augment
-  }
-  mod <- unfit(mod)
-  mod
-}
-
-
 ## 'set_covariates' -----------------------------------------------------------
 
 ## HAS_TESTS
@@ -109,10 +17,10 @@ set_seeds <- function(mod, new_seeds = NULL) {
 #'
 #' `set_covariates()` processes the covariate data before
 #' adding it to the model:
-#' - **numerical** variables are standardized, using
+#' - All numeric variables are standardized, using
 #'   `x <- scale(x)`.
-#' - **categorical** variables are converted to sets of indicator
-#'   variables, using 'treatment' contrasts ([stats::contr.treatment()]).
+#' - Categorical variables are converted to sets of indicator
+#'   variables, using [treatment][stats::contr.treatment()] contrasts.
 #'   For instance, variable `x` with categories `"high"`, `"medium"`, and `"low"`,
 #'   is converted into two indicator variables, one called `xmedium` and one
 #'   called `xlow`.
@@ -161,9 +69,9 @@ set_covariates <- function(mod, formula) {
   formula_mod <- mod$formula
   matrix_covariates <- make_matrix_covariates(formula = formula,
                                               data = data)
-  nms_covariates <- colnames(matrix_covariates)
+  covariates_nms <- colnames(matrix_covariates)
   mod$formula_covariates <- formula
-  mod$nms_covariates <- nms_covariates
+  mod$covariates_nms <- covariates_nms
   mod <- unfit(mod)
   mod
 }
@@ -433,6 +341,97 @@ set_prior <- function(mod, formula) {
                        var_age = var_age,
                        var_sexgender = var_sexgender)
   mod$priors[[i]] <- prior
+  mod <- unfit(mod)
+  mod
+}
+
+
+## 'set_seeds' --------------------------------------------------------------
+
+## HAS_TESTS
+#' Reset Random Seeds in Model Object
+#'
+#' Reset random seeds stored in a model object.
+#' When `new_seeds` is `NULL` (the default),
+#' the new seeds are generated randomly; otherwise
+#' they are taken from `new_seeds`.
+#'
+#' When an object of class `"bage_mod"` is first created,
+#' values are generated four four random seeds:
+#'
+#' - `seed_components`
+#' - `seed_augment`
+#' - `seed_forecast_components`
+#' - `seed_forecast_augment`
+#'
+#' When [fit()], [components()], [augment()],
+#' and [forecast()] are called on the model object,
+#' the seeds are used internally to ensure that
+#' he same inputs generate the same outputs, even
+#' when the outputs involve random draws.
+#'
+#' End users are unlikely to call `set_seeds()` in
+#' a data analysis, though it may occasionally by useful
+#' when building a simulation from scratch.
+#'
+#' @param mod An object of class `"bage_mod"`,
+#' created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#' @param new_seeds `NULL` (the default) or a list
+#' of integers with names `"seed_components"`
+#' `"seed_augment"`, `"seed_forecast_components"`,
+#' and `"seed_forecast_augment"`.
+#'
+#' @returns A modified version of `mod`.
+#'
+#' @seealso
+#' - [report_sim()] Do a simulation study. (`report_sim()`
+#'   calls `set_seeds()` internally.)
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
+#' - [fit()] Fit a model
+#' - [unfit()] Reset model, deleting estimates
+#'
+#' @examples
+#' ## fit model
+#' mod <- mod_pois(injuries ~ age,
+#'                 data = nzl_injuries,
+#'                 exposure = popn) |>
+#'   fit()
+#'
+#' ## call 'components()'
+#' components(mod)
+#'
+#' ## call 'components()' again - same results
+#' components(mod)
+#'
+#' ## reset seeds
+#' mod <- set_seeds(mod)
+#'
+#' ## calling 'set_seeds' unfits the model
+#' is_fitted(mod)
+#'
+#' ## so we fit it again
+#' mod <- fit(mod)
+#'
+#' ## when we call components, we get
+#' ## different results from earlier
+#' components(mod)
+#' @export
+set_seeds <- function(mod, new_seeds = NULL) {
+  check_bage_mod(x = mod, nm_x = "mod")
+  if (is.null(new_seeds)) {
+    mod$seed_components <- make_seed()
+    mod$seed_augment <- make_seed()
+    mod$seed_forecast_components <- make_seed()
+    mod$seed_forecast_augment <- make_seed()
+  }
+  else {
+    check_new_seeds(new_seeds)
+    mod$seed_components <- new_seeds$seed_components
+    mod$seed_augment <- new_seeds$seed_augment
+    mod$seed_forecast_components <- new_seeds$seed_forecast_components
+    mod$seed_forecast_augment <- new_seeds$seed_forecast_augment
+  }
   mod <- unfit(mod)
   mod
 }

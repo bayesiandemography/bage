@@ -2,12 +2,28 @@
 
 # bage 0.9.2
 
+## Interface
+
+* Added `original_scale` argument to `components()`, to be used with
+  normal models. Also added message remining users that, with normal
+  models, components were on a log scale (#88)
+* Added more information on progress.
+* Tidied printing of model objects.
+* Added new checks for outcome variable: no `NaN` and no `Inf`
+  permitted.
+
 ## Bug fixes
 
 * Fixed bug introducted when `fit_default()` refactored in 0.9.1. Bug
   meant that when optimizer switched from `nlminb()` to `optim()` on
   non-convergence, `optim()` was not starting from old parameter
   values.
+
+## Documentation
+
+* Added entry for `RW2_Infant()` to priors table. Hat-tip to Luke
+  Morris for noticing that entry was missing. (#87)
+
   
 
 # bage 0.9.1

@@ -245,15 +245,30 @@ test_that("'disp' estimates not affected by weights in normal model", {
                     data = data,
                     weights = wt1)
     mod1_fitted <- fit(mod1)
-    comp1 <- components(mod1_fitted)
+    comp1 <- components(mod1_fitted, quiet = TRUE)
     disp1 <- comp1$.fitted[comp1$term == "disp"]
     mod2 <- mod_norm(formula = formula,
                     data = data,
                     weights = wt2)
     mod2_fitted <- fit(mod2)
-    comp2 <- components(mod1_fitted)
+    comp2 <- components(mod1_fitted, quiet = TRUE)
     disp2 <- comp2$.fitted[comp1$term == "disp"]
     expect_equal(rvec::draws_mean(disp1), rvec::draws_mean(disp2))
+})
+
+test_that("'components' gives expected message when 'original_scale' is FALSE and model is normal", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$income <- rnorm(n = nrow(data), mean = 10, sd = 3)
+    data$wt <- runif(n = nrow(data), max = 5)
+    formula <- income ~ age + sex + time
+    mod <- mod_norm(formula = formula,
+                    data = data,
+                    weights = wt) |>
+      fit()
+    expect_message(components(mod),
+                   "Values for `.fitted`")
 })
 
 
@@ -343,7 +358,7 @@ test_that("'draw_vals_augment_fitted' works with binomial, no disp", {
                      c(names(data), c(".observed", ".fitted")))
 })
 
-test_that("'draw_vals_augment_fitted' works with normal - original_scale is TRUE", {
+test_that("'draw_vals_augment_fitted' works with normal", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                         KEEP.OUT.ATTRS = FALSE)
@@ -355,32 +370,12 @@ test_that("'draw_vals_augment_fitted' works with normal - original_scale is TRUE
                     data = data,
                     weights = wt)
     mod_fitted <- fit(mod)
-    ans <- draw_vals_augment_fitted(mod_fitted, original_scale = TRUE)
+    ans <- draw_vals_augment_fitted(mod_fitted)
     expect_true(is.data.frame(ans))
     expect_setequal(names(ans),
                     c(names(data), ".deaths", ".fitted"))
     expect_equal(rvec::draws_mean(mean(ans$.fitted)), mean(data$deaths, na.rm = TRUE), tolerance = 0.1)
     expect_equal(rvec::draws_mean(mean(ans$.deaths)), mean(data$deaths, na.rm = TRUE), tolerance = 0.1)
-})
-
-test_that("'draw_vals_augment_fitted' works with normal - original_scale is FALSE", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
-                        KEEP.OUT.ATTRS = FALSE)
-    data$deaths <- rpois(n = nrow(data), lambda = 100)
-    data$deaths[1] <- NA
-    data$wt <- runif(n = nrow(data), max = 1000)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
-    mod_fitted <- fit(mod)
-    ans <- draw_vals_augment_fitted(mod_fitted, original_scale = FALSE)
-    expect_true(is.data.frame(ans))
-    expect_setequal(names(ans),
-                    c(names(data), ".deaths", ".fitted"))
-    expect_equal(rvec::draws_mean(mean(ans$.fitted)), 0, tolerance = 0.1)
-    expect_equal(rvec::draws_mean(ans$.deaths[[1]]), 0, tolerance = 0.1)
 })
 
 
@@ -397,7 +392,7 @@ test_that("'draw_vals_augment_fitted' works with Poisson, has rr3", {
                   set_datamod_outcome_rr3() |>
                   set_n_draw(5)
   mod_fitted <- fit(mod)
-  ans <- draw_vals_augment_fitted(mod_fitted, original_scale = TRUE)
+  ans <- draw_vals_augment_fitted(mod_fitted)
   expect_true(is.data.frame(ans))
   expect_identical(names(ans),
                    c(names(data), c(".deaths", ".observed", ".fitted", ".expected")))
@@ -422,7 +417,7 @@ test_that("'draw_vals_augment_fitted' works with binomial, has rr3", {
                    set_datamod_outcome_rr3() |>
                    set_n_draw(5)
   mod_fitted <- fit(mod)
-  ans <- draw_vals_augment_fitted(mod_fitted, original_scale = TRUE)
+  ans <- draw_vals_augment_fitted(mod_fitted)
   expect_true(is.data.frame(ans))
   expect_identical(names(ans),
                    c(names(data), c(".deaths", ".observed", ".fitted", ".expected")))
@@ -442,32 +437,17 @@ test_that("'draw_vals_augment_unfitted' works with normal", {
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                       KEEP.OUT.ATTRS = FALSE)
   data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$wt <- runif(n = nrow(data), max = 1000)
   formula <- deaths ~ age + sex + time
   mod <- mod_norm(formula = formula,
                   data = data,
-                  weights = 1)
-  ans <- draw_vals_augment_unfitted(mod, original_scale = TRUE)
+                  weights = wt)
+  ans <- draw_vals_augment_unfitted(mod)
   expect_true(is.data.frame(ans))
   expect_identical(names(ans), c(names(data), ".fitted"))
-  expect_true(abs(rvec::draws_mean(mean(ans$.fitted)) - 100) < 1)
-  expect_true(abs(rvec::draws_mean(mean(ans$.fitted)) - 100) < 1)
+  expect_true(abs(rvec::draws_mean(mean(ans$.fitted)) - 100) < 2)
+  expect_true(abs(rvec::draws_mean(mean(ans$.fitted)) - 100) < 2)
 })
-
-test_that("'draw_vals_augment_unfitted' works with normal - original_scale is FALSE", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
-                      KEEP.OUT.ATTRS = FALSE)
-  data$deaths <- rpois(n = nrow(data), lambda = 100)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = 1)
-  ans <- draw_vals_augment_unfitted(mod, original_scale = FALSE)
-  expect_true(is.data.frame(ans))
-  expect_identical(names(ans), c(names(data), ".fitted"))
-  expect_true(abs(rvec::draws_mean(mean(ans$.fitted))) < 0.2)
-})
-
 
 test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", {
   set.seed(0)
@@ -478,7 +458,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", 
                   data = data,
                   exposure = 1)
   mod <- set_n_draw(mod, 10)
-  ans_obtained <- draw_vals_augment_unfitted(mod, original_scale = TRUE)
+  ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod, n_sim = 10)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_from_components(mod = mod,
@@ -516,7 +496,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - no disp", {
                   exposure = popn)
   mod <- set_disp(mod, mean = 0)
   mod <- set_n_draw(mod, 10)
-  ans_obtained <- draw_vals_augment_unfitted(mod, original_scale = TRUE)
+  ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_fitted <- exp(make_linpred_from_components(mod = mod,
@@ -540,7 +520,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - no disp", {
 
 test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
   set.seed(0)
-  n_sim <- 10
+  n_sim <- 1000
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$income <- rnorm(n = nrow(data), mean = 200, sd = 30)
   data$wt <- rpois(n = nrow(data), lambda = 100)
@@ -548,9 +528,9 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
   mod <- mod_norm(formula = formula,
                   data = data,
                   weights = wt)
-  mod <- set_n_draw(mod, 10)
+  mod <- set_n_draw(mod, 1000)
   set.seed(1)
-  ans_obtained <- draw_vals_augment_unfitted(mod, original_scale = TRUE)
+  ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
@@ -566,15 +546,13 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
                                          outcome_obs = rep(NA_real_, times = nrow(data)),
                                          fitted = vals_fitted,
                                          disp = vals_disp,
-                                         offset = mod$offset)
+                                         offset = mod$offset * mod$offset_mean)
   ans_expected <- tibble::as_tibble(mod$data)
   ans_expected$income <- vals_outcome
   ans_expected$.fitted <- vals_fitted
   expect_equal(ans_obtained, ans_expected)
   expect_identical(names(augment(fit(mod))), names(ans_obtained))
-  ans_scaled <- draw_vals_augment_unfitted(mod, original_scale = FALSE)
-  expect_true(abs(rvec::draws_mean(mean(ans_scaled$.fitted))) < 2)
-  expect_true(abs(rvec::draws_mean(sd(ans_scaled$.fitted))) < 2)
+  expect_equal(rvec::draws_mean(mean(ans_obtained$.fitted)), mean(data$income), tolerance = 0.1)
 })
 
 
@@ -1571,7 +1549,7 @@ test_that("'forecast_augment' works - normal", {
                   weights = popn)
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
-  components_est <- components(mod)
+  components_est <- components(mod, quiet = TRUE)
   labels_forecast <- 2006:2008
   data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
   set.seed(1)
@@ -1608,7 +1586,7 @@ test_that("'forecast_augment' works - normal, has forecasted offset", {
                   weights = popn)
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
-  components_est <- components(mod)
+  components_est <- components(mod, quiet = TRUE)
   labels_forecast <- 2006:2008
   data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
   data_forecast$popn <- rpois(n = nrow(data_forecast), lambda = 1000)
@@ -1646,7 +1624,7 @@ test_that("'forecast_augment' works - normal, no offset", {
                   weights = 1)
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
-  components_est <- components(mod)
+  components_est <- components(mod, quiet = TRUE)
   labels_forecast <- 2006:2008
   data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
   set.seed(1)
@@ -1686,7 +1664,7 @@ test_that("'forecast_augment' works - normal, estimated has imputed", {
                   weights = popn)
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
-  components_est <- components(mod)
+  components_est <- components(mod, quiet = TRUE)
   labels_forecast <- 2006:2008
   data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
   data_forecast$popn <- rpois(n = nrow(data_forecast), lambda = 1000)

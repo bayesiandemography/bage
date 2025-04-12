@@ -291,6 +291,10 @@ check_formula_vnames_in_data <- function(formula, data) {
 }
 
 
+
+
+
+
 ## HAS_TESTS
 #' Given that 'condition_on' argument is "expected", check that
 #' the model includes a dispersion term
@@ -312,7 +316,7 @@ check_has_disp_if_condition_on_expected <- function(x) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Check That No Arguments Absorbed By Dots in Function
 #'
 #' @param dots Arguments absorbed
@@ -336,6 +340,23 @@ check_has_no_dots <- function(...) {
       cli::cli_abort("{.arg {nms[i_nonblank]}} is not a valid argument.")
     }
   }
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check if Vector Has Infinite Values
+#'
+#' @param x Vector
+#' @param nm_x Name for 'x' to use in error messages.
+#'
+#' @returns TRUE, invisibly
+#' 
+#' @noRd
+check_inf <- function(x, nm_x) {
+  n_inf <- sum(is.infinite(x))
+  if (n_inf > 0L)
+    cli::cli_abort("{.arg {nm_x}} has infinite {cli::qty(n_inf)} value{?s}.")
   invisible(TRUE)
 }
 
@@ -595,6 +616,22 @@ check_n_along_ge <- function(n_along, min, nm, prior) {
 
 
 ## HAS_TESTS
+#' Check if Vector Has NaNs
+#'
+#' @param x Vector
+#' @param nm_x Name for 'x' to use in error messages.
+#'
+#' @returns TRUE, invisibly
+#' 
+#' @noRd
+check_nan <- function(x, nm_x) {
+  if (any(is.nan(x)))
+    cli::cli_abort("{.arg {nm_x}} has {.val {NaN}}.")
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that 'new_seeds' is List of Numeric Scalars with Correct Names
 #'
 #' @param new_seeds A named list of numeric scalars.
@@ -757,10 +794,12 @@ check_offset_nonneg <- function(nm_offset_data, nm_offset_mod, data) {
 #' @noRd 
 check_old_version <- function(x, nm_x) {
   check_bage_mod(x = x, nm_x = nm_x)
+  is_norm <- inherits(x, "bage_mod_norm")
+  has_covariates <- has_covariates(x)
   nms <- names(x)
   is_old_version <- (!("draws_hyperrandfree" %in% nms)
     || ("seed_stored_draws" %in% nms)
-    || !("offset_mean" %in% nms))    
+    || (is_norm && !("offset_mean" %in% nms)))
   if (is_old_version) {
     cli::cli_abort(c("{.arg {nm_x}} appears to have been created with an old version of {.pkg bage}.",
                      i = "Please recreate the object using the current version."))
@@ -779,34 +818,12 @@ check_old_version <- function(x, nm_x) {
 #'
 #' @returns TRUE, invisibly
 #'
-#' @noRd 
-check_original_scale_augment <- function(original_scale, mod) {
-  check_flag(x = original_scale, nm_x = "original_scale")
-  if (!isTRUE(original_scale) && !inherits(mod, "bage_mod_norm"))
-    cli::cli_warn(paste("{.fun augment} ignores {.arg original_scale} if {.arg x} was",
-                        "not created with {.fun mod_norm}."))
-  invisible(TRUE)
-}
-
-
-## HAS_TESTS
-#' Check 'original_scale' Argument to 'augment'
-#'
-#' Includes warning when argument ignored.
-#'
-#' @param original_scale Logical scalar
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns TRUE, invisibly
-#'
 #' @noRd
-check_original_scale_components <- function(original_scale, mod) {
+check_original_scale <- function(original_scale, mod) {
   check_flag(x = original_scale, nm_x = "original_scale")
-  if (isTRUE(original_scale)
-      && !inherits(mod, "bage_mod_norm")
-      && !has_covariates(mod))
-    cli::cli_warn(paste("{.fun components} ignores {.arg original_scale} if {.arg x} was",
-                        "not created with {.fun mod_norm} and does not have covariates."))
+  if (isTRUE(original_scale) && !inherits(mod, "bage_mod_norm"))
+    cli::cli_warn(paste("{.fun components} ignores {.arg original_scale} if {.arg object} was",
+                        "not created with {.fun mod_norm}."))
   invisible(TRUE)
 }
 

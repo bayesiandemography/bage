@@ -257,13 +257,13 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
 #'
 #' @noRd
 draw_vals_covariates <- function(mod, n_sim) {
-  nms_covariates <- mod$nms_covariates
-  n_covariates <- length(nms_covariates)
+  covariates_nms <- mod$covariates_nms
+  n_covariates <- length(covariates_nms)
   coef <- stats::rnorm(n = n_covariates * n_sim)
   coef <- matrix(coef,
                  nrow = n_covariates,
                  ncol = n_sim,
-                 dimnames = list(nms_covariates, NULL))
+                 dimnames = list(covariates_nms, NULL))
   ans <- list(coef = coef)
   ans
 }
