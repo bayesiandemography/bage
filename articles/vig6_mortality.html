@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -280,6 +280,9 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <p>We fit the model by calling function <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod_base</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
 <span><span class="va">mod_base</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
@@ -300,8 +303,8 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <span><span class="co">#&gt;  n_draw var_time var_age var_sexgender optimizer</span></span>
 <span><span class="co">#&gt;    1000     time     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.66       1.31        1.09   16      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
+<span><span class="co">#&gt;        2.62     1.28      1.09   16      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="3.4">
 <h3 id="extracting-rates">
@@ -310,6 +313,8 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <p>To extract estimated rates from the fitted model object, we use function <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod_base</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">aug_base</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5,300 × 8</span></span></span>
 <span><span class="co">#&gt;    age   sex     time deaths  popn .observed                    .fitted</span></span>
@@ -464,6 +469,9 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span><span class="co">#&gt;    1000     time     age           sex</span></span></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
 <span><span class="va">mod_hmd</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
@@ -482,10 +490,12 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span><span class="co">#&gt;  n_draw var_time var_age var_sexgender optimizer</span></span>
 <span><span class="co">#&gt;    1000     time     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.35       1.18        0.98   10      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
+<span><span class="co">#&gt;        2.35     1.17      0.98   10      TRUE   relative convergence (4)</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span></span>
 <span><span class="va">rates_hmd</span> <span class="op">&lt;-</span> <span class="va">aug_hmd</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1998</span>, <span class="fl">2010</span>, <span class="fl">2022</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -535,6 +545,8 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 </h2>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rep_data_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="va">mod_base</span>, condition_on <span class="op">=</span> <span class="st">"expected"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">rep_data_base</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op">==</span> <span class="fl">2022</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -548,6 +560,8 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <p><img src="vig6_mortality_files/figure-html/unnamed-chunk-21-1.png"><!-- --></p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rep_data_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="va">mod_hmd</span>, condition_on <span class="op">=</span> <span class="st">"expected"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">rep_data_hmd</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op">==</span> <span class="fl">2022</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -569,6 +583,8 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/lifetab.html" class="external-link">lifeexp</a></span><span class="op">(</span>mx <span class="op">=</span> <span class="va">.fitted</span>,</span>
 <span>          by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">sex</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">lifeexp_hmd</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 50 × 3</span></span></span>
 <span><span class="co">#&gt;     time sex              ex</span></span>
@@ -589,6 +605,8 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/lifetab.html" class="external-link">lifeexp</a></span><span class="op">(</span>mx <span class="op">=</span> <span class="va">.fitted</span>,</span>
 <span>          by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">sex</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">lifeexp_hmd</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 50 × 3</span></span></span>
 <span><span class="co">#&gt;     time sex              ex</span></span>

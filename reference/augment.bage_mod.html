@@ -13,7 +13,7 @@ data and one or more columns of modelled values."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -141,7 +141,7 @@ estimates of the true value for the outcome.</p>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
-<ul><li><p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> Extract values for hyper-parameters from a model</p></li>
+<ul><li><p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> Extract values for hyper-parameters</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code> Short summary of a model</p></li>
 <li><p><code><a href="mod_pois.html">mod_pois()</a></code> Specify a Poisson model</p></li>
 <li><p><code><a href="mod_binom.html">mod_binom()</a></code> Specify a binomial model</p></li>
@@ -183,9 +183,14 @@ estimates of the true value for the outcome.</p>
 <span class="r-in"><span><span class="co">## fit model</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Building log-posterior function...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Finding maximum...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing values for hyper-parameters...</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## draw from the posterior distribution</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.expected`...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.fitted`...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 242 × 8</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex     time divorces population .observed                    .fitted</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;100&gt;&gt;</span></span>
@@ -214,6 +219,12 @@ estimates of the true value for the outcome.</p>
 <span class="r-in"><span>         exposure <span class="op">=</span> <span class="va">population</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Building log-posterior function...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Finding maximum...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing values for hyper-parameters...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.expected`...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.fitted`...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.divorces`...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 242 × 9</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex     time divorces    .divorces population  .observed</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
@@ -239,6 +250,12 @@ estimates of the true value for the outcome.</p>
 <span class="r-in"><span>  <span class="fu"><a href="set_datamod_outcome_rr3.html">set_datamod_outcome_rr3</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Building log-posterior function...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Finding maximum...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing values for hyper-parameters...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.expected`...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.fitted`...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.divorces`...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 242 × 9</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex     time divorces    .divorces population .observed</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>

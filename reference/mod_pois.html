@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,13 +87,25 @@ which depend on the type of term (eg an intercept, an age main effect,
 or an age-time interaction.)</p>
     </div>
     <div class="section level2">
+    <h2 id="specifying-exposure">Specifying exposure<a class="anchor" aria-label="anchor" href="#specifying-exposure"></a></h2>
+
+
+
+<p>The <code>exposure</code> argument can take three forms:</p><ul><li><p>the name of a variable in <code>data</code>, with or without
+quote marks, eg <code>"population"</code> or <code>population</code>;</p></li>
+<li><p>the number <code>1</code>, in which case a pure "counts" model
+with no exposure, is produced; or</p></li>
+<li><p>a formula, which is evaluated with <code>data</code> as its
+environment (see below for example).</p></li>
+</ul></div>
+    <div class="section level2">
     <h2 id="mathematical-details">Mathematical details<a class="anchor" aria-label="anchor" href="#mathematical-details"></a></h2>
 
 
 
 <p>The likelihood is</p>
 <p>$$y_i \sim \text{Poisson}(\gamma_i w_i)$$</p>
-<p>where</p><ul><li><p>subscript \(i\) identifies some combination of
+<p>where</p><ul><li><p>subscript \(i\) identifies some combination of the
 classifying variables, such as age, sex, and time;</p></li>
 <li><p>\(y_i\) is an outcome, such as deaths;</p></li>
 <li><p>\(\gamma_i\) is rates; and</p></li>
@@ -116,19 +128,10 @@ or interaction; and</p></li>
 cell \(i\).</p></li>
 </ul><p>The \(\beta^{(m)}\) are given priors, as described in <a href="priors.html">priors</a>.</p>
 <p>The prior for \(\xi\) is described in <code><a href="set_disp.html">set_disp()</a></code>.</p>
+<p>The model for \(\mu_i\)
+can also include covariates,
+as described in <code><a href="set_covariates.html">set_covariates()</a></code>.</p>
     </div>
-    <div class="section level2">
-    <h2 id="specifying-exposure">Specifying exposure<a class="anchor" aria-label="anchor" href="#specifying-exposure"></a></h2>
-
-
-
-<p>The <code>exposure</code> argument can take three forms:</p><ul><li><p>the name of a variable in <code>data</code>, with or without
-quote marks, eg <code>"population"</code> or <code>population</code>;</p></li>
-<li><p>the number <code>1</code>, in which case a pure "counts" model
-with no exposure, is produced; or</p></li>
-<li><p>a formula, which is evaluated with <code>data</code> as its
-environment (see below for example).</p></li>
-</ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
@@ -137,8 +140,15 @@ environment (see below for example).</p></li>
 <li><p><code><a href="set_prior.html">set_prior()</a></code> Specify non-default prior for term</p></li>
 <li><p><code><a href="set_disp.html">set_disp()</a></code> Specify non-default prior for dispersion</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> Fit a model</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> Extract values for rates,
+means, or probabilities, together with original data</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> Extract values for hyper-parameters</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> Forecast a model</p></li>
-<li><p><code><a href="report_sim.html">report_sim()</a></code> Do a simulation study on a model</p></li>
+<li><p><code><a href="report_sim.html">report_sim()</a></code> Do a simulation study</p></li>
+<li><p><code><a href="replicate_data.html">replicate_data()</a></code> Generate replicate
+data for a model</p></li>
+<li><p><a href="https://bayesiandemography.github.io/bage/articles/vig2_math.html">Mathematical Details</a>
+vignette</p></li>
 </ul></div>
     </div>
 

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -165,7 +165,7 @@ which is what we use internally. Values for <span class="math inline">\(\gamma_i
 where <span class="math inline">\(\tilde{y}_i\)</span> is a standardized version of outcome <span class="math inline">\(y_i\)</span>, and <span class="math inline">\(\tilde{w}_i\)</span> is a standardized version of weight <span class="math inline">\(w_i\)</span>. The standardization is carried out using
 <span class="math display">\[\begin{align}
   \tilde{y}_i &amp; = \frac{y_i - \bar{y}}{s} \\
-  \tilde{w}_i &amp; = \frac{w_i}{\bar{w}}.
+  \tilde{w}_i &amp; = \frac{w_i}{\bar{w}},
 \end{align}\]</span>
 where
 <span class="math display">\[\begin{align}
@@ -177,8 +177,8 @@ where
 </div>
 </div>
 <div class="section level2" number="4">
-<h2 id="model-for-prior-means">
-<span class="header-section-number">4</span> Model for prior means<a class="anchor" aria-label="anchor" href="#model-for-prior-means"></a>
+<h2 id="sec:means">
+<span class="header-section-number">4</span> Model for prior means<a class="anchor" aria-label="anchor" href="#sec:means"></a>
 </h2>
 <p>Let <span class="math inline">\(\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}\)</span>. Our model for <span class="math inline">\(\pmb{\mu}\)</span> is
 <span class="math display" id="eq:means">\[\begin{equation}
@@ -513,8 +513,10 @@ where</p>
 </h4>
 <p><span class="math display">\[\begin{align}
   &amp; \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \notag \\
-  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}\left(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 \right) \prod_{v=2}^{V_m} \text{N}\left(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 \right) \prod_{v=1}^{S_m-1}  \text{N}\left(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2\right) \notag \\
-  \prod_{v &gt; S_m, \; (v-1) \bmod S_m \neq 0}^{V_m} \text{N}\left(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2\right) \right)
+  &amp; \quad \times \prod_{u=1}^{U_m} \bigg( \text{N}\left(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 \right)  
+  \prod_{v=2}^{V_m} \text{N}\left(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 \right) \notag \\
+  &amp; \quad \times \prod_{v=1}^{S_m-1}  \text{N}\left(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2\right)  
+  \prod_{\substack{v &gt; S_m \\ (v-1) \bmod S_m \neq 0}}^{V_m} \text{N}\left(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2\right) \bigg)
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="5.7.3">
@@ -588,14 +590,14 @@ where</p>
 <h4 id="contribution-to-posterior-density-6">
 <span class="header-section-number">5.8.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-6"></a>
 </h4>
-<p><span class="math display">\[\begin{equation}
-  &amp; \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2})  \notag \\
-  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 )
-\text{N}(\alpha_{u,2}^{(m)} \mid \alpha_{u,1}^{(m)}, (A_{\eta}^{(m)})^2 )
-\prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 ) \notag  \\
-  \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2)
-  \prod_{v &gt; S_m, (v-1) \bmod S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
-\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{align}
+&amp; \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2})  \notag \\
+&amp; \times \prod_{u=1}^{U_m} \bigg( \text{N}(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 )  
+\text{N}(\alpha_{u,2}^{(m)} \mid \alpha_{u,1}^{(m)}, (A_{\eta}^{(m)})^2 )  \notag \\
+&amp; \quad \times \prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 ) \notag \\
+&amp; \quad \times \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2) \notag \\
+&amp; \quad \times \prod_{\substack{v &gt; S_m \\ (v-1) \bmod S_m \neq 0}}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \bigg)
+\end{align}\]</span></p>
 </div>
 <div class="section level4" number="5.8.3">
 <h4 id="forecasting-6">
@@ -1214,7 +1216,7 @@ for the independent model</p>
 <h3 id="model-16">
 <span class="header-section-number">6.1</span> Model<a class="anchor" aria-label="anchor" href="#model-16"></a>
 </h3>
-<p>Matrix <span class="math inline">\(\pmb{Z}\)</span> is a standardized version of the original covariate data supplied by the user. If a variable in the original data is numeric, then it is standardized to have mean 0 and standard deviation one. If a variable in the original data is categorical with <span class="math inline">\(C\)</span> categories, then it is converted into <span class="math inline">\(C-1\)</span> indicator variables, with the first category as the omitted variable. (This is the ‘treatment’ contrast in R.)</p>
+<p>Matrix <span class="math inline">\(\pmb{Z}\)</span> is a standardized version of the original covariate data supplied by the user. We standardize every numeric variable to have mean 0 and standard deviation one. We then convert categorical variables to sets of indicator variables using R’s ‘treatment’ contrast. If a variable in the original data is categorical with <span class="math inline">\(C\)</span> categories, then it is converted into <span class="math inline">\(C-1\)</span> indicator variables, with the first category as the omitted variable.</p>
 <p>The elements of <span class="math inline">\(\pmb{\zeta}\)</span> have prior
 <span class="math display">\[\begin{equation}
   \zeta_p \sim \text{N}(0, 1)
@@ -1400,30 +1402,19 @@ and the aggregation formuala for weights is
 </h2>
 <p>Running TMB yields a set of means <span class="math inline">\(\pmb{m}\)</span>, and a precision matrix <span class="math inline">\(\pmb{Q}^{-1}\)</span>, which together define the approximate joint posterior distribution of</p>
 <ul>
-<li>
-<span class="math inline">\(\pmb{\beta}^{(m)}\)</span> for terms with independent normal, fixed normal, multivariate normal, random walk, second-order random walk, AR1, Linear, and Linear-AR1 priors,</li>
-<li>
-<span class="math inline">\(\pmb{\alpha}\)</span> for terms with Spline and SVD priors,</li>
-<li>hyper-parameters for <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> and <span class="math inline">\(\pmb{\alpha}^{(m)}\)</span> typically transformed to another scale, such as a log scale,</li>
-<li>dispersion term <span class="math inline">\(\xi\)</span>, and</li>
-<li>seasonal effects <span class="math inline">\(\pmb{\lambda}\)</span>, together with associated hyper-parameters <span class="math inline">\(\tau_{\lambda}\)</span> (on a log scale).</li>
+<li>intercept, main effects, and internactions <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, <span class="math inline">\(m = 0, \cdots, M\)</span>,</li>
+<li>typically, hyper-parameters for the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, in many cases transformed to another scale, such as a log scale,</li>
+<li>optionally, dispersion term <span class="math inline">\(\xi\)</span>, and</li>
+<li>optionally, covariate cofficients vector <span class="math inline">\(\pmb{zeta}\)</span>.</li>
 </ul>
-<p>We use <span class="math inline">\(\tilde{\pmb{\theta}}\)</span> to denote a vector containing all these quantities.</p>
-<p>We perform a Cholesky decomposition of <span class="math inline">\(\pmb{Q}^{-1}\)</span>, to obtain <span class="math inline">\(\pmb{R}\)</span> such that
-<span class="math display">\[\begin{equation}
-  \pmb{R}^{\top} \pmb{R} = \pmb{Q}^{-1}
-\end{equation}\]</span>
-We store <span class="math inline">\(\pmb{R}\)</span> as part of the model object.</p>
-<p>We draw generate values for <span class="math inline">\(\tilde{\pmb{\theta}}\)</span> by generating a vector of standard normal variates <span class="math inline">\(\pmb{z}\)</span>, back-solving the equation
-<span class="math display">\[\begin{equation}
-  \pmb{R} \pmb{v} = \pmb{z}
-\end{equation}\]</span>
-and setting
-<span class="math display">\[\begin{equation}
-  \tilde{\pmb{\theta}} = \pmb{v} + \pmb{m}.
-\end{equation}\]</span></p>
+<p>Let <span class="math inline">\(\tilde{\pmb{\theta}}\)</span> to denote a vector containing all these quantities. We draw values for <span class="math inline">\(\tilde{\pmb{\theta}} \mid \pmb{m}, \pmb{Q}^{-1}\)</span>, typically using sparse matrix methods (as implemented in package <strong>sparseMVN</strong>.</p>
 <p>Next we convert any transformed hyper-parameters back to the original units, and insert values for <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> for terms that have Known priors. We denote the resulting vector <span class="math inline">\(\pmb{\theta}\)</span>.</p>
-<p>Finally we draw from the distribution of <span class="math inline">\(\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}\)</span> using the methods described in Sections <a href="#sec:pois">3.1</a>-<a href="#sec:norm">3.3</a>.</p>
+<p>We draw from the distribution of <span class="math inline">\(\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}\)</span> using the methods described in Sections <a href="#sec:pois">3.1</a>-<a href="#sec:norm">3.3</a>.</p>
+<p>Output from the Normal model receives special treatment. As described in section <a href="#sec:norm">3.3</a> and <a href="#sec:means">4</a>, the Normal model is
+<span class="math display">\[\begin{align}
+  \frac{y_i - \bar{y}}{s} &amp; \sim \text{N}\left(\mu_i, \frac{\bar{w}}{w_i} \xi^2\right) \\
+  \mu_i &amp; = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)} + (\pmb{Z} \pmb{\zeta})_i
+\end{align}\]</span></p>
 </div>
 <div class="section level2" number="11">
 <h2 id="simulation">

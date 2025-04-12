@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,24 @@
       <small>Source: <a href="https://github.com/bayesiandemography/bage/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.9.2" id="bage-092">bage 0.9.2<a class="anchor" aria-label="anchor" href="#bage-092"></a></h2>
+<div class="section level3">
+<h3 id="interface-0-9-2">Interface<a class="anchor" aria-label="anchor" href="#interface-0-9-2"></a></h3>
+<ul><li>Added <code>original_scale</code> argument to <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>, to be used with normal models. Also added message remining users that, with normal models, components were on a log scale (<a href="https://github.com/bayesiandemography/bage/issues/88" class="external-link">#88</a>)</li>
+<li>Added more information on progress.</li>
+<li>Tidied printing of model objects.</li>
+<li>Added new checks for outcome variable: no <code>NaN</code> and no <code>Inf</code> permitted.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-9-2">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-9-2"></a></h3>
+<ul><li>Fixed bug introducted when <code>fit_default()</code> refactored in 0.9.1. Bug meant that when optimizer switched from <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb()</a></code> to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> on non-convergence, <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> was not starting from old parameter values.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-9-2">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-9-2"></a></h3>
+<ul><li>Added entry for <code><a href="../reference/RW2_Infant.html">RW2_Infant()</a></code> to priors table. Hat-tip to Luke Morris for noticing that entry was missing. (<a href="https://github.com/bayesiandemography/bage/issues/87" class="external-link">#87</a>)</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.9.1" id="bage-091">bage 0.9.1<a class="anchor" aria-label="anchor" href="#bage-091"></a></h2>
 <div class="section level3">

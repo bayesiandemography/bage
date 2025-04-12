@@ -9,7 +9,7 @@ a normal distribution."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,38 +88,26 @@ as age, sex, and time. The terms for these dimension themselves
 have models, as described in <a href="priors.html">priors</a>. These priors all have defaults,
 which depend on the type of term (eg an intercept, an age main effect,
 or an age-time interaction.)</p>
-<p>Internally, the outcome
-variable scaled to have mean 0 and sd 1.</p>
     </div>
     <div class="section level2">
-    <h2 id="mathematical-details">Mathematical details<a class="anchor" aria-label="anchor" href="#mathematical-details"></a></h2>
+    <h2 id="scaling-of-outcome-and-weights">Scaling of outcome and weights<a class="anchor" aria-label="anchor" href="#scaling-of-outcome-and-weights"></a></h2>
 
 
 
-<p>The likelihood is</p>
-<p>$$y_i \sim \text{N}(\mu_i, \xi^2 / w_i)$$</p>
-<p>where</p><ul><li><p>\(y_i\) is a scaled value for an, such of the log of income, for some
-combination \(i\) of classifying variables,
-such as age, sex, and region;</p></li>
-<li><p>\(\mu_i\) is a mean;</p></li>
-<li><p>\(\xi\) is a standard deviation parameter; and</p></li>
-<li><p>\(w_i\) is a weight.</p></li>
-</ul><p>The scaling of the outcome variable is done internally.
-If \(y_i^*\) is the original, then \(y_i = (y_i^* - m)/s\)
-where \(m\) and \(s\) are the sample mean and standard
-deviation of \(y_i^*\).</p>
-<p>In some applications, \(w_i\) is set to 1
-for all \(i\).</p>
-<p>The means \(\mu_i\) equal the sum of terms formed
-from classifying variables,</p>
-<p>$$\mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}$$</p>
-<p>where</p><ul><li><p>\(\beta^{0}\) is an intercept;</p></li>
-<li><p>\(\beta^{(m)}\), \(m = 1, \dots, M\), is a main effect
-or interaction; and</p></li>
-<li><p>\(j_i^m\) is the element of \(\beta^{(m)}\) associated with
-cell \(i\).</p></li>
-</ul><p>The \(\beta^{(m)}\) are given priors, as described in <a href="priors.html">priors</a>.</p>
-<p>The prior for \(\xi\) is described in <code><a href="set_disp.html">set_disp()</a></code>.</p>
+<p>Internally, <code>mod_norm()</code> scales the outcome variable
+to have mean 0 and standard deviation 1, and
+scales the weights to have mean 1.
+This scaling allows <code>mod_norm()</code> to use the
+same menu of priors as <code><a href="mod_pois.html">mod_pois()</a></code> and <code><a href="mod_binom.html">mod_binom()</a></code>.
+(<code><a href="mod_pois.html">mod_pois()</a></code> works on the log scale,
+and <code><a href="mod_binom.html">mod_binom()</a></code> works on the logit scale.)</p>
+<p><code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> always returns values on the
+original scale, rather than the transformed scale.</p>
+<p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> by default returns values on
+the transformed scale. But if <code>original_scale</code> is
+<code>TRUE</code>, it returns some types of values on the
+original scale. See the documentation for
+<code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> for details.</p>
     </div>
     <div class="section level2">
     <h2 id="specifying-weights">Specifying weights<a class="anchor" aria-label="anchor" href="#specifying-weights"></a></h2>
@@ -133,6 +121,43 @@ quote marks, eg <code>"wt"</code> or <code>wt</code>;</p></li>
 environment (see below for example).</p></li>
 </ul></div>
     <div class="section level2">
+    <h2 id="mathematical-details">Mathematical details<a class="anchor" aria-label="anchor" href="#mathematical-details"></a></h2>
+
+
+
+<p>The likelihood is</p>
+<p>$$\tilde{y}_i \sim \text{N}(\mu_i, \xi^2 / \tilde{w}_i)$$</p>
+<p>where</p>
+<p>$$\tilde{y}_i = (y_i - \bar{y}) / s$$</p>
+<p>and</p>
+<p>$$\tilde{w}_i = w_i / \bar{w},$$</p>
+<p>and where</p><ul><li><p>subscript \(i\) identifies some combination of the
+classifying variables, such as age, sex, and time,</p></li>
+<li><p>\(y_i\) is the value of the outcome variable,</p></li>
+<li><p>\(w_i\) is a weight,</p></li>
+<li><p>\(\bar{y}\) is the mean across \(i\) of \(y_i\),</p></li>
+<li><p>\(s\) is the sample standard deviation across \(i\) of \(y_i\),</p></li>
+<li><p>\(\bar{w}\) is the mean across \(i\) of \(w_i\),</p></li>
+<li><p>\(\mu_i\) is a mean parameter, and</p></li>
+<li><p>\(\xi\) is a standard deviation parameter.</p></li>
+</ul><p>In some applications, \(w_i\) is set to 1
+for all \(i\).</p>
+<p>The mean parameter \(\mu_i\) is modelled as
+the sum of terms formed
+from classifying variables and covariates,</p>
+<p>$$\mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}$$</p>
+<p>where</p><ul><li><p>\(\beta^{0}\) is an intercept;</p></li>
+<li><p>\(\beta^{(m)}\), \(m = 1, \dots, M\), is a main effect
+or interaction; and</p></li>
+<li><p>\(j_i^m\) is the element of \(\beta^{(m)}\) associated with
+cell \(i\),</p></li>
+</ul><p>The \(\beta^{(m)}\) are given priors, as described in <a href="priors.html">priors</a>.</p>
+<p>The prior for \(\xi\) is described in <code><a href="set_disp.html">set_disp()</a></code>.</p>
+<p>The model for \(\mu_i\)
+can also include covariates,
+as described in <code><a href="set_covariates.html">set_covariates()</a></code>.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
 <ul><li><p><code><a href="mod_pois.html">mod_pois()</a></code> Specify Poisson model</p></li>
@@ -140,8 +165,16 @@ environment (see below for example).</p></li>
 <li><p><code><a href="set_prior.html">set_prior()</a></code> Specify non-default prior for term</p></li>
 <li><p><code><a href="set_disp.html">set_disp()</a></code> Specify non-default prior for standard deviation</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> Fit a model</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> Extract values for rates,
+means, or probabilities,
+together with original data</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> Extract values for hyper-parameters</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> Forecast a model</p></li>
-<li><p><code><a href="report_sim.html">report_sim()</a></code> Do a simulation study on a model</p></li>
+<li><p><code><a href="report_sim.html">report_sim()</a></code> Do a simulation study</p></li>
+<li><p><code><a href="replicate_data.html">replicate_data()</a></code> Generate replicate
+data for a model</p></li>
+<li><p><a href="https://bayesiandemography.github.io/bage/articles/vig2_math.html">Mathematical Details</a>
+vignette</p></li>
 </ul></div>
     </div>
 

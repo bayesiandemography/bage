@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -192,7 +192,10 @@
 <p>Function <code><a href="../reference/mod_pois.html">mod_pois()</a></code> specifies a model, but does not actually estimate any of the unknown quantities in the model. For that, we need function <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span></code></pre></div>
 </div>
 <div class="section level3" number="4.2">
 <h3 id="reprinting-the-model-object">
@@ -222,8 +225,8 @@
 <span><span class="co">#&gt;  n_draw var_time var_age var_sexgender optimizer</span></span>
 <span><span class="co">#&gt;    1000     year     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
-<span><span class="co">#&gt;        0.75       0.31        0.34   13      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
+<span><span class="co">#&gt;        0.73     0.30      0.32   13      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Among other things, a new row appears at the bottom of the printout, providing information about the fitting process. The most important value piece of information is whether the calculations have converged.</p>
 <p>One thing the printout does not include is estimates for the model parameters. The reason for excluding them is that there are too many. Statistical models in other R packages often focus on one or two key parameters, such a parameter measuring a treatment effect. In contrast, models in <strong>bage</strong> often estimate values for thousands, or tens of thousands, of parameters.</p>
 <p>To obtain the estimates from a fitted model, we need specialised extractor functions, which we discuss next.</p>
@@ -247,6 +250,8 @@
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">aug</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 912 × 9</span></span></span>
 <span><span class="co">#&gt;    age   sex    ethnicity  year injuries  popn .observed</span></span>
@@ -438,7 +443,10 @@
 <p>So we re-fit the model.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span></code></pre></div>
 </div>
 <div class="section level3" number="6.4">
 <h3 id="svd-based-priors">
@@ -452,6 +460,9 @@
 <span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">HFD</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span><span class="op">:</span><span class="va">time</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD_AR.html">SVD_RW</a></span><span class="op">(</span><span class="va">HFD</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
 <span><span class="va">mod_births</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
@@ -473,8 +484,8 @@
 <span><span class="co">#&gt;  n_draw var_time var_age optimizer</span></span>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.10       1.14        0.81   18      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
+<span><span class="co">#&gt;        2.03     1.06      0.82   18      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2" number="7">
@@ -517,6 +528,9 @@
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_forecast</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2019</span><span class="op">:</span><span class="fl">2028</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `components()` for past values...</span></span>
+<span><span class="co">#&gt; `components()` for future values...</span></span>
+<span><span class="co">#&gt; `augment()` for future values...</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">aug_forecast</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "age"       "sex"       "ethnicity" "year"      "injuries"  "popn"     </span></span>
 <span><span class="co">#&gt; [7] ".observed" ".fitted"   ".expected"</span></span></code></pre></div>
@@ -525,6 +539,8 @@
 <code class="sourceCode R"><span><span class="va">comp_forecast</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2019</span><span class="op">:</span><span class="fl">2028</span>,</span>
 <span>           output <span class="op">=</span> <span class="st">"components"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `components()` for past values...</span></span>
+<span><span class="co">#&gt; `components()` for future values...</span></span>
 <span><span class="va">comp_forecast</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 4</span></span></span>
 <span><span class="co">#&gt;    term  component level              .fitted</span></span>
@@ -548,6 +564,16 @@
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sex</span> <span class="op">==</span> <span class="st">"Female"</span>,</span>
 <span>         <span class="va">age</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10-14"</span>, <span class="st">"25-29"</span>, <span class="st">"40-44"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci</a></span><span class="op">(</span><span class="va">.fitted</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; `components()` for past values...</span></span>
+<span><span class="co">#&gt; `components()` for future values...</span></span>
+<span><span class="co">#&gt; `augment()` for future values...</span></span>
+<span><span class="co">#&gt; `augment()` for past values...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; `augment()` for past values...Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; `augment()` for past values...</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data_forecast</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">year</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -577,12 +603,18 @@
 <code class="sourceCode R"><span><span class="va">mod_mis</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">age</span> <span class="op">*</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span>
 <span>                    data <span class="op">=</span> <span class="va">injuries_mis</span>,</span>
 <span>                    exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span></code></pre></div>
 <p><strong>bage</strong> creates a new variable, called <code>.injuries</code> containing imputed values for the missing outcomes.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_mis</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">year</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">years_mis</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Drawing `.injuries`...</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 240 × 10</span></span></span>
 <span><span class="co">#&gt;    age   sex    ethnicity  year injuries    .injuries  popn .observed</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -604,6 +636,9 @@
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">age</span> <span class="op">==</span> <span class="st">"20-24"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci</a></span><span class="op">(</span><span class="va">.fitted</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Drawing `.injuries`...</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data_plot_mis</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">year</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -629,11 +664,17 @@
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_datamod_outcome_rr3.html">set_datamod_outcome_rr3</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span></code></pre></div>
 <p>The results from calling <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> now include a variable called <code>.injuries</code> with estimated values for the true, unrounded injury counts.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Drawing `.injuries`...</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 912 × 10</span></span></span>
 <span><span class="co">#&gt;    age   sex    ethnicity  year injuries    .injuries  popn .observed</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -662,6 +703,9 @@
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rep_data</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Drawing `.injuries`...</span></span>
 <span><span class="va">rep_data</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 18,240 × 7</span></span></span>
 <span><span class="co">#&gt;    .replicate age   sex    ethnicity  year injuries  popn</span></span>
@@ -732,6 +776,506 @@
 <span></span>
 <span><span class="co">## Run the simulation</span></span>
 <span><span class="fu"><a href="../reference/report_sim.html">report_sim</a></span><span class="op">(</span>mod_est <span class="op">=</span> <span class="va">mod_rw2</span>, mod_sim <span class="op">=</span> <span class="va">mod_rw</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
+<span><span class="co">#&gt; Building log-posterior function...</span></span>
+<span><span class="co">#&gt; Finding maximum...</span></span>
+<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
+<span><span class="co">#&gt; Drawing `.expected`...</span></span>
+<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="co">#&gt; $components</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 7</span></span></span>
 <span><span class="co">#&gt;   term        component  .error .cover_50 .cover_95 .length_50 .length_95</span></span>

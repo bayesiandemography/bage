@@ -9,7 +9,7 @@ for a model."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -156,13 +156,19 @@ using <code>"BFGS"</code>. The default.</p></li>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
-<ul><li><p><code><a href="mod_pois.html">mod_pois()</a></code>, <code><a href="mod_binom.html">mod_binom()</a></code>, <code><a href="mod_norm.html">mod_norm()</a></code> Specify a model</p></li>
-<li><p><code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>, <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>, <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code> Examine
-output from a model</p></li>
+<ul><li><p><code><a href="mod_pois.html">mod_pois()</a></code> Specify a Poisson model</p></li>
+<li><p><code><a href="mod_binom.html">mod_binom()</a></code> Specify a binomial model</p></li>
+<li><p><code><a href="mod_norm.html">mod_norm()</a></code> Specify a normal model</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> Extract values for rates,
+probabilities, or means, together
+with original data</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> Extract values for hyper-parameters</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> Forecast, based on a model</p></li>
 <li><p><code><a href="report_sim.html">report_sim()</a></code> Simulation study of a model</p></li>
 <li><p><code><a href="unfit.html">unfit()</a></code> Reset a model</p></li>
 <li><p><code><a href="is_fitted.html">is_fitted()</a></code> Check if a model has been fitted</p></li>
+<li><p><a href="https://bayesiandemography.github.io/bage/articles/vig2_math.html">Mathematical Details</a>
+vignette</p></li>
 </ul></div>
     </div>
 
@@ -196,6 +202,9 @@ output from a model</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## fit model</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Building log-posterior function...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Finding maximum...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing values for hyper-parameters...</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## examine fitted model</span></span></span>
 <span class="r-in"><span><span class="va">mod</span></span></span>
@@ -217,12 +226,14 @@ output from a model</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  n_draw var_time var_age var_sexgender optimizer</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    1000     year     age           sex    nlminb</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_optim time_report iter converged                    message</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        0.24       0.11        0.10   13      TRUE   relative convergence (4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_max time_draw iter converged                    message</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        0.25     0.11      0.11   13      TRUE   relative convergence (4)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## extract rates</span></span></span>
 <span class="r-in"><span><span class="va">aug</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.expected`...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.fitted`...</span>
 <span class="r-in"><span><span class="va">aug</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 912 × 9</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex    ethnicity  year injuries  popn .observed</span>
@@ -244,18 +255,18 @@ output from a model</p></li>
 <span class="r-in"><span><span class="va">comp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">comp</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 37 × 4</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    term        component level                    .fitted</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)   -2.5 (-4.2, -0.75)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4           -2.5 (-4.2, -0.86)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9            -3.8 (-5.5, -2.2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14          -3.3 (-5.1, -1.8)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19       -1.6 (-3.3, -0.0062)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24          -1.4 (-3.1, 0.16)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29        -1.6 (-3.3, -0.015)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34         -1.7 (-3.4, -0.11)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39         -1.7 (-3.4, -0.12)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44        -1.7 (-3.4, -0.096)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    term        component level                   .fitted</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)  -2.5 (-4.2, -0.76)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4          -2.4 (-4.1, -0.77)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9           -3.7 (-5.4, -2.1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14           -3.3 (-5, -1.6)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19        -1.6 (-3.2, 0.093)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24         -1.4 (-3.1, 0.21)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29        -1.6 (-3.2, 0.092)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34       -1.7 (-3.3, -0.027)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39       -1.7 (-3.3, -0.025)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44       -1.7 (-3.3, -0.025)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 27 more rows</span></span>
 </code></pre></div>
     </div>

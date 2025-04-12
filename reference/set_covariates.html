@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,10 +83,10 @@ argument to <code>set_covariates()</code> should be in the
 dataset supplied in the original call to
 <code><a href="mod_pois.html">mod_pois()</a></code>, <code><a href="mod_binom.html">mod_binom()</a></code>, or <code><a href="mod_norm.html">mod_norm()</a></code>.</p>
 <p><code>set_covariates()</code> processes the covariate data before
-adding it to the model:</p><ul><li><p><strong>numerical</strong> variables are standardized, using
+adding it to the model:</p><ul><li><p>All numeric variables are standardized, using
 <code>x &lt;- scale(x)</code>.</p></li>
-<li><p><strong>categorical</strong> variables are converted to sets of indicator
-variables, using 'treatment' contrasts (<code><a href="https://rdrr.io/r/stats/contrast.html" class="external-link">stats::contr.treatment()</a></code>).
+<li><p>Categorical variables are converted to sets of indicator
+variables, using treatment contrasts.
 For instance, variable <code>x</code> with categories <code>"high"</code>, <code>"medium"</code>, and <code>"low"</code>,
 is converted into two indicator variables, one called <code>xmedium</code> and one
 called <code>xlow</code>.</p></li>
