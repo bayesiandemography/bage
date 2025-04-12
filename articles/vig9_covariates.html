@@ -195,12 +195,12 @@ where</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;         term  prior along n_par n_par_free std_dev</span></span>
 <span><span class="co">#&gt;  (Intercept) NFix()     -     1          1       -</span></span>
-<span><span class="co">#&gt;          age   RW()   age     9          9    2.62</span></span>
-<span><span class="co">#&gt;       region    N()     -    16         16    0.01</span></span>
+<span><span class="co">#&gt;          age   RW()   age     9          9    2.64</span></span>
+<span><span class="co">#&gt;       region    N()     -    16         16    0.03</span></span>
 <span><span class="co">#&gt;         time   RW()  time    13         13    0.20</span></span>
-<span><span class="co">#&gt;   age:region   RW()   age   144        144    0.18</span></span>
-<span><span class="co">#&gt;     age:time   RW()  time   117        117    1.23</span></span>
-<span><span class="co">#&gt;  region:time   RW()  time   208        208    0.09</span></span>
+<span><span class="co">#&gt;   age:region   RW()   age   144        144    0.20</span></span>
+<span><span class="co">#&gt;     age:time   RW()  time   117        117    1.20</span></span>
+<span><span class="co">#&gt;  region:time   RW()  time   208        208    0.19</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  covariates: ~gdp_pc_2023 + dens_2020</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -210,7 +210,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        3.53     1.68      1.09   27      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        3.16     1.40      0.99   26      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>To obtain estimates of the coefficients (ie estimates of the <span class="math inline">\(\zeta_p\)</span>) we call function <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> and filter out rows for the <code>"covariates"</code> term.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_gdp_dens</span> <span class="op">|&gt;</span></span>
@@ -219,9 +219,9 @@ where</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 4</span></span></span>
 <span><span class="co">#&gt;   term       component level                         .fitted</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      gdp_pc_2023     -0.0057 (-0.67, 0.67)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> covariates coef      dens_2020Low        0.18 (-0.81, 1.1)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> covariates coef      dens_2020Medium   0.013 (-0.94, 0.92)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      gdp_pc_2023     -0.0029 (-0.67, 0.67)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> covariates coef      dens_2020Low       -0.53 (-1.9, 0.85)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> covariates coef      dens_2020Medium    -0.77 (-2.1, 0.55)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="3.3">
 <h3 id="covariates-that-allow-for-unusual-subsets">
@@ -244,9 +244,9 @@ where</p>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">term</span> <span class="op">==</span> <span class="st">"covariates"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 4</span></span></span>
-<span><span class="co">#&gt;   term       component level                            .fitted</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                       <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      is_dragon_yearTRUE 0.017 (-0.011, 0.047)</span></span></code></pre></div>
+<span><span class="co">#&gt;   term       component level                           .fitted</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                      <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      is_dragon_yearTRUE 0.063 (-0.043, 0.17)</span></span></code></pre></div>
 <p>There is some evidence for extra births, though there is substantial uncertainty about the size of the effect.</p>
 <p>Next we expand the model to allow the dragon-year effect to differ across age groups. We create a variable that takes the values <code>"baseline"</code> in all years, except in dragon years, when it takes the name of the age group. We turn this variable into a factor with <code>"baseline"</code> as its first level.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -306,7 +306,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        3.16     1.81      1.22   29      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.00     1.07      0.81   24      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Rather than a single dragon-year coefficient, we have a coefficient for each age group. We extract them and tidy up the labels.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_dragon_age</span> <span class="op">|&gt;</span></span>
@@ -315,17 +315,17 @@ where</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"is_dragon_year_age"</span>, <span class="st">""</span>, <span class="va">level</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">.fitted</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 9 × 2</span></span></span>
-<span><span class="co">#&gt;   age                   .fitted</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 10-14    0.032 (-0.01, 0.075)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 15-19 6.1e-05 (-0.016, 0.018)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 20-24  0.0049 (-0.013, 0.022)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 25-29 0.0079 (-0.0093, 0.025)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 30-34   0.0081 (-0.01, 0.024)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 35-39   0.0031 (-0.014, 0.02)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 40-44  0.0052 (-0.011, 0.023)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 45-49    0.01 (-0.012, 0.029)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> 50-54   0.018 (-0.017, 0.052)</span></span></code></pre></div>
+<span><span class="co">#&gt;   age                .fitted</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 10-14   0.31 (-0.14, 0.79)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 15-19 0.0094 (-0.19, 0.18)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 20-24  0.049 (-0.15, 0.23)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 25-29   0.075 (-0.1, 0.27)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 30-34 0.075 (-0.094, 0.26)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 35-39  0.034 (-0.15, 0.21)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 40-44  0.058 (-0.12, 0.24)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 45-49   0.11 (-0.11, 0.33)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> 50-54    0.2 (-0.19, 0.55)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="3.4">
 <h3 id="forecasting">
@@ -377,7 +377,6 @@ where</p>
 <span><span class="co">#&gt; `components()` for past values...</span></span>
 <span><span class="co">#&gt; `components()` for future values...</span></span>
 <span><span class="co">#&gt; `augment()` for future values...</span></span>
-<span><span class="co">#&gt; Warning: NAs produced</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 288 × 11</span></span></span>
 <span><span class="co">#&gt;    age   region           time births  popn gdp_pc_2023 dens_2020 is_dragon_year</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>         </span></span>
