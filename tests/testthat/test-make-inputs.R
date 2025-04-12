@@ -1220,9 +1220,6 @@ test_that("'make_matrix_covariates' works with valid inputs - not all numeric - 
   data_scaled <- data
   data_scaled$income <- as.numeric(scale(data_scaled$income))
   ans_expected <- model.matrix(~income*region, data = data_scaled)[,-1]
-  for (i in seq_len(ncol(ans_expected)))
-    ans_expected[,i] <- as.numeric(scale(ans_expected[,i]))
-  attr(ans_expected, "assign") <- NULL
   rownames(ans_expected) <- NULL
   expect_identical(ans_obtained, ans_expected)
 })
@@ -1240,8 +1237,6 @@ test_that("'make_matrix_covariates' works with valid inputs - not all numeric - 
   data_scaled <- data
   data_scaled$income <- as.numeric(scale(data_scaled$income))
   ans_expected <- model.matrix(~income*region, data = data_scaled)[,-1]
-  for (i in seq_len(ncol(ans_expected)))
-    ans_expected[,i] <- as.numeric(scale(ans_expected[,i]))
   attr(ans_expected, "assign") <- NULL
   rownames(ans_expected) <- NULL
   expect_identical(ans_obtained, ans_expected)
@@ -1474,9 +1469,6 @@ test_that("'make_outcome_offset_matrices' works with model with categorical cova
                                                                               mod$dimnames_terms),
                        matrix_covariates = cbind(time2 = rep(c(0L, 1L, 0L), times = 40),
                                                  time3 = rep(c(0L, 0L, 1L), times = 40)))
-  ans_expected$matrix_covariates <- scale(ans_expected$matrix_covariates)
-  attr(ans_expected$matrix_covariates, "scaled:center") <- NULL
-  attr(ans_expected$matrix_covariates, "scaled:scale") <- NULL
   expect_equal(ans_obtained, ans_expected)
 })
 

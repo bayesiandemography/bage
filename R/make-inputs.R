@@ -1014,11 +1014,8 @@ make_matrix_covariates <- function(formula, data) {
       cli::cli_abort("Internal error: First column is not intercept.") ## nocov
     ans <- ans[, -1L, drop = FALSE]
   }
-  ans <- scale(ans)
   attr(ans, "assign") <- NULL
-  attr(ans, "scaled:contrasts") <- NULL
-  attr(ans, "scaled:center") <- NULL
-  attr(ans, "scaled:scale") <- NULL
+  attr(ans, "contrasts") <- NULL
   rownames(ans) <- NULL
   ans
 }
