@@ -317,21 +317,18 @@ mod_binom <- function(formula, data, size) {
 #' to have mean 0 and standard deviation 1, and
 #' scales the weights to have mean 1.
 #' This scaling allows `mod_norm()` to use the
-#' same menu of priors as `mod_pois()` and `mod_binom()`.
-#' (`mod_pois()` works on the log scale,
-#' and `mod_binom()` works on the logit scale.)
+#' same menu of priors as [mod_pois()] and [mod_binom()].
+#' ([mod_pois()] works on the log scale,
+#' and [mod_binom()] works on the logit scale.)
 #'
-#' When extracting parameter estimates
-#' from a `mod_norm()` model,
-#' it make sense to use values based on
-#' the original scales for the outcome and
-#' weights variables,
-#' and sometimes makes sense to use
-#' values based on the transformed scales.
-#' By default, [augment()] uses the original scales,
-#' and [components()] uses the transformed scales.
-#' See the documentation for [augment()] and [components()]
-#' for the details.
+#' [augment()] always returns values on the
+#' original scale, rather than the transformed scale.
+#'
+#' [components()] by default returns values on
+#' the transformed scale. But if `original_scale` is
+#' `TRUE`, it returns some types of values on the
+#' original scale. See the documentation for
+#' [components()] for details.
 #' 
 #' @section Specifying weights:
 #'
@@ -535,7 +532,7 @@ mod_helper <- function(formula, data, n_draw) {
        var_time = var_time,
        mean_disp = 1,
        formula_covariates = NULL,
-       nms_covariates = NULL,
+       covariates_nms = NULL,
        n_draw = n_draw,
        vars_inner = NULL,
        draws_effectfree = NULL,

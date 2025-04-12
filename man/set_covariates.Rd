@@ -31,10 +31,10 @@ dataset supplied in the original call to
 \code{set_covariates()} processes the covariate data before
 adding it to the model:
 \itemize{
-\item \strong{numerical} variables are standardized, using
+\item All numeric variables are standardized, using
 \code{x <- scale(x)}.
-\item \strong{categorical} variables are converted to sets of indicator
-variables, using 'treatment' contrasts (\code{\link[stats:contrast]{stats::contr.treatment()}}).
+\item Categorical variables are converted to sets of indicator
+variables, using \link[stats:contrast]{treatment} contrasts.
 For instance, variable \code{x} with categories \code{"high"}, \code{"medium"}, and \code{"low"},
 is converted into two indicator variables, one called \code{xmedium} and one
 called \code{xlow}.

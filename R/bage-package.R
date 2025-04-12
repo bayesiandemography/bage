@@ -51,7 +51,7 @@
 #'
 #' - [components()][bage::components.bage_ssvd] Matrices and offsets from scaled SVD
 #' - [generate()][bage::generate.bage_ssvd] Random profiles
-#' - [HFD] Scaled SVD of fertility rates from Human Fertility Database
+###' - [HFD] Scaled SVD of fertility rates from Human Fertility Database
 #' - [HMD] Scaled SVD of mortality rates from Human Mortality Database
 #' - [LFP] Scaled SVD of labor force participation rates from OECD
 #'

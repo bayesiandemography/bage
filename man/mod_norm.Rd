@@ -38,21 +38,18 @@ Internally, \code{mod_norm()} scales the outcome variable
 to have mean 0 and standard deviation 1, and
 scales the weights to have mean 1.
 This scaling allows \code{mod_norm()} to use the
-same menu of priors as \code{mod_pois()} and \code{mod_binom()}.
-(\code{mod_pois()} works on the log scale,
-and \code{mod_binom()} works on the logit scale.)
+same menu of priors as \code{\link[=mod_pois]{mod_pois()}} and \code{\link[=mod_binom]{mod_binom()}}.
+(\code{\link[=mod_pois]{mod_pois()}} works on the log scale,
+and \code{\link[=mod_binom]{mod_binom()}} works on the logit scale.)
 
-When extracting parameter estimates
-from a \code{mod_norm()} model,
-it make sense to use values based on
-the original scales for the outcome and
-weights variables,
-and sometimes makes sense to use
-values based on the transformed scales.
-By default, \code{\link[=augment]{augment()}} uses the original scales,
-and \code{\link[=components]{components()}} uses the transformed scales.
-See the documentation for \code{\link[=augment]{augment()}} and \code{\link[=components]{components()}}
-for the details.
+\code{\link[=augment]{augment()}} always returns values on the
+original scale, rather than the transformed scale.
+
+\code{\link[=components]{components()}} by default returns values on
+the transformed scale. But if \code{original_scale} is
+\code{TRUE}, it returns some types of values on the
+original scale. See the documentation for
+\code{\link[=components]{components()}} for details.
 }
 
 \section{Specifying weights}{

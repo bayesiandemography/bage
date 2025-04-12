@@ -91,7 +91,7 @@ test_that("'set_covariates' works with Poisson", {
   ans_obtained <- set_covariates(mod, ~ income)
   ans_expected <- mod
   ans_expected$formula_covariates <- ~ income
-  ans_expected$nms_covariates <- "income"
+  ans_expected$covariates_nms <- "income"
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -107,7 +107,7 @@ test_that("'set_covariates' works with binomial", {
   ans_obtained <- set_covariates(mod, ~ income)
   ans_expected <- mod
   ans_expected$formula_covariates <- ~income
-  ans_expected$nms_covariates <- "income"
+  ans_expected$covariates_nms <- "income"
   expect_identical(ans_obtained, ans_expected)
 })
 

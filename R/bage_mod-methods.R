@@ -123,6 +123,7 @@ generics::augment
 #'   set_datamod_outcome_rr3() |>
 #'   fit() |>
 #'   augment()
+#' @export
 augment.bage_mod <- function(x,
                              quiet = FALSE,
                              ...) {
@@ -131,11 +132,11 @@ augment.bage_mod <- function(x,
   check_flag(x = quiet, nm_x = "quiet")
   check_has_no_dots(...)
   if (is_fitted)
-    ans <- draw_vals_augment_fitted(mod)
+    ans <- draw_vals_augment_fitted(x)
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
-    ans <- draw_vals_augment_unfitted(mod)
+    ans <- draw_vals_augment_unfitted(x)
   }
   ans
 }
@@ -150,47 +151,53 @@ generics::components
 ## HAS_TESTS
 #' Extract Values for Hyper-Parameters
 #'
+#' @description
+#' 
 #' Extract values for hyper-parameters
 #' from a model object. Hyper-parameters include
-#' main effects and interactions,
-#' dispersion and variance terms,
-#' and SVD or spline coefficients.
-#' 
+#'
+#' - main effects and interactions,
+#' - dispersion,
+#' - trends, seasonal effects, errors,
+#' - SVD, spline, and covariate coefficients, 
+#' - standard deviations, correlation coefficients.
+#'
 #' @section Fitted vs unfitted models:
 #'
 #' `components()` is typically called on a [fitted][fit()]
-#' model. In this case, the modelled values are
+#' model. In this case, the values returned are
 #' draws from the joint posterior distribution for the
 #' hyper-parameters in the model.
 #'
 #' `components()` can, however, be called on an
-#' unfitted model. In this case, the modelled values
-#' are draws from the joint prior distribution.
-#' In other words, the modelled values are informed by
-#' model priors, and by any `exposure`, `size`, or `weights`
-#' argument in the model, but not by the observed outcomes.
+#' unfitted model. In this case, the values returned
+#' are draws from the joint *prior* distribution.
+#' In other words, the values incorporate
+#' model priors, and any `exposure`, `size`, or `weights`
+#' argument, but not observed outcomes.
 #'
 #' @section Scaling and Normal models:
 #'
-#' Internally, Normal models
+#' Internally, models created with [mod_norm()]
 #' are fitted using transformed versions of the
-#' outcome and weights variables. (For details,
-#' see [mod_norm()]). By default, when `components()`
-#' is used with a Normal model, it returns values for `.fitted`
-#' that are on the transformed scale.
-#' To obtain values on the original, untransformed scale,
+#' outcome and weights variables. By default, when `components()`
+#' is used with these models,
+#' it returns values for `.fitted`
+#' that are based on the transformed versions.
+#' To instead obtain values for `"effect"`, `"trend"`, `"season"`,
+#' `"error"` and `"disp"` that are based on the
+#' untransformed versions,
 #' set `original_scale` to `TRUE`.
 #'
 #' @inheritParams augment.bage_mod
 #' @param object Object of class `"bage_mod"`,
 #' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
-#' @param original_scale Whether `.fitted`
-#' is based on the original or transformed 
-#' versions of the outcome and weights variables.
-#' Used only if `object` was
-#' created with [mod_norm()].
-#' Default is `FALSE`.
+#' @param original_scale Whether values for
+#' `"effect"`, `"trend"`, `"season"`,
+#' `"error"` and `"disp"` components from
+#' a [normal][mod_norm()] model are on the original
+#' scale or the transformed scale. Default is `FALSE`.
 #' 
 #' @returns
 #' A [tibble][tibble::tibble-package]
@@ -235,6 +242,23 @@ generics::components
 #' ## of hyper-parameters
 #' mod |>
 #'   components()
+#'
+#' ## fit normal model
+#' mod <- mod_norm(value ~ age * diag + year,
+#'                 data = nld_expenditure,
+#'                 weights = 1) |>
+#'   fit()
+#'
+#' ## dispersion (= standard deviation in normal model)
+#' ## on the transformed scale
+#' mod |>
+#'   components() |>
+#'   subset(component == "disp")
+#'
+#' ## disperson on the original scale
+#' mod |>
+#'   components(original_scale = TRUE) |>
+#'   subset(component == "disp")
 #' @export
 components.bage_mod <- function(object,
                                 quiet = FALSE,
@@ -242,27 +266,24 @@ components.bage_mod <- function(object,
                                 ...) {
   check_old_version(x = object, nm_x = "object")
   check_flag(x = quiet, nm_x = "quiet")
-  check_original_scale_augment(original_scale = original_scale,
-                               mod = x)
+  check_original_scale(original_scale = original_scale, mod = object)
   is_fitted <- is_fitted(object)
   is_norm <- inherits(object, "bage_mod_norm")
-  has_covariates <- has_covariates(object)
   check_has_no_dots(...)
-  if ((is_norm || has_covariates) && !original_scale)
-    cli::cli_alert_info(paste("Values for {.arg .fitted} are on the transformed scale.",
-                              "See the documentation for {.fun components} for details."))
+  if (!quiet && is_norm && !original_scale)
+    cli::cli_alert_info(paste("Values for {.arg .fitted} are on a transformed scale.",
+                              "See the documentation for {.fun mod_norm} and {.fun components}",
+                              "for details."))
   if (is_fitted)
     ans <- draw_vals_components_fitted(object)
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
     n_draw <- object$n_draw
+    ans <- draw_vals_components_unfitted(mod = object, n_sim = n_draw)
   }
-  ans <- draw_vals_components_unfitted(mod = object,
-                                       n_sim = n_draw)
-  if ((is_norm || has_covariates) && original_scale)
-    components <- rescale_components(components = components,
-                                     mod = object)
+  if (is_norm && original_scale)
+    ans <- rescale_components(components = ans, mod = object)
   ans <- sort_components(components = ans, mod = object)
   ans
 }
@@ -326,18 +347,17 @@ computations.bage_mod <- function(object) {
 #' Draw '.fitted' and Possibly '.expected' from Fitted Model
 #'
 #' @param mod A fitted object of class 'bage_mod'
-#' @param original_scale Whether '.fitted' should be on original scale.
 #'
 #' @returns A tibble
 #'
 #' @noRd
-draw_vals_augment_fitted <- function(mod, original_scale) {
+draw_vals_augment_fitted <- function(mod) {
   UseMethod("draw_vals_augment_fitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_fitted.bage_mod <- function(mod, original_scale) {
+draw_vals_augment_fitted.bage_mod <- function(mod) {
   outcome <- mod$outcome
   offset <- mod$offset
   seed_augment <- mod$seed_augment
@@ -395,34 +415,32 @@ draw_vals_augment_fitted.bage_mod <- function(mod, original_scale) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_fitted.bage_mod_norm <- function(mod, original_scale) {
+draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   outcome <- mod$outcome
-  offset <- mod$offset
   datamod_outcome <- mod$datamod_outcome
   seed_augment <- mod$seed_augment
   nm_distn <- nm_distn(mod)
+  scale_linpred <- get_fun_scale_linpred(mod)
   ans <- mod$data
   linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
   if (is_not_testing_or_snapshot())
     cli::cli_progress_message("Drawing {.var .fitted}...")
-  if (original_scale) {
-    scale_linpred <- get_fun_scale_linpred(mod)
-    offset_mean <- mod$offset_mean
-    .fitted <- scale_linpred(linpred)
-    offset <- offset_mean * offset
-  }
-  else
-    .fitted <- linpred
+  .fitted <- scale_linpred(linpred)
   ans$.fitted <- .fitted
   outcome_has_na <- anyNA(outcome)
   has_datamod_outcome <- !is.null(datamod_outcome)
   if (outcome_has_na || has_datamod_outcome) {
+    disp <- get_disp(mod)
+    outcome_sd <- mod$outcome_sd
+    disp <- outcome_sd * disp
+    offset <- mod$offset
+    offset_mean <- mod$offset_mean
+    offset <- offset_mean * offset
     nm_outcome_data <- get_nm_outcome_data(mod)
     nm_outcome_data_true <- paste0(".", nm_outcome_data)
     if (is_not_testing_or_snapshot())
       cli::cli_progress_message("Drawing {.var {nm_outcome_data_true}}...")
     outcome_obs <- ans[[nm_outcome_data]]
-    disp <- get_disp(mod)
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
@@ -450,13 +468,13 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod, original_scale) {
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_augment_unfitted <- function(mod, original_scale) {
+draw_vals_augment_unfitted <- function(mod) {
   UseMethod("draw_vals_augment_unfitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod <- function(mod, original_scale) {
+draw_vals_augment_unfitted.bage_mod <- function(mod) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
@@ -515,14 +533,17 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, original_scale) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod_norm <- function(mod, original_scale) {
+draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
   datamod_outcome <- mod$datamod_outcome
   outcome_sd <- mod$outcome_sd
   offset <- mod$offset
+  offset_mean <- mod$offset_mean
+  offset <- offset_mean * offset
   nm_distn <- nm_distn(mod)
+  scale_linpred <- get_fun_scale_linpred(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw)
   nm_outcome_data <- get_nm_outcome_data(mod)
@@ -530,14 +551,7 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod, original_scale) {
                                                components = vals_components,
                                                data = data,
                                                dimnames_terms = dimnames_terms)
-  if (original_scale) {
-    scale_linpred <- get_fun_scale_linpred(mod)
-    offset_mean <- mod$offset_mean
-    vals_fitted <- scale_linpred(vals_linpred)
-    offset <- offset_mean * offset
-  }
-  else
-    vals_fitted <- vals_linpred
+  vals_fitted <- scale_linpred(vals_linpred)
   is_disp <- vals_components$component == "disp"
   vals_disp <- vals_components$.fitted[is_disp]
   vals_disp <- outcome_sd * vals_disp
@@ -2099,7 +2113,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
   datamod_outcome <- x$datamod_outcome
   nm_outcome_data <- get_nm_outcome_data(x)
   x <- set_n_draw(x, n_draw = n)
-  aug <- augment(x)
+  aug <- augment(x, quiet = TRUE)
   n_obs <- nrow(data)
   if (condition_on == "fitted") {
     fitted <- aug$.fitted
@@ -2205,7 +2219,7 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
   nm_outcome_data <- get_nm_outcome_data(x)
   x <- set_n_draw(x, n_draw = n)
   aug <- augment(x)
-  comp <- components(x)
+  comp <- components(x, quiet = TRUE)
   disp <- comp[[".fitted"]][comp$component == "disp"]
   n_obs <- nrow(data)
   fitted <- aug$.fitted

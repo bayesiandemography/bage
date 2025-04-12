@@ -14,12 +14,11 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
 
-\item{original_scale}{Whether \code{.fitted}
-is based on the original or transformed
-versions of the outcome and weights variables.
-Used only if \code{object} was
-created with \code{\link[=mod_norm]{mod_norm()}}.
-Default is \code{FALSE}.}
+\item{original_scale}{Whether values for
+\code{"effect"}, \code{"trend"}, \code{"season"},
+\code{"error"} and \code{"disp"} components from
+a \link[=mod_norm]{normal} model are on the original
+scale or the transformed scale. Default is \code{FALSE}.}
 
 \item{...}{Unused. Included for generic consistency only.}
 }
@@ -39,36 +38,42 @@ draws from the posterior distribution.
 \description{
 Extract values for hyper-parameters
 from a model object. Hyper-parameters include
-main effects and interactions,
-dispersion and variance terms,
-and SVD or spline coefficients.
+\itemize{
+\item main effects and interactions,
+\item dispersion,
+\item trends, seasonal effects, errors,
+\item SVD, spline, and covariate coefficients,
+\item standard deviations, correlation coefficients.
+}
 }
 \section{Fitted vs unfitted models}{
 
 
 \code{components()} is typically called on a \link[=fit]{fitted}
-model. In this case, the modelled values are
+model. In this case, the values returned are
 draws from the joint posterior distribution for the
 hyper-parameters in the model.
 
 \code{components()} can, however, be called on an
-unfitted model. In this case, the modelled values
-are draws from the joint prior distribution.
-In other words, the modelled values are informed by
-model priors, and by any \code{exposure}, \code{size}, or \code{weights}
-argument in the model, but not by the observed outcomes.
+unfitted model. In this case, the values returned
+are draws from the joint \emph{prior} distribution.
+In other words, the values incorporate
+model priors, and any \code{exposure}, \code{size}, or \code{weights}
+argument, but not observed outcomes.
 }
 
 \section{Scaling and Normal models}{
 
 
-Internally, Normal models
+Internally, models created with \code{\link[=mod_norm]{mod_norm()}}
 are fitted using transformed versions of the
-outcome and weights variables. (For details,
-see \code{\link[=mod_norm]{mod_norm()}}). By default, when \code{components()}
-is used with a Normal model, it returns values for \code{.fitted}
-that are on the transformed scale.
-To obtain values on the original, untransformed scale,
+outcome and weights variables. By default, when \code{components()}
+is used with these models,
+it returns values for \code{.fitted}
+that are based on the transformed versions.
+To instead obtain values for \code{"effect"}, \code{"trend"}, \code{"season"},
+\code{"error"} and \code{"disp"} that are based on the
+untransformed versions,
 set \code{original_scale} to \code{TRUE}.
 }
 
@@ -91,6 +96,23 @@ mod <- mod |>
 ## of hyper-parameters
 mod |>
   components()
+
+## fit normal model
+mod <- mod_norm(value ~ age * diag + year,
+                data = nld_expenditure,
+                weights = 1) |>
+  fit()
+
+## dispersion (= standard deviation in normal model)
+## on the transformed scale
+mod |>
+  components() |>
+  subset(component == "disp")
+
+## disperson on the original scale
+mod |>
+  components(original_scale = TRUE) |>
+  subset(component == "disp")
 }
 \seealso{
 \itemize{

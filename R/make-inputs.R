@@ -426,10 +426,10 @@ make_agesex <- function(nm, var_age, var_sexgender) {
 make_coef_covariates <- function(mod) {
   has_covariates <- has_covariates(mod)
   if (has_covariates) {
-    nms_covariates <- mod$nms_covariates
-    n_covariates <- length(nms_covariates)
+    covariates_nms <- mod$covariates_nms
+    n_covariates <- length(covariates_nms)
     ans <- rep(0, times = n_covariates)
-    names(ans) <- nms_covariates
+    names(ans) <- covariates_nms
   }
   else
     ans <- double()
@@ -1014,7 +1014,11 @@ make_matrix_covariates <- function(formula, data) {
       cli::cli_abort("Internal error: First column is not intercept.") ## nocov
     ans <- ans[, -1L, drop = FALSE]
   }
-  attributes(ans)$assign <- NULL
+  ans <- scale(ans)
+  attr(ans, "assign") <- NULL
+  attr(ans, "scaled:contrasts") <- NULL
+  attr(ans, "scaled:center") <- NULL
+  attr(ans, "scaled:scale") <- NULL
   rownames(ans) <- NULL
   ans
 }
@@ -1089,7 +1093,10 @@ make_offsets_effectfree_effect <- function(mod) {
 ## HAS_TESTS
 #' Make vector holding outcome variable
 #'
-#' Extracts the outcome variable from 'data'.
+#' Extracts the outcome variable from 'data'
+#' and checks for infinite and NaN.
+#' (Do this here because we know the name
+#' *Rof the variable.)
 #'
 #' @param formula Formula specifying model
 #' @param data A data frame
@@ -1102,6 +1109,8 @@ make_outcome <- function(formula, data) {
     nms_data <- names(data)
     ans <- data[[match(nm_response, nms_data)]]
     ans <- as.double(ans)
+    check_inf(x = ans, nm_x = nm_response)
+    check_nan(x = ans, nm_x = nm_response)
     ans
 }
 

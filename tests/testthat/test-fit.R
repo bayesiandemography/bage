@@ -583,7 +583,7 @@ test_that("'optimize_adfun' works - does not converge", {
                         data = data, random = random, map = map,
                         is_test_nonconv = TRUE)
   expect_setequal(names(ans), c("f", "iter", "message", "converged", "optimizer"))
-  expect_identical(ans$optimizer, "nlminb+BFGS")
+  expect_identical(ans$optimizer, "nlminb + BFGS")
   expect_true(ans$converged)
 })
 

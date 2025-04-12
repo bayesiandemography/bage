@@ -979,7 +979,7 @@ Known(values)
 
 ## Model
 
-Matrix $\pmb{Z}$ is a standardized version of the original covariate data supplied by the user. If a variable in the original data is numeric, then it is standardized to have mean 0 and standard deviation one. If a variable in the original data is categorical with $C$ categories, then it is converted into $C-1$ indicator variables, with the first category as the omitted variable. (This is the 'treatment' contrast in R.)
+Matrix $\pmb{Z}$ is a standardized version of the original covariate data supplied by the user. We standardize every numeric variable to have mean 0 and standard deviation one. We then convert categorical variables to sets of indicator variables using R's 'treatment' contrast. If a variable in the original data is categorical with $C$ categories, then it is converted into $C-1$ indicator variables, with the first category as the omitted variable.
 
 The elements of $\pmb{\zeta}$ have prior
 \begin{equation}
