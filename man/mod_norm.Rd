@@ -39,8 +39,6 @@ to have mean 0 and standard deviation 1, and
 scales the weights to have mean 1.
 This scaling allows \code{mod_norm()} to use the
 same menu of priors as \code{\link[=mod_pois]{mod_pois()}} and \code{\link[=mod_binom]{mod_binom()}}.
-(\code{\link[=mod_pois]{mod_pois()}} works on the log scale,
-and \code{\link[=mod_binom]{mod_binom()}} works on the logit scale.)
 
 \code{\link[=augment]{augment()}} always returns values on the
 original scale, rather than the transformed scale.
@@ -48,8 +46,7 @@ original scale, rather than the transformed scale.
 \code{\link[=components]{components()}} by default returns values on
 the transformed scale. But if \code{original_scale} is
 \code{TRUE}, it returns some types of values on the
-original scale. See the documentation for
-\code{\link[=components]{components()}} for details.
+original scale. See \code{\link[=components]{components()}} for details.
 }
 
 \section{Specifying weights}{
@@ -70,31 +67,27 @@ environment (see below for example).
 
 The likelihood is
 
-\deqn{\tilde{y}_i \sim \text{N}(\mu_i, \xi^2 / \tilde{w}_i)}
-
+\deqn{y_i \sim \text{N}(\gamma_i, w_i^{-1} \sigma^2)}
 where
-
-\deqn{\tilde{y}_i = (y_i - \bar{y}) / s}
-
-and
-
-\deqn{\tilde{w}_i = w_i / \bar{w},}
-
-and where
 \itemize{
 \item subscript \eqn{i} identifies some combination of the
 classifying variables, such as age, sex, and time,
 \item \eqn{y_i} is the value of the outcome variable,
-\item \eqn{w_i} is a weight,
-\item \eqn{\bar{y}} is the mean across \eqn{i} of \eqn{y_i},
-\item \eqn{s} is the sample standard deviation across \eqn{i} of \eqn{y_i},
-\item \eqn{\bar{w}} is the mean across \eqn{i} of \eqn{w_i},
-\item \eqn{\mu_i} is a mean parameter, and
-\item \eqn{\xi} is a standard deviation parameter.
+\item \eqn{w_i} is a weight.
 }
 
 In some applications, \eqn{w_i} is set to 1
 for all \eqn{i}.
+
+Internally, \strong{bage} works with standardized
+versions of \eqn{\gamma_i} and \eqn{\sigma^2}:
+
+\deqn{\mu_i = (\gamma_i - \bar{y}) / s}
+\deqn{\xi^2 = (\bar{w} / s^2) \sigma^2}
+where
+\deqn{\bar{y} = \sum_{i=1}^n y_i / n}
+\deqn{s = \sqrt{\sum_{i=1}^n (y_i - \bar{y})^2} / \sqrt{n-1}}
+\deqn{\bar{w} = \sum_{i=1}^n w_i / n}
 
 The mean parameter \eqn{\mu_i} is modelled as
 the sum of terms formed
