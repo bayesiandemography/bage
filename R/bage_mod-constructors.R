@@ -318,8 +318,6 @@ mod_binom <- function(formula, data, size) {
 #' scales the weights to have mean 1.
 #' This scaling allows `mod_norm()` to use the
 #' same menu of priors as [mod_pois()] and [mod_binom()].
-#' ([mod_pois()] works on the log scale,
-#' and [mod_binom()] works on the logit scale.)
 #'
 #' [augment()] always returns values on the
 #' original scale, rather than the transformed scale.
@@ -327,8 +325,7 @@ mod_binom <- function(formula, data, size) {
 #' [components()] by default returns values on
 #' the transformed scale. But if `original_scale` is
 #' `TRUE`, it returns some types of values on the
-#' original scale. See the documentation for
-#' [components()] for details.
+#' original scale. See [components()] for details.
 #' 
 #' @section Specifying weights:
 #'
@@ -344,33 +341,28 @@ mod_binom <- function(formula, data, size) {
 #' @section Mathematical details:
 #'
 #' The likelihood is
-#' 
-#' \deqn{\tilde{y}_i \sim \text{N}(\mu_i, \xi^2 / \tilde{w}_i)}
 #'
+#' \deqn{y_i \sim \text{N}(\gamma_i, w_i^{-1} \sigma^2)}
 #' where
-#'
-#' \deqn{\tilde{y}_i = (y_i - \bar{y}) / s}
-#'
-#' and
-#'
-#' \deqn{\tilde{w}_i = w_i / \bar{w},}
-#'
-#' and where
-#'
 #' - subscript \eqn{i} identifies some combination of the
 #'   classifying variables, such as age, sex, and time,
 #' - \eqn{y_i} is the value of the outcome variable,
-#' - \eqn{w_i} is a weight,
-#' - \eqn{\bar{y}} is the mean across \eqn{i} of \eqn{y_i},
-#' - \eqn{s} is the sample standard deviation across \eqn{i} of \eqn{y_i},
-#' - \eqn{\bar{w}} is the mean across \eqn{i} of \eqn{w_i},
-#' - \eqn{\mu_i} is a mean parameter, and
-#' - \eqn{\xi} is a standard deviation parameter.
-#'
+#' - \eqn{w_i} is a weight.
+#' 
 #' In some applications, \eqn{w_i} is set to 1
 #' for all \eqn{i}.
 #'
-#' The mean parameter \eqn{\mu_i} is modelled as
+#' Internally, **bage** works with standardized
+#' versions of \eqn{\gamma_i} and \eqn{\sigma^2}:
+#'
+#' \deqn{\mu_i = (\gamma_i - \bar{y}) / s}
+#' \deqn{\xi^2 = (\bar{w} / s^2) \sigma^2}
+#' where
+#' \deqn{\bar{y} = \sum_{i=1}^n y_i / n}
+#' \deqn{s = \sqrt{\sum_{i=1}^n (y_i - \bar{y})^2 / (n-1)}}
+#' \deqn{\bar{w} = \sum_{i=1}^n w_i / n}
+#'
+#' Mean parameter \eqn{\mu_i} is modelled as
 #' the sum of terms formed
 #' from classifying variables and covariates,
 #'

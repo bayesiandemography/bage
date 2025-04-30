@@ -103,13 +103,10 @@ which is what we use internally. Values for $\gamma_i$ can be generated using
 ## Normal likelihood {#sec:norm}
 
 The normal model is 
-\begin{equation}
-  \tilde{y}_i \sim \text{N}(\mu_i, \tilde{w}_i^{-1}\xi^2).
-\end{equation}
-where $\tilde{y}_i$ is a standardized version of outcome $y_i$, and $\tilde{w}_i$ is a standardized version of weight $w_i$. The standardization is carried out using
 \begin{align}
-  \tilde{y}_i & = \frac{y_i - \bar{y}}{s} \\
-  \tilde{w}_i & = \frac{w_i}{\bar{w}},
+  y_i & \sim \text{N}(\gamma_i, w_i^{-1} \sigma^2) \\
+  \gamma_i & = \bar{y} + s \mu_i \\
+  \sigma^2 & = \bar{w}^{-1} s^2 \xi^2
 \end{align}
 where
 \begin{align}
@@ -118,11 +115,10 @@ where
   \bar{w} & = \frac{\sum_{i=1}^n w_i}{n}.
 \end{align}
 
-Standardizing allows us to apply the same priors as we use for the Poisson and binomial models.
+Mean $\mu_i$ and stanard deviation $\xi$ are defined on scale that used standardized versinos of $y$ and $w$. Standardizing allows us to apply the same priors as we use for the Poisson and binomial models.
 
 
 # Model for prior means {#sec:means}
-
 
 Let $\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}$. Our model for $\pmb{\mu}$ is
 \begin{equation}
