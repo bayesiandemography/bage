@@ -50,16 +50,24 @@ interactions with non-time-varying parameters, e.g.
 age effects or dispersion.
 \item Use the combined parameters to generate values for
 rates, probabilities or means.
-\item If a \code{newdata} argument has been provided,
-and \code{output} is \code{"augment"},
-draw values for outcome.
+\item Optionally, generate values for the outcome variable.
+}
+
+\code{forecast()} generates values for the outcome variable when,
+\itemize{
+\item \code{output} is \code{"augment"},
+\item a value has been supplied for \code{newdata},
+\item \code{newdata} included a value for the exposure,
+size, or weights variable (except if \code{exposure = 1}
+or \code{weights = 1} in the original call to
+\code{\link[=mod_pois]{mod_pois()}} or \code{\link[=mod_norm]{mod_norm()}}).
 }
 
 \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
-describles the process in more detail.
+gives more details on the internal calculations in forecasting.
 }
 
-\section{Output}{
+\section{Output format}{
 
 
 When \code{output} is \code{"augment"} (the default),

@@ -2628,8 +2628,10 @@ test_that("'rescale_components' works", {
                                      mod = mod)
   ans_expected <- components
   ans_expected$.fitted[[1]] <- ans_expected$.fitted[[1]] * sd(data$income) + mean(data$income)
-  is_not_hyp_int <- ans_expected$component != "hyper" & ans_expected$level != "(Intercept)"
-  ans_expected$.fitted[is_not_hyp_int] <- ans_expected$.fitted[is_not_hyp_int] * sd(data$income)
+  ans_expected$.fitted[ans_expected$component == "disp"] <- (ans_expected$.fitted[ans_expected$component == "disp"]
+    * sqrt(mod$offset_mean) * mod$outcome_sd)
+  is_not_hyp_int_disp <- ans_expected$component != "hyper" & ans_expected$level != "(Intercept)" & ans_expected$level != "disp"
+  ans_expected$.fitted[is_not_hyp_int_disp] <- ans_expected$.fitted[is_not_hyp_int_disp] * sd(data$income)
   expect_equal(ans_obtained, ans_expected)
 })
 

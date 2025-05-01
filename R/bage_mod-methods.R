@@ -432,9 +432,9 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   if (outcome_has_na || has_datamod_outcome) {
     disp <- get_disp(mod)
     outcome_sd <- mod$outcome_sd
-    disp <- outcome_sd * disp
     offset <- mod$offset
     offset_mean <- mod$offset_mean
+    disp <- sqrt(offset_mean) * outcome_sd * disp 
     offset <- offset_mean * offset
     nm_outcome_data <- get_nm_outcome_data(mod)
     nm_outcome_data_true <- paste0(".", nm_outcome_data)
@@ -554,7 +554,7 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   vals_fitted <- scale_linpred(vals_linpred)
   is_disp <- vals_components$component == "disp"
   vals_disp <- vals_components$.fitted[is_disp]
-  vals_disp <- outcome_sd * vals_disp
+  vals_disp <- sqrt(offset_mean) * outcome_sd * vals_disp
   outcome_obs <- rep(NA_real_, times = length(vals_fitted))
   seed_augment <- mod$seed_augment
   seed_restore <- make_seed() ## create randomly-generated seed
@@ -786,14 +786,20 @@ generics::forecast
 #'    age effects or dispersion.
 #' 3. Use the combined parameters to generate values for
 #'    rates, probabilities or means.
-#' 4. If a `newdata` argument has been provided,
-#'    and `output` is `"augment"`,
-#'    draw values for outcome.
+#' 4. Optionally, generate values for the outcome variable.
+#'
+#' `forecast()` generates values for the outcome variable when,
+#' - `output` is `"augment"`,
+#' - a value has been supplied for `newdata`,
+#' - `newdata` included a value for the exposure,
+#'   size, or weights variable (except if `exposure = 1`
+#'   or `weights = 1` in the original call to
+#'   [mod_pois()] or [mod_norm()]).
 #'
 #' [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
-#' describles the process in more detail.
+#' gives more details on the internal calculations in forecasting.
 #'
-#' @section Output:
+#' @section Output format:
 #'
 #' When `output` is `"augment"` (the default),
 #' the return value from `forecast()`
@@ -1127,10 +1133,15 @@ forecast_augment.bage_mod_norm <- function(mod,
   has_datamod_outcome <- !is.null(datamod_outcome)
   has_imputed_outcome_est <- anyNA(outcome_est)
   blank <- rep(NA_real_, times = nrow(data_forecast))
-  if (has_offset_est)
-    offset_forecast <- data_forecast[[nm_offset_data]]
+  ones <- rep(1, times = nrow(data_forecast))
+  if (has_offset_est) {
+    if (nm_offset_data %in% names(data_forecast))
+      offset_forecast <- data_forecast[[nm_offset_data]]
+    else
+      offset_forecast <- blank
+  }
   else
-    offset_forecast <- rep(1, times = nrow(data_forecast))
+    offset_forecast <- ones
   has_offset_forecast <- !all(is.na(offset_forecast))
   ans <- data_forecast
   ## Derive fitted
@@ -1140,7 +1151,10 @@ forecast_augment.bage_mod_norm <- function(mod,
   ## or imputed outcomes in historical estimates,
   ## then have two versions of outcome variable in forecasts
   if (has_offset_forecast)  {
+    offset_mean <- mod$offset_mean
+    outcome_sd <- mod$outcome_sd
     disp <- get_disp(mod)
+    disp <- sqrt(offset_mean) * outcome_sd * disp
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
@@ -2124,7 +2138,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
   else if (condition_on == "expected") {
     check_has_disp_if_condition_on_expected(x)
     expected <- aug$.expected
-    comp <- components(x)
+    comp <- components(x, quiet = TRUE)
     disp <- comp[[".fitted"]][comp$component == "disp"]
     size <- 1 / disp
     mu <- offset * expected
@@ -2175,7 +2189,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
   else if (condition_on == "expected") {
     check_has_disp_if_condition_on_expected(x)
     expected <- aug$.expected
-    comp <- components(x)
+    comp <- components(x, quiet = TRUE)
     disp <- comp[[".fitted"]][comp$component == "disp"]
     shape1 <- expected / disp
     shape2 <- (1 - expected) / disp
@@ -2203,8 +2217,8 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
   check_old_version(x = x, nm_x = "x")
   if (!is.null(condition_on))
     cli::cli_warn(c("Ignoring value for {.arg condition_on}.",
-                    i = paste("{.fun replicate_data} ignores argument {.arg condition_on}",
-                              "when model {.arg x} has a normal likelihood.")))
+                    i = paste("No need to choose which values to condition on",
+                              "when {.arg x} created with {.fun mod_norm}.")))
   poputils::check_n(n = n,
                     nm_n = "n",
                     min = 1L,
@@ -2213,23 +2227,30 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
   check_is_fitted(x = x, nm_x = "x")
   data <- x$data
   formula <- x$formula
-  outcome <- x$outcome
-  offset <- x$offset
+  outcome_scaled <- x$outcome
+  weights_scaled <- x$offset
+  outcome_mean <- x$outcome_mean
+  outcome_sd <- x$outcome_sd
+  weights_mean <- x$offset_mean
   datamod_outcome <- x$datamod_outcome
   nm_outcome_data <- get_nm_outcome_data(x)
+  outcome_unscaled <- outcome_sd * outcome_scaled + outcome_mean
+  weights_unscaled <- weights_mean * weights_scaled
   x <- set_n_draw(x, n_draw = n)
-  aug <- augment(x)
-  comp <- components(x, quiet = TRUE)
-  disp <- comp[[".fitted"]][comp$component == "disp"]
+  aug <- augment(x, quiet = TRUE)
+  comp <- components(object = x,
+                     original_scale = TRUE,
+                     quiet = TRUE)
+  disp_unscaled <- comp[[".fitted"]][comp$component == "disp"]
   n_obs <- nrow(data)
   fitted <- aug$.fitted
   y_rep <- rvec::rnorm_rvec(n = n_obs,
                             mean = fitted,
-                            sd = disp / sqrt(offset))
+                            sd = disp_unscaled / sqrt(weights_unscaled))
   if (!is.null(datamod_outcome))
     y_rep <- draw_vals_outcome_obs(datamod = datamod_outcome,
                                    outcome_true = y_rep)
-  outcome_rep <- c(outcome, as.numeric(y_rep))
+  outcome_rep <- c(outcome_unscaled, as.numeric(y_rep))
   ans <- make_copies_repdata(data = data, n = n)
   ans[[nm_outcome_data]] <- outcome_rep
   ans

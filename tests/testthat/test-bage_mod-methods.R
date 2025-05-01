@@ -534,7 +534,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_disp <- mod$outcome_sd * vals_disp
+  vals_disp <- sqrt(mod$offset_mean) * mod$outcome_sd * vals_disp
   scale_linpred <- get_fun_scale_linpred(mod)
   vals_fitted <- scale_linpred(make_linpred_from_components(mod = mod,
                                                             components = vals_components,
@@ -2469,17 +2469,25 @@ test_that("'replicate_data' works with mod_binom, rr3 data model", {
 test_that("'replicate_data' works with mod_norm", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$income <- rnorm(n = nrow(data))
+    data$income <- rnorm(n = nrow(data), mean = 10, sd = 0.5)
+    data$w <- runif(n = nrow(data), min = 1, max = 1000)
     formula <- income ~ age + sex + time
     mod <- mod_norm(formula = formula,
                     data = data,
-                    weights = 1)
+                    weights = w)
     mod <- set_prior(mod, age ~ N())
     mod <- set_prior(mod, time ~ N())
     mod <- fit(mod)
     ans <- replicate_data(mod)
     expect_identical(names(ans), c(".replicate", names(data)))
     expect_identical(nrow(ans), nrow(data) * 20L)
+    expect_equal(ans$income[ans$.replicate == "Original"], data$income)
+    expect_equal(mean(ans$income[ans$.replicate == "Original"]),
+                 mean(ans$income[ans$.replicate == "Replicate 1"]),
+                 tolerance = 0.1)
+    expect_equal(mad(ans$income[ans$.replicate == "Original"]),
+                 mad(ans$income[ans$.replicate == "Replicate 1"]),
+                 tolerance = 0.2)
     tab <- tapply(ans$income, ans$.replicate, mean)
     expect_false(any(duplicated(tab)))
     expect_warning(replicate_data(mod, condition_on = "expected"),

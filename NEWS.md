@@ -1,4 +1,20 @@
 
+# bage 0.9.3
+
+## Interface
+
+* In the online help for `mod_norm()` and in the Mathematical Details
+  vignette (vignette 2), give a new parameterisation of the
+  `mod_norm()` model, expressed on the original scale, not the
+  transformed scale (and closer to the paramterisation used by
+  `mod_pois()` and `mod_binom()`.)
+
+## Bug fix
+
+* Modify the `bage_mod_norm` method for `replicate_data()` so that it
+  returns results on the original scale.
+* Modify the `bage_mod_norm` methods for the helper functions for
+  `augment()` so that they properly incorporate weights.
 
 # bage 0.9.2
 

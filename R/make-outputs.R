@@ -1998,15 +1998,20 @@ rescale_components <- function(components, mod) {
   is_norm <- inherits(mod, "bage_mod_norm")
   if (!is_norm)
     cli::cli_abort("Internal error: {.arg mod} has class {.cls {class(mod)}}.")
-  mean <- mod$outcome_mean
-  sd <- mod$outcome_sd
+  outcome_mean <- mod$outcome_mean
+  outcome_sd <- mod$outcome_sd
+  offset_mean <- mod$offset_mean
   is_intercept <- components$term == "(Intercept)"
-  is_rescale <- (components$component %in% comp_rescale) & !is_intercept
+  is_disp <- components$term == "disp"
+  is_rescale <- (components$component %in% comp_rescale) & !is_intercept & !is_disp
   intercept <- components$.fitted[is_intercept]
+  disp <- components$.fitted[is_disp]
   rescale <- components$.fitted[is_rescale]
-  intercept <- sd * intercept + mean
-  rescale <- sd * rescale
+  intercept <- outcome_sd * intercept + outcome_mean
+  disp <- sqrt(offset_mean) * outcome_sd * disp
+  rescale <- outcome_sd * rescale
   components$.fitted[is_intercept] <- intercept
+  components$.fitted[is_disp] <- disp
   components$.fitted[is_rescale] <- rescale
   components
 }
