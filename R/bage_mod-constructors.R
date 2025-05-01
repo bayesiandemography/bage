@@ -356,7 +356,7 @@ mod_binom <- function(formula, data, size) {
 #' versions of \eqn{\gamma_i} and \eqn{\sigma^2}:
 #'
 #' \deqn{\mu_i = (\gamma_i - \bar{y}) / s}
-#' \deqn{\xi^2 = (\bar{w} / s^2) \sigma^2}
+#' \deqn{\xi^2 = \sigma^2 / (\bar{w} s^2)}
 #' where
 #' \deqn{\bar{y} = \sum_{i=1}^n y_i / n}
 #' \deqn{s = \sqrt{\sum_{i=1}^n (y_i - \bar{y})^2 / (n-1)}}

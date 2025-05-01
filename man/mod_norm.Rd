@@ -83,13 +83,13 @@ Internally, \strong{bage} works with standardized
 versions of \eqn{\gamma_i} and \eqn{\sigma^2}:
 
 \deqn{\mu_i = (\gamma_i - \bar{y}) / s}
-\deqn{\xi^2 = (\bar{w} / s^2) \sigma^2}
+\deqn{\xi^2 = \sigma^2 / (\bar{w} s^2)}
 where
 \deqn{\bar{y} = \sum_{i=1}^n y_i / n}
-\deqn{s = \sqrt{\sum_{i=1}^n (y_i - \bar{y})^2} / \sqrt{n-1}}
+\deqn{s = \sqrt{\sum_{i=1}^n (y_i - \bar{y})^2 / (n-1)}}
 \deqn{\bar{w} = \sum_{i=1}^n w_i / n}
 
-The mean parameter \eqn{\mu_i} is modelled as
+Mean parameter \eqn{\mu_i} is modelled as
 the sum of terms formed
 from classifying variables and covariates,
 
