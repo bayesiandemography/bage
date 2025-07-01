@@ -234,6 +234,31 @@ test_that("'set_n_draw' works with valid inputs", {
                  "New value")
 })
 
+test_that("'set_n_draw' reduces draws in fitted object", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rev(seq_len(nrow(data)))
+  data$income <- rnorm(nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ Lin_AR1())
+  mod <- set_covariates(mod, ~ income)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- fit(mod)
+  expect_identical(ncol(mod$draws_effectfree), 10L)
+  expect_identical(ncol(mod$draws_hyper), 10L)
+  expect_identical(ncol(mod$draws_hyperrandfree), 10L)
+  expect_identical(ncol(mod$draws_coef_covariates), 10L)
+  mod <- set_n_draw(mod, n_draw = 5)
+  expect_identical(mod$n_draw, 5L)
+  expect_identical(ncol(mod$draws_effectfree), 5L)
+  expect_identical(ncol(mod$draws_hyper), 5L)
+  expect_identical(ncol(mod$draws_hyperrandfree), 5L)
+  expect_identical(ncol(mod$draws_coef_covariates), 5L)
+})
+
 
 ## 'set_prior' ----------------------------------------------------------------
 

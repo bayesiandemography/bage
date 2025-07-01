@@ -1,4 +1,15 @@
 
+# bage 0.9.4
+
+
+
+## Bug fix
+
+* Fixed bug in `set_n_draw()`, which was failing to thin covariate
+  coefficient draws. (#97)
+  
+
+
 # bage 0.9.3
 
 ## Interface
