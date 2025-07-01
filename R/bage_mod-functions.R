@@ -161,6 +161,8 @@ set_datamod_outcome_rr3 <- function(mod) {
 #'
 #' \deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right).}
 #'
+#' By default \eqn{\mu} equals 1.
+#'
 #' In Poisson and binomial models,
 #' `mean` can be set to `0`, implying
 #' that the dispersion term is also `0`.
@@ -173,6 +175,7 @@ set_datamod_outcome_rr3 <- function(mod) {
 #' @inheritParams set_datamod_outcome_rr3
 #' @param mean Mean value for the exponential prior.
 #' In Poisson and binomial models, can be set to 0.
+#' Default is `1`.
 #'
 #' @returns A `bage_mod` object
 #'
@@ -191,7 +194,7 @@ set_datamod_outcome_rr3 <- function(mod) {
 #' mod |> set_disp(mean = 0.1)
 #' mod |> set_disp(mean = 0)
 #' @export
-set_disp <- function(mod, mean) {
+set_disp <- function(mod, mean = 1) {
     check_bage_mod(x = mod, nm_x = "mod")
     nm_distn <- nm_distn(mod)
     zero_ok <- nm_distn %in% c("pois", "binom")

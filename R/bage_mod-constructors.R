@@ -48,7 +48,8 @@
 #' where
 #'
 #' - \eqn{\mu_i} is the expected value for \eqn{\gamma_i}; and
-#' - \eqn{\xi} governs dispersion (ie variance.)
+#' - \eqn{\xi} governs dispersion (i.e. variation), with
+#'   lower values implying less dispersion.
 #'
 #' Expected value \eqn{\mu_i} equals, on the log scale,
 #' the sum of terms formed from classifying variables,
@@ -65,7 +66,8 @@
 #'
 #' The \eqn{\beta^{(m)}} are given priors, as described in [priors].
 #'
-#' The prior for \eqn{\xi} is described in [set_disp()].
+#' \eqn{\xi} has an exponential prior with mean 1. Non-default
+#' values for the mean can be specified with  [set_disp()].
 #'
 #' The model for \eqn{\mu_i}
 #' can also include covariates,
@@ -87,14 +89,13 @@
 #' - [set_disp()] Specify non-default prior for dispersion
 #' - [fit()] Fit a model
 #' - [augment()] Extract values for rates,
-#'   means, or probabilities, together with original data
+#'   together with original data
 #' - [components()] Extract values for hyper-parameters
-#' - [forecast()] Forecast a model
-#' - [report_sim()] Do a simulation study
-#' - [replicate_data()] Generate replicate
-#'   data for a model
+#' - [forecast()] Forecast parameters and outcomes
+#' - [report_sim()] Check model using a simulation study
+#' - [replicate_data()] Check model using replicate data
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
-#'   vignette
+#'   Detailed description of models
 #'
 #' @examples
 #' ## specify a model with exposure
@@ -216,7 +217,8 @@ mod_pois <- function(formula, data, exposure) {
 #'
 #' The \eqn{\beta^{(m)}} are given priors, as described in [priors].
 #'
-#' The prior for \eqn{\xi} is described in [set_disp()].
+#' \eqn{\xi} has an exponential prior with mean 1. Non-default
+#' values for the mean can be specified with  [set_disp()].
 #'
 #' The model for \eqn{\mu_i}
 #' can also include covariates,
@@ -237,15 +239,14 @@ mod_pois <- function(formula, data, exposure) {
 #' - [set_prior()] Specify non-default prior for term
 #' - [set_disp()] Specify non-default prior for dispersion
 #' - [fit()] Fit a model
-#' - [augment()] Extract values for rates,
-#'   means, or probabilities, together with original data
+#' - [augment()] Extract values for probabilities,
+#'   together with original data
 #' - [components()] Extract values for hyper-parameters
-#' - [forecast()] Forecast a model
-#' - [report_sim()] Do a simulation study
-#' - [replicate_data()] Generate replicate
-#'   data for a model
+#' - [forecast()] Forecast parameters and outcomes
+#' - [report_sim()] Check model using simulation study
+#' - [replicate_data()] Check model using replicate data
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
-#'   vignette with detailed mathematical descriptions of models
+#'   Detailed descriptions of models
 #'
 #' @examples
 #' mod <- mod_binom(oneperson ~ age:region + age:year,
@@ -378,7 +379,8 @@ mod_binom <- function(formula, data, size) {
 #'
 #' The \eqn{\beta^{(m)}} are given priors, as described in [priors].
 #'
-#' The prior for \eqn{\xi} is described in [set_disp()].
+#' \eqn{\xi} has an exponential prior with mean 1. Non-default
+#' values for the mean can be specified with [set_disp()].
 #'
 #' The model for \eqn{\mu_i}
 #' can also include covariates,
@@ -399,16 +401,15 @@ mod_binom <- function(formula, data, size) {
 #' - [set_prior()] Specify non-default prior for term
 #' - [set_disp()] Specify non-default prior for standard deviation
 #' - [fit()] Fit a model
-#' - [augment()] Extract values for rates,
-#'   means, or probabilities,
+#' - [augment()] Extract values for means,
 #'   together with original data
 #' - [components()] Extract values for hyper-parameters
-#' - [forecast()] Forecast a model
-#' - [report_sim()] Do a simulation study
-#' - [replicate_data()] Generate replicate
+#' - [forecast()] Forecast parameters and outcomes
+#' - [report_sim()] Check model using a simulation study
+#' - [replicate_data()] Check model using replicate data
 #'   data for a model
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
-#'   vignette
+#'   Detailed description of models
 #'
 #' @examples
 #' mod <- mod_norm(value ~ diag:age + year,
