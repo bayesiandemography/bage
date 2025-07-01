@@ -1,7 +1,14 @@
 
 # bage 0.9.4
 
+## Interface
 
+* Modified help for `mod_pois()`, `mod_binom()`, `mod_norm()` to
+  clarify prior for dispersion. Added default value (of 1) to
+  `set_disp()`. This does not affect behaviour, but is a bit clearer
+  for users. (#94)
+* 
+  
 
 ## Bug fix
 

@@ -106,7 +106,8 @@ cell \eqn{i},
 
 The \eqn{\beta^{(m)}} are given priors, as described in \link{priors}.
 
-The prior for \eqn{\xi} is described in \code{\link[=set_disp]{set_disp()}}.
+\eqn{\xi} has an exponential prior with mean 1. Non-default
+values for the mean can be specified with \code{\link[=set_disp]{set_disp()}}.
 
 The model for \eqn{\mu_i}
 can also include covariates,
@@ -130,15 +131,14 @@ mod <- mod_norm(value ~ diag:age + year,
 \item \code{\link[=set_prior]{set_prior()}} Specify non-default prior for term
 \item \code{\link[=set_disp]{set_disp()}} Specify non-default prior for standard deviation
 \item \code{\link[=fit]{fit()}} Fit a model
-\item \code{\link[=augment]{augment()}} Extract values for rates,
-means, or probabilities,
+\item \code{\link[=augment]{augment()}} Extract values for means,
 together with original data
 \item \code{\link[=components]{components()}} Extract values for hyper-parameters
-\item \code{\link[=forecast]{forecast()}} Forecast a model
-\item \code{\link[=report_sim]{report_sim()}} Do a simulation study
-\item \code{\link[=replicate_data]{replicate_data()}} Generate replicate
+\item \code{\link[=forecast]{forecast()}} Forecast parameters and outcomes
+\item \code{\link[=report_sim]{report_sim()}} Check model using a simulation study
+\item \code{\link[=replicate_data]{replicate_data()}} Check model using replicate data
 data for a model
 \item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
-vignette
+Detailed description of models
 }
 }

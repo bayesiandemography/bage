@@ -4,7 +4,7 @@
 \alias{set_disp}
 \title{Specify Prior for Dispersion or Standard Deviation}
 \usage{
-set_disp(mod, mean)
+set_disp(mod, mean = 1)
 }
 \arguments{
 \item{mod}{An object of class \code{"bage_mod"},
@@ -12,7 +12,8 @@ created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 
 \item{mean}{Mean value for the exponential prior.
-In Poisson and binomial models, can be set to 0.}
+In Poisson and binomial models, can be set to 0.
+Default is \code{1}.}
 }
 \value{
 A \code{bage_mod} object
@@ -27,6 +28,8 @@ The dispersion or mean parameter has an exponential
 distribution with mean \eqn{\mu},
 
 \deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right).}
+
+By default \eqn{\mu} equals 1.
 
 In Poisson and binomial models,
 \code{mean} can be set to \code{0}, implying

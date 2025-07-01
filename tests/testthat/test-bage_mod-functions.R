@@ -198,6 +198,8 @@ test_that("'set_disp' works with Poisson", {
     expect_identical(mod$mean_disp, 0)
     mod <- set_disp(mod, mean = 0.5)
     expect_identical(mod$mean_disp, 0.5)
+    mod <- set_disp(mod)
+    expect_identical(mod$mean_disp, 1)
 })
 
 test_that("'set_disp' works with normal", {
@@ -211,6 +213,8 @@ test_that("'set_disp' works with normal", {
     mod <- set_disp(mod, mean = 0.5)
     expect_identical(mod$mean_disp, 0.5)
     expect_error(set_disp(mod, mean = 0))
+    mod <- set_disp(mod)
+    expect_identical(mod$mean_disp, 1)
 })
 
 
