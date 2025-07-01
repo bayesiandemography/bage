@@ -267,6 +267,8 @@ set_n_draw <- function(mod, n_draw = 1000L) {
       mod$draws_effectfree <- mod$draws_effectfree[, s, drop = FALSE]
       mod$draws_hyper <- mod$draws_hyper[, s, drop = FALSE]
       mod$draws_hyperrandfree <- mod$draws_hyperrandfree[, s, drop = FALSE]
+      if (has_covariates(mod))
+        mod$draws_coef_covariates <- mod$draws_coef_covariates[, s, drop = FALSE]        
       if (has_disp(mod))
         mod$draws_disp <- mod$draws_disp[s]
     }
