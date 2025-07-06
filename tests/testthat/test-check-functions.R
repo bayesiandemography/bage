@@ -680,6 +680,42 @@ test_that("'check_min_max_ar' returns correct error with max <= min", {
 })
 
 
+## 'check_mult_high_rate' -----------------------------------------------------
+
+test_that("'check_mult_high_rate' returns TRUE with valid values", {
+  expect_true(check_mult_high_rate(1000))
+  expect_true(check_mult_high_rate(1000L))
+  expect_true(check_mult_high_rate(NULL))
+  expect_true(check_mult_high_rate(Inf))
+})
+
+test_that("'check_mult_high_rate' throws correct error if not NULL or numeric", {
+  expect_error(check_mult_high_rate("1"),
+               "`mult_high_rate` not NULL or numeric.")
+})
+
+test_that("'check_mult_high_rate' throws correct error if not length 1", {
+  expect_error(check_mult_high_rate(numeric()),
+               "`mult_high_rate` has length 0")
+  expect_error(check_mult_high_rate(1:2),
+               "`mult_high_rate` has length 2")
+})
+
+test_that("'check_mult_high_rate' throws correct error if NA", {
+  expect_error(check_mult_high_rate(NA_real_),
+               "`mult_high_rate` is NA")
+})
+
+test_that("'check_mult_high_rate' throws correct error if non-positive", {
+  expect_error(check_mult_high_rate(0),
+               "`mult_high_rate` non-positive")
+  expect_error(check_mult_high_rate(-1),
+               "`mult_high_rate` non-positive")
+  expect_error(check_mult_high_rate(-Inf),
+               "`mult_high_rate` non-positive")
+})
+
+
 ## 'check_n_along_ge' ---------------------------------------------------------
 
 test_that("'check_n_along_ge' returns TRUE with valid inputs", {

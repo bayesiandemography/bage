@@ -1525,6 +1525,52 @@ make_vars_inner <- function(mod) {
 }
 
 
+#' Emit a Message if Rates Suspiciously High
+#'
+#' Print a message if the one or more rates are
+#' greater than 'mult_high_rate' times the 95th quantile,
+#' and there are at least 20 observations.
+#'
+#' @param outcome Outcome variable. Numeric vector.
+#' @param exposure Exposure variable. Numeric vector, same
+#' length as 'outcome'.
+#' @param mult_high_rate A positive number, Inf, or NULL.
+#'
+#' @returns NULL invisibly
+#'
+#' @noRd
+message_suspicious_rates <- function(outcome, exposure, mult_high_rate) {
+  min_obs <- 20L
+  check_mult_high_rate(mult_high_rate)
+  is_obs <- !is.na(outcome) & !is.na(exposure) & (exposure > 0)
+  n_obs <- sum(is_obs)
+  if (n_obs >= min_obs) {
+    rate <- outcome / exposure
+    q95 <- stats::quantile(rate, probs = 0.95, na.rm = TRUE)
+    is_gt_q95 <- is_obs & (rate > q95 * mult_high_rate)
+    n_gt_q95 <- sum(is_gt_q95)
+    if (n_gt_q95 > 0L) {
+      cli::cli_alert_warning(paste("{cli::qty(n_gt_q95)}{.arg data} has",
+                                   "row{?s} with unexpectedly high rate{?s}."))
+      i_max <- which.max(rate)
+      val_outcome <- outcome[[i_max]]
+      val_expose <- exposure[[i_max]]
+      val_rate <- rate[[i_max]]
+      msg <- "Row {.val {i_max}}"
+      if (n_gt_q95 > 1L)
+        msg <- paste0(msg, ", for example,")
+      msg <- paste(msg,
+                   "has",
+                   "outcome {.val {val_outcome}},",
+                   "exposure {.val {val_expose}}, and",
+                   "rate {.val {val_rate}}.")
+      cli::cli_alert_info(msg)
+    }
+  }
+  invisible(NULL)
+}
+
+
 ## HAS_TESTS
 #' Number of Columns of Matrix
 #'
@@ -1947,3 +1993,6 @@ to_factor <- function(x) {
   else
     factor(x, levels = unique(x))
 }  
+
+
+  

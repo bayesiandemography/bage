@@ -37,7 +37,7 @@ via \code{set_var_age()} can change priors:
 see below for an example.
 
 If \code{set_var_age()} is applied to
-a fitted model, it 'unfits'
+a fitted model, \code{set_var_age()} \link[=unfit]{unfits}
 the model, deleting existing estimates.
 }
 \examples{

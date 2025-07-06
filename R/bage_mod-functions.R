@@ -8,6 +8,15 @@
 #'
 #' Add covariates to a model.
 #'
+#' If `set_covariates()` is applied to
+#' a model that already has covariates,
+#' `set_covariates()` deletes the
+#' existing covariates.
+#'
+#' If `set_covariates()` is applied to
+#' a fitted model, `set_covariates()` [unfits][unfit()]
+#' the model, deleting existing estimates.
+#' 
 #' @section Covariate data:
 #'
 #' All variables contained in the `formula`
@@ -21,7 +30,8 @@
 #'   `x <- scale(x)`.
 #' - Categorical variables are converted to sets of indicator
 #'   variables, using [treatment][stats::contr.treatment()] contrasts.
-#'   For instance, variable `x` with categories `"high"`, `"medium"`, and `"low"`,
+#'   For instance, variable `x` with categories
+#'   `"high"`, `"medium"`, and `"low"`,
 #'   is converted into two indicator variables, one called `xmedium` and one
 #'   called `xlow`.
 #'
@@ -70,6 +80,8 @@ set_covariates <- function(mod, formula) {
   matrix_covariates <- make_matrix_covariates(formula = formula,
                                               data = data)
   covariates_nms <- colnames(matrix_covariates)
+  if (has_covariates(mod))
+    cli::cli_alert_warning("Model already has covariates. Deleting these.")
   mod$formula_covariates <- formula
   mod$covariates_nms <- covariates_nms
   mod <- unfit(mod)
@@ -103,7 +115,8 @@ set_covariates <- function(mod, formula) {
 #'   with probability 2/3.
 #'
 #' If `set_datamod_outcome_rr3()` is applied to
-#' a fitted model, it 'unfits'
+#' a fitted model, `set_datamod_outcome_rr3()`
+#' [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
 #' @param mod An object of class `"bage_mod"`,
@@ -169,7 +182,7 @@ set_datamod_outcome_rr3 <- function(mod) {
 #' In normal models, `mean` must be non-negative.
 #'
 #' If `set_disp()` is applied to
-#' a fitted model, it 'unfits'
+#' a fitted model, `set_disp()` [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
 #' @inheritParams set_datamod_outcome_rr3
@@ -280,7 +293,6 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 }
 
 
-
 ## 'set_prior' ----------------------------------------------------------------
 
 ## HAS_TESTS
@@ -290,7 +302,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' a main effect, or an interaction.
 #'
 #' If `set_prior()` is applied to
-#' a fitted model, it 'unfits'
+#' a fitted model, `set_prior()` [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
 #' @param mod A `bage_mod` object, created with
@@ -465,7 +477,7 @@ set_seeds <- function(mod, new_seeds = NULL) {
 #' see below for an example.
 #'
 #' If `set_var_age()` is applied to
-#' a fitted model, it 'unfits'
+#' a fitted model, `set_var_age()` [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
 #' @inheritParams set_datamod_outcome_rr3
@@ -523,7 +535,7 @@ set_var_age <- function(mod, name) {
 #' and terms `gender`, `region`, and `gender:region`.
 #'
 #' If `set_var_sexgender()` is applied to
-#' a fitted model, it 'unfits'
+#' a fitted model, `set_var_sexgender()` [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
 #' @inheritParams set_datamod_outcome_rr3
@@ -588,7 +600,7 @@ set_var_sexgender <- function(mod, name) {
 #' see below for an example.
 #'
 #' If `set_var_time()` is applied to
-#' a fitted model, it 'unfits'
+#' a fitted model, `set_var_time()` [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
 #' @inheritParams set_datamod_outcome_rr3

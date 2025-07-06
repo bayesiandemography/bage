@@ -37,7 +37,7 @@ that the dispersion term is also \code{0}.
 In normal models, \code{mean} must be non-negative.
 
 If \code{set_disp()} is applied to
-a fitted model, it 'unfits'
+a fitted model, \code{set_disp()} \link[=unfit]{unfits}
 the model, deleting existing estimates.
 }
 \examples{

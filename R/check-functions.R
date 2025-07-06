@@ -175,8 +175,8 @@ check_est <- function(est) {
 #' @noRd
 check_flag <- function(x, nm_x) {
     if (!identical(length(x), 1L))
-        cli::cli_abort(c("{.arg {nm_x}} does not have length 1",
-                         i = "{.arg {nm_x}} has length {length(x)}."))
+        cli::cli_abort(c("{.arg {nm_x}} does not have length {.val {1}}.",
+                         i = "{.arg {nm_x}} has length {.val {length(x)}}."))
     if (!is.logical(x))
         cli::cli_abort(c("{.arg {nm_x}} does not have class {.cls logical}.",
                          i = "{.arg {nm_x}} has class {.cls {class(x)}}"))
@@ -289,10 +289,6 @@ check_formula_vnames_in_data <- function(formula, data) {
   }
   invisible(TRUE)
 }
-
-
-
-
 
 
 ## HAS_TESTS
@@ -594,6 +590,39 @@ check_mod_has_obs <- function(mod) {
 
 
 ## HAS_TESTS
+#' Check that 'mult_high_rate' Argument for Detecting Suspicious Rates Valid
+#'
+#' OK for 'mult_high_rate' to be NULL or Inf
+#' (in which case test for suspicious rates
+#' not done.)
+#' 
+#' @param mult_high_rate Non-negative
+#'
+#' @returns TRUE invisibly
+#'
+#' @noRd
+check_mult_high_rate <- function(mult_high_rate) {
+  if (is.null(mult_high_rate))
+    return(invisible(TRUE))
+  if (identical(mult_high_rate, Inf))
+    return(invisible(TRUE))
+  if (!is.numeric(mult_high_rate))
+    cli::cli_abort(c("{.arg mult_high_rate} not NULL or numeric.",
+                     i = paste("{.arg mult_high_rate} has class",
+                               "{.cls {class(mult_high_rate)}}.")))
+  if (length(mult_high_rate) != 1L)
+    cli::cli_abort(c("{.arg mult_high_rate} has length {.val {length(mult_high_rate)}}.",
+                     i = "Should have length {.val {1}}."))
+  if (is.na(mult_high_rate))
+    cli::cli_abort("{.arg mult_high_rate} is {.val {NA}}.")
+  if (mult_high_rate <= 0)
+    cli::cli_abort(c("{.arg mult_high_rate} non-positive.",
+                     "{.arg mult_high_rate} is {.val {mult_high_rate}}."))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that Along Dimension of Interaction has at Least 'min' Elements
 #'
 #' @param n_along Number of elements
@@ -690,8 +719,8 @@ check_number <- function(x, nm_x) {
     cli::cli_abort(c("{.arg {nm_x}} is non-numeric.",
                      i = "{.arg {nm_x}} has class {.cls {class(x)}}."))
   if (length(x) != 1L)
-    cli::cli_abort(c("{.arg {nm_x}} has length {length(x)}.",
-                     i = "Should have length 1."))
+    cli::cli_abort(c("{.arg {nm_x}} has length {.val {length(x)}}.",
+                     i = "Should have length {.val {1}}."))
   if (is.na(x))
     cli::cli_abort("{.arg {nm_x}} is {.val {NA}}.")
   if (any(is.infinite(x)))
@@ -714,7 +743,7 @@ check_numeric <- function(x, nm_x) {
     cli::cli_abort(c("{.arg {nm_x}} is non-numeric.",
                      i = "{.arg {nm_x}} has class {.cls {class(x)}}."))
   if (length(x) == 0L)
-    cli::cli_abort("{.arg {nm_x}} has length 0.")
+    cli::cli_abort("{.arg {nm_x}} has length {.val {0}}.")
   if (anyNA(x))
     cli::cli_abort("{.arg {nm_x}} has {.val {NA}}.")
   if (any(is.infinite(x)))
@@ -1026,7 +1055,7 @@ check_scale <- function(x, nm_x, zero_ok) {
         cli::cli_abort(c("{.arg {nm_x}} is non-numeric.",
                          i = "{.arg {nm_x}} has class {.cls {class(x)}}."))
     if (length(x) != 1L)
-        cli::cli_abort(c("{.arg {nm_x}} does not have length 1.",
+        cli::cli_abort(c("{.arg {nm_x}} does not have length {.val {1}}.",
                          i = "{.arg {nm_x}} has length {.val {length(x)}}."))
     if (is.na(x))
         cli::cli_abort("{.arg {nm_x}} is {.val {NA}}.")
@@ -1161,7 +1190,7 @@ check_vars_inner <- function(vars_inner) {
                      i = "{.arg vars_inner} has class {.cls {class(vars_inner)}}."))
   ## not length 0
   if (identical(length(vars_inner), 0L))
-    cli::cli_abort("{.arg vars_inner} has length 0.")
+    cli::cli_abort("{.arg vars_inner} has length {.val {0}}.")
   ## no NAs
   n_na <- sum(is.na(vars_inner))
   if (n_na > 0L)
@@ -1193,7 +1222,7 @@ check_widths <- function(widths) {
         cli::cli_abort(c("{.arg widths} is non-numeric",
                          i = "{.arg widths} has class {.cls {class(widths)}}."))
     if (length(widths) == 0L)
-        cli::cli_abort("{.arg widths} has length 0.")
+        cli::cli_abort("{.arg widths} has length {.val {0}}.")
     n_na <- sum(is.na(widths))
     if (n_na > 0L)
         cli::cli_abort("{.arg widths} has {cli::qty(n_na)} NA{?s}.")

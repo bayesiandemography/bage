@@ -111,6 +111,20 @@ test_that("'set_covariates' works with binomial", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'set_covariates' issues message with existing covariates", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rpois(n = nrow(data), lambda = 3)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_covariates(~ income)
+  expect_message(set_covariates(mod, ~ income),
+                "Model already has covariates\\. Deleting these\\.")
+})
+
 
 ## 'set_datamod_outcome_rr3' --------------------------------------------------
 
