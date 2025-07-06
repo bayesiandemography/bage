@@ -32,7 +32,7 @@ contains variables \code{gender} and \code{region},
 and terms \code{gender}, \code{region}, and \code{gender:region}.
 
 If \code{set_var_sexgender()} is applied to
-a fitted model, it 'unfits'
+a fitted model, \code{set_var_sexgender()} \link[=unfit]{unfits}
 the model, deleting existing estimates.
 }
 \examples{

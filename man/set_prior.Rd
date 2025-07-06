@@ -22,7 +22,7 @@ a main effect, or an interaction.
 }
 \details{
 If \code{set_prior()} is applied to
-a fitted model, it 'unfits'
+a fitted model, \code{set_prior()} \link[=unfit]{unfits}
 the model, deleting existing estimates.
 }
 \examples{

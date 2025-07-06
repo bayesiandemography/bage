@@ -453,7 +453,7 @@ test_that("'get_is_in_lik_effects' works with NAs", {
 })
 
 
-## 'get_is_in_lik_offset' ---------------------------------------------------------
+## 'get_is_in_lik_offset' -----------------------------------------------------
 
 test_that("'get_is_in_lik_offset' works with no NAs", {
     mod <- list(outcome = c(0, 1, 5),
@@ -472,7 +472,7 @@ test_that("'get_is_in_lik_offset' works with NAs", {
 })
 
 
-## 'get_is_in_lik_outcome' --------------------------------------------------------
+## 'get_is_in_lik_outcome' ----------------------------------------------------
 
 test_that("'get_is_in_lik_outcome' works with no NAs", {
     mod <- list(outcome = c(0, 1, 5),
@@ -666,7 +666,7 @@ test_that("'make_dimnames_terms' works - no intercept", {
 })
 
 
-## 'make_effectfree' -------------------------------------------------------------
+## 'make_effectfree' ----------------------------------------------------------
 
 test_that("'make_effectfree' works with valid inputs", {
     set.seed(0)
@@ -767,7 +767,7 @@ test_that("'make_i_prior' works with valid inputs", {
 })
 
 
-## 'make_lengths_effect' ---------------------------------------------------------
+## 'make_lengths_effect' ------------------------------------------------------
 
 test_that("'make_lengths_effect' works with valid inputs - has intercept", {
   set.seed(0)
@@ -805,7 +805,7 @@ test_that("'make_lengths_effect' works with valid inputs - no intercept", {
 })
 
 
-## 'make_lengths_effectfree' -----------------------------------------------------------
+## 'make_lengths_effectfree' --------------------------------------------------
 
 test_that("'make_lengths_effectfree' works with valid inputs", {
     set.seed(0)
@@ -1774,7 +1774,7 @@ test_that("'make_uses_matrix_effectfree_effect' works with valid inputs", {
 })
 
 
-## 'make_uses_matrix_effectfree_effect' ---------------------------------------------
+## 'make_uses_matrix_effectfree_effect' ---------------------------------------
 
 test_that("'make_uses_offset_effectfree_effect' works with valid inputs", {
     set.seed(0)
@@ -1852,6 +1852,53 @@ test_that("'make_vars_inner' throws correct error with age, sex, time not presen
   expect_error(make_vars_inner(mod),
                "Unable to infer `vars_inner`.")
 })
+
+
+## 'message_suspicious_rates' -------------------------------------------------
+
+test_that("'message_suspicious_rates' returns NULL with valid inputs", {
+  outcome <- c(0:40, NA)
+  exposure <- c(0.000001, rep(3, 41))
+  ans_obtained <- message_suspicious_rates(outcome = outcome,
+                                           exposure = exposure,
+                                           mult_high_rate = 1000)
+  ans_expected <- NULL
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'message_suspicious_rates' returns NULL with less than 20 obs", {
+  outcome <- 1
+  exposure <- 0.00000001
+  ans_obtained <- message_suspicious_rates(outcome = outcome,
+                                           exposure = exposure,
+                                           mult_high_rate = 1000)
+  ans_expected <- NULL
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'message_suspicious_rates' returns message with 1 row", {
+  outcome <- rep(1, 21)
+  exposure <- c(rep(10, 20), 0.00000001)
+  suppressMessages(
+    expect_message(message_suspicious_rates(outcome = outcome,
+                                            exposure = exposure,
+                                            mult_high_rate = 1000),
+                   "`data` has row with unexpectedly high rate.")
+  )
+})
+
+test_that("'message_suspicious_rates' returns message with 2 rows", {
+  outcome <- rep(1, 43)
+  exposure <- c(rep(10, 40), NA, 0.00000001, 0.0000002)
+  suppressMessages(
+    expect_message(message_suspicious_rates(outcome = outcome,
+                                            exposure = exposure,
+                                            mult_high_rate = 100),
+                   "`data` has rows with unexpectedly high rates.")
+  )
+})
+
+
 
 
 ## 'n_col' --------------------------------------------------------------------

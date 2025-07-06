@@ -7,7 +7,11 @@
   clarify prior for dispersion. Added default value (of 1) to
   `set_disp()`. This does not affect behaviour, but is a bit clearer
   for users. (#94)
-* 
+* In `set_covariates()`, added paragraph in online documentation to
+  note that calling `set_covariates()` on a model that already has
+  covariates deletes the existing covariates. Also added a warning
+  message to `set_covariates()` when covariates being
+  overwritten. (#95).
   
 
 ## Bug fix

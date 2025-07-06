@@ -113,7 +113,9 @@
 #'                 data = nzl_injuries,
 #'                 exposure = ~ pmax(popn, 1))
 #' @export
-mod_pois <- function(formula, data, exposure) {
+mod_pois <- function(formula,
+                     data,
+                     exposure) {
   ## processing common to all models
   args <- mod_helper(formula = formula,
                      data = data,
@@ -146,6 +148,12 @@ mod_pois <- function(formula, data, exposure) {
   }
   else
     offset <- make_offset_ones(data)
+  ## check for suspicious rates
+  outcome <- args$outcome
+  mult_high_rate <- 1000
+  message_suspicious_rates(outcome = outcome,
+                           exposure = offset,
+                           mult_high_rate = mult_high_rate)
   ## create object and return
   ans <- c(args,
            list(offset = offset,

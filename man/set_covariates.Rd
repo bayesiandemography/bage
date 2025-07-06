@@ -20,6 +20,16 @@ A modified version of \code{mod}
 \description{
 Add covariates to a model.
 }
+\details{
+If \code{set_covariates()} is applied to
+a model that already has covariates,
+\code{set_covariates()} deletes the
+existing covariates.
+
+If \code{set_covariates()} is applied to
+a fitted model, \code{set_covariates()} \link[=unfit]{unfits}
+the model, deleting existing estimates.
+}
 \section{Covariate data}{
 
 
@@ -35,7 +45,8 @@ adding it to the model:
 \code{x <- scale(x)}.
 \item Categorical variables are converted to sets of indicator
 variables, using \link[stats:contrast]{treatment} contrasts.
-For instance, variable \code{x} with categories \code{"high"}, \code{"medium"}, and \code{"low"},
+For instance, variable \code{x} with categories
+\code{"high"}, \code{"medium"}, and \code{"low"},
 is converted into two indicator variables, one called \code{xmedium} and one
 called \code{xlow}.
 }

@@ -37,7 +37,7 @@ via \code{set_var_time()} can change priors:
 see below for an example.
 
 If \code{set_var_time()} is applied to
-a fitted model, it 'unfits'
+a fitted model, \code{set_var_time()} \link[=unfit]{unfits}
 the model, deleting existing estimates.
 }
 \examples{
