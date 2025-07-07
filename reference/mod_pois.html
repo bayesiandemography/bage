@@ -123,7 +123,8 @@ for all \(i\).</p>
 a gamma distribution</p>
 <p>$$y_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})$$</p>
 <p>where</p><ul><li><p>\(\mu_i\) is the expected value for \(\gamma_i\); and</p></li>
-<li><p>\(\xi\) governs dispersion (ie variance.)</p></li>
+<li><p>\(\xi\) governs dispersion (i.e. variation), with
+lower values implying less dispersion.</p></li>
 </ul><p>Expected value \(\mu_i\) equals, on the log scale,
 the sum of terms formed from classifying variables,</p>
 <p>$$\log \mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}$$</p>
@@ -133,7 +134,8 @@ or interaction; and</p></li>
 <li><p>\(j_i^m\) is the element of \(\beta^{(m)}\) associated with
 cell \(i\).</p></li>
 </ul><p>The \(\beta^{(m)}\) are given priors, as described in <a href="priors.html">priors</a>.</p>
-<p>The prior for \(\xi\) is described in <code><a href="set_disp.html">set_disp()</a></code>.</p>
+<p>\(\xi\) has an exponential prior with mean 1. Non-default
+values for the mean can be specified with  <code><a href="set_disp.html">set_disp()</a></code>.</p>
 <p>The model for \(\mu_i\)
 can also include covariates,
 as described in <code><a href="set_covariates.html">set_covariates()</a></code>.</p>
@@ -147,14 +149,13 @@ as described in <code><a href="set_covariates.html">set_covariates()</a></code>.
 <li><p><code><a href="set_disp.html">set_disp()</a></code> Specify non-default prior for dispersion</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> Fit a model</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> Extract values for rates,
-means, or probabilities, together with original data</p></li>
+together with original data</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> Extract values for hyper-parameters</p></li>
-<li><p><code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> Forecast a model</p></li>
-<li><p><code><a href="report_sim.html">report_sim()</a></code> Do a simulation study</p></li>
-<li><p><code><a href="replicate_data.html">replicate_data()</a></code> Generate replicate
-data for a model</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> Forecast parameters and outcomes</p></li>
+<li><p><code><a href="report_sim.html">report_sim()</a></code> Check model using a simulation study</p></li>
+<li><p><code><a href="replicate_data.html">replicate_data()</a></code> Check model using replicate data</p></li>
 <li><p><a href="https://bayesiandemography.github.io/bage/articles/vig2_math.html">Mathematical Details</a>
-vignette</p></li>
+Detailed description of models</p></li>
 </ul></div>
     </div>
 
@@ -185,7 +186,7 @@ vignette</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

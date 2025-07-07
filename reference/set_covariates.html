@@ -80,6 +80,16 @@ specifying the covariates.</p></dd>
     <p>A modified version of <code>mod</code></p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>If <code>set_covariates()</code> is applied to
+a model that already has covariates,
+<code>set_covariates()</code> deletes the
+existing covariates.</p>
+<p>If <code>set_covariates()</code> is applied to
+a fitted model, <code>set_covariates()</code> <a href="unfit.html">unfits</a>
+the model, deleting existing estimates.</p>
+    </div>
+    <div class="section level2">
     <h2 id="covariate-data">Covariate data<a class="anchor" aria-label="anchor" href="#covariate-data"></a></h2>
 
 
@@ -93,7 +103,8 @@ adding it to the model:</p><ul><li><p>All numeric variables are standardized, us
 <code>x &lt;- scale(x)</code>.</p></li>
 <li><p>Categorical variables are converted to sets of indicator
 variables, using treatment contrasts.
-For instance, variable <code>x</code> with categories <code>"high"</code>, <code>"medium"</code>, and <code>"low"</code>,
+For instance, variable <code>x</code> with categories
+<code>"high"</code>, <code>"medium"</code>, and <code>"low"</code>,
 is converted into two indicator variables, one called <code>xmedium</code> and one
 called <code>xlow</code>.</p></li>
 </ul></div>
@@ -162,7 +173,7 @@ model for rates, probabilities, or means</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>
