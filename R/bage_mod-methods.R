@@ -85,6 +85,8 @@ generics::augment
 #' - [datamods] Overview of data models implemented in **bage**
 #' 
 #' @examples
+#' set.seed(0)
+#' 
 #' ## specify model
 #' mod <- mod_pois(divorces ~ age + sex + time,
 #'                 data = nzl_divorces,
@@ -224,6 +226,8 @@ generics::components
 #' - [unfit()] Reset a model
 #'
 #' @examples
+#' set.seed(0)
+#' 
 #' ## specify model
 #' mod <- mod_pois(injuries ~ age + sex + year,
 #'                 data = nzl_injuries,
