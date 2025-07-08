@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,6 +56,8 @@
 <h3 id="interface-0-9-4">Interface<a class="anchor" aria-label="anchor" href="#interface-0-9-4"></a></h3>
 <ul><li>Modified help for <code><a href="../reference/mod_pois.html">mod_pois()</a></code>, <code><a href="../reference/mod_binom.html">mod_binom()</a></code>, <code><a href="../reference/mod_norm.html">mod_norm()</a></code> to clarify prior for dispersion. Added default value (of 1) to <code><a href="../reference/set_disp.html">set_disp()</a></code>. This does not affect behaviour, but is a bit clearer for users. (<a href="https://github.com/bayesiandemography/bage/issues/94" class="external-link">#94</a>)</li>
 <li>In <code><a href="../reference/set_covariates.html">set_covariates()</a></code>, added paragraph in online documentation to note that calling <code><a href="../reference/set_covariates.html">set_covariates()</a></code> on a model that already has covariates deletes the existing covariates. Also added a warning message to <code><a href="../reference/set_covariates.html">set_covariates()</a></code> when covariates being overwritten. (<a href="https://github.com/bayesiandemography/bage/issues/95" class="external-link">#95</a>).</li>
+<li>
+<code><a href="../reference/mod_pois.html">mod_pois()</a></code> emits message (not warning) if one or more rates are suspiciously high (which is often a sympton of inaccurate exposures.) (<a href="https://github.com/bayesiandemography/bage/issues/96" class="external-link">#96</a>)</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fix-0-9-4">Bug fix<a class="anchor" aria-label="anchor" href="#bug-fix-0-9-4"></a></h3>
