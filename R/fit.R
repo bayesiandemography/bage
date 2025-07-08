@@ -76,7 +76,7 @@ extract_est_prec <- function(f, has_random_effects) {
 fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
   t_start <- Sys.time()
   if (is_not_testing_or_snapshot())
-    cli::cli_progress_message("Building log-posterior function...")
+    cli::cli_progress_message("Building log-posterior function...") # nocov
   if (start_oldpar) {
     if (is_fitted(mod))
       oldpar <- mod$oldpar
@@ -97,7 +97,7 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                       silent = TRUE)
   t_optim <- Sys.time()
   if (is_not_testing_or_snapshot())
-    cli::cli_progress_message("Finding maximum...")
+    cli::cli_progress_message("Finding maximum...") # nocov
   optimizer_out <- optimize_adfun(f = f,
                                   quiet = quiet,
                                   optimizer = optimizer,
@@ -107,7 +107,7 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                                   is_test_nonconv = FALSE)
   t_report <- Sys.time()
   if (is_not_testing_or_snapshot())
-    cli::cli_progress_message("Drawing values for hyper-parameters...")
+    cli::cli_progress_message("Drawing values for hyper-parameters...") # nocov
   est_prec <- extract_est_prec(f = optimizer_out$f,
                                has_random_effects = has_random_effects)
   est <- est_prec$est

@@ -1626,7 +1626,8 @@ test_that("'forecast_augment' works - normal, no offset", {
   mod <- fit(mod)
   components_est <- components(mod, quiet = TRUE)
   labels_forecast <- 2006:2008
-  data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
+  data_forecast <- make_data_forecast_labels(mod= mod,
+                                             labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
@@ -1650,6 +1651,46 @@ test_that("'forecast_augment' works - normal, no offset", {
   expect_identical(names(ans), names(aug_est))
   expect_true(rvec::is_rvec(ans$income))
 })
+
+test_that("'forecast_augment' works - normal, has offset, offset not in forecast data", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$income <- rnorm(n = nrow(data))
+  data$wt <- runif(n = nrow(data))
+  formula <- income ~ age + sex * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components_est <- components(mod, quiet = TRUE)
+  labels_forecast <- 2006:2008
+  data_forecast <- make_data_forecast_labels(mod= mod,
+                                             labels_forecast = labels_forecast)
+  set.seed(1)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est,
+                                             labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
+  ans <- forecast_augment(mod = mod,
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
+  aug_est <- augment(mod)
+  expect_setequal(ans$age, aug_est$age)
+  expect_setequal(ans$sex, aug_est$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_identical(names(ans), names(aug_est))
+  expect_identical(ans$income, rep(NA_real_, nrow(ans)))
+})
+
 
 
 test_that("'forecast_augment' works - normal, estimated has imputed", {

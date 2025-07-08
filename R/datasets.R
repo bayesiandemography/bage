@@ -189,7 +189,8 @@
 #'
 #' @source Human Mortality Database. University of California, Berkeley (USA),
 #' and Max Planck Institute for Demographic Research (Germany).
-#' Available at \url{www.mortality.org} or \url{www.humanmortality.de}
+#' Available at \url{https://www.mortality.org} or
+#' \url{https://www.humanmortality.de}
 #' (data downloaded on 17 July 2018).
 "prt_deaths"
 

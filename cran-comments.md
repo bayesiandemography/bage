@@ -1,4 +1,12 @@
 
+# Submission, 8 July 2025, version 0.9.4
+
+* Current CRAN checks have notes for the three r-oldrel flavours. All
+  three notes refer to library size, and are not something I can
+  change.
+* 
+
+
 # Submission, 8 January 2025, version 0.9.0
 
 * `devtools::check(remote = TRUE, manual = TRUE)` and
