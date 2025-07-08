@@ -370,13 +370,13 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   has_disp <- has_disp(mod)
   if (has_disp) {
     if (is_not_testing_or_snapshot())
-      cli::cli_progress_message("Drawing {.var .expected}...")
+      cli::cli_progress_message("Drawing {.var .expected}...") # nocov
     expected <- inv_transform(linpred)
     disp <- get_disp(mod)
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     if (is_not_testing_or_snapshot())
-      cli::cli_progress_message("Drawing {.var .fitted}...")
+      cli::cli_progress_message("Drawing {.var .fitted}...") # nocov
     ans$.fitted <- make_par_disp(x = mod,
                                  meanpar = expected,
                                  disp = disp)
@@ -394,7 +394,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
     nm_outcome_data <- get_nm_outcome_data(mod)
     nm_outcome_data_true <- paste0(".", nm_outcome_data)
     if (is_not_testing_or_snapshot())
-      cli::cli_progress_message("Drawing {.var {nm_outcome_data_true}}...")
+      cli::cli_progress_message("Drawing {.var {nm_outcome_data_true}}...") # nocov
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
@@ -424,7 +424,7 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   ans <- mod$data
   linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
   if (is_not_testing_or_snapshot())
-    cli::cli_progress_message("Drawing {.var .fitted}...")
+    cli::cli_progress_message("Drawing {.var .fitted}...") # nocov
   .fitted <- scale_linpred(linpred)
   ans$.fitted <- .fitted
   outcome_has_na <- anyNA(outcome)
@@ -439,7 +439,7 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
     nm_outcome_data <- get_nm_outcome_data(mod)
     nm_outcome_data_true <- paste0(".", nm_outcome_data)
     if (is_not_testing_or_snapshot())
-      cli::cli_progress_message("Drawing {.var {nm_outcome_data_true}}...")
+      cli::cli_progress_message("Drawing {.var {nm_outcome_data_true}}...") # nocov
     outcome_obs <- ans[[nm_outcome_data]]
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
@@ -938,7 +938,7 @@ forecast.bage_mod <- function(object,
                      i = "Use {.fun set_var_time} to identify time variable?"))
   check_along_is_time(object)
   if (is_not_testing_or_snapshot())
-    cli::cli_progress_message("{.fun components} for past values...")
+    cli::cli_progress_message("{.fun components} for past values...") # nocov
   comp_est <- components(object)
   has_newdata <- !is.null(newdata)
   has_labels <- !is.null(labels)
@@ -956,7 +956,7 @@ forecast.bage_mod <- function(object,
     data_forecast <- make_data_forecast_labels(mod = object, labels_forecast = labels)
   seed_forecast_components <- object$seed_forecast_components
   if (is_not_testing_or_snapshot())
-    cli::cli_progress_message("{.fun components} for future values...")
+    cli::cli_progress_message("{.fun components} for future values...") # nocov
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_forecast_components) ## set pre-determined seed
   comp_forecast <- forecast_components(mod = object,
@@ -970,7 +970,7 @@ forecast.bage_mod <- function(object,
   if (output == "augment") {
     comp_comb <- vctrs::vec_rbind(comp_est, comp_forecast)
     if (is_not_testing_or_snapshot())
-      cli::cli_progress_message("{.fun augment} for future values...")
+      cli::cli_progress_message("{.fun augment} for future values...") # nocov
     linpred_forecast <- make_linpred_from_components(mod = object,
                                                      components = comp_comb,
                                                      data = data_forecast,
@@ -984,7 +984,7 @@ forecast.bage_mod <- function(object,
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     if (include_estimates) {
       if (is_not_testing_or_snapshot())
-        cli::cli_progress_message("{.fun augment} for past values...")
+        cli::cli_progress_message("{.fun augment} for past values...") # nocov
       augment_est <- augment(object)
       ans <- vctrs::vec_rbind(augment_est, ans)
     }

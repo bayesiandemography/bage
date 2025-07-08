@@ -12,6 +12,9 @@
   covariates deletes the existing covariates. Also added a warning
   message to `set_covariates()` when covariates being
   overwritten. (#95).
+* `mod_pois()` emits message (not warning) if one or more rates are
+  suspiciously high (which is often a sympton of inaccurate
+  exposures.) (#96)
   
 
 ## Bug fix

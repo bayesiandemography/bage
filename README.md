@@ -51,8 +51,8 @@ mod
 #>  n_draw var_time var_age var_sexgender optimizer
 #>    1000     year     age           sex    nlminb
 #> 
-#>  time_total time_optim time_report iter converged                    message
-#>        1.69       0.70        0.57   11      TRUE   relative convergence (4)
+#>  time_total time_max time_draw iter converged                    message
+#>        1.68     0.69      0.55   11      TRUE   relative convergence (4)
 ```
 
 Extract model-based and direct estimates
