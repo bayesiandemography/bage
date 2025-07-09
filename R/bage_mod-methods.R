@@ -56,7 +56,7 @@ generics::augment
 #' @returns
 #' A [tibble][tibble::tibble-package], with the original
 #' data plus one or more of the following columns:
-#' 
+#'
 #' - `.<outcome>` Corrected or extended version of
 #'   the outcome variable, in applications where the
 #'   outcome variable has missing values, or a data model
@@ -83,18 +83,15 @@ generics::augment
 #' - [is_fitted()] See if a model has been fitted
 #' - [unfit()] Reset a model
 #' - [datamods] Overview of data models implemented in **bage**
-#' 
+#'
 #' @examples
 #' set.seed(0)
-#' 
+#'
 #' ## specify model
 #' mod <- mod_pois(divorces ~ age + sex + time,
 #'                 data = nzl_divorces,
 #'                 exposure = population) |>
 #'   set_n_draw(n_draw = 100) ## smaller sample, so 'augment' faster
-#'
-#' ## draw from the prior distribution
-#' mod |> augment()
 #'
 #' ## fit model
 #' mod <- mod |>
@@ -154,14 +151,14 @@ generics::components
 #' Extract Values for Hyper-Parameters
 #'
 #' @description
-#' 
+#'
 #' Extract values for hyper-parameters
 #' from a model object. Hyper-parameters include
 #'
 #' - main effects and interactions,
 #' - dispersion,
 #' - trends, seasonal effects, errors,
-#' - SVD, spline, and covariate coefficients, 
+#' - SVD, spline, and covariate coefficients,
 #' - standard deviations, correlation coefficients.
 #'
 #' @section Fitted vs unfitted models:
@@ -200,7 +197,7 @@ generics::components
 #' `"error"` and `"disp"` components from
 #' a [normal][mod_norm()] model are on the original
 #' scale or the transformed scale. Default is `FALSE`.
-#' 
+#'
 #' @returns
 #' A [tibble][tibble::tibble-package]
 #' with four columns columns:
@@ -227,7 +224,7 @@ generics::components
 #'
 #' @examples
 #' set.seed(0)
-#' 
+#'
 #' ## specify model
 #' mod <- mod_pois(injuries ~ age + sex + year,
 #'                 data = nzl_injuries,
@@ -326,7 +323,7 @@ components.bage_mod <- function(object,
 #'                 data = nzl_divorces,
 #'                 exposure = population) |>
 #'   fit()
-#' 
+#'
 #' computations(mod)
 #' @export
 computations <- function(object) {
@@ -415,7 +412,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   }
   ans
 }
-  
+
 
 ## HAS_TESTS
 #' @export
@@ -438,7 +435,7 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
     outcome_sd <- mod$outcome_sd
     offset <- mod$offset
     offset_mean <- mod$offset_mean
-    disp <- sqrt(offset_mean) * outcome_sd * disp 
+    disp <- sqrt(offset_mean) * outcome_sd * disp
     offset <- offset_mean * offset
     nm_outcome_data <- get_nm_outcome_data(mod)
     nm_outcome_data_true <- paste0(".", nm_outcome_data)
@@ -662,14 +659,14 @@ generics::fit
 #' @section Optimizer:
 #'
 #' The choices for the `optimizer` argument are:
-#' 
+#'
 #' - `"multi"` Try `"nlminb"`, and if that fails,
 #'   restart from the parameter values where `"nlminb"` stopped,
 #'   using `"BFGS"`. The default.
 #' - `"nlminb"` [stats::nlminb()]
 #' - `"BFGS"` [stats::optim()] using method `"BFGS"`.
 #' - `"GC"` [stats::optim()] using method `"CG"` (conjugate gradient).
-#' 
+#'
 #' @param object A `bage_mod` object,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
@@ -711,7 +708,7 @@ generics::fit
 #' - [is_fitted()] Check if a model has been fitted
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
 #'   vignette
-#' 
+#'
 #' @examples
 #' ## specify model
 #' mod <- mod_pois(injuries ~ age + sex + year,
@@ -1032,7 +1029,7 @@ forecast_augment <- function(mod,
                              data_forecast,
                              linpred_forecast) {
   UseMethod("forecast_augment")
-} 
+}
 
 ## HAS_TESTS
 #' @export
@@ -1507,7 +1504,7 @@ make_i_lik_mod.bage_mod_pois <- function(mod) {
     303L
   else if (is.null(datamod_outcome) && !has_disp)
     301L
-  else 
+  else
     make_i_lik(mod = datamod_outcome,
                nm_distn = nm_distn,
                has_disp = has_disp)
@@ -1705,7 +1702,7 @@ make_mod_outer.bage_mod_norm <- function(mod, mod_inner, use_term) {
 make_observed <- function(x) {
     UseMethod("make_observed")
 }
-              
+
 ## HAS_TESTS
 #' @export
 make_observed.bage_mod <- function(x) {
@@ -1847,7 +1844,7 @@ nm_distn.bage_mod_norm <- function(mod) "norm"
 #'   See [priors()] and [tidy()].
 #' - Values for other model settings. See [set_disp()],
 #'   [set_var_age()], [set_var_sexgender()], [set_var_time()],
-#'   [set_n_draw()] 
+#'   [set_n_draw()]
 #' - Details on computations (fitted models only).
 #'   See [computations()].
 #'
@@ -1855,7 +1852,7 @@ nm_distn.bage_mod_norm <- function(mod) "norm"
 #' created with [mod_pois()], [mod_binom()],
 #' or [mod_norm()].
 #' @param ... Unused. Included for generic consistency only.
-#'   
+#'
 #' @returns `x`, invisibly.
 #'
 #' @seealso
@@ -2013,18 +2010,18 @@ print.bage_mod <- function(x, ...) {
 #' from the posterior distribution for rates or probabilities
 #' (the \eqn{\gamma_i} defined in [mod_pois()]
 #' and [mod_binom()]), and (ii)  conditional on these
-#' rates or probabilities, drawing values for the 
+#' rates or probabilities, drawing values for the
 #' outcome variable.
 #' - When `condition_on` is `"expected"`,
 #' the replicate data is created by (i) drawing
 #' values from hyper-parameters governing
-#' the rates or probabilities 
+#' the rates or probabilities
 #' (the \eqn{\mu_i} and \eqn{\xi} defined
 #' in [mod_pois()] and [mod_binom()]),
 #' then (ii) conditional on these hyper-parameters,
 #' drawing values for the rates or probabilities,
 #' and finally (iii) conditional on these
-#' rates or probabilities, drawing values for the 
+#' rates or probabilities, drawing values for the
 #' outcome variable.
 #'
 #' The default for `condition_on` is `"expected"`.
@@ -2068,8 +2065,8 @@ print.bage_mod <- function(x, ...) {
 #' |`"Replicate 2"`  | Simulated data. |
 #' |\dots            | \dots           |
 #' |`"Replicate <n>"`| Simulated data. |
-#' 
-#' 
+#'
+#'
 #' @seealso
 #' - [mod_pois()] Specify a Poisson model
 #' - [mod_binom()] Specify a binomial model
@@ -2281,7 +2278,7 @@ generics::tidy
 #' - `n_par` Number of parameters
 #' - `n_par_free` Number of free parameters
 #' - `std_dev` Standard deviation for point estimates.
-#' 
+#'
 #' With some priors, the number of free parameters is less than
 #' the number of parameters for that term. For instance, an [SVD()]
 #' prior might use three vectors to represent 101 age groups
@@ -2299,7 +2296,7 @@ generics::tidy
 #' ```
 #' `std_dev` is a measure of the contribution of a term to
 #' variation in the outcome variable.
-#' 
+#'
 #' @param x Object of class `"bage_mod"`, typically
 #' created with [mod_pois()], [mod_binom()],
 #' or [mod_norm()].
@@ -2315,7 +2312,7 @@ generics::tidy
 #'
 #' @references `std_dev` is modified from Gelman et al. (2014)
 #' *Bayesian Data Analysis. Third Edition*. pp396--397.
-#' 
+#'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + sex + year,
 #'                 data = nzl_injuries,
