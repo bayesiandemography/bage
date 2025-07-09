@@ -79,6 +79,8 @@ estimates of the true value for the outcome.
 }
 
 \examples{
+set.seed(0)
+
 ## specify model
 mod <- mod_pois(divorces ~ age + sex + time,
                 data = nzl_divorces,

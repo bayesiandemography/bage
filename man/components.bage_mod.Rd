@@ -78,6 +78,8 @@ set \code{original_scale} to \code{TRUE}.
 }
 
 \examples{
+set.seed(0)
+
 ## specify model
 mod <- mod_pois(injuries ~ age + sex + year,
                 data = nzl_injuries,
