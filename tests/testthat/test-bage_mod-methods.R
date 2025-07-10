@@ -4,4 +4,4 @@ mod <- mod_pois(divorces ~ age + sex + time,
                 exposure = population) |>
   set_n_draw(n_draw = 100)
 
-mod |> draw_vals_augment_unfitted()
+mod |> draw_vals_components_unfitted(n_sim = 2)
