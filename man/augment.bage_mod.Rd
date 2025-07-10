@@ -87,11 +87,14 @@ mod <- mod_pois(divorces ~ age + sex + time,
                 exposure = population) |>
   set_n_draw(n_draw = 100) ## smaller sample, so 'augment' faster
 
+## draw from prior distribution
+mod |> augment()
+
 ## fit model
 mod <- mod |>
   fit()
 
-## draw from the posterior distribution
+## draw from posterior distribution
 mod |> augment()
 
 ## insert a missing value into outcome variable
