@@ -20,3 +20,12 @@ vals_linpred <- make_linpred_from_components(mod = mod,
                                              data = data,
                                              dimnames_terms = dimnames_terms)
 
+seed_augment <- mod$seed_augment
+seed_restore <- make_seed() ## create randomly-generated seed
+set.seed(seed_augment) ## set pre-determined seed
+vals_expected <- inv_transform(vals_linpred)
+is_disp <- vals_components$component == "disp"
+vals_disp <- vals_components$.fitted[is_disp]
+vals_fitted <- draw_vals_fitted(mod = mod,
+                                vals_expected = vals_expected,
+                                vals_disp = vals_disp)
