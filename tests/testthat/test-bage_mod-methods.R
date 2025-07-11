@@ -29,3 +29,12 @@ vals_disp <- vals_components$.fitted[is_disp]
 vals_fitted <- draw_vals_fitted(mod = mod,
                                 vals_expected = vals_expected,
                                 vals_disp = vals_disp)
+
+outcome_obs <- rep(NA_real_, times = length(vals_fitted))
+vals_outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
+                                            nm_distn = nm_distn,
+                                            outcome_obs = outcome_obs,
+                                            fitted = vals_fitted,
+                                            disp = vals_disp,
+                                            offset = offset)
+
