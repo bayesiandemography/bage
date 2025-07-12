@@ -1,7 +1,12 @@
+set.seed(0)
 
-mod <- mod_pois(divorces ~ age + sex + time,
-                data = nzl_divorces,
-                exposure = population) |>
+mod <- mod_pois(deaths ~ age:sex + time,
+                data = isl_deaths,
+                exposure = ~ifelse(popn == 0 & deaths > 0,
+                                   0.5 * deaths,
+                                   popn)) |>
+  set_prior(age:sex ~ SVD(HMD)) |>
+  set_prior(time ~ RW(s = 0.01)) |>
   set_n_draw(n_draw = 100)
 
 data <- mod$data
