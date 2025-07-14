@@ -127,11 +127,16 @@ generics::augment
 #'   n_draw <- rvec::n_draw(vals_fitted)
 #'   n_val <- length(vals_fitted)
 #'   outcome_obs <- as.double(outcome_obs)
-#'   ans <- matrix(outcome_obs, nrow = n_val, ncol = n_draw)
+#'   ans <- matrix(0, nrow = n_val, ncol = n_draw)
+#'   ans[!is_impute, ] <- outcome_obs[!is_impute]
 #'   ans <- rvec::rvec_dbl(ans)
+#'   if (n_impute > 0L) {
 #'   if (nm_distn == "pois") {
+#'     lambda <- fitted_impute * offset_impute
+#'     if (anyNA(as.numeric(lambda)))
+#'        cli::cli_abort("Internal error: NAs")
 #'     vals <- rvec::rpois_rvec(n = n_impute,
-#'                              lambda = fitted_impute * offset_impute)
+#'                              lambda = lambda)
 #' }   else if (nm_distn == "binom") {
 #'     vals <- rvec::rbinom_rvec(n = n_impute,
 #'                               size = offset_impute,
@@ -144,6 +149,7 @@ generics::augment
 #'     cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
 #' }
 #'   ans[is_impute] <- vals
+#' }
 #'   ans
 #'                            
 #'
