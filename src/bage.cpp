@@ -1116,7 +1116,7 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > consts_split = split(consts, terms_consts);
   int has_disp = mean_disp > 0;
   Type disp = has_disp ? exp(log_disp) : 0;
-  int uses_covariates = matrix_covariates.cols() > 0;
+  bool uses_covariates = coef_covariates.size() > 0;
 
   // linear predictor
 
