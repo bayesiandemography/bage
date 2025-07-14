@@ -121,8 +121,13 @@ outcome_obs <- rep(NA_real_, times = length(vals_fitted))
   n_draw <- rvec::n_draw(vals_fitted)
   n_val <- length(vals_fitted)
   outcome_obs <- as.double(outcome_obs)
-  ans <- matrix(0, nrow = n_val, ncol = n_draw)
-  ans[!is_impute, ] <- outcome_obs[!is_impute]
+  ans <- matrix(NA_real_, nrow = n_val, ncol = n_draw)
+  known_idx <- which(!is_impute)
+if (length(known_idx) > 0L) {
+ for (i in known_idx) {
+   ans[i, ] <- rep(outcome_obs[i], times = n_draw)
+ }
+}
   ans <- rvec::rvec_dbl(ans)
   if (n_impute > 0L) {
   if (nm_distn == "pois") {
