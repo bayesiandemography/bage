@@ -62,8 +62,7 @@ draw_vals_outcome_true.NULL <- function(datamod,
   offset_impute <- offset[is_impute]
   n_draw <- rvec::n_draw(fitted)
   n_val <- length(fitted)
-  ans <- matrix(NA_real_, nrow = n_val, ncol = n_draw)
-  ans[!is_impute, ] <- outcome_obs[!is_impute]
+  ans <- matrix(outcome_obs, nrow = n_val, ncol = n_draw)
   ans <- rvec::rvec_dbl(ans)
   if (nm_distn == "pois")
     vals <- rvec::rpois_rvec(n = n_impute,
