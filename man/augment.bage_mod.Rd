@@ -88,6 +88,62 @@ mod <- mod_pois(divorces ~ age + sex + time,
   set_n_draw(n_draw = 100) ## smaller sample, so 'augment' faster
 
 ## draw from prior distribution
+data <- mod$data
+dimnames_terms <- mod$dimnames_terms
+n_draw <- mod$n_draw
+datamod_outcome <- mod$datamod_outcome
+offset <- mod$offset
+nm_distn <- bage:::nm_distn(mod)
+vals_components <- bage:::draw_vals_components_unfitted(mod = mod,
+                                                n_sim = n_draw)
+inv_transform <- bage:::get_fun_inv_transform(mod)
+has_disp <- bage:::has_disp(mod)
+nm_outcome_data <- bage:::get_nm_outcome_data(mod)
+vals_linpred <- bage:::make_linpred_from_components(mod = mod,
+                                            components = vals_components,
+                                            data = data,
+                                            dimnames_terms = dimnames_terms)
+seed_augment <- mod$seed_augment
+seed_restore <- bage:::make_seed() ## create randomly-generated seed
+set.seed(seed_augment) ## set pre-determined seed
+vals_expected <- inv_transform(vals_linpred)
+is_disp <- vals_components$component == "disp"
+vals_disp <- vals_components$.fitted[is_disp]
+vals_fitted <- bage:::draw_vals_fitted(mod = mod,
+                                vals_expected = vals_expected,
+                               vals_disp = vals_disp)
+outcome_obs <- rep(NA_real_, times = length(vals_fitted))
+  is_known <- !is.na(outcome_obs)
+  is_impute <- !is_known & !is.na(offset)
+  n_impute <- sum(is_impute)
+  fitted_impute <- vals_fitted[is_impute]
+  offset_impute <- offset[is_impute]
+  n_draw <- rvec::n_draw(vals_fitted)
+  n_val <- length(vals_fitted)
+  outcome_obs <- as.double(outcome_obs)
+  ans <- matrix(outcome_obs, nrow = n_val, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
+  if (nm_distn == "pois") {
+    vals <- rvec::rpois_rvec(n = n_impute,
+                             lambda = fitted_impute * offset_impute)
+}   else if (nm_distn == "binom") {
+    vals <- rvec::rbinom_rvec(n = n_impute,
+                              size = offset_impute,
+                              prob = fitted_impute)
+}   else if (nm_distn == "norm") {
+    vals <- rvec::rnorm_rvec(n = n_impute,
+                             mean = fitted_impute,
+                             sd = vals_disp / sqrt(offset_impute))
+}   else {
+    cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
+}
+  ans[is_impute] <- vals
+  ans
+                           
+
+
+
+
 mod |> augment()
 
 ## fit model
