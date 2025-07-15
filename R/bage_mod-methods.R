@@ -118,46 +118,12 @@ generics::augment
 #' vals_fitted <- bage:::draw_vals_fitted(mod = mod,
 #'                                 vals_expected = vals_expected,
 #'                                vals_disp = vals_disp)
-#' outcome_obs <- rep(NA_real_, times = length(vals_fitted))
-#'   is_known <- !is.na(outcome_obs)
-#'   is_impute <- !is_known & !is.na(offset)
-#'   n_impute <- sum(is_impute)
-#'   fitted_impute <- vals_fitted[is_impute]
-#'   offset_impute <- offset[is_impute]
-#'   n_draw <- rvec::n_draw(vals_fitted)
-#'   n_val <- length(vals_fitted)
-#'   outcome_obs <- as.double(outcome_obs)
-#'   ans <- matrix(NA_real_, nrow = n_val, ncol = n_draw)
-#'   known_idx <- which(!is_impute)
-#' if (length(known_idx) > 0L) {
-#'  for (i in known_idx) {
-#'    ans[i, ] <- rep(outcome_obs[i], times = n_draw)
-#'  }
-#' }
-#'   ans <- rvec::rvec_dbl(ans)
-#'   if (n_impute > 0L) {
-#'   if (nm_distn == "pois") {
-#'     lambda <- fitted_impute * offset_impute
+#'     lambda <- vals_fitted * offset
 #'     if (anyNA(as.numeric(lambda)))
 #'        cli::cli_abort("Internal error: NAs")
-#'     vals <- rvec::rpois_rvec(n = n_impute,
+#'     ans <- rvec::rpois_rvec(n = length(lambda),
 #'                              lambda = lambda)
-#' }   else if (nm_distn == "binom") {
-#'     vals <- rvec::rbinom_rvec(n = n_impute,
-#'                               size = offset_impute,
-#'                               prob = fitted_impute)
-#' }   else if (nm_distn == "norm") {
-#'     vals <- rvec::rnorm_rvec(n = n_impute,
-#'                              mean = fitted_impute,
-#'                              sd = vals_disp / sqrt(offset_impute))
-#' }   else {
-#'     cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
-#' }
-#'   ans[is_impute] <- vals
-#' }
 #'   ans
-#'                            
-#'
 #'
 #'
 #' 
