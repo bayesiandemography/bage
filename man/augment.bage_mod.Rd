@@ -115,8 +115,10 @@ vals_fitted <- bage:::draw_vals_fitted(mod = mod,
     lambda <- vals_fitted * offset
     if (anyNA(as.numeric(lambda)))
        cli::cli_abort("Internal error: NAs")
-    ans <- rvec::rpois_rvec(n = length(lambda),
-                             lambda = lambda)
+  lambda <- as.matrix(lambda)
+  ans <- rpois(n = length(lambda), lambda = lambda)
+  ans <- matrix(ans, ncol = n_draw)
+  ans <- rvec::rvec(ans)
   ans
 
 
