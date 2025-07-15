@@ -116,7 +116,7 @@ vals_fitted <- bage:::draw_vals_fitted(mod = mod,
   lambda <- as.numeric(lambda)
     if (anyNA(lambda) || !all(is.finite(lambda)))
        cli::cli_abort("Internal error: NAs")
-lambda <- lambda + 0 ## to flush out undefined values
+lambda <- replace(lambda, seq_along(lambda), lambda)
   ans <- rpois(n = length(lambda), lambda = lambda)
   ans <- matrix(ans, ncol = n_draw)
   ans <- rvec::rvec_dbl(ans)
