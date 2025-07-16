@@ -99,9 +99,12 @@ generics::augment
 #' n_draw <- mod$n_draw
 #' datamod_outcome <- mod$datamod_outcome
 #' offset <- mod$offset
+#' tmp <- rpois(n = length(offset), lambda = offset)
 #' nm_distn <- bage:::nm_distn(mod)
 #' vals_components <- bage:::draw_vals_components_unfitted(mod = mod,
 #'                                                 n_sim = n_draw)
+#' f <- as.numeric(vals_components$.fitted)
+#' tmp <- rnorm(n = length(f), mean = f)
 #' inv_transform <- bage:::get_fun_inv_transform(mod)
 #' has_disp <- bage:::has_disp(mod)
 #' nm_outcome_data <- bage:::get_nm_outcome_data(mod)
@@ -109,15 +112,25 @@ generics::augment
 #'                                             components = vals_components,
 #'                                             data = data,
 #'                                             dimnames_terms = dimnames_terms)
+#' v <- as.numeric(vals_linpred)
+#' tmp <- rnorm(n = length(v), mean = v)
 #' seed_augment <- mod$seed_augment
 #' seed_restore <- bage:::make_seed() ## create randomly-generated seed
 #' set.seed(seed_augment) ## set pre-determined seed
 #' vals_expected <- inv_transform(vals_linpred)
+#' ve <- as.numeric(vals_expected)
+#' tmp <- rpois(n = length(ve),
+#'              lambda = ve)
 #' is_disp <- vals_components$component == "disp"
 #' vals_disp <- vals_components$.fitted[is_disp]
+#' vd <- as.numeric(vals_disp)
+#' rpois(n = length(vd), lambda = vd)
 #' vals_fitted <- bage:::draw_vals_fitted(mod = mod,
 #'                                 vals_expected = vals_expected,
 #'                                vals_disp = vals_disp)
+#' vf <- as.numeric(vals_fitted)
+#' tmp <- rpois(n = length(vf),
+#'              lambda = vf)
 #'     lambda <- vals_fitted * offset
 #'   lambda <- as.numeric(lambda)
 #'     if (anyNA(lambda) || !all(is.finite(lambda)))
