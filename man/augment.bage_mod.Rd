@@ -85,7 +85,11 @@ set.seed(0)
 mod <- mod_pois(divorces ~ age + sex + time,
                 data = nzl_divorces,
                 exposure = population) |>
-  set_n_draw(n_draw = 100) ## smaller sample, so 'augment' faster
+  set_prior(`(Intercept)` ~ NFix(sd = 0.01)) |>
+  set_prior(age ~ NFix(sd = 0.01)) |>
+  set_prior(sex ~ NFix(sd = 0.01)) |>
+  set_prior(time ~ NFix(sd = 0.01)) |>
+  set_n_draw(n_draw = 100) ## smaller sample, so 'augment' faster 
 
 ## draw from prior distribution
 data <- mod$data
