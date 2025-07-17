@@ -55,6 +55,7 @@ draw_vals_outcome_true.NULL <- function(datamod,
                                         fitted,
                                         disp,
                                         offset) {
+  threshold_return_mean <- 1e8
   is_known <- !is.na(outcome_obs)
   is_impute <- !is_known & !is.na(offset)
   n_impute <- sum(is_impute)
@@ -65,9 +66,16 @@ draw_vals_outcome_true.NULL <- function(datamod,
   outcome_obs <- as.double(outcome_obs)
   ans <- matrix(outcome_obs, nrow = n_val, ncol = n_draw)
   ans <- rvec::rvec_dbl(ans)
-  if (nm_distn == "pois")
-    vals <- rvec::rpois_rvec(n = n_impute,
-                             lambda = fitted_impute * offset_impute)
+  if (nm_distn == "pois") {
+    lambda <- fitted_impute * offset_impute
+    lambda <- as.matrix(lambda)
+    is_below_threshold <- lambda < threshold_return_mean
+    vals <- lambda
+    vals[is_below_threshold] <- rpois(n = sum(is_below_threshold),
+                                      lambda = lambda[is_below_threshold])
+    vals <- matrix(vals, nrow = n_impute, ncol = n_draw)
+    vals <- rvec::rvec_dbl(vals)
+  }
   else if (nm_distn == "binom")
     vals <- rvec::rbinom_rvec(n = n_impute,
                               size = offset_impute,
