@@ -1161,7 +1161,7 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
                                                 data = data_df)
   else
-    matrix_covariates <- matrix(nrow = 0, ncol = 0)
+    matrix_covariates <- matrix(NA_real_, nrow = 0, ncol = 0)
   list(outcome = outcome,
        offset = offset,
        matrices_effect_outcome = matrices_effect_outcome,

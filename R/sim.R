@@ -88,7 +88,7 @@ draw_vals_ar <- function(coef,
 #' @noRd
 draw_vals_ar_inner <- function(n, coef, sd) {
   n_sim <- length(sd)
-  ans <- matrix(nrow = n, ncol = n_sim)
+  ans <- matrix(NA_real_, nrow = n, ncol = n_sim)
   for (i_sim in seq_len(n_sim))
     ans[, i_sim] <- draw_vals_ar_one(n = n,
                                      coef = coef[, i_sim],
@@ -153,7 +153,7 @@ draw_vals_coef <- function(prior, n_sim) {
   shape2 <- specific$shape2
   min <- specific$min
   max <- specific$max
-  ans <- matrix(nrow = n_coef, ncol = n_sim)
+  ans <- matrix(NA_real_, nrow = n_coef, ncol = n_sim)
   for (i_sim in seq_len(n_sim)) {
     found_val <- FALSE
     for (i_attempt in seq_len(max_attempt)) {
@@ -507,7 +507,7 @@ draw_vals_rw <- function(sd, sd_init, matrix_along_by, levels_effect) {
   n_sim <- length(sd)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans <- matrix(NA_real_, nrow = n_along, ncol = n_by * n_sim)
   ans[1L, ] <- stats::rnorm(n = n_by * n_sim, sd = sd_init)
   sd <- rep(sd, each = n_by)
   for (i_along in seq.int(from = 2L, to = n_along))
@@ -540,7 +540,7 @@ draw_vals_rw2 <- function(sd, sd_init, sd_slope, matrix_along_by, levels_effect)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   sd <- rep(sd, each = n_by)
-  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans <- matrix(NA_real_, nrow = n_along, ncol = n_by * n_sim)
   ans[1L, ] <- stats::rnorm(n = n_by * n_sim, sd = sd_init)
   ans[2L, ] <- stats::rnorm(n = n_by * n_sim, mean = ans[1L, ], sd = sd_slope)
   for (i_along in seq.int(from = 3L, to = n_along))
@@ -602,7 +602,7 @@ draw_vals_sd_seas <- function(prior, n_sim) {
 draw_vals_seasfix <- function(n_seas, sd_init, matrix_along_by, n_sim) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans <- matrix(NA_real_, nrow = n_along, ncol = n_by * n_sim)
   m <- diag(n_seas - 1L)
   m[, 1L] <- 1
   m <- rbind(m, -1 * colSums(m))
