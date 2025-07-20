@@ -101,6 +101,33 @@ test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
 })
 
 
+## 'rpois_rvec_guarded' -------------------------------------------------------
+
+test_that("'rpois_rvec_guarded' works when values below threshold", {
+  set.seed(0)
+  lambda <- rvec::rvec_dbl(matrix(runif(n = 200, max = 100), nrow = 10))
+  set.seed(1)
+  ans_obtained <- rpois_rvec_guarded(n = 10, lambda = lambda)
+  set.seed(1)
+  ans_expected <- rvec::rpois_rvec(n = 10, lambda = lambda)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'rpois_rvec_guarded' works when values above threshold", {
+  set.seed(0)
+  lambda <- rvec::rvec_dbl(matrix(runif(n = 200, max = 100), nrow = 10))
+  lambda[10] <- 1e9
+  set.seed(1)
+  expect_warning(
+    ans_obtained <- rpois_rvec_guarded(n = 10, lambda = lambda),
+    "Large values for `lambda` used to generate Poisson variates."
+  )
+  set.seed(1)
+  ans_expected <- c(rvec::rpois_rvec(n = 9, lambda = lambda[1:9]), 1e9)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'rvec_to_mean' -------------------------------------------------------------
 
 test_that("'rvec_to_mean' works with valid inputs", {

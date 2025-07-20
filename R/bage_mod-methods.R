@@ -98,7 +98,8 @@ generics::augment
 #'   fit()
 #'
 #' ## draw from the posterior distribution
-#' mod |> augment()
+#' mod |>
+#'   augment()
 #'
 #' ## insert a missing value into outcome variable
 #' divorces_missing <- nzl_divorces
@@ -2133,8 +2134,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
   if (condition_on == "fitted") {
     fitted <- aug$.fitted
     lambda <- offset * fitted
-    y_rep <- rvec::rpois_rvec(n = n_obs,
-                              lambda = lambda)
+    y_rep <- rpois_rvec_guarded(n = n_obs, lambda = lambda)
   }
   else if (condition_on == "expected") {
     check_has_disp_if_condition_on_expected(x)

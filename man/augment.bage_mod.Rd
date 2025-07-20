@@ -92,7 +92,8 @@ mod <- mod |>
   fit()
 
 ## draw from the posterior distribution
-mod |> augment()
+mod |>
+  augment()
 
 ## insert a missing value into outcome variable
 divorces_missing <- nzl_divorces

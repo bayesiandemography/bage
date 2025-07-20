@@ -31,7 +31,7 @@ test_that("'augment' calculates fitted in cells with missing outcome or offset -
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_unfit <- augment(mod, quiet = TRUE)
+    suppressWarnings(ans_unfit <- augment(mod, quiet = TRUE)) ## high value for lambda
     mod_fitted <- fit(mod)
     ans_fit <- augment(mod_fitted)
     expect_false(any(rvec::draws_any(is.na(ans_fit$.fitted))))
@@ -53,7 +53,7 @@ test_that("'augment' works with Poisson, disp - no data", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    aug_notfitted <- augment(mod, quiet = TRUE)
+    aug_notfitted <- suppressWarnings(augment(mod, quiet = TRUE)) ## high values for lambda
     mod_fitted <- fit(mod)
     aug_fitted <- augment(mod_fitted)
     expect_identical(names(aug_fitted), names(aug_notfitted))
@@ -135,23 +135,26 @@ test_that("'augment' gives same answer when run twice - no data", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans1 <- augment(mod, quiet = TRUE)
-    ans2 <- augment(mod, quiet = TRUE)
+    ans1 <- suppressWarnings(augment(mod, quiet = TRUE)) ## high values for lambda
+    ans2 <- suppressWarnings(augment(mod, quiet = TRUE)) ## high values for lambda
     expect_identical(ans1, ans2)
 })
 
 test_that("'augment' gives message when used unfitted and quiet is FALSE", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
-                        KEEP.OUT.ATTRS = FALSE)
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_message(augment(mod),
-                   "Model not fitted, so values drawn straight from prior distribution.")
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                      KEEP.OUT.ATTRS = FALSE)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_prior(age ~ NFix(sd = 0.1)) |>
+    set_prior(time ~ NFix(sd = 0.1)) |>
+    set_prior(sex ~ NFix(sd = 0.1))
+  expect_message(augment(mod),
+                 "Model not fitted, so values drawn straight from prior distribution.")
 })
 
 
