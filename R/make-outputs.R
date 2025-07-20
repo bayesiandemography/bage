@@ -959,7 +959,7 @@ make_draws_post <- function(est, prec, map, n_draw) {
                                    mean = mean,
                                    R_prec = R_prec)
   }
-  ans <- matrix(nrow = length(is_fixed), ncol = n_draw)
+  ans <- matrix(NA_real_, nrow = length(is_fixed), ncol = n_draw)
   ans[!is_fixed, ] <- draws_nonfixed
   ans[is_fixed, ] <- est_unlist[is_fixed]
   ans

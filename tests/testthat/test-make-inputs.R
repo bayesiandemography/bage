@@ -1346,7 +1346,7 @@ test_that("'make_outcome_offset_matrices' works with model with offset", {
                        offset = data_ag[["popn"]],
                        matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
                                                                               mod$dimnames_terms),
-                       matrix_covariates = matrix(nrow = 0, ncol = 0))
+                       matrix_covariates = matrix(NA_real_, nrow = 0, ncol = 0))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1367,7 +1367,7 @@ test_that("'make_outcome_offset_matrices' works with model without offset", {
                        offset = rep(1, times = nrow(data_ag)),
                        matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
                                                                               mod$dimnames_terms),
-                       matrix_covariates = matrix(nrow = 0, ncol = 0))
+                       matrix_covariates = matrix(NA_real_, nrow = 0, ncol = 0))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1390,7 +1390,7 @@ test_that("'make_outcome_offset_matrices' works with model with offset", {
                        offset = mod$offset[-1],
                        matrices_effect_outcome = make_matrices_effect_outcome(data[-1,],
                                                                               mod$dimnames_terms),
-                                              matrix_covariates = matrix(nrow = 0, ncol = 0))
+                       matrix_covariates = matrix(NA_real_, nrow = 0, ncol = 0))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1411,7 +1411,7 @@ test_that("'make_outcome_offset_matrices' works with model with offset", {
                        offset = mod$offset[-1],
                        matrices_effect_outcome = make_matrices_effect_outcome(data[-1,],
                                                                               mod$dimnames_terms),
-                                              matrix_covariates = matrix(nrow = 0, ncol = 0))
+                                              matrix_covariates = matrix(NA_real_, nrow = 0, ncol = 0))
   expect_equal(ans_obtained, ans_expected)
 })
 
