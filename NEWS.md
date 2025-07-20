@@ -15,6 +15,11 @@
 * `mod_pois()` emits message (not warning) if one or more rates are
   suspiciously high (which is often a sympton of inaccurate
   exposures.) (#96)
+* Added a guarded version of `rpois_rvec()`, which sets x[i] equal to
+  lambda[i] for lambda[i] > 1e8. This avoids numeric problems which
+  can lead to valgrind errors. The guarded version is called by
+  `augment()` and by `replicate_data()`. The user is warned when the
+  threshold of 1e8 is exceeded.
   
 
 ## Bug fix
