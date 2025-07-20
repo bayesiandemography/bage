@@ -1,9 +1,9 @@
 
-# Submission, 9 July 2025, version 0.9.4
+# Submission, 20 July 2025, version 0.9.4
 
-* Current CRAN checks have notes for the three r-oldrel flavours. All
-  three notes refer to library size, and are not something I can
-  change.
+* Current CRAN checks have notes for the three r-oldrel systems. All
+  three notes refer to library size, and I think are not something I
+  can fix?
 
 
 # Submission, 8 January 2025, version 0.9.0

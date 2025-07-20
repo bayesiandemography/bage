@@ -229,11 +229,11 @@ The slopes from the original data (on the far left) have aboout the same level o
 
 ## Summarizing results through probabilities
 
-We would like to calculate, for each combination of county and time, the probability that the underlying (super-population) infant mortality rate is less than 2.5 per 1000. The `draws_mean()` function from **rvec** makes this easy.
+We would like to calculate, for each combination of county and time, the probability that the underlying (super-population) infant mortality rate is less than 2.5 per 1000. The `prob()` function from **rvec** makes this easy.
 
 ```{r}
 prob_25 <- aug_init |>
-  mutate(prob = draws_mean(.fitted < 0.0025))
+  mutate(prob = prob(.fitted < 0.0025))
 
 ggplot(prob_25, aes(x = time, y = prob)) +
   facet_wrap(vars(county)) +
