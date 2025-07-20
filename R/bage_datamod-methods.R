@@ -65,8 +65,8 @@ draw_vals_outcome_true.NULL <- function(datamod,
   ans <- matrix(as.double(outcome_obs), nrow = n_val, ncol = n_draw)
   ans <- rvec::rvec(ans)
   if (nm_distn == "pois")
-    vals <- rvec::rpois_rvec(n = n_impute,
-                             lambda = fitted_impute * offset_impute)
+    vals <- rpois_rvec_guarded(n = n_impute,
+                               lambda = fitted_impute * offset_impute)
   else if (nm_distn == "binom")
     vals <- rvec::rbinom_rvec(n = n_impute,
                               size = offset_impute,

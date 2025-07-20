@@ -144,6 +144,40 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
 
 
 ## HAS_TESTS
+#' Version of 'rpois_rvec' With Upper Limit on Lambda
+#'
+#' Coercion from integer to real within 'rpois' can create
+#' numerical problems and valgrind errors, so switch
+#' to just setting random variate to lambda, above a
+#' given threshold. Warn the user that this is happening.
+#'
+#' @param n Number of variates (where each variate contains 'n_draw' values)
+#' @param lambda Expected values. An rvec.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+rpois_rvec_guarded <- function(n, lambda) {
+  threshold <- 1e8
+  lambda <- as.matrix(lambda)
+  is_gt <- !is.na(lambda) & (lambda > threshold)
+  n_gt <- sum(is_gt)
+  if (n_gt > 0L) {
+    pc <- 100 * mean(is_gt)
+    pc <- signif(pc, digits = 2)
+    cli::cli_warn(c("Large values for {.arg lambda} used to generate Poisson variates.",
+                    i = "{.val {pc}} percent of values for {.arg lambda} are above {.val {threshold}}.",
+                    i = "Using deterministic approximation to generate variates for these values."))
+  }
+  ans <- lambda
+  is_lt <- !is_gt
+  ans[is_lt] <- stats::rpois(n = sum(is_lt), lambda = lambda[is_lt])
+  ans <- rvec::rvec_dbl(ans)
+  ans
+}
+
+
+## HAS_TESTS
 #' Convert Rvec Columns to Numeric Columns by Taking Means
 #'
 #' @param data A data frame
