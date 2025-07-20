@@ -58,6 +58,7 @@
 <li>In <code><a href="../reference/set_covariates.html">set_covariates()</a></code>, added paragraph in online documentation to note that calling <code><a href="../reference/set_covariates.html">set_covariates()</a></code> on a model that already has covariates deletes the existing covariates. Also added a warning message to <code><a href="../reference/set_covariates.html">set_covariates()</a></code> when covariates being overwritten. (<a href="https://github.com/bayesiandemography/bage/issues/95" class="external-link">#95</a>).</li>
 <li>
 <code><a href="../reference/mod_pois.html">mod_pois()</a></code> emits message (not warning) if one or more rates are suspiciously high (which is often a sympton of inaccurate exposures.) (<a href="https://github.com/bayesiandemography/bage/issues/96" class="external-link">#96</a>)</li>
+<li>Added a guarded version of <code><a href="https://bayesiandemography.github.io/rvec/reference/dpois_rvec.html" class="external-link">rpois_rvec()</a></code>, which sets x[i] equal to lambda[i] for lambda[i] &gt; 1e8. This avoids numeric problems which can lead to valgrind errors. The guarded version is called by <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> and by <code><a href="../reference/replicate_data.html">replicate_data()</a></code>. The user is warned when the threshold of 1e8 is exceeded.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fix-0-9-4">Bug fix<a class="anchor" aria-label="anchor" href="#bug-fix-0-9-4"></a></h3>
