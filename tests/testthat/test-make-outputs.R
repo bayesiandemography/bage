@@ -1846,66 +1846,6 @@ test_that("'make_stored_point' works with valid inputs - with covariates", {
 })
 
 
-## 'make_par_disp' ------------------------------------------------------------
-
-test_that("'make_par_disp' works with bage_mod_pois", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age + time + sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_n_draw(mod, n = 10)
-  mod <- fit(mod)
-  components <- components(mod)
-  meanpar <- exp(make_linpred_from_components(mod = mod,
-                                              components = components,
-                                              data = mod$data,
-                                              dimnames_terms = mod$dimnames_terms))
-  disp <- components$.fitted[components$component == "disp"]
-  set.seed(1)
-  ans_obtained <- make_par_disp(mod,
-                                meanpar = meanpar,
-                                disp = disp)
-  set.seed(1)
-  ans_expected <- rvec::rgamma_rvec(n = length(meanpar),
-                                    data$deaths + 1/disp,
-                                    data$popn + 1/(disp*meanpar))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_par_disp' works with bage_mod_binom", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-  formula <- deaths ~ age + time + sex
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  mod <- fit(mod)
-  mod <- set_n_draw(mod, n = 10)
-  components <- components(mod)
-  invlogit <- function(x) 1 / (1 + exp(-x))
-  meanpar <- invlogit(make_linpred_from_components(mod = mod,
-                                                   components = components,
-                                                   data = mod$data,
-                                                   dimnames_terms = mod$dimnames_terms))
-  disp <- components$.fitted[components$component == "disp"]
-  set.seed(1)
-  ans_obtained <- make_par_disp(mod,
-                                meanpar = meanpar,
-                                disp = disp)
-  set.seed(1)
-  ans_expected <- rvec::rbeta_rvec(n = length(meanpar),
-                                   data$deaths + meanpar/disp,
-                                   data$popn - data$deaths + (1 - meanpar)/disp)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
 ## 'make_is_fixed' ------------------------------------------------------------
 
 test_that("'make_is_fixed' works when nothing fixed", {
