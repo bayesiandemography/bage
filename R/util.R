@@ -1,6 +1,45 @@
 
 ## HAS_TESTS
-#' Insert a Into a Data Frame
+#' Density for Beta-Binomial Distribution
+#'
+#' @param x Vector of quantiles
+#' @param size Vector of numbers of trials
+#' @param shape1,shape2 Beta parameters. Vectors
+#' @param log Whether to return log of density
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+dbetabinom <- function(x, size, shape1, shape2, log = FALSE) {
+  args <- list(x, size, shape1, shape2)
+  n <- max(lengths(args))
+  x <- rep_len(x, n)
+  size <- rep_len(size, n)
+  shape1 <- rep_len(shape1, n)
+  shape2 <- rep_len(shape2, n)
+  is_ok <- ((x >= 0) &
+              (x <= size) &
+              (x == floor(x)) & 
+              is.finite(x) &
+              is.finite(size) &
+              is.finite(shape1) &
+              is.finite(shape2) &
+              (shape1 > 0) &
+              (shape2 > 0) &
+              (size == floor(size)) &
+              (size >= 0))
+  log_dens <- rep(NaN, n)
+  log_dens[is_ok] <- (lchoose(n = size[is_ok], k = x[is_ok])
+    + lbeta(a = x[is_ok] + shape1[is_ok],
+            b = size[is_ok] - x[is_ok] + shape2[is_ok])
+    - lbeta(a = shape1[is_ok],
+            b = shape2[is_ok]))
+  if (log) log_dens else exp(log_dens)
+}
+
+
+## HAS_TESTS
+#' Insert a Variable Into a Data Frame
 #'
 #' Insert a variable into a dataframe, immediately
 #' after another variable.

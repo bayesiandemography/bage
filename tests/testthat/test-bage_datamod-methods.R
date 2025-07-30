@@ -20,7 +20,9 @@ test_that("'draw_vals_outcome_true' works with NULL, pois, offset complete", {
                                                     dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
-                                  vals_disp = vals_disp)
+                                  vals_disp = vals_disp,
+                                  outcome = NULL,
+                                  offset = NULL)
   set.seed(1)
   ans_obtained <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "pois",
@@ -56,7 +58,9 @@ test_that("'draw_vals_outcome_true' works with pois, NULL, offset has NA", {
                                                     dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
-                                  vals_disp = vals_disp)
+                                  vals_disp = vals_disp,
+                                  outcome = NULL,
+                                  offset = NULL)
   set.seed(1)
   ans_obtained <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "pois",
@@ -90,7 +94,9 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, data complete", {
                                                          dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
-                                  vals_disp = vals_disp)
+                                  vals_disp = vals_disp,
+                                  outcome = NULL,
+                                  offset = NULL)
   set.seed(1)
   ans_obtained <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "binom",
@@ -125,7 +131,9 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, has offset has na", 
                                                          dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
-                                  vals_disp = vals_disp)
+                                  vals_disp = vals_disp,
+                                  outcome = NULL,
+                                  offset = NULL)
   set.seed(1)
   ans_obtained <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "binom",
@@ -228,7 +236,9 @@ test_that("'draw_vals_outcome_true' method for NULL throws correct error with in
                                                     dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
-                                  vals_disp = vals_disp)
+                                  vals_disp = vals_disp,
+                                  outcome = NULL,
+                                  offset = NULL)
   set.seed(1)
   expect_error(draw_vals_outcome_true(datamod = NULL,
                                       nm_distn = "wrong",

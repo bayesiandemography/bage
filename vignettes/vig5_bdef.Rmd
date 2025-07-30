@@ -3,6 +3,7 @@ title: "5. Examples from BDEF Book"
 output:
   bookdown::html_document2:
     base_format: rmarkdown::html_vignette
+    fig_caption: yes
     toc: true
     toc_depth: 2
     number_sections: true
@@ -19,23 +20,31 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   echo = TRUE,
   comment = "#>",
-  fig.width = 6,
+  fig.width = 7,
   fig.height = 4
 )
 ```
 
 # Introduction
 
-This vignette uses **bage** to replicate (with a few differences) case studies in the book [Bayesian Demographic Estimation and Forecasting](https://www.bdef-book.com) (BDEF). BDEF uses our R package [demest](https://github.com/statisticsnz/demest). However, we strongly recommend using **bage** instead. **bage** is faster, more stable, and has a nicer interface. We are no longer developing **demest**, and are focusing on **bage**.
+This vignette uses `bage` to replicate, with a few differences, case studies in the book [Bayesian Demographic Estimation and Forecasting](https://www.bdef-book.com) (BDEF). BDEF uses our R package [demest](https://github.com/statisticsnz/demest). However, we strongly recommend using `bage` instead. `bage` is faster, more stable, and has a nicer interface. We are no longer developing `demest`, and are focusing on `bage`.
 
-In addition to **bage**, the vignette uses the tidyverse packages **dplyr**, **tidyr**, and **ggplot2**.
+In addition to `bage`, the vignette uses the tidyverse packages `dplyr`, `tidyr`, and `ggplot2`.
 
-```{r}
-library(bage, warn.conflicts = FALSE)
-library(dplyr, warn.conflicts = FALSE)
+```{r, message = FALSE}
+library(bage)
+library(dplyr)
 library(tidyr)
 library(ggplot2)
 ```
+
+The vignette includes notes aimed at readers of BDEF, pointing out differences between the models in `bage` and the models in BDEF, and explaning why we made the changes.
+
+
+> **BDEF Note**
+>
+> BDEF notes look like this.
+
 
 # Infant Mortality in Sweden
 
@@ -43,12 +52,12 @@ library(ggplot2)
 
 We estimate and forecast infant mortality in Swedish counties. Following standard demographic practice we define the infant mortality rate as the probability of dying during the first year of life, calculated using this year's infant deaths and this year's births. (See Chapter 11 of BDEF on why this definition is slightly odd.)
 
-Data for the analysis is in the `swe_infant` dataset in **bage**:
+Data for the analysis is in the `swe_infant` dataset in `bage`:
 ```{r}
 swe_infant
 ```
 
-The figure below shows direct estimates of infant mortality rates. The panels are ordered by the size of the county, as measured by the number of births.
+The figure below shows direct estimates of infant mortality rates. Each panel depicts one county. The panels are ordered from top left to bottom right by the number of births in each county.
 
 ```{r, fig.height = 6}
 ggplot(swe_infant, aes(x = time, y = deaths / births)) +
@@ -67,9 +76,43 @@ mod <- mod_binom(deaths ~ county + time,
 mod
 ```
 
-This model is slightly different from the infant mortality model in BDEF. The intercept here has a $\text{N}(0,1)$ prior rather than $\text{N}(0,10^2)$, and the time effect has a random walk prior rather than a local level prior. (Local level priors have not yet been implemented in **bage**.)
+In this model, deaths in county $c$ during year $t$, denoted $y_{ct}$, are drawn from a binomial distribution with probability $\pi_{ct}$ and trials $w_{ct}$,
+\begin{equation}
+  y_{ct} \sim \text{binomial}(\pi_{ct}, w_{ct}).
+\end{equation}
+The probability $\pi_{ct}$ is in turn drawn from a beta distribution, with expected value $\mu_{ct}$ and dispersion parameter $\xi$,
+\begin{equation}
+  \pi_{ct} \sim \text{Beta}(\xi^{-1} \mu_{ct}, \xi^{-1}[1 - \mu_{ct}])
+\end{equation}
+Expected value $\mu_{ct}$, transformed on to a logit scale, depends on three terms: an intercept, a 'county' main effect, and a 'time' main effect,
+\begin{equation}
+  \text{logit} \mu_{ct} = \beta^0 + \beta_c^{\mathcal{C}} + \beta_t^{\mathcal{T}}
+\end{equation}
+Each of these terms has a prior. The intercept has a 'normal-fixed' prior,
+\begin{equation}
+  \beta^0 \sim \text{N}(0, 1).
+\end{equation}
+The county main effect has a 'normal' prior,
+\begin{align}
+  \beta_c^{\mathcal{C}} & \sim \text{N}(0, \tau_{\mathcal{C}}^2) \\
+  \tau_{\mathcal{C}} & \sim \text{N}^+(0, 1).
+\end{align}
+The time main effect has a random walk prior,
+\begin{align}
+  \beta_t^{\mathcal{T}} & \sim \text{N}(\beta_{t-1}^{\mathcal{T}}, \tau_{\mathcal{C}}^2) \\
+  \tau_{\mathcal{C}} & \sim \text{N}^+(0, 1).
+\end{align}
+Finally, the dispersion parameter $\xi$ has an expontial prior
+\begin{equation}
+  \xi \sim \text{Exp}(1).
+\end{equation}
 
-We fit the model. Fitting in **bage** is a lot faster than fitting in **demest**.
+> **BDEF Note**
+>
+> 
+This model is slightly different from the infant mortality model in BDEF. The intercept here has a $\text{N}(0,1)$ prior rather than $\text{N}(0,10^2)$, and the time effect has a random walk prior rather than a local level prior. (Local level priors have not yet been implemented in `bage`.)
+
+We fit the model. Fitting in `bage` is a lot faster than fitting in `demest`.
 ```{r}
 mod <- mod |>
   fit()
@@ -170,7 +213,7 @@ comp_init |>
 
 The intercept and time effects from our model both have wide credible intervals. This reflects the fact that they are only weakly identified by the model and data. Adding a small quantity to each element of the time effect, and subtracting the same quantity from the intercept, would make no difference at all to the predictions of the model, and make only a tiny difference to the posterior probabilities. 
 
-In **demest** we deal with the weak identification by standardizing the estimates. Standardization can, however, introduce new complications, and we have not implemented it in **bage**.
+In `demest` we deal with the weak identification by standardizing the estimates. Standardization can, however, introduce new complications, and we have not implemented it in `bage`.
 
 When an analysis is focused only on lowest-level rates, probabilities, or means, and higher-level parameters such as time effects are just a means to an end, weak identification rarely causes any problems. If, however, the higher-level parameters are of interest, it may be helpful to experiment with non-default values for parameters. In the model here, for instance, setting the `sd` parameter for the `RW()` prior to 0 fixes the first value of the time effect to 0, leading to a more strongly-identified time effect.
 

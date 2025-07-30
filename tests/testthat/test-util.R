@@ -1,4 +1,63 @@
 
+## 'dbetabinom' ---------------------------------------------------------------
+
+test_that("basic correctness for known value", {
+  # P(X = 1 | n = 2, alpha = 1, shape2 = 1) = choose(2,1) * B(2,2)/B(1,1) = 2 * 1/6 = 1/3
+  expect_equal(dbetabinom(1, 2, 1, 1), 1/3, tolerance = 1e-10)
+})
+
+test_that("vectorization over x", {
+  probs <- dbetabinom(0:2, 2, 1, 1)
+  expect_equal(length(probs), 3)
+  expect_equal(sum(probs), 1, tolerance = 1e-10)
+})
+
+test_that("vectorization over size", {
+  x <- 0:2
+  size <- 2:4
+  probs <- dbetabinom(x, size, shape1 = 1, shape2 = 1)
+  expect_equal(length(probs), 3)
+  expect_true(all(probs >= 0 & probs <= 1))
+})
+
+test_that("vectorization over shape1 and shape2", {
+  x <- c(1, 1, 1)
+  size <- c(2, 2, 2)
+  shape1 <- c(1, 2, 3)
+  shape2 <- c(1, 2, 3)
+  probs <- dbetabinom(x, size, shape1, shape2)
+  expect_equal(length(probs), 3)
+  expect_true(all(probs >= 0 & probs <= 1))
+})
+
+test_that("log = TRUE is consistent with log(prob)", {
+  log_p <- dbetabinom(3, 10, 2, 5, log = TRUE)
+  p <- dbetabinom(3, 10, 2, 5, log = FALSE)
+  expect_equal(log_p, log(p), tolerance = 1e-10)
+})
+
+test_that("invalid values return NaN", {
+  res <- dbetabinom(c(-1, 11, 1.5, NA), size = 10, shape1 = 2, shape2 = 2)
+  expect_true(all(is.nan(res)))
+})
+
+test_that("accepts vector inputs of mixed length (recycling)", {
+  x <- c(0, 1, 2, 3)
+  size <- 3
+  shape1 <- c(1, 2)
+  shape2 <- 2
+  result <- dbetabinom(x, size, shape1, shape2)
+  expect_equal(length(result), 4)
+})
+
+test_that("works for x = 0 and x = size", {
+  p0 <- dbetabinom(0, 10, 2, 5)
+  pN <- dbetabinom(10, 10, 2, 5)
+  expect_gt(p0, 0)
+  expect_gt(pN, 0)
+})
+
+
 ## 'insert_after' -------------------------------------------------------
 
 test_that("'insert_after' works with data frames", {

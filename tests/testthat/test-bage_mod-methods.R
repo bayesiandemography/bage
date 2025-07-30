@@ -471,7 +471,9 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", 
   set.seed(mod$seed_augment)
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
-                                  vals_disp = vals_disp)
+                                  vals_disp = vals_disp,
+                                  outcome = NULL,
+                                  offset = NULL)
   vals_outcome <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "pois",
                                          outcome_obs = rep(NA_real_, times = nrow(data)),
@@ -561,7 +563,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
 
 ## 'draw_vals_fitted' ---------------------------------------------------------
 
-test_that("'draw_vals_fitted' works with 'bage_mod_pois'", {
+test_that("'draw_vals_fitted' works with 'bage_mod_pois' - no outcome", {
   set.seed(0)
   n_sim <- 10
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
@@ -581,7 +583,9 @@ test_that("'draw_vals_fitted' works with 'bage_mod_pois'", {
   set.seed(1)
   ans_obtained <- draw_vals_fitted(mod,
                                    vals_expected = vals_expected,
-                                   vals_disp = vals_disp)
+                                   vals_disp = vals_disp,
+                                   outcome = NULL,
+                                   offset = NULL)
   set.seed(1)
   ans_expected <- rvec::rgamma_rvec(n = nrow(data),
                                     shape = 1 / vals_disp,
@@ -589,7 +593,60 @@ test_that("'draw_vals_fitted' works with 'bage_mod_pois'", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_fitted' works with 'bage_mod_binom'", {
+test_that("'draw_vals_fitted' works with bage_mod_pois - has outcome, no NAs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  outcome <- data$deaths
+  vals_expected <- rvec::rpois_rvec(n = 120, lambda = outcome, n_draw = 5)
+  vals_disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.5, n_draw = 5)
+  set.seed(0)
+  ans_obtained <- draw_vals_fitted(mod,
+                                   vals_expected = vals_expected,
+                                   vals_disp = vals_disp,
+                                   outcome = data$deaths,
+                                   offset = data$popn)
+  set.seed(0)
+  ans_expected <- rvec::rgamma_rvec(n = length(vals_expected),
+                                    data$deaths + 1/vals_disp,
+                                    data$popn + 1/(vals_disp*vals_expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_fitted' works with bage_mod_pois - has outcome, has NAs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$popn[1] <- NA
+  data$deaths[2] <- NA
+  formula <- deaths ~ age + time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  vals_expected <- rvec::rpois_rvec(n = 120, lambda = 100, n_draw = 5)
+  vals_disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.5, n_draw = 5)
+  set.seed(0)
+  ans_obtained <- draw_vals_fitted(mod,
+                                vals_expected = vals_expected,
+                                vals_disp = vals_disp,
+                                outcome = data$deaths,
+                                offset = data$popn)
+  set.seed(0)
+  data$popn[1:2] <- 0
+  data$deaths[1:2] <- 0
+  ans_expected <- rvec::rgamma_rvec(n = length(vals_expected),
+                                    data$deaths + 1/vals_disp,
+                                    data$popn + 1/(vals_disp*vals_expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_fitted' works with 'bage_mod_binom' - no outcome", {
   set.seed(0)
   n_sim <- 10
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
@@ -610,11 +667,67 @@ test_that("'draw_vals_fitted' works with 'bage_mod_binom'", {
   set.seed(1)
   ans_obtained <- draw_vals_fitted(mod,
                                    vals_expected = vals_expected,
-                                   vals_disp = vals_disp)
+                                   vals_disp = vals_disp,
+                                   outcome = NULL,
+                                   offset = NULL)
   set.seed(1)
   ans_expected <- rvec::rbeta_rvec(n = nrow(data),
                                    shape1 = vals_expected / vals_disp,
                                    shape2 = (1 - vals_expected) / vals_disp)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_fitted' works with bage_mod_binom - has outcome, no NA", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  vals_expected <- rvec::runif_rvec(n = 120, n_draw = 5)
+  vals_disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.8, n_draw = 5)
+  set.seed(0)
+  ans_obtained <- draw_vals_fitted(mod,
+                                vals_expected = vals_expected,
+                                vals_disp = vals_disp,
+                                outcome = data$deaths,
+                                offset = data$popn)
+  set.seed(0)
+  ans_expected <- rvec::rbeta_rvec(n = length(vals_expected),
+                                   data$deaths + vals_expected/vals_disp,
+                                   data$popn - data$deaths + (1 - vals_expected)/vals_disp)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_fitted' works with bage_mod_binom - has outcome, has NAs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+  data$popn[1] <- NA
+  data$deaths[2] <- NA
+  formula <- deaths ~ age + time + sex
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  outcome <- data$deaths
+  offset <- data$popn
+  vals_expected <- rvec::runif_rvec(n = 120, n_draw = 5)
+  vals_disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.8, n_draw = 5)
+  set.seed(0)
+  ans_obtained <- draw_vals_fitted(mod,
+                                vals_expected = vals_expected,
+                                vals_disp = vals_disp,
+                                outcome = data$deaths,
+                                offset = data$popn)
+  set.seed(0)
+  data$popn[1:2] <- 0
+  data$deaths[1:2] <- 0
+  ans_expected <- rvec::rbeta_rvec(n = length(vals_expected),
+                                   data$deaths + vals_expected/vals_disp,
+                                   data$popn - data$deaths + (1 - vals_expected)/vals_disp)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -2267,108 +2380,6 @@ test_that("'make_observed' throws expected with bage_mod_norm", {
                     weights = 1)
     expect_error(make_observed(mod),
                  "Internal error: `make_observed\\(\\)` called on object of class")
-})
-
-
-## 'make_par_disp' ---------------------------------------------------
-
-test_that("'make_par_disp' works with bage_mod_pois - no NAs", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age + time + sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  outcome <- data$deaths
-  meanpar <- rvec::rpois_rvec(n = 120, lambda = outcome, n_draw = 5)
-  disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.5, n_draw = 5)
-  set.seed(0)
-  ans_obtained <- make_par_disp(mod,
-                                meanpar = meanpar,
-                                disp = disp)
-  set.seed(0)
-  ans_expected <- rvec::rgamma_rvec(n = length(meanpar),
-                                    data$deaths + 1/disp,
-                                    data$popn + 1/(disp*meanpar))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_par_disp' works with bage_mod_pois - has NAs", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  data$popn[1] <- NA
-  data$deaths[2] <- NA
-  formula <- deaths ~ age + time + sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  meanpar <- rvec::rpois_rvec(n = 120, lambda = 100, n_draw = 5)
-  disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.5, n_draw = 5)
-  set.seed(0)
-  ans_obtained <- make_par_disp(mod,
-                                meanpar = meanpar,
-                                disp = disp)
-  set.seed(0)
-  data$popn[1:2] <- 0
-  data$deaths[1:2] <- 0
-  ans_expected <- rvec::rgamma_rvec(n = length(meanpar),
-                                    data$deaths + 1/disp,
-                                    data$popn + 1/(disp*meanpar))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_par_disp' works with bage_mod_binom", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-  formula <- deaths ~ age + time + sex
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  meanpar <- rvec::runif_rvec(n = 120, n_draw = 5)
-  disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.8, n_draw = 5)
-  set.seed(0)
-  ans_obtained <- make_par_disp(mod,
-                                meanpar = meanpar,
-                                disp = disp)
-  set.seed(0)
-  ans_expected <- rvec::rbeta_rvec(n = length(meanpar),
-                                   data$deaths + meanpar/disp,
-                                   data$popn - data$deaths + (1 - meanpar)/disp)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_par_disp' works with bage_mod_binom - has NAs", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-  data$popn[1] <- NA
-  data$deaths[2] <- NA
-  formula <- deaths ~ age + time + sex
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  outcome <- data$deaths
-  offset <- data$popn
-  meanpar <- rvec::runif_rvec(n = 120, n_draw = 5)
-  disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.8, n_draw = 5)
-  set.seed(0)
-  ans_obtained <- make_par_disp(mod,
-                                meanpar = meanpar,
-                                disp = disp)
-  set.seed(0)
-  data$popn[1:2] <- 0
-  data$deaths[1:2] <- 0
-  ans_expected <- rvec::rbeta_rvec(n = length(meanpar),
-                                   data$deaths + meanpar/disp,
-                                   data$popn - data$deaths + (1 - meanpar)/disp)
-  expect_equal(ans_obtained, ans_expected)
 })
 
 

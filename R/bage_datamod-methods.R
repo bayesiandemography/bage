@@ -29,6 +29,8 @@ draw_vals_outcome_obs.bage_datamod_outcome_rr3 <- function(datamod, outcome_true
 #' @param outcome_obs Numeric vector with values for outcome.
 #' Can include NAs.
 #' @param fitted Rvec with fitted values for rate, probability or mean
+#' @param expected Rvec with expected values for rate or probability. Or NULL.
+#' @param disp Rvec with dispersion. Or NULL.
 #' @param offset Exposure, size, or weights
 #'
 #' @returns An rvec
@@ -38,6 +40,7 @@ draw_vals_outcome_true <- function(datamod,
                                    nm_distn,
                                    outcome_obs,
                                    fitted,
+                                   expected,
                                    disp,
                                    offset) {
   UseMethod("draw_vals_outcome_true")
@@ -53,6 +56,7 @@ draw_vals_outcome_true.NULL <- function(datamod,
                                         nm_distn,
                                         outcome_obs,
                                         fitted,
+                                        expected,
                                         disp,
                                         offset) {
   n_draw <- rvec::n_draw(fitted)
@@ -82,18 +86,28 @@ draw_vals_outcome_true.NULL <- function(datamod,
 }                            
 
 
+
+
+
 ## HAS_TESTS
 #' @export
 draw_vals_outcome_true.bage_datamod_outcome_rr3 <- function(datamod,
                                                             nm_distn,
                                                             outcome_obs,
                                                             fitted,
-                                                            disp, ## ignored
+                                                            expected,
+                                                            disp,
                                                             offset) {
   n_draw <- rvec::n_draw(fitted)
   n_val <- length(fitted)
+  has_disp <- !is.null(disp)
+  if (has_disp) {
+    expected <- as.matrix(expected)
+    disp <- as.numeric(disp)
+  }
+  else
+    fitted <- as.matrix(fitted)
   s <- seq.int(from = -2L, to = 2L)
-  fitted <- as.matrix(fitted)
   outcome_true <- matrix(outcome_obs + rep(s, each = n_val),
                          nrow = n_val,
                          ncol = 5L)
@@ -103,16 +117,38 @@ draw_vals_outcome_true.bage_datamod_outcome_rr3 <- function(datamod,
   prob_obs_given_true[outcome_true < 0L] <- 0
   ans <- matrix(NA_integer_, nrow = n_val, ncol = n_draw)
   for (i_draw in seq_len(n_draw)) {
-    if (nm_distn == "pois")
-      prob_true_given_fitted <- stats::dpois(outcome_true, lambda = fitted[, i_draw] * offset)
-    else if (nm_distn == "binom")
-      prob_true_given_fitted <- stats::dbinom(outcome_true, size = offset, prob = fitted[, i_draw])
+    if ((nm_distn == "pois") && has_disp) {
+      shape <- 1 / disp[[i_draw]]
+      rate <- 1 / (expected[, i_draw] * offset * disp[[i_draw]])
+      prob_true_prior <- stats::dnbinom(outcome_true,
+                                        shape = shape,
+                                        rate = rate)
+    }
+    else if (nm_dist == "pois" && !has_disp) {
+      lambda <- fitted[, i_draw] * offset
+      prob_true_prior <- stats::dpois(outcome_true,
+                                      lambda = lambda)
+    }
+    else if (nm_dist == "binom" && has_disp) {
+      shape1 <- expected[, i_draw] / disp[[i_draw]]
+      shape2 <- (1 - expected[, i_draw]) / disp[[i_draw]]
+      prob_true_prior <- dbetabinom(outcome_true,
+                                    size = offset,
+                                    shape1 = shape1,
+                                    shape2 = shape1)
+    }
+    else if (nm_distn == "binom" && !has_disp) {
+      prob <- fitted[, i_draw]
+      prob_true_prior <- stats::dbinom(outcome_true,
+                                       size = offset,
+                                       prob = prob)
+    }
     else
       cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
-    prob_true_given_fitted <- matrix(prob_true_given_fitted,
-                                     nrow = n_val,
-                                     ncol = 5L)
-    prob_true <- prob_obs_given_true * prob_true_given_fitted
+    prob_true_prior <- matrix(prob_true_prior,
+                              nrow = n_val,
+                              ncol = 5L)
+    prob_true <- prob_obs_given_true * prob_true_prior
     for (i_val in seq_len(n_val)) {
       outcome_val <- outcome_obs[[i_val]]
       offset_val <- offset[[i_val]]

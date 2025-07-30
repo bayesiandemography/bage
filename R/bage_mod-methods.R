@@ -371,38 +371,28 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   if (has_disp) {
-    if (is_not_testing_or_snapshot())
-      cli::cli_progress_message("Drawing {.var .expected}...") # nocov
+    fitted <- NULL
     expected <- inv_transform(linpred)
     disp <- get_disp(mod)
-    seed_restore <- make_seed() ## create randomly-generated seed
-    set.seed(seed_augment) ## set pre-determined seed
-    if (is_not_testing_or_snapshot())
-      cli::cli_progress_message("Drawing {.var .fitted}...") # nocov
-    ans$.fitted <- make_par_disp(x = mod,
-                                 meanpar = expected,
-                                 disp = disp)
-    set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-    ans$.expected <- expected
   }
   else {
+    fitted <- inv_transform(linpred)
+    expected <- NULL
     disp <- NULL
-    ans$.fitted <- inv_transform(linpred)
   }
   outcome_has_na <- anyNA(outcome)
   has_datamod_outcome <- !is.null(datamod_outcome)
-  if (outcome_has_na || has_datamod_outcome) {
-    fitted <- ans$.fitted
+  need_to_impute_outcome <- outcome_has_na || has_datamod_outcome
+  if (need_to_imput_outcome) {
     nm_outcome_data <- get_nm_outcome_data(mod)
     nm_outcome_data_true <- paste0(".", nm_outcome_data)
-    if (is_not_testing_or_snapshot())
-      cli::cli_progress_message("Drawing {.var {nm_outcome_data_true}}...") # nocov
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
                                            nm_distn = nm_distn,
                                            outcome_obs = outcome,
                                            fitted = fitted,
+                                           expected = expected,
                                            disp = disp,
                                            offset = offset)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
@@ -410,6 +400,22 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
                         nm_after = nm_outcome_data,
                         x = outcome_true,
                         nm_x = nm_outcome_data_true)
+  }
+  else
+    outcome_true <- outcome
+  if (has_disp) {
+    seed_restore <- make_seed() ## create randomly-generated seed
+    set.seed(seed_augment) ## set pre-determined seed
+    ans$.fitted <- draw_vals_fitted(mod = mod,
+                                    vals_expected = expected,
+                                    vals_disp = disp,
+                                    outcome = outcome_true,
+                                    offset = offset)
+    set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+    ans$.expected <- expected
+  }
+  else {
+    ans$.fitted <- inv_transform(linpred)
   }
   ans
 }
@@ -461,7 +467,7 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
 }
 
 
-## 'draw_vals_augment_unfitted' --------------------------------------------------------
+## 'draw_vals_augment_unfitted' -----------------------------------------------
 
 #' Draw '.fitted' and Possibly '.expected' from Unfitted Model
 #'
@@ -594,27 +600,62 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
 #' @param mod Object of class 'bage_mod'
 #' @param vals_expected Backtransformed linear predictor. An rvec.
 #' @param vals_disp Dispersion. An rvec.
+#' @param outcome Values for outcome. A vector or NULL.
+#' @param offset Values for offset. NULL iff 'outcome' is NULL;
+#' otherwise a vector.
 #'
 #' @returns An rvec.
 #'
 #' @noRd
-draw_vals_fitted <- function(mod, vals_expected, vals_disp) {
+draw_vals_fitted <- function(mod,
+                             vals_expected,
+                             vals_disp,
+                             outcome,
+                             offset) {
     UseMethod("draw_vals_fitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_fitted.bage_mod_pois <- function(mod, vals_expected, vals_disp)
+draw_vals_fitted.bage_mod_pois <- function(mod,
+                                           vals_expected,
+                                           vals_disp,
+                                           outcome,
+                                           offset) {
+  if (is.null(outcome)) {
+    outcome <- 0
+    offset <- 0
+  }
+  else {
+    is_na <- is.na(outcome) | is.na(offset)
+    outcome[is_na] <- 0
+    offset[is_na] <- 0
+  }
   rvec::rgamma_rvec(n = length(vals_expected),
-                    shape = 1 / vals_disp,
-                    rate = 1 / (vals_disp * vals_expected))
+                    shape = outcome + 1 / vals_disp,
+                    rate = offset + 1 / (vals_disp * vals_expected))
+}
 
 ## HAS_TESTS
 #' @export
-draw_vals_fitted.bage_mod_binom <- function(mod, vals_expected, vals_disp)
+draw_vals_fitted.bage_mod_binom <- function(mod,
+                                            vals_expected,
+                                            vals_disp,
+                                            outcome,
+                                            offset) {
+  if (is.null(outcome)) {
+    outcome <- 0
+    offset <- 0
+  }
+  else {
+    is_na <- is.na(outcome) | is.na(offset)
+    outcome[is_na] <- 0
+    offset[is_na] <- 0
+  }
   rvec::rbeta_rvec(n = length(vals_expected),
-                   shape1 = vals_expected / vals_disp,
-                   shape2 = (1 - vals_expected) / vals_disp)
+                   shape1 = outcome + vals_expected / vals_disp,
+                   shape2 = offset - outcome + (1 - vals_expected) / vals_disp)
+}
 
 
 ## 'equation' -----------------------------------------------------------------
@@ -1721,57 +1762,7 @@ make_observed.bage_mod_norm <- function(x) {
 }
 
 
-## 'make_par_disp' ------------------------------------------------------------
-
-#' Make Random Draws of '.fitted' in Models
-#' with Dispersion term
-#'
-#' @param x Fitted object of class 'bage_mod'.
-#' @param disp An rvec of length 1 with
-#' posterior distribution for
-#' dispersion term.
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_par_disp <- function(x,
-                          meanpar,
-                          disp) {
-  UseMethod("make_par_disp")
-}
-
-## HAS_TESTS
-#' @export
-make_par_disp.bage_mod_pois <- function(x,
-                                        meanpar,
-                                        disp) {
-  outcome <- x$outcome
-  offset <- x$offset
-  is_na <- is.na(outcome) | is.na(offset)
-  outcome[is_na] <- 0
-  offset[is_na] <- 0
-  rvec::rgamma_rvec(n = length(outcome),
-                    shape = outcome + 1 / disp,
-                    rate = offset + 1 / (disp * meanpar))
-}
-
-## HAS_TESTS
-#' @export
-make_par_disp.bage_mod_binom <- function(x,
-                                         meanpar,
-                                         disp) {
-  outcome <- x$outcome
-  offset <- x$offset
-  is_na <- is.na(outcome) | is.na(offset)
-  outcome[is_na] <- 0
-  offset[is_na] <- 0
-  rvec::rbeta_rvec(n = length(outcome),
-                   shape1 = outcome + meanpar / disp,
-                   shape2 = offset - outcome + (1 - meanpar) / disp)
-}
-
-
-## 'model_descr' -----------------------------------------------------------------
+## 'model_descr' --------------------------------------------------------------
 
 #' Name of distribution used in printing
 #'
