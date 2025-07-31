@@ -526,6 +526,8 @@ mod_helper <- function(formula, data, n_draw) {
        data = data,
        outcome = outcome,
        datamod_outcome = NULL,
+       datamod_offset = NULL,
+       confidential = NULL,
        priors = priors,
        dimnames_terms = dimnames_terms,
        var_age = var_age,
