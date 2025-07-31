@@ -2122,6 +2122,64 @@ test_that("'make_i_lik_mod' works with bage_mod_norm", {
 })
 
 
+## 'make_i_lik_tmp' ----------------------------------------------------------
+
+test_that("'make_i_lik_tmp' works with bage_mod_pois", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- 3 * rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(make_i_lik_tmp(mod), 1000000L)
+})
+
+
+## 'make_i_lik_part' ----------------------------------------------------------
+
+test_that("'make_i_lik_part' works with bage_mod_pois", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- 3 * rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(make_i_lik_part(mod), 1000000L)
+  mod0 <- set_disp(mod, mean = 0)
+  expect_identical(make_i_lik_part(mod0), 2000000L)
+})
+
+test_that("'make_i_lik_part' works with bage_mod_binom", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- 3 * rbinom(n = nrow(data), size = data$popn, prob = 0.02)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_binom(formula = formula,
+                  data = data,
+                  size = popn)
+  expect_identical(make_i_lik_part(mod), 3000000L)
+  mod0 <- set_disp(mod, mean = 0)
+  expect_identical(make_i_lik_part(mod0), 4000000L)
+})
+
+test_that("'make_i_lik_part' works with bage_mod_norm", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$wt <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data), sd = 10)
+  formula <- income ~ age + time + sex
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  expect_identical(make_i_lik_part(mod), 5000000L)
+})
+
+
 ## 'make_mod_disp' -----------------------------------------------------------
 
 test_that("'make_mod_disp' works with pois", {

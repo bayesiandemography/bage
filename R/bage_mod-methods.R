@@ -1519,7 +1519,7 @@ is_fitted.bage_mod <- function(x)
   !is.null(x$draws_effectfree)
 
 
-## 'make_i_lik' ---------------------------------------------------------------
+## 'make_i_lik_mod' -----------------------------------------------------------
 
 #' Make 'i_lik' Index used by TMB
 #'
@@ -1576,6 +1576,68 @@ make_i_lik_mod.bage_mod_norm <- function(mod) {
     201L
   else
     cli::cli_abort("Internal error: Invalid inputs.")
+}
+
+## 'make_i_lik_tmp' -----------------------------------------------------------
+
+#' Make 'i_lik' Index used by TMB
+#'
+#' Create when 'fit' is called, since index
+#' can be changed after 'mod' object is
+#' constructed.
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer scalar
+#'
+#' @noRd
+make_i_lik_tmp <- function(mod) {
+  UseMethod("make_i_lik_tmp")
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_tmp.bage_mod <- function(mod) {
+  datamod_outcome <- mod$datamod_outcome
+  datamod_offset <- mod$datamod_offset
+  confidential <- mod$confidential
+  ans <- make_i_lik_part(mod)
+  if (!is.null(datamod_outcome))
+    ans <- ans + make_i_lik_part(datamod_outcome)
+  if (!is.null(datamod_offset))
+    ans <- ans + make_i_lik_part(datamod_offset)
+  if (!is.null(confidential))
+    ans <- ans + make_i_lik_part(confidential)
+  ans
+}
+
+
+## 'make_i_lik_part' -----------------------------------------------------------
+
+## HAS_TESTS
+#' @export
+make_i_lik_part.bage_mod_pois <- function(mod) {
+  has_disp <- has_disp(mod)
+  if (has_disp)
+    1L * as.integer(1e6)
+  else
+    2L * as.integer(1e6)
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_part.bage_mod_binom <- function(mod) {
+  has_disp <- has_disp(mod)
+  if (has_disp)
+    3L * as.integer(1e6)
+  else
+    4L * as.integer(1e6)
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_part.bage_mod_norm <- function(mod) {
+  5L * as.integer(1e6)
 }
 
 
