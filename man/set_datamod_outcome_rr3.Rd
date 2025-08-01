@@ -15,47 +15,20 @@ created with \code{\link[=mod_pois]{mod_pois()}},
 A modified version of \code{mod}.
 }
 \description{
-Specify a data model where the outcome variable
-has been randomly rounded to base 3.
+#' `r lifecycle::badge('deprecated'
 }
 \details{
-\code{set_datamod_outcome_rr3()} can only be used with
-Poisson and binomial models (created with
-\code{\link[=mod_pois]{mod_pois()}} and \code{\link[=mod_binom]{mod_binom()}}.)
-
-Random rounding to base 3 (RR3) is a confidentialization
-technique that is sometimes applied by statistical
-agencies. RR3 is applied to integer data. The
-procedure for rounding value \eqn{n} is as follows:
-\itemize{
-\item If \eqn{n} is divisible by 3, leave it unchanged
-\item If dividing \eqn{n} by 3 leaves a remainder of 1, then
-round down (subtract 1) with probability 2/3,
-and round up (add 2) with probability 1/3.
-\item If dividing \eqn{n} by 3 leaves a remainder of 1,
-then round down (subtract 2)
-with probability 1/3, and round up (add 1)
-with probability 2/3.
-}
-
-If \code{set_datamod_outcome_rr3()} is applied to
-a fitted model, \code{set_datamod_outcome_rr3()}
-\link[=unfit]{unfits}
-the model, deleting existing estimates.
+This function has been deprecated, and will
+be removed from future versions of \code{bage}.
+Please used function \code{\link[=set_confidential_rr3]{set_confidential_rr3()}}
+instead.
 }
 \examples{
 ## 'injuries' variable in 'nzl_injuries' dataset
 ## has been randomly rounded to base 3
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
-                exposure = popn) |>
-  set_datamod_outcome_rr3() |>
+                exposure = popn)
+  set_confidential_rr3() |> ## rather than set_datamod_outcome_rr3
   fit()
-}
-\seealso{
-\itemize{
-\item \link{datamods} Overview of data models implemented in \strong{bage}
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
-model for rates, probabilities, or means
-}
 }

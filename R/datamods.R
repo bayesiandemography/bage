@@ -7,8 +7,7 @@
 #' and [mod_norm()] can be extended by adding data models,
 #' also referred to as measurement error models.
 #' Data models can be applied to the outcome variable,
-#' the exposure variable (in Poisson models), or the
-#' size variable (in binomial models).
+#' or (in Poisson models only) the exposure variable.the
 #'
 #' @details
 #'

@@ -1,79 +1,72 @@
 
-## 'set_seeds' --------------------------------------------------------------
+## 'set_confidential_rr3' --------------------------------------------------
 
-test_that("'set_seeds' works with NULL", {
+test_that("'set_confidential_rr3' works with Poisson", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
-  data$deaths <- rpois(n = nrow(data), lambda = 3)
-  data$income <- rnorm(n = nrow(data))
+  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
   formula <- deaths ~ age:sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-    fit()
-  aug1 <- augment(mod)
-  aug2 <- augment(mod)
-  expect_identical(aug1, aug2)
-  comp1 <- components(mod)
-  comp2 <- components(mod)
-  expect_identical(comp1, comp2)
-  faug1 <- forecast(mod, labels = 2002)
-  faug2 <- forecast(mod, labels = 2002)
-  expect_identical(faug1, faug2)
-  comp1 <- components(mod)
-  comp2 <- components(mod)
-  expect_identical(comp1, comp2)
-  fcomp1 <- forecast(mod, labels = 2002, output = "comp")
-  fcomp2 <- forecast(mod, labels = 2002, output = "comp")
-  expect_identical(fcomp1, fcomp2)
-  mod <- set_seeds(mod)
-  expect_false(is_fitted(mod))
-  mod <- fit(mod)
-  aug3 <- augment(mod)
-  expect_false(identical(aug1, aug3))
-  comp3 <- components(mod)
-  expect_false(identical(comp1, comp3))
-  comp4 <- components(mod)
-  expect_identical(comp3, comp4)
-  faug3 <- forecast(mod, labels = 2002)
-  expect_false(identical(faug1, faug3))
-  fcomp3 <- forecast(mod, labels = 2002, output = "comp")
-  expect_false(identical(fcomp1, fcomp3))
-  fcomp4 <- forecast(mod, labels = 2002, output = "comp")
-  expect_identical(fcomp3, fcomp4)
+                  exposure = popn)
+  ans <- set_confidential_rr3(mod)
+  expect_identical(ans$confidential, new_bage_confidential_rr3())
 })
 
-test_that("'set_seeds' works with list", {
+test_that("'set_confidential_rr3' works with Poisson - outcome has NA", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
-  data$deaths <- rpois(n = nrow(data), lambda = 3)
-  data$income <- rnorm(n = nrow(data))
+  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
+  data$deaths[1] <- NA
   formula <- deaths ~ age:sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-    fit()
-  aug1 <- augment(mod)
-  aug2 <- augment(mod)
-  expect_identical(aug1, aug2)
-  comp1 <- components(mod)
-  comp2 <- components(mod)
-  expect_identical(comp1, comp2)
-  mod <- set_seeds(mod,
-                     new_seeds = list(seed_components = 1,
-                                      seed_augment = 2,
-                                      seed_forecast_components = 3,
-                                      seed_forecast_augment = 4))
-  expect_false(is_fitted(mod))
-  mod <- fit(mod)
-  aug3 <- augment(mod)
-  expect_false(identical(aug1, aug3))
-  comp3 <- components(mod)
-  expect_false(identical(comp1, comp3))
-  expect_identical(mod$seed_components, 1)
-  expect_identical(mod$seed_augment, 2)
-  expect_identical(mod$seed_forecast_components, 3)
-  expect_identical(mod$seed_forecast_augment, 4)
+                  exposure = popn)
+  ans <- set_confidential_rr3(mod)
+  expect_identical(ans$confidential, new_bage_confidential_rr3())
+})
+
+test_that("'set_confidential_rr3' works with binomial", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data)) + 12
+  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  ans <- set_confidential_rr3(mod)
+  expect_identical(ans$confidential, new_bage_confidential_rr3())
+})
+
+test_that("'set_confidential_rr3' throws correct error when used with non-Poisson, non-binom", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
+  formula <- deaths ~ age:sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = 1)
+  expect_error(set_confidential_rr3(mod),
+               "Outcome has \"norm\" distribution.")
+})
+
+test_that("'set_confidential_rr3' throws correct error when used with non-Poisson, non-binom", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1)
+  expect_error(set_confidential_rr3(mod),
+               "Outcome variable has values not divisible by 3.")
+  data$deaths <- c(1, rep(3, times = nrow(data) - 1))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1)
+  expect_error(set_confidential_rr3(mod),
+               "Outcome variable has value not divisible by 3.")
 })
 
 
@@ -128,7 +121,7 @@ test_that("'set_covariates' issues message with existing covariates", {
 
 ## 'set_datamod_outcome_rr3' --------------------------------------------------
 
-test_that("'set_datamod_outcome_rr3' works with Poisson", {
+test_that("'set_datamod_outcome_rr3' throws deprecation warning but returns value", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
@@ -136,64 +129,9 @@ test_that("'set_datamod_outcome_rr3' works with Poisson", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  ans <- set_datamod_outcome_rr3(mod)
-  expect_identical(ans$datamod_outcome, new_bage_datamod_outcome_rr3())
-})
-
-test_that("'set_datamod_outcome_rr3' works with Poisson - outcome has NA", {
-  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-  data$popn <- seq_len(nrow(data))
-  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
-  data$deaths[1] <- NA
-  formula <- deaths ~ age:sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  ans <- set_datamod_outcome_rr3(mod)
-  expect_identical(ans$datamod_outcome, new_bage_datamod_outcome_rr3())
-})
-
-test_that("'set_datamod_outcome_rr3' works with binomial", {
-  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-  data$popn <- seq_len(nrow(data)) + 12
-  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
-  formula <- deaths ~ age:sex + time
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  ans <- set_datamod_outcome_rr3(mod)
-  expect_identical(ans$datamod_outcome, new_bage_datamod_outcome_rr3())
-})
-
-test_that("'set_datamod_outcome_rr3' throws correct error when used with non-Poisson, non-binom", {
-  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-  data$popn <- seq_len(nrow(data))
-  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
-  formula <- deaths ~ age:sex + time
-  mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = 1)
-  expect_error(set_datamod_outcome_rr3(mod),
-               "Outcome has \"norm\" distribution.")
-})
-
-test_that("'set_datamod_outcome_rr3' throws correct error when used with non-Poisson, non-binom", {
-  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-  data$popn <- seq_len(nrow(data))
-  data$deaths <- 1
-  formula <- deaths ~ age:sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = 1)
-  expect_error(set_datamod_outcome_rr3(mod),
-               "Outcome variable has values not divisible by 3.")
-  data$deaths <- c(1, rep(3, times = nrow(data) - 1))
-  formula <- deaths ~ age:sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = 1)
-  expect_error(set_datamod_outcome_rr3(mod),
-               "Outcome variable has value not divisible by 3.")
+  rlang::local_options(lifecycle_verbosity = "warning")
+  expect_warning(ans_obtained <- set_datamod_outcome_rr3(mod))
+  expect_identical(ans_obtained$confidential, new_bage_confidential_rr3())
 })
 
 
@@ -353,6 +291,84 @@ test_that("'set_prior' works with when order of components of interaction change
                     exposure = popn)
     mod <- set_prior(mod, sex:age ~ NFix())
     expect_s3_class(mod$priors[["age:sex"]], "bage_prior_normfixed")
+})
+
+
+## 'set_seeds' --------------------------------------------------------------
+
+test_that("'set_seeds' works with NULL", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rpois(n = nrow(data), lambda = 3)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    fit()
+  aug1 <- augment(mod)
+  aug2 <- augment(mod)
+  expect_identical(aug1, aug2)
+  comp1 <- components(mod)
+  comp2 <- components(mod)
+  expect_identical(comp1, comp2)
+  faug1 <- forecast(mod, labels = 2002)
+  faug2 <- forecast(mod, labels = 2002)
+  expect_identical(faug1, faug2)
+  comp1 <- components(mod)
+  comp2 <- components(mod)
+  expect_identical(comp1, comp2)
+  fcomp1 <- forecast(mod, labels = 2002, output = "comp")
+  fcomp2 <- forecast(mod, labels = 2002, output = "comp")
+  expect_identical(fcomp1, fcomp2)
+  mod <- set_seeds(mod)
+  expect_false(is_fitted(mod))
+  mod <- fit(mod)
+  aug3 <- augment(mod)
+  expect_false(identical(aug1, aug3))
+  comp3 <- components(mod)
+  expect_false(identical(comp1, comp3))
+  comp4 <- components(mod)
+  expect_identical(comp3, comp4)
+  faug3 <- forecast(mod, labels = 2002)
+  expect_false(identical(faug1, faug3))
+  fcomp3 <- forecast(mod, labels = 2002, output = "comp")
+  expect_false(identical(fcomp1, fcomp3))
+  fcomp4 <- forecast(mod, labels = 2002, output = "comp")
+  expect_identical(fcomp3, fcomp4)
+})
+
+test_that("'set_seeds' works with list", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rpois(n = nrow(data), lambda = 3)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    fit()
+  aug1 <- augment(mod)
+  aug2 <- augment(mod)
+  expect_identical(aug1, aug2)
+  comp1 <- components(mod)
+  comp2 <- components(mod)
+  expect_identical(comp1, comp2)
+  mod <- set_seeds(mod,
+                     new_seeds = list(seed_components = 1,
+                                      seed_augment = 2,
+                                      seed_forecast_components = 3,
+                                      seed_forecast_augment = 4))
+  expect_false(is_fitted(mod))
+  mod <- fit(mod)
+  aug3 <- augment(mod)
+  expect_false(identical(aug1, aug3))
+  comp3 <- components(mod)
+  expect_false(identical(comp1, comp3))
+  expect_identical(mod$seed_components, 1)
+  expect_identical(mod$seed_augment, 2)
+  expect_identical(mod$seed_forecast_components, 3)
+  expect_identical(mod$seed_forecast_augment, 4)
 })
 
 

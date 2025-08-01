@@ -23,9 +23,9 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   ## prepare seeds
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
-  ## impute values for outcome and offset, where necessary
+  ## draw values for outcome and offset, where necessary
   if (has_confidential) {
-    outcome <- draw_outcome_unconfidential(confidential = confidential,
+    outcome <- draw_outcome_obs_given_conf(confidential = confidential,
                                            outcome = outcome,
                                            offset = offset,
                                            nm_distn = nm_distn,
@@ -41,11 +41,11 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
                                            disp = disp)
   }
   if (has_missing_outcome) {
-    outcome <- impute_missing_outcome(outcome = outcome,
-                                      offset = offset,
-                                      nm_distn = nm_distn,
-                                      expected = expected,
-                                      disp = disp)
+    outcome <- impute_outcome_true(outcome = outcome,
+                                   offset = offset,
+                                   nm_distn = nm_distn,
+                                   expected = expected,
+                                   disp = disp)
   }
   if (has_datamod_offset) {
     offset <- draw_offset_true_given_obs(datamod = datamod_outcome,
@@ -55,14 +55,14 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
                                          expected = expected,
                                          disp = disp)
   }
-  ## derived '.fitted' and, in models with dispersion, '.expected'
+  ## derive '.fitted' and, in models with dispersion, '.expected'
   ans <- mod$data
   if (has_disp) {
-    ans$.fitted <- draw_vals_fitted(mod = mod,
-                                    vals_expected = expected,
-                                    vals_disp = disp,
-                                    outcome = outcome,
-                                    offset = offset)
+    ans$.fitted <- draw_vals_fitted_given_outcome(mod = mod,
+                                                  vals_expected = expected,
+                                                  vals_disp = disp,
+                                                  outcome = outcome,
+                                                  offset = offset)
     ans$.expected <- expected
   }
   else
@@ -108,34 +108,36 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   nm_distn <- nm_distn(mod)
   disp <- get_disp(mod)
   scale_linpred <- get_fun_scale_linpred(mod)
+  scale_disp <- get_fun_scale_disp(mod)
   ## prepare inputs
-  expected <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
+  linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
   has_datamod_outcome <- !is.null(datamod_outcome)
   has_missing_outcome <- anyNA(outcome)
+  expected_scaled <- scale_linpred(expected)
+  disp_scaled <- scale_disp(disp)
   ## prepare seeds
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
-  ## impute values for outcome, where necessary
-  ## NEED TO BE CAREFUL WITH SCALING HERE
+  ## draw values for outcome, where necessary
   if (has_datamod_outcome) {
-    outcome <- draw_outcome_true(datamod = datamod_outcome,
-                                 outcome = outcome,
-                                 offset = offset,
-                                 nm_distn = nm_distn,
-                                 expected = expected,
-                                 disp = disp)
+    outcome <- draw_outcome_true_given_obs(datamod = datamod_outcome,
+                                           outcome = outcome,
+                                           offset = offset,
+                                           nm_distn = nm_distn,
+                                           expected = expected_scaled,
+                                           disp = disp_scaled)
   }
   if (has_missing_outcome) {
-    outcome <- impute_missing_outcome(outcome = outcome,
-                                      offset = offset,
-                                      nm_distn = nm_distn,
-                                      expected = expected,
-                                      disp = disp)
+    outcome <- impute_outcome_true(outcome = outcome,
+                                   offset = offset,
+                                   nm_distn = nm_distn,
+                                   expected = expected_scaled,
+                                   disp = disp_scaled)
   }
   ## restore seed
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ## derive '.fitted'
-  ans$.fitted <- scale_linpred(linpred)
+  ans$.fitted <- expected_scaled
   ## assemble and return answer
   ans <- mod$data
   has_modified_outcome <- (has_datamod_outcome || has_missing_outcome)
@@ -149,8 +151,6 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   }
   ans
 }
-
-
 
 
 ## HAS_TESTS
@@ -170,9 +170,11 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   inv_transform <- get_fun_inv_transform(mod)
   nm_outcome_data <- get_nm_outcome_data(mod)
   ## prepare inputs
+  has_confidential <- !is.null(confidential)
   has_datamod_outcome <- !is.null(datamod_outcome)
   has_datamod_offset <- !is.null(datamod_offset)
   has_disp <- has_disp(mod)
+  ans <- mod$data
   ## prepare seeds
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
@@ -199,38 +201,39 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   outcome <- draw_outcome_true(offset = offset,
                                nm_distn = nm_distn,
                                fitted = fitted)
-  ## draw values for observed outcome, where necessary
-  if (has_datamod_outcome)
-    outcome_obs <- draw_outcome_obs(datamod_outcome = datamod_outcome,
-                                    outcome_true = outcome)
-  ## draw values for observed offset, where necessary
-  if (has_datamod_offset)
-    offset_obs <- draw_offset_obs(datamod_offset = datamod_offset,
-                                  offset_true = offset)
+  ## create modified value of outcome,
+  ## where necessary, and record outcome(s)
+  has_modified_outcome <- has_datamod_outcome || has_confidential
+  if (has_modified_outcome) {
+    outcome_true <- outcome
+    if (has_datamod_outcome)
+      outcome <- draw_outcome_obs(datamod_outcome = datamod_outcome,
+                                  outcome_true = outcome)
+    if (has_confidential)
+      outcome <- draw_outcome_confidential(datamod_outcome = datamod_outcome,
+                                           outcome_obs = outcome)
+    ans[[nm_outcome_data]] <- outcome
+    nm_outcome_data_true <- paste0(".", nm_outcome_data)
+    ans[[nm_outcome_data_true]] <- outcome_true
+  }
+  else
+    ans[[nm_outcome_data]] <- outcome
+  ## create modified value of true offset,
+  ## where necessary, and record offset(s)
+  if (has_datamod_offset) {
+    offset_true <- offset
+    offset <- draw_offset_obs(datamod_offset = datamod_offset,
+                              offset_true = offset_true)
+    ans[[nm_offset_data]] <- offset
+    nm_offset_data_true <- paste0(".", nm_offset_data)
+    ans[[nm_offset_data_true]] <- offset_true
+  }
+  else
+    ans[[nm_offset_data]] <- offset
   ## restore seed
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-  ## assemble and return answer
-  ans <- mod$data
-  if (has_datamod_outcome) {
-    ans[[nm_outcome_data]] <- outcome_obs
-    nm_outcome_data_true <- paste0(".", nm_outcome_data)
-    ans[[nm_outcome_data_true]] <- outcome
-    num_observed <- outcome_obs
-  }
-  else {
-    ans[[nm_outcome_data]] <- outcome
-    num_observed <- outcome
-  }
-  if (has_datamod_offset) {
-    ans[[nm_offset_data]] <- offset_obs
-    nm_offset_data_true <- paste0(".", nm_offset_data)
-    ans[[nm_offset_data_true]] <- offset
-    denom_observed <- offset_obs
-  }
-  else {
-    ans[[nm_offset_data]] <- offset
-    denom_observed <- offset
-  }
+  ## add '.observed', '.fitted', and, in models
+  ## with dispersion, '.expected', and return
   ans$.observed <- num_observed / denom_observed
   ans$.fitted <- fitted
   if (has_disp)

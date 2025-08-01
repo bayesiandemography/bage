@@ -24,6 +24,7 @@ Depends:
 Imports:
     cli,
     generics,
+    lifecycle,
     Matrix,
     methods,
     parallel,
@@ -39,8 +40,8 @@ Suggests:
     dplyr,
     ggplot2,
     knitr,
-    lifecycle,
     rmarkdown,
+    rlang,
     testthat (>= 3.0.0),
     tidyr
 Config/testthat/edition: 3
