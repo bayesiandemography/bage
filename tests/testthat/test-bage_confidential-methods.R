@@ -1,15 +1,15 @@
 
-## 'draw_outcome_obs' ---------------------------------------------------------
+## 'draw_outcome_confidential' ------------------------------------------------
 
-test_that("'draw_outcome_obs' works with 'bage_confidential_rr3'", {
+test_that("'draw_outcome_confidential' works with 'bage_confidential_rr3'", {
   set.seed(0)
   confidential <- new_bage_confidential_rr3()
-  outcome_true <- rvec::rpois_rvec(n = 5, lambda = 10, n_draw = 5)
+  outcome_obs <- rvec::rpois_rvec(n = 5, lambda = 10, n_draw = 5)
   set.seed(1)
-  ans_obtained <- draw_outcome_obs(confidential = confidential,
-                                   outcome_true = outcome_true)
+  ans_obtained <- draw_outcome_confidential(confidential = confidential,
+                                            outcome_obs = outcome_obs)
   set.seed(1)
-  ans_expected <- poputils::rr3(outcome_true)
+  ans_expected <- poputils::rr3(outcome_obs)
   expect_identical(ans_obtained, ans_expected)
 })
 

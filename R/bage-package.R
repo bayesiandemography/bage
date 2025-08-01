@@ -70,8 +70,9 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom tibble tibble
+#' @importFrom lifecycle deprecated
 #' @importFrom rvec n_draw
+#' @importFrom tibble tibble
 #' @useDynLib bage, .registration = TRUE
 ## usethis namespace: end
 NULL

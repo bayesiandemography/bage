@@ -1,23 +1,24 @@
 
-## 'draw_outcome_obs' ----------------------------------------------------
+## 'draw_outcome_confidential' ------------------------------------------------
 
-#' Generate Confidentialized Values of Outcome Variable
+#' Generate Confidentialized Values of Observed Outcome Variable
 #'
 #' @param confidential Object of class 'bage_confidential'
-#' @param outcome_true Rvec with true values for outcome.
+#' @param outcome_obs Rvec with observed values for outcome
+#' (ie may be subject to measurement error)
 #'
 #' @returns An rvec
 #'
 #' @noRd
-draw_outcome_obs <- function(confidential,
-                             outcome_true) {
-  UseMethod("draw_outcome_obs")
+draw_outcome_confidential <- function(confidential,
+                                      outcome_obs) {
+  UseMethod("draw_outcome_confidential")
 }
 
 #' @export
-draw_outcome_obs.bage_confidential_rr3 <- function(confidential,
-                                                   outcome_true) {
-  poputils::rr3(outcome_true)
+draw_outcome_confidential.bage_confidential_rr3 <- function(confidential,
+                                                            outcome_obs) {
+  poputils::rr3(outcome_obs)
 } 
 
 

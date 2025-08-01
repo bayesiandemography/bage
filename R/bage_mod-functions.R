@@ -1,6 +1,82 @@
 
 ## User-visible functions that look like methods, but technically are not
 
+## 'set_confidential_rr3' -----------------------------------------------------
+
+#' Specify RR3 Confidentialization
+#'
+#' Specify a confidentialization procedure
+#' where the outcome variable
+#' is randomly rounded to a multiple of 3.
+#'
+#' `set_confidential_rr3()` can only be used with
+#' Poisson and binomial models (created with
+#' [mod_pois()] and [mod_binom()].)
+#'
+#' Random rounding to base 3 (RR3) is a confidentialization
+#' technique that is sometimes applied by statistical
+#' agencies. The procedure for randomly-rounding
+#' an integer value \eqn{n} is as follows:
+#'
+#' - If \eqn{n} is divisible by 3, leave it unchanged
+#' - If dividing \eqn{n} by 3 leaves a remainder of 1, then
+#'   round down (subtract 1) with probability 2/3,
+#'   and round up (add 2) with probability 1/3.
+#' - If dividing \eqn{n} by 3 leaves a remainder of 1,
+#'   then round down (subtract 2)
+#'   with probability 1/3, and round up (add 1)
+#'   with probability 2/3.
+#'
+#' If `set_confidential_rr3()` is applied to
+#' a fitted model, `set_confidential_rr3()`
+#' [unfits][unfit()]
+#' the model, deleting existing estimates.
+#'
+#' @param mod An object of class `"bage_mod"`,
+#' created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#'
+#' @returns A modified version of `mod`.
+#'
+#' @seealso
+#' - [confidential] Overview of confidentialization procedures
+#'   currently modeled in **bage**
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
+#'   model for rates, probabilities, or means
+#'
+#' @examples
+#' ## 'injuries' variable in 'nzl_injuries' dataset
+#' ## has been randomly rounded to base 3
+#' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
+#'                 data = nzl_injuries,
+#'                 exposure = popn) |>
+#'   set_confidential_rr3() |>
+#'   fit()
+#' @export
+set_confidential_rr3 <- function(mod) {
+  check_bage_mod(x = mod, nm_x = "mod")
+  ## check is valid distribution
+  valid_distn <- c("binom", "pois")
+  nm_distn <- nm_distn(mod)
+  if (!(nm_distn %in% valid_distn))
+    cli::cli_abort(c("Outcome has {.val {nm_distn}} distribution.",
+                     i = paste("RR3 can only be used with",
+                               "{.val {valid_distn}} distributions.")))
+  ## check that values for outcome all divisible by 3
+  outcome <- mod$outcome
+  is_base3 <- is.na(outcome) | ((outcome %% 3L) == 0L)
+  n_not_base3 <- sum(!is_base3)
+  if (n_not_base3 > 0L)
+    cli::cli_abort(paste("Outcome variable has {cli::qty(n_not_base3)}",
+                         "value{?s} not divisible by 3."))
+  ## return
+  mod$confidential <- new_bage_confidential_rr3()
+  mod <- unfit(mod)
+  mod
+}
+
+
+
 ## 'set_covariates' -----------------------------------------------------------
 
 ## HAS_TESTS
@@ -93,31 +169,12 @@ set_covariates <- function(mod, formula) {
 
 #' Specify RR3 Data Model
 #'
-#' Specify a data model where the outcome variable
-#' has been randomly rounded to base 3.
+#' #' `r lifecycle::badge('deprecated'
 #'
-#' `set_datamod_outcome_rr3()` can only be used with
-#' Poisson and binomial models (created with
-#' [mod_pois()] and [mod_binom()].)
-#'
-#' Random rounding to base 3 (RR3) is a confidentialization
-#' technique that is sometimes applied by statistical
-#' agencies. RR3 is applied to integer data. The
-#' procedure for rounding value \eqn{n} is as follows:
-#'
-#' - If \eqn{n} is divisible by 3, leave it unchanged
-#' - If dividing \eqn{n} by 3 leaves a remainder of 1, then
-#'   round down (subtract 1) with probability 2/3,
-#'   and round up (add 2) with probability 1/3.
-#' - If dividing \eqn{n} by 3 leaves a remainder of 1,
-#'   then round down (subtract 2)
-#'   with probability 1/3, and round up (add 1)
-#'   with probability 2/3.
-#'
-#' If `set_datamod_outcome_rr3()` is applied to
-#' a fitted model, `set_datamod_outcome_rr3()`
-#' [unfits][unfit()]
-#' the model, deleting existing estimates.
+#' This function has been deprecated, and will
+#' be removed from future versions of `bage`.
+#' Please used function [set_confidential_rr3()]
+#' instead.
 #'
 #' @param mod An object of class `"bage_mod"`,
 #' created with [mod_pois()],
@@ -125,38 +182,20 @@ set_covariates <- function(mod, formula) {
 #'
 #' @returns A modified version of `mod`.
 #'
-#' @seealso
-#' - [datamods] Overview of data models implemented in **bage**
-#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
-#'   model for rates, probabilities, or means
-#'
 #' @examples
 #' ## 'injuries' variable in 'nzl_injuries' dataset
 #' ## has been randomly rounded to base 3
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 #'                 data = nzl_injuries,
-#'                 exposure = popn) |>
-#'   set_datamod_outcome_rr3() |>
+#'                 exposure = popn)
+#'   set_confidential_rr3() |> ## rather than set_datamod_outcome_rr3
 #'   fit()
 #' @export
 set_datamod_outcome_rr3 <- function(mod) {
-  check_bage_mod(x = mod, nm_x = "mod")
-  ## check is valid distribution
-  valid_distn <- c("binom", "pois")
-  nm_distn <- nm_distn(mod)
-  if (!(nm_distn %in% valid_distn))
-    cli::cli_abort(c("Outcome has {.val {nm_distn}} distribution.",
-                     i = "RR3 data model can only be used with {.val {valid_distn}} distributions."))
-  ## check that values for outcome all divisible by 3
-  outcome <- mod$outcome
-  is_base3 <- is.na(outcome) | ((outcome %% 3L) == 0L)
-  n_not_base3 <- sum(!is_base3)
-  if (n_not_base3 > 0L)
-    cli::cli_abort("Outcome variable has {cli::qty(n_not_base3)} value{?s} not divisible by 3.")
-  ## return
-  mod$datamod_outcome <- new_bage_datamod_outcome_rr3()
-  mod <- unfit(mod)
-  mod
+  lifecycle::deprecate_warn(when = "0.9.4",
+                            what = "set_datamod_outcome_rr3()",
+                            with = "set_confidential_rr3()")
+  set_confidential_rr3(mod)
 }
 
 

@@ -9,8 +9,7 @@ created with functions \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_bin
 and \code{\link[=mod_norm]{mod_norm()}} can be extended by adding data models,
 also referred to as measurement error models.
 Data models can be applied to the outcome variable,
-the exposure variable (in Poisson models), or the
-size variable (in binomial models).
+or (in Poisson models only) the exposure variable.the
 }
 \details{
 \strong{Data models for outcome variable}\tabular{lllll}{
