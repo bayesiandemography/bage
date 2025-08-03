@@ -15,7 +15,7 @@ created with \code{\link[=mod_pois]{mod_pois()}},
 A modified version of \code{mod}.
 }
 \description{
-#' `r lifecycle::badge('deprecated'
+#' `r lifecycle::badge('deprecated')
 }
 \details{
 This function has been deprecated, and will

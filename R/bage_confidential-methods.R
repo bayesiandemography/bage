@@ -17,6 +17,7 @@ draw_outcome_confidential <- function(confidential,
   UseMethod("draw_outcome_confidential")
 }
 
+## HAS_TESTS
 #' @export
 draw_outcome_confidential.bage_confidential_rr3 <- function(confidential,
                                                             outcome_obs) {
@@ -30,73 +31,105 @@ draw_outcome_confidential.bage_confidential_rr3 <- function(confidential,
 #' Confidentialized Outcome
 #'
 #' @param confidential Object of class 'bage_confidential'
-#' @param outcome_obs Rvec with observed values for outcome
-#' and 
-#' (ie may be subject to measurement error)
+#' @param nm_distn Name of distribution of outcome.
+#' "pois", "binom", or "norm"
+#' @param outcome_conf Numeric vector with confidentialised
+#' values for outcome.
+#' @param offset Numeric vector with (reported) outcome
+#' @param expected_obs Rvec with expected value for
+#' rate/probability/mean, adjusted for measurement error
+#' @param disp Dispersion. NULL or rvec.
 #'
 #' @returns An rvec
 #'
 #' @noRd
-draw_outcome_confidential <- function(confidential,
-                                      outcome_obs) {
-  UseMethod("draw_outcome_confidential")
+draw_outcome_obs_given_conf <- function(confidential,
+                                        nm_distn,
+                                        outcome_conf,
+                                        offset,
+                                        expected_obs,
+                                        disp) {
+  UseMethod("draw_outcome_obs_given_conf")
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
-draw_outcome_true.bage_datamod_outcome_rr3 <- function(datamod,
-                                                            nm_distn,
-                                                            outcome_obs,
-                                                            fitted,
-                                                            expected,
-                                                            disp,
-                                                            offset) {
-  n_val <- length(outcome_obs)
+draw_outcome_obs_given_conf.bage_confidential_rr3 <- function(confidential,
+                                                              nm_distn,
+                                                              outcome_conf,
+                                                              offset,
+                                                              expected_obs,
+                                                              disp) {
+  ## all variables are organized into
+  ## (implicit) arrays with dimension
+  ## (n_outcome, n_val, n_draw)
+  n_val <- length(expected_obs)
+  n_draw <- rvec::n_draw(expected_obs)
+  n_outcome <- 5L
+  expected_obs <- as.numeric(expected_obs)
+  expected_obs <- rep(expected_obs, each = n_outcome)
+  s_outcome <- seq.int(from = -2L, to = 2L)
+  outcome_true <- outer(s_outcome, outcome_conf, FUN = "+")
+  outcome_true <- rep(outcome_true, times = n_draw)
+  offset <- rep(offset, each = n_outcome)
+  offset <- rep(offset, times = n_draw)
   has_disp <- !is.null(disp)
   if (has_disp) {
-    n_draw <- rvec::n_draw(expected)
-    expected <- as.matrix(expected)
-    disp <- matrix(as.numeric(disp), nrow = n_val, ncol = n_draw, byrow = TRUE)
-    offset <- matrix(offset, nrow = n_val, ncol = n_draw)
+    disp <- as.numeric(disp)
+    disp <- rep(disp, each = n_outcome * n_val)
     if (nm_distn == "pois") {
-      nm_dist_detailed <- "nbinom"
-      shape <- 1 / disp
-      rate <- 1 / (expected * offset * disp)
-      args <- list(shape = shape, rate = rate)
+      size <- 1 / disp
+      prob <- 1 / (1 + expected_obs * offset * disp)
+      prob_prior <- dnbinom(x = outcome_true,
+                            size = size,
+                            prob = prob)
     }
     else if (nm_distn == "binom") {
-      nm <- "betabinom"
-      shape <- 1 / disp
-      rate <- 1 / (expected * offset * disp)
-      args <- list(size = offset, shape = shape, rate = rate)
+      shape1 <- expected_obs / disp
+      shape2 <- (1 - expected_obs) / disp
+      prob_prior <- dbetabinom(x = outcome_true,
+                               size = offset,
+                               shape1 = shape1,
+                               shape2 = shape2)
     }
     else
       cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
   }
   else {
-    n_draw <- rvec::n_draw(fitted)
-    fitted <- as.matrix(fitted)
-    offset <- matrix(offset, nrow = n_val, ncol = n_draw)
     if (nm_distn == "pois") {
-      nm_dist_detailed <- "pois"
-      lambda <- fitted * offset
-      args <- list(lambda = lambda)
+      lambda <- expected_obs * offset
+      prob_prior <- dpois(x = outcome_true,
+                          lambda = lambda)
     }
     else if (nm_distn == "binom") {
-      nm <- "binom"
-      args <- list(size = offset, prob = fitted)
+      prob_prior <- dbinom(x = outcome_true,
+                           size = offset,
+                           prob = expected_obs)
     }
     else
       cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
   }
-  args <- lapply(seq_along(n_val),
-                 function(i) lapply(args, function(j) arg[i, ]))
-  draw_vals_outcome_true_rr3(nm_distn_detailed = nm_dist_detailed,
-                             outcome_obs = outcome_obs,
-                             args = args,
-                             offset = offset,
-                             n_draw = n_draw)
-}                            
+  prob_prior[outcome_true < 0L] <- 0
+  prob_obs_given_true <- c(1/3, 2/3, 1, 2/3, 1/3)
+  prob_true <- prob_obs_given_true * prob_prior
+  prob_true <- matrix(prob_true,
+                      nrow = n_outcome,
+                      ncol = n_val * n_draw)
+  outcome_true <- matrix(outcome_true,
+                         nrow = n_outcome,
+                         ncol = n_val * n_draw)
+  select_i <- function(prob) {
+    if (anyNA(prob))
+      NA
+    else
+      sample.int(n = n_outcome, size = 1L, prob = prob)
+  }
+  i <- apply(prob_true, MARGIN = 2L, FUN = select_i)
+  j <- seq_len(n_val * n_draw)
+  ans <- outcome_true[cbind(i, j)]
+  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
+  ans <- rvec::rvec(ans)
+}
 
 
 ## 'make_i_lik_part' --------------------------------------------------
