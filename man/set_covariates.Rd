@@ -80,7 +80,6 @@ mod
 }
 \seealso{
 \itemize{
-\item \link{datamods} Overview of data models implemented in \strong{bage}
 \item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
 model for rates, probabilities, or means
 }

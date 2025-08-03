@@ -14,6 +14,218 @@ test_that("'draw_outcome_confidential' works with 'bage_confidential_rr3'", {
 })
 
 
+## 'draw_outcome_obs_given_conf' ----------------------------------------------
+
+test_that("'draw_outcome_obs_given_conf' works with rr3, pois, no na, has disp", {
+  set.seed(0)
+  confidential <- new_bage_confidential_rr3()
+  outcome_obs <- rpois(n = 100, lambda = 50)
+  outcome_conf <- poputils::rr3(outcome_obs)
+  offset <- rep(10, 100)
+  expected_obs <- rvec::rgamma_rvec(n = 100,
+                                    shape = 2,
+                                    rate = 0.4,
+                                    n_draw = 100)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  ans <- draw_outcome_obs_given_conf(confidential = confidential,
+                                     nm_distn = "pois",
+                                     outcome_conf = outcome_conf,
+                                     offset = offset,
+                                     expected_obs = expected_obs,
+                                     disp = disp)
+  expect_true(all(abs(as.matrix(ans) - outcome_conf) <= 2L))
+  expect_equal(mean(as.numeric(ans)), 50, tolerance = 0.05)
+})
+
+test_that("'draw_outcome_obs_given_conf' works with rr3, pois, no na, no disp", {
+  set.seed(0)
+  confidential <- new_bage_confidential_rr3()
+  outcome_obs <- rpois(n = 100, lambda = 50)
+  outcome_conf <- poputils::rr3(outcome_obs)
+  offset <- rep(10, 100)
+  expected_obs <- rvec::rgamma_rvec(n = 100,
+                                    shape = 2,
+                                    rate = 0.4,
+                                    n_draw = 100)
+  ans <- draw_outcome_obs_given_conf(confidential = confidential,
+                                     nm_distn = "pois",
+                                     outcome_conf = outcome_conf,
+                                     offset = offset,
+                                     expected_obs = expected_obs,
+                                     disp = NULL)
+  expect_true(all(abs(as.matrix(ans) - outcome_conf) <= 2L))
+  expect_equal(mean(as.numeric(ans)), 50, tolerance = 0.05)
+})
+
+test_that("'draw_outcome_obs_given_conf' works with rr3, pois, has na, has disp", {
+  set.seed(0)
+  confidential <- new_bage_confidential_rr3()
+  outcome_obs <- rpois(n = 100, lambda = 50)
+  outcome_conf <- poputils::rr3(outcome_obs)
+  outcome_conf[4] <- NA
+  offset <- rep(10, 100)
+  offset[1] <- NA
+  expected_obs <- rvec::rgamma_rvec(n = 100,
+                                    shape = 2,
+                                    rate = 0.4,
+                                    n_draw = 100)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  ans <- draw_outcome_obs_given_conf(confidential = confidential,
+                                     nm_distn = "pois",
+                                     outcome_conf = outcome_conf,
+                                     offset = offset,
+                                     expected_obs = expected_obs,
+                                     disp = disp)
+  expect_true(all(abs(as.matrix(ans[-c(1, 4)]) - outcome_conf[-c(1, 4)]) <= 2L))
+  expect_equal(mean(as.numeric(ans), na.rm = TRUE), 50, tolerance = 0.01)
+})
+
+test_that("'draw_outcome_obs_given_conf' works with rr3, pois, has na, no disp", {
+  set.seed(0)
+  confidential <- new_bage_confidential_rr3()
+  outcome_obs <- rpois(n = 100, lambda = 50)
+  outcome_conf <- poputils::rr3(outcome_obs)
+  outcome_conf[4] <- NA
+  offset <- rep(10, 100)
+  offset[1] <- NA
+  expected_obs <- rvec::rgamma_rvec(n = 100,
+                                    shape = 2,
+                                    rate = 0.4,
+                                    n_draw = 100)
+  ans <- draw_outcome_obs_given_conf(confidential = confidential,
+                                     nm_distn = "pois",
+                                     outcome_conf = outcome_conf,
+                                     offset = offset,
+                                     expected_obs = expected_obs,
+                                     disp = NULL)
+  expect_true(all(abs(as.matrix(ans[-c(1, 4)]) - outcome_conf[-c(1, 4)]) <= 2L))
+  expect_equal(mean(as.numeric(ans), na.rm = TRUE), 50, tolerance = 0.01)
+})
+
+test_that("'draw_outcome_obs_given_conf' works with rr3, binom, no na, has disp", {
+  set.seed(0)
+  confidential <- new_bage_confidential_rr3()
+  outcome_obs <- rbinom(n = 100, size = 100, prob = 0.5)
+  outcome_conf <- poputils::rr3(outcome_obs)
+  offset <- rep(100, 100)
+  expected_obs <- rvec::rbeta_rvec(n = 100,
+                                   shape1 = 10,
+                                   shape2 = 10,
+                                   n_draw = 100)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  ans <- draw_outcome_obs_given_conf(confidential = confidential,
+                                     nm_distn = "binom",
+                                     outcome_conf = outcome_conf,
+                                     offset = offset,
+                                     expected_obs = expected_obs,
+                                     disp = disp)
+  expect_true(all(abs(as.matrix(ans) - outcome_conf) <= 2L))
+  ans <- rvec::draws_mean(ans)
+  expect_equal(mean(ans), 50, tolerance = 0.01)
+})
+
+test_that("'draw_outcome_obs_given_conf' works with rr3, binom, no na, no disp", {
+  set.seed(0)
+  confidential <- new_bage_confidential_rr3()
+  outcome_obs <- rbinom(n = 100, size = 100, prob = 0.5)
+  outcome_conf <- poputils::rr3(outcome_obs)
+  offset <- rep(100, 100)
+  expected_obs <- rvec::rbeta_rvec(n = 100,
+                                   shape1 = 10,
+                                   shape2 = 10,
+                                   n_draw = 100)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  ans <- draw_outcome_obs_given_conf(confidential = confidential,
+                                     nm_distn = "binom",
+                                     outcome_conf = outcome_conf,
+                                     offset = offset,
+                                     expected_obs = expected_obs,
+                                     disp = NULL)
+  expect_true(all(abs(as.matrix(ans) - outcome_conf) <= 2L))
+  ans <- rvec::draws_mean(ans)
+  expect_equal(mean(ans), 50, tolerance = 0.01)
+})
+
+test_that("'draw_outcome_obs_given_conf' works with rr3, binom, has na, has disp", {
+  set.seed(0)
+  confidential <- new_bage_confidential_rr3()
+  outcome_obs <- rbinom(n = 100, size = 100, prob = 0.5)
+  outcome_obs[4] <- NA
+  outcome_conf <- poputils::rr3(outcome_obs)
+  offset <- rep(100, 100)
+  offset[1] <- NA
+  expected_obs <- rvec::rbeta_rvec(n = 100,
+                                   shape1 = 10,
+                                   shape2 = 10,
+                                   n_draw = 100)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  ans <- draw_outcome_obs_given_conf(confidential = confidential,
+                                     nm_distn = "binom",
+                                     outcome_conf = outcome_conf,
+                                     offset = offset,
+                                     expected_obs = expected_obs,
+                                     disp = disp)
+  expect_true(all(abs(as.matrix(ans[-c(1, 4)]) - outcome_conf[-c(1, 4)]) <= 2L))
+  ans <- rvec::draws_mean(ans)
+  expect_equal(mean(ans, na.rm = TRUE), 50, tolerance = 0.01)
+})
+
+test_that("'draw_outcome_obs_given_conf' works with rr3, binom, has na, no disp", {
+  set.seed(0)
+  confidential <- new_bage_confidential_rr3()
+  outcome_obs <- rbinom(n = 100, size = 100, prob = 0.5)
+  outcome_obs[4] <- NA
+  outcome_conf <- poputils::rr3(outcome_obs)
+  offset <- rep(100, 100)
+  offset[1] <- NA
+  expected_obs <- rvec::rbeta_rvec(n = 100,
+                                   shape1 = 10,
+                                   shape2 = 10,
+                                   n_draw = 100)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  ans <- draw_outcome_obs_given_conf(confidential = confidential,
+                                     nm_distn = "binom",
+                                     outcome_conf = outcome_conf,
+                                     offset = offset,
+                                     expected_obs = expected_obs,
+                                     disp = NULL)
+  expect_true(all(abs(as.matrix(ans[-c(1, 4)]) - outcome_conf[-c(1, 4)]) <= 2L))
+  ans <- rvec::draws_mean(ans)
+  expect_equal(mean(ans, na.rm = TRUE), 50, tolerance = 0.01)
+})
+
+test_that("'draw_outcome_obs_given_conf' throws appropriate error with invalid nm_distn", {
+  set.seed(0)
+  set.seed(0)
+  confidential <- new_bage_confidential_rr3()
+  outcome_obs <- rbinom(n = 100, size = 100, prob = 0.5)
+  outcome_obs[4] <- NA
+  outcome_conf <- poputils::rr3(outcome_obs)
+  offset <- rep(100, 100)
+  offset[1] <- NA
+  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  expected_obs <- rvec::rbeta_rvec(n = 100,
+                                   shape1 = 10,
+                                   shape2 = 10,
+                                   n_draw = 100)
+  expect_error(draw_outcome_obs_given_conf(confidential = confidential,
+                                           nm_distn = "wrong",
+                                           outcome_conf = outcome_conf,
+                                           offset = offset,
+                                           expected_obs = expected_obs,
+                                           disp = disp),
+               "Internal error: Invalid value for `nm_distn`.")
+  expect_error(draw_outcome_obs_given_conf(confidential = confidential,
+                                           nm_distn = "wrong",
+                                           outcome_conf = outcome_conf,
+                                           offset = offset,
+                                           expected_obs = expected_obs,
+                                           disp = NULL),
+               "Internal error: Invalid value for `nm_distn`.")
+})
+
+
+
 ## 'make_i_lik_part' ----------------------------------------------------------
 
 test_that("'make_i_lik_part' works with bage_confidential_rr3", {
