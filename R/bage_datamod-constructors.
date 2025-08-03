@@ -1,0 +1,72 @@
+
+
+#' Create New Random Error Data Model for Outcomes
+#'
+#' @returns Object of class 'bage_datamod_error'
+#'
+#' @noRd
+new_bage_datamod_error <- function(mean = 0, sd) {
+  ans <- list(mean = mean, sd = sd)
+  class(ans) <- c("bage_datamod_error",
+                  "bage_datamod_outcome",
+                  "bage_datamod")
+  ans
+}
+
+
+#' Create New Data Model for Exposures
+#'
+#' @returns Object of class 'bage_datamod_exposure'
+#'
+#' @noRd
+new_bage_datamod_exposure <- function(ratio, dispersion) {
+  ans <- list(ratio = ratio, dispersion = dispersion)
+  class(ans) <- c("bage_datamod_exposure",
+                  "bage_datamod_offset",
+                  "bage_datamod")
+  ans
+}
+
+
+
+#' Create New Miscount Data Model for Outcomes
+#'
+#' @returns Object of class 'bage_datamod_miscount'
+#'
+#' @noRd
+new_bage_datamod_miscount <- function(prob, rate) {
+  ans <- list(prob = prob, rate = rate)
+  class(ans) <- c("bage_datamod_miscount",
+                  "bage_datamod_outcome",
+                  "bage_datamod")
+  ans
+}
+
+
+#' Create New Overcount Data Model for Outcomes
+#'
+#' @returns Object of class 'bage_datamod_over'
+#'
+#' @noRd
+new_bage_datamod_overcount <- function(rate) {
+  ans <- list(rate = rate)
+  class(ans) <- c("bage_datamod_overcount",
+                  "bage_datamod_outcome",
+                  "bage_datamod")
+  ans
+}
+
+
+#' Create New Undercount Data Model for Outcomes
+#'
+#' @returns Object of class 'bage_datamod_undercount'
+#'
+#' @noRd
+new_bage_datamod_undercount <- function(prob) {
+  ans <- list(prob = prob)
+  class(ans) <- c("bage_datamod_undercount",
+                  "bage_datamod_outcome",
+                  "bage_datamod")
+  ans
+}
+
