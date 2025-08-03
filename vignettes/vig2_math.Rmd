@@ -17,7 +17,8 @@ bibliography: references.bib
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
+library(knitr)
+opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
@@ -1037,7 +1038,135 @@ set_disp(mean = 1)
 
 # Data models
 
-## Data models for outcome
+## Overview
+
+Principles:
+
+- Can have data model for outcome, or for exposure, but not both
+- But *can* have data model and confidentialization (eg model of undercount, combined with RR3)
+- Models must scale well -- cannot use direct approach of treating true outcome, or true exposure, as parameter to be estimated directly
+
+Notation:
+
+- When modelling errors in outcome, distinguish between $y^{\text{true}}$ and $y^{\text{obs}}$. When modelling errors in exposure, distinguish between $w^{\text{true}}$ and $w^{\text{obs}}$.
+
+
+```{r, echo = FALSE}
+library(tibble)
+
+models <- tibble(
+  Model = c("Poisson", "Poisson", "Binomial", "Normal"),
+  `System model` = c(
+    paste(
+      "$$",
+      "y_i^{\\text{true}} \\sim \\text{Poisson}(\\gamma_i w_i) \\\\",
+      "\\gamma_i \\sim \\text{Gamma}(\\xi^{-1}, (\\xi \\mu_i)^{-1})",
+      "$$"
+    ),
+    "$$ y_i \\sim \\text{Poisson}(\\mu_i w_i^{\\text{true}}) $$",
+    paste(
+      "$$",
+      "y_i^{\\text{true}} \\sim \\text{Binomial}(w_i, \\gamma_i) \\\\",
+      "\\gamma_i \\sim \\text{Beta}(\\xi^{-1} \\mu_i, \\xi^{-1}(1 - \\mu_i))",
+      "$$"
+    ),
+    "$$ y_i^{\\text{true}} \\sim \\text{N}(\\mu_i, w_i^{-1} \\xi^2) $$"
+  ),
+  `Data model` = c(
+    paste(
+      "$$",
+      "y_i^{\\text{obs}} = u_i + v_i \\\\",
+      "u_i \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]}) \\\\",
+      "v_i \\sim \\text{Poisson}(\\kappa_{h[i]} \\gamma_i w_i)",
+      "$$"
+    ),
+    paste(
+      "$$",
+      "w_i^{\\text{obs}} \\sim \\text{IG}\\left(\\frac{1}{\\varphi}, ",
+      "\\left[\\frac{1}{\\varphi} - 1\\right] \\rho_i w_i^{\\text{true}} \\right)",
+      "$$"
+    ),
+    "$$ y_i^{\\text{obs}} \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]}) $$",
+    paste(
+      "$$",
+      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i \\\\",
+      "\\epsilon_i \\sim \\text{N}(m_i, s_i^2)",
+      "$$"
+    )
+  )
+)
+
+kable(models,
+      format = "pipe",
+      align = c("l", "c", "c"),
+      escape = FALSE,
+      caption = "System models and data models")
+```
+
+## Poisson, outcome variable
+
+### System model
+
+Unaffected: \@ref(eq:lik-pois-1)--\@ref(eq:lik-pois-2).
+
+### Data model
+
+\begin{align}
+  y_i^{\text{obs}} & = u_i + v_i \\
+  u_i & \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) (\#eq:datamod-u-i) \\
+  v_i & \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i) (\#eq:datamod-v-i) \\
+  \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\ 
+  \kappa_h & \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)}),
+\end{align}
+where values for $A_g^{(\pi)}$, $B_g^{(\pi)}$, $A_h^{(\kappa)}$, and $B_h^{(\kappa)}$ are supplied by the user.
+
+Note that
+\begin{equation}
+  u_i \mid \pi_{g[i]}, \gamma_i, w_i \sim \text{Poisson}(\pi_{g[i]} \gamma_i w_i), (\#eq:datamod-u-i-cond)
+\end{equation}
+and that 
+\begin{equation}
+  y_i^{\text{obs}} \mid \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Poisson}((\pi_{g[i]} + \kappa_{h[i]}) \gamma_i w_i).
+\end{equation}
+
+We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure overcount model, and for $m_i \equiv 0$, $0 < p_i < 1$, which yields a pure undercount model.
+
+### Combined model seen by TMB
+
+\begin{align}
+  y_i^{\text{obs}} & \sim \text{NegBinom}\left(\xi^{-1}, (1 + (\pi_{g[i]} + \kappa_{h[i]})\mu_i w_i \xi)^{-1}\right) \\
+  \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\
+  \kappa_h & \sim \text{Gamma}(A_h^{(\pi)}, B_h^{(\pi)})
+\end{align}
+
+
+### Deriving $y_i^{\text{true}}$
+
+\@ref(eq:datamod-v-i) and \@ref(eq:datamod-u-i-cond) imply that
+\begin{equation}
+  u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Binomial}\left(y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}}\right)
+\end{equation}
+
+As shown in Appendix \@ref(app:datamod), \@ref(eq:lik-pois-1) and \@ref(eq:datamod-u-i) imply that
+\begin{equation}
+  y_i^{\text{true}} - u_i \mid u_i, \pi_{g[i]}, \gamma_i, w_i \sim \text{Poisson}((1 - \pi_{g[i]}) \gamma_i w_i)
+\end{equation}
+
+
+
+
+
+
+## Poisson, exposure
+
+## Binomial, outcome variable
+
+## Normal, outcome variable
+
+
+
+
+# Confidentialization
 
 ### Random Rounding to Base 3
 
@@ -1301,11 +1430,33 @@ We can rewrite \@ref(eq:svd1) as
 \end{align}
 where $\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{s})$ and $\pmb{g} = \pmb{U} \pmb{D} \pmb{m}$.
 
+
 Let $\tilde{\pmb{v}}_l$ be a randomly-selected column from $\tilde{\pmb{V}}$. From the construction of $\tilde{\pmb{V}}$ we have $\text{E}[\tilde{v}_{kl}] = 0$ and $\text{var}[\tilde{v}_{kl}] = 1$. If $\pmb{z}$ is a vector of standard normal variables, then
 \begin{equation}
   \pmb{F} \pmb{z} + \pmb{g}
 \end{equation}
 should look approximately like a randomly-selected column from the original data matrix $\pmb{A}$.
+
+
+## Derivation of quantities used in data models {#app:datamod}
+
+\begin{align}
+    p(y | u) & \propto p(u | y) p(y) \\
+    & = \text{Binomial}(u | y, \pi) \text{Poisson}(y | \lambda) \\
+    & \propto \binom{y}{u}(1-\pi)^{y-u} \frac{1}{y!} \lambda^y \\
+    & \propto \frac{1}{(y-u)!} [(1-\pi)\lambda]^y (\#eq:unnormalised)
+\end{align}
+The quantity $p(y|u)$ can be obtained by normalizing (\#eq:unnormalised). Summing \@ref(eq:unnormalised) over all possible values, we obtain
+\begin{align}
+    \sum_{y=u}^{\infty} \frac{1}{(y-u)!} [(1-\pi)\lambda]^y & = \sum_{i = 0}^{\infty} \frac{1}{i!}[(1-\pi)\lambda]^{i + u} \\
+    & = [(1-\pi)\lambda]^u \sum_{i = 0}^{\infty} \frac{[(1-\pi)\lambda]^i}{i!} \\
+    & = [(1-\pi)\lambda]^u e^{(1-\pi)\lambda} (\#eq:sum)
+\end{align}
+ by dividing \@ref(eq:unnormalised) by \@ref(eq:sum) gives
+\begin{equation}
+  p(y | u) = \frac{[(1-\pi)\lambda]^{y-u} e^{-(1-\pi)\lambda}}{y-u}. (\#eq:pmf)
+\end{equation}
+
 
 
 # References

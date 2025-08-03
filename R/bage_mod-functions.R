@@ -133,7 +133,6 @@ set_confidential_rr3 <- function(mod) {
 #' @returns A modified version of `mod`
 #'
 #' @seealso
-#' - [datamods] Overview of data models implemented in **bage**
 #' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
 #'   model for rates, probabilities, or means
 #'
@@ -169,7 +168,7 @@ set_covariates <- function(mod, formula) {
 
 #' Specify RR3 Data Model
 #'
-#' #' `r lifecycle::badge('deprecated'
+#' #' `r lifecycle::badge('deprecated')
 #'
 #' This function has been deprecated, and will
 #' be removed from future versions of `bage`.
@@ -224,7 +223,7 @@ set_datamod_outcome_rr3 <- function(mod) {
 #' a fitted model, `set_disp()` [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
-#' @inheritParams set_datamod_outcome_rr3
+#' @inheritParams set_confidential_rr3
 #' @param mean Mean value for the exponential prior.
 #' In Poisson and binomial models, can be set to 0.
 #' Default is `1`.
@@ -276,7 +275,7 @@ set_disp <- function(mod, mean = 1) {
 #' then the model is [unfitted][unfit()], and
 #' function [fit()] may need to be called again.
 #'
-#' @inheritParams set_datamod_outcome_rr3
+#' @inheritParams set_confidential_rr3
 #' @param n_draw Number of draws.
 #'
 #' @returns A `bage_mod` object
@@ -519,7 +518,7 @@ set_seeds <- function(mod, new_seeds = NULL) {
 #' a fitted model, `set_var_age()` [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
-#' @inheritParams set_datamod_outcome_rr3
+#' @inheritParams set_confidential_rr3
 #' @param name The name of the age variable.
 #'
 #' @returns A `bage_mod` object
@@ -577,7 +576,7 @@ set_var_age <- function(mod, name) {
 #' a fitted model, `set_var_sexgender()` [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
-#' @inheritParams set_datamod_outcome_rr3
+#' @inheritParams set_confidential_rr3
 #' @param name The name of the sex or gender variable.
 #'
 #' @returns A `"bage_mod"` object
@@ -642,7 +641,7 @@ set_var_sexgender <- function(mod, name) {
 #' a fitted model, `set_var_time()` [unfits][unfit()]
 #' the model, deleting existing estimates.
 #'
-#' @inheritParams set_datamod_outcome_rr3
+#' @inheritParams set_confidential_rr3
 #' @param name The name of the time variable.
 #'
 #' @returns A `bage_mod` object
