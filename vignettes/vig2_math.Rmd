@@ -1082,8 +1082,7 @@ models <- tibble(
     ),
     paste(
       "$$",
-      "w_i^{\\text{obs}} \\sim \\text{IG}\\left(\\frac{1}{\\varphi}, ",
-      "\\left[\\frac{1}{\\varphi} - 1\\right] \\rho_i w_i^{\\text{true}} \\right)",
+      "w_i^{\\text{obs}} \\sim \\text{InvGamma}(2 + \\delta^{-1}, (1 + \\delta^{-1}) r_i w_i^{\\text{true}})",
       "$$"
     ),
     "$$ y_i^{\\text{obs}} \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]}) $$",
@@ -1107,7 +1106,11 @@ kable(models,
 
 ### System model
 
-Unaffected: \@ref(eq:lik-pois-1)--\@ref(eq:lik-pois-2).
+Same as original model, but be explicit that modelling actual outcome:
+\begin{align}
+  y_i^{\text{true}} & \sim \text{Poisson}(\gamma_i w_i) (\#eq:lik-pois-outcome-1) \\
+  \gamma_i & \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  (\#eq:lik-pois-outcome-2)
+\end{align}
 
 ### Data model
 
@@ -1120,14 +1123,14 @@ Unaffected: \@ref(eq:lik-pois-1)--\@ref(eq:lik-pois-2).
 \end{align}
 where values for $A_g^{(\pi)}$, $B_g^{(\pi)}$, $A_h^{(\kappa)}$, and $B_h^{(\kappa)}$ are supplied by the user.
 
-Note that
-\begin{equation}
-  u_i \mid \pi_{g[i]}, \gamma_i, w_i \sim \text{Poisson}(\pi_{g[i]} \gamma_i w_i), (\#eq:datamod-u-i-cond)
-\end{equation}
-and that 
-\begin{equation}
-  y_i^{\text{obs}} \mid \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Poisson}((\pi_{g[i]} + \kappa_{h[i]}) \gamma_i w_i).
-\end{equation}
+Note
+\begin{align}
+  u_i & \mid \pi_{g[i]}, \gamma_i, w_i \sim \text{Poisson}(\pi_{g[i]} \gamma_i w_i), (\#eq:datamod-u-i-cond) \\
+  y_i^{\text{obs}} & \mid \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Poisson}((\pi_{g[i]} + \kappa_{h[i]}) \gamma_i w_i) \\
+  E[y_i^{\text{obs}} - y_i^{\text{true}}] & = (\kappa_i - [1 - \pi_i]) \gamma_i w_i \\
+  \text{var}[y_i^{\text{obs}} - y_i^{\text{true}}] & = (\kappa_i + [1 -\pi_i]) \gamma_i w_i
+\end{align}
+
 
 We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure overcount model, and for $m_i \equiv 0$, $0 < p_i < 1$, which yields a pure undercount model.
 
@@ -1147,19 +1150,101 @@ We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure
   u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Binomial}\left(y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}}\right)
 \end{equation}
 
-As shown in Appendix \@ref(app:datamod), \@ref(eq:lik-pois-1) and \@ref(eq:datamod-u-i) imply that
+As shown in Appendix \@ref(app:datamod), \@ref(eq:lik-pois-outcome-1) and \@ref(eq:datamod-u-i) imply that
 \begin{equation}
   y_i^{\text{true}} - u_i \mid u_i, \pi_{g[i]}, \gamma_i, w_i \sim \text{Poisson}((1 - \pi_{g[i]}) \gamma_i w_i)
 \end{equation}
 
 
 
-
-
-
 ## Poisson, exposure
 
+
+### System model
+
+Drop gamma errors for rates, and be explicit that outcome depends on actual exposure:
+\begin{equation}
+  y_i \sim \text{Poisson}(\mu_i w_i^{\text{true}}) (\#eq:lik-pois-offset)
+\end{equation}
+
+### Data model
+
+\begin{align}
+  w_i^{\text{obs}} & \sim \text{InvGamma}(2 + \delta^{-1}, (1 + \delta^{-1}) r_i w_i^{\text{true}}) \\
+  \delta & \sim \text{Exp}(A_{\delta}) 
+\end{align}
+where values for $r_i$ and $A_{\delta}$ are supplied by the user.
+
+Note that
+\begin{align}
+  E[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = r_i w_i^{\text{true}} \\
+  \text{var}[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = \delta (r_i w_i^{\text{true}})^2 \\
+  w_i^{\text{true}} \mid w_i^{\text{obs}}  & \sim \text{Gamma}(3 + \delta^{-1}, (1 + \delta^{-1}) r_i [w_i^{\text{obs}}]^{-1}) (\#eq:w-true) \\
+  E[w_i^{\text{true}} \mid w_i^{\text{obs}}] & = \frac{3\delta + 1}{\delta + 1} \frac{w_i^{\text{obs}}}{r_i} \\
+  \text{var}[w_i^{\text{true}} \mid w_i^{\text{obs}}] & = \frac{\delta (3\delta + 1)}{(\delta + 1)^2} \left(\frac{w_i^{\text{obs}}}{r_i}\right)^2
+\end{align}
+
+(\@ref(eq:w-true)) derived in Appendix \@ref(app:datamod))
+
+### Combined model seen by TMB
+
+\begin{align}
+  y_i^{\text{obs}} & \sim \text{NegBinom}(3 + \delta^{-1}, [1 + (1 + \delta^{-1})^{-1}r_i^{-1} \mu_i w_i^{\text{obs}}]^{-1} ) \\
+  \delta & \sim \text{Exp}(A_{\delta})
+\end{align}
+
+Note that
+\begin{align}
+E[y_i^{\text{obs}}] &= \left( \frac{3 + \delta^{-1}}{1 + \delta^{-1}} \right) \cdot \frac{\mu_i w_i^{\text{obs}}}{r_i} \\
+\\
+\text{var}(y_i^{\text{obs}}) &= \left( \frac{3 + \delta^{-1}}{1 + \delta^{-1}} \right) \cdot \frac{\mu_i w_i^{\text{obs}}}{r_i} \cdot \left( 1 + \left(1 + \delta^{-1}\right)^{-1} \cdot \frac{\mu_i w_i^{\text{obs}}}{r_i} \right)
+\end{align}
+
+### Deriving $y_i^{\text{true}}$
+
+Draw from \@ref(eq:w-true)
+
 ## Binomial, outcome variable
+
+### System model
+
+Same as original model, but be explicit that modelling actual outcome:
+\begin{align}
+  y_i^{\text{true}} & \sim \text{Binom}(w_i, \gamma_i) (\#eq:lik-binom-outcome-1) \\
+  \gamma_i & \sim \text{Beta}\left(\xi^{-1}\mu_i, \xi^{-1} (1-\mu_i) \right),  (\#eq:lik-binom-outcome-2)
+\end{align}
+
+### Data model
+
+\begin{align}
+  y_i^{\text{obs}} & \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) (\#eq:datamod-y-i) \\
+  \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)})
+\end{align}
+where values for $A_g^{(\pi)}$ and $B_g^{(\pi)}$ are supplied by the user.
+
+### Combined model seen by TMB
+
+\begin{equation}
+  y_i^{\text{obs}} \sim \text{Binomial}(w_i, \pi_{g[i]} \gamma_i)
+\end{equation}
+
+
+### Deriving $y_i^{\text{true}}$
+
+
+\begin{align}
+p(y_i^{\text{true}} \mid y_i^{\text{obs}}, w_i, \gamma_i, \pi_{g[i]}) & = \frac{p(y_i^{\text{true}}, y_i^{\text{obs}} \mid w_i, \gamma_i, \pi_{g[i]})}{p(y_i^{\text{obs}} \mid w_i, \gamma_i, \pi_{g[i]})} \\
+& = \frac{ \text{Multinomial}([y_1, y_2, y_3] \mid w_i, [p_1, p_2, p_3]) }{\text{Binomial}(y_1 \mid w_i, p_1)}
+\end{align}
+where
+\begin{align}
+  y_1 & = y_i^{\text{obs}} \\
+  y_2 & = y_i^{\text{true}} - y_i^{\text{obs}} \\
+  y_3 & = w_i - y_i^{\text{true}}\\
+  p_1 & = \pi_{g[i]} \gamma_i \\
+  p_2 & = (1 - \pi_{g[i]}) \gamma_i \\
+  p_3 & = 1 - \gamma_i
+\end{align}
 
 ## Normal, outcome variable
 
@@ -1168,7 +1253,7 @@ As shown in Appendix \@ref(app:datamod), \@ref(eq:lik-pois-1) and \@ref(eq:datam
 
 # Confidentialization
 
-### Random Rounding to Base 3
+## Random Rounding to Base 3
 
 Random rounding to base 3 (RR3) is a confidentialization method used by some statistical agencies. It is applied to counts data. Each count $x$ is rounded randomly as follows:
 
@@ -1183,8 +1268,6 @@ RR3 data models can be used with Poisson or binomial likelihoods. Let $y_i$ deno
    & =  \sum_{k = -2, -1, 0, 1, 2} p(y_i | y_i + k) p(y_i + k | \gamma_i, w_i) \\
    & = \tfrac{1}{3} p(y_i - 2 | \gamma_i, w_i) + \tfrac{2}{3} p(y_i - 1 | \gamma_i, w_i) + p(y_i | \gamma_i, w_i) + \tfrac{2}{3} p(y_i + 1 | \gamma_i, w_i) + \tfrac{1}{3} p(y_i + 2 | \gamma_i, w_i) 
 \end{align}
-
-## Data models for exposure or size
 
 
 # Estimation
@@ -1440,23 +1523,40 @@ should look approximately like a randomly-selected column from the original data
 
 ## Derivation of quantities used in data models {#app:datamod}
 
+### Derivation of $y_i^{\text{true}} | u_i$
+
 \begin{align}
-    p(y | u) & \propto p(u | y) p(y) \\
-    & = \text{Binomial}(u | y, \pi) \text{Poisson}(y | \lambda) \\
-    & \propto \binom{y}{u}(1-\pi)^{y-u} \frac{1}{y!} \lambda^y \\
-    & \propto \frac{1}{(y-u)!} [(1-\pi)\lambda]^y (\#eq:unnormalised)
+    p(y_i^{\text{true}} \mid u_i) & \propto p(u_i \mid y_i^{\text{true}}) p(y_i^{\text{true}}) \\
+    & = \text{Binomial}(u_i \mid y_i^{\text{true}}, \pi_i) \text{Poisson}(y_i^{\text{true}} \mid \lambda) \\
+    & \propto \binom{y_i^{\text{true}}}{u_i}(1-\pi_i)^{y_i^{\text{true}}-u_i} \frac{1}{y_i^{\text{true}}!} \lambda^{y_i^{\text{true}}} \\
+    & \propto \frac{1}{(y_i^{\text{true}}-u_i)!} [(1-\pi_i)\lambda]^{y_i^{\text{true}}} (\#eq:unnormalised)
 \end{align}
-The quantity $p(y|u)$ can be obtained by normalizing (\#eq:unnormalised). Summing \@ref(eq:unnormalised) over all possible values, we obtain
+The quantity $p(y_i^{\text{true}} \mid u_i)$ can be obtained by normalizing \@ref(eq:unnormalised). Summing \@ref(eq:unnormalised) over all possible values, we obtain
 \begin{align}
-    \sum_{y=u}^{\infty} \frac{1}{(y-u)!} [(1-\pi)\lambda]^y & = \sum_{i = 0}^{\infty} \frac{1}{i!}[(1-\pi)\lambda]^{i + u} \\
-    & = [(1-\pi)\lambda]^u \sum_{i = 0}^{\infty} \frac{[(1-\pi)\lambda]^i}{i!} \\
-    & = [(1-\pi)\lambda]^u e^{(1-\pi)\lambda} (\#eq:sum)
+    \sum_{y_i^{\text{true}}=u_i}^{\infty} \frac{1}{(y_i^{\text{true}}-u_i)!} [(1-\pi_i)\lambda]^{y_i^{\text{true}}} & = \sum_{i = 0}^{\infty} \frac{1}{i!}[(1-\pi_i)\lambda]^{i + u_i} \\
+    & = [(1-\pi_i)\lambda]^u_i \sum_{i = 0}^{\infty} \frac{[(1-\pi_i)\lambda]^i}{i!} \\
+    & = [(1-\pi_i)\lambda]^u_i e^{(1-\pi_i)\lambda} (\#eq:sum)
 \end{align}
  by dividing \@ref(eq:unnormalised) by \@ref(eq:sum) gives
 \begin{equation}
-  p(y | u) = \frac{[(1-\pi)\lambda]^{y-u} e^{-(1-\pi)\lambda}}{y-u}. (\#eq:pmf)
+  p(y_i^{\text{true}} \mid u_i) = \frac{[(1-\pi_i)\lambda]^{y_i^{\text{true}}-u_i} e^{-(1-\pi_i)\lambda}}{y_i^{\text{true}}-u_i}. (\#eq:pmf)
 \end{equation}
 
+
+### Derivation of $p(w_i^{\text{true}} \mid w_i^{\text{obs}})$
+
+Assume have no prior information on $w_i^{\text{true}}$, so that $w_i^{\text{true}} \sim \text{Unif}(0, \infty)$. Let $A = 2 + \delta^{-1}$ and $B = (1 + \delta^{-1}) r_i$.
+
+\begin{align}
+  p(w_i^{\text{true}} \mid w_i^{\text{obs}}) & \propto p(w_i^{\text{obs}} \mid w_i^{\text{true}})  p(w_i^{\text{true}}) \\
+  & \propto p(w_i^{\text{obs}} \mid w_i^{\text{true}}) \\
+  & = \text{InvGamma}(A, B w_i^{\text{true}}) \\
+  & = \frac{(B w_i^{\text{true}})^A}{\Gamma(A)} (w_i^{\text{obs}})^{-A-1} \exp \left(-\frac{B w_i^{\text{true}}}{w_i^{\text{obs}}} \right) \\
+  & \propto (w_i^{\text{true}})^A \exp \left(-\frac{B}{w_i^{\text{obs}}} w_i^{\text{true}} \right) \\
+  & \propto \text{Gamma}(w_i^{\text{true}} \mid A + 1, B [w_i^{\text{obs}}]^{-1} ) \\
+  & = \text{Gamma}(w_i^{\text{true}} \mid 3 + \delta^{-1}, (1 + \delta^{-1}) r_i [w_i^{\text{obs}}]^{-1})
+\end{align}
+as required.
 
 
 # References
