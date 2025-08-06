@@ -1102,7 +1102,7 @@ kable(models,
       caption = "System models and data models")
 ```
 
-## Poisson, outcome variable
+## Poisson, measurement errors in outcome variable
 
 ### System model
 
@@ -1157,8 +1157,7 @@ As shown in Appendix \@ref(app:datamod), \@ref(eq:lik-pois-outcome-1) and \@ref(
 
 
 
-## Poisson, exposure
-
+## Poisson, measurement errors in exposure
 
 ### System model
 
@@ -1204,7 +1203,7 @@ E[y_i^{\text{obs}}] &= \left( \frac{3 + \delta^{-1}}{1 + \delta^{-1}} \right) \c
 
 Draw from \@ref(eq:w-true)
 
-## Binomial, outcome variable
+## Binomial, measurement errors in outcome variable
 
 ### System model
 
@@ -1225,18 +1224,18 @@ where values for $A_g^{(\pi)}$ and $B_g^{(\pi)}$ are supplied by the user.
 ### Combined model seen by TMB
 
 \begin{equation}
-  y_i^{\text{obs}} \sim \text{Binomial}(w_i, \pi_{g[i]} \gamma_i)
+  y_i^{\text{obs}} \sim \text{BetaBinomial}(w_i, \xi^{-1} \pi_{g[i]} \mu_i, \xi^{-1} [1-\pi_{g[i]} \mu_i])
 \end{equation}
 
 
 ### Deriving $y_i^{\text{true}}$
 
-
+Draw from distribution defined by
 \begin{align}
 p(y_i^{\text{true}} \mid y_i^{\text{obs}}, w_i, \gamma_i, \pi_{g[i]}) & = \frac{p(y_i^{\text{true}}, y_i^{\text{obs}} \mid w_i, \gamma_i, \pi_{g[i]})}{p(y_i^{\text{obs}} \mid w_i, \gamma_i, \pi_{g[i]})} \\
 & = \frac{ \text{Multinomial}([y_1, y_2, y_3] \mid w_i, [p_1, p_2, p_3]) }{\text{Binomial}(y_1 \mid w_i, p_1)}
 \end{align}
-where
+for $y_i^{\text{true}} = y_i^{\text{obs}}, \cdots, w_i$, where
 \begin{align}
   y_1 & = y_i^{\text{obs}} \\
   y_2 & = y_i^{\text{true}} - y_i^{\text{obs}} \\
@@ -1246,28 +1245,79 @@ where
   p_3 & = 1 - \gamma_i
 \end{align}
 
-## Normal, outcome variable
+## Normal, measurement errors in outcome variable
+
+### System model
+
+Same as original model, but be explicit that modelling actual outcome, and scale $\mu$ and $\xi$ by values calculated from reported rather than actual $y_i$:
+\begin{align}
+  y_i^{\text{true}} & \sim \text{N}(\gamma_i, w_i^{-1} \sigma^2) \\
+  \gamma_i & = \bar{y} + s \mu_i \\
+  \sigma^2 & = \bar{w} s^2 \xi^2
+\end{align}
+where
+\begin{align}
+  \bar{y} & = \frac{\sum_{i=1}^n y_i^{\text{obs}}}{n} \\
+  s & = \sqrt{\frac{\sum_{i=1}^n (y_i^{\text{obs}} - \bar{y})^2}{n-1}} \\
+  \bar{w} & = \frac{\sum_{i=1}^n w_i}{n}.
+\end{align}
+
+### Data model
+
+\begin{align}
+  y_i^{\text{obs}} & = y_i^{\text{true}} + \epsilon_i \\
+  \epsilon_i & \sim \text{N}(m_i, s_i^2)
+\end{align}
+where values for $m_i$ and $s_i$ are supplied by the user.
+
+### Combined model seen by TMB
+
+\begin{equation}
+  y_i^{\text{obs}} \sim \text{N}(\gamma_i + m_i, w_i^{-1}\sigma^2 + s_i^2)
+\end{equation}
 
 
+### Deriving $y_i^{\text{true}}$
 
+\begin{equation}
+  y_i^{\text{true}} \sim \text{N}\left(\frac{\tau_1}{\tau_1 + \tau_2} \gamma_i + \frac{\tau_2}{\tau_1 + \tau_2} (y_i^{\text{obs}} - m_i),\quad
+\left( \tau_1 + \tau_2 \right)^{-1} \right)
+\end{equation}
+where $\tau_1 = \frac{w_i}{\sigma^2}$ and $\tau_2 = \frac{1}{s_i^2}$
 
 # Confidentialization
 
-## Random Rounding to Base 3
+## Random Rounding to Multiples of 3
 
-Random rounding to base 3 (RR3) is a confidentialization method used by some statistical agencies. It is applied to counts data. Each count $x$ is rounded randomly as follows:
+### Procedure
 
-- If $x \mod 3 = 0$, then $x$ is left unchanged;
-- if $x \mod 3 = 1$ then $x$ is changed to $x-1$ with probability 2/3, and is changed to $x + 2$ with probability 1/3; and
-- if $x \mod 3 = 2$ then $x$ is changed to $x-2$ with probability 1/3, and is changed to $x + 1$ with probability 2/3.
+Random rounding to multiples of 3 (RR3) is applied to counts data. Let $y_i^{\text{un}}$ denote the original unconfidentialized count, and $y_i^{\text{con}}$ the confidentialised version. Then, under RR3,
 
-RR3 data models can be used with Poisson or binomial likelihoods. Let $y_i$ denote the observed value for the outcome, and $y_i^*$  the true value. The likelihood with a RR3 data model is then
+- If $y_i^{\text{un}} \bmod 3 = 0$, then $y_i^{\text{con}} = y_i^{\text{un}}$.
+- if $y_i^{\text{un}} \bmod 3 = 1$ then $y_i^{\text{con}} = y_i^{\text{un}}-1$ with probability 2/3, and $y_i^{\text{con}} = y_i^{\text{un}} + 2$ with probability 1/3;
+- if $y_i^{\text{un}} \bmod 3 = 2$ then $y_i^{\text{con}} = y_i^{\text{un}}-2$ with probability 1/3, and $y_i^{\text{con}} = y_i^{\text{un}} + 1$ with probability 2/3.
+
+### Model seen by TMB
 
 \begin{align}
-  p(y_i | \gamma_i, w_i) & = \sum_{y_i^*} p(y_i | y_i^*) p(y_i^* | \gamma_i, w_i) \\
-   & =  \sum_{k = -2, -1, 0, 1, 2} p(y_i | y_i + k) p(y_i + k | \gamma_i, w_i) \\
-   & = \tfrac{1}{3} p(y_i - 2 | \gamma_i, w_i) + \tfrac{2}{3} p(y_i - 1 | \gamma_i, w_i) + p(y_i | \gamma_i, w_i) + \tfrac{2}{3} p(y_i + 1 | \gamma_i, w_i) + \tfrac{1}{3} p(y_i + 2 | \gamma_i, w_i) 
+  p(y_i^{\text{con}}) & = \sum_{y_i^{\text{un}}} p_{\text{con}}(y_i^{\text{con}} | y_i^{\text{un}}) p_{\text{un}}(y_i^{\text{un}}) \\
+   & =  \sum_{k = -2, -1, 0, 1, 2} p_{\text{con}}(y_i^{\text{con}} | y_i^{\text{con}} + k) p_{\text{un}}(y_i^{\text{con}} + k)
 \end{align}
+where
+
+- $p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid \xi^{-1}, [1 + \mu_i w_i \xi]^{-1}\right)$ in Poisson model with no measurement errors;
+- $p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid \xi^{-1}, [1 + (\pi_{g[i]} + \kappa_{h[i]}) \mu_i w_i \xi]^{-1}\right)$ in Poisson model with measurement error in outcome;
+- $p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid 3 + \delta^{-1}, [1 + (1 + \delta^{-1})^{-1}r_i^{-1} \mu_i w_i^{\text{obs}}]^{-1} \right)$ in Poisson model with measurement error in exposure;
+- $p_{\text{un}}(\cdot) = \text{BetaBinomial}(\cdot \mid w_i, \xi^{-1} \mu_i, \xi^{-1} [1-\mu_i])$ in Binomial model with not measurement error; and
+- $p_{\text{un}}(\cdot) = \text{BetaBinomial}(\cdot \mid w_i, \xi^{-1} \pi_{g[i]} \mu_i, \xi^{-1} [1-\pi_{g[i]} \mu_i])$ in Binomial model with measurement error in outcome.
+
+
+
+### Deriving $y_i^{\text{un}}$
+
+#### Poisson, no measurement error
+
+
 
 
 # Estimation
