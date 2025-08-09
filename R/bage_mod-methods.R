@@ -135,7 +135,7 @@ augment.bage_mod <- function(x,
     ans <- draw_vals_augment_fitted(x)
   else {
     if (!quiet)
-      cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
+      cli::cli_alert_info("Model not fitted, so drawing values straight from the prior distribution.")
     ans <- draw_vals_augment_unfitted(x)
   }
   ans
@@ -428,7 +428,7 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   datamod_outcome <- mod$datamod_outcome
   seed_augment <- mod$seed_augment
   nm_distn <- nm_distn(mod)
-  scale_linpred <- get_fun_scale_linpred(mod)
+  scale_linpred <- get_fun_orig_scale_linpred(mod)
   ans <- mod$data
   linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
   if (is_not_testing_or_snapshot())
@@ -551,7 +551,7 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   offset_mean <- mod$offset_mean
   offset <- offset_mean * offset
   nm_distn <- nm_distn(mod)
-  scale_linpred <- get_fun_scale_linpred(mod)
+  scale_linpred <- get_fun_orig_scale_linpred(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw)
   nm_outcome_data <- get_nm_outcome_data(mod)
@@ -1172,7 +1172,7 @@ forecast_augment.bage_mod_norm <- function(mod,
   nm_outcome_data_true <- paste0(".", nm_outcome_data)
   nm_offset_data <- get_nm_offset_data(mod)
   has_offset_est <- !is.null(nm_offset_data)
-  scale_linpred <- get_fun_scale_linpred(mod)
+  scale_linpred <- get_fun_orig_scale_linpred(mod)
   has_datamod_outcome <- !is.null(datamod_outcome)
   has_imputed_outcome_est <- anyNA(outcome_est)
   blank <- rep(NA_real_, times = nrow(data_forecast))
@@ -1316,33 +1316,115 @@ get_fun_inv_transform.bage_mod_binom <- function(mod)
 get_fun_inv_transform.bage_mod_norm <- function(mod) identity
 
 
-## 'get_fun_scale_linpred' ----------------------------------------------------
+## 'get_fun_orig_scale_disp' --------------------------------------------------
 
-#' Get Function to Scale Linear Predictor, in Normal Models
+#' Get Function to put Dispersion on to Original Scale,
+#' in Normal Models
 #'
-#' Get function to scale linear predictor, if necessary.
-#' The scaling consists of multiplying by the sd
-#' of the original outcome, and then adding the
-#' mean. Applied only to the normal model.
-#' In other cases, the function returned is the
-#' identity function.
+#' Get function to scale dispersion
+#' (ie standard deviation in Normal model).
+#' The scaling consists of multiplying by the
+#' square root of the mean of the weights, and
+#' the standard deviation of the original outcome.
+#' Applied only to the normal model.
 #'
 #' @param mod Object of class "bage_mod"
 #'
-#' @returns TRUE or FALSE
+#' @returns A function
 #'
 #' @noRd
-get_fun_scale_linpred <- function(mod) {
-    UseMethod("get_fun_scale_linpred")
+get_fun_orig_scale_disp <- function(mod) {
+    UseMethod("get_fun_orig_scale_disp")
 }
 
+## HAS_TESTS
 #' @export
-get_fun_scale_linpred.bage_mod_norm <- function(mod) {
+get_fun_orig_scale_disp.bage_mod_norm <- function(mod) {
+    mean <- mod$offset_mean
+    sd <- mod$outcome_sd
+    function(x) sqrt(mean) * sd * x
+}
+
+
+## 'get_fun_orig_scale_linpred' -----------------------------------------------
+
+#' Get Function to Put Linear Predictor on to Original Scale,
+#' in Normal Models
+#'
+#' Get function to scale and shift linear predictor.
+#' The scaling consists of multiplying by the sd
+#' of the original outcome, and then adding the
+#' mean. Applied only to the normal model.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A function
+#'
+#' @noRd
+get_fun_orig_scale_linpred <- function(mod) {
+    UseMethod("get_fun_orig_scale_linpred")
+}
+
+## HAS_TESTS
+#' @export
+get_fun_orig_scale_linpred.bage_mod_norm <- function(mod) {
     mean <- mod$outcome_mean
     sd <- mod$outcome_sd
     function(x) x * sd + mean
 }
 
+
+## 'get_fun_orig_scale_offset' ------------------------------------------------
+
+#' Get Function to Put Offset (Weights)
+#' on to Original Scale, in Normal Models
+#'
+#' Get function to scale offset.
+#' The scaling consists of multiplying by the mean
+#' of the original offset.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A function
+#'
+#' @noRd
+get_fun_orig_scale_offset <- function(mod) {
+    UseMethod("get_fun_orig_scale_offset")
+}
+
+## HAS_TESTS
+#' @export
+get_fun_orig_scale_offset.bage_mod_norm <- function(mod) {
+    mean <- mod$offset_mean
+    function(x) x * mean
+}
+
+
+
+## 'get_fun_orig_scale_offset' ------------------------------------------------
+
+#' Get Function to Put Offset (Weights)
+#' on to Original Scale, in Normal Models
+#'
+#' Get function to scale offset.
+#' The scaling consists of multiplying by the mean
+#' of the original offset.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A function
+#'
+#' @noRd
+get_fun_orig_scale_offset <- function(mod) {
+    UseMethod("get_fun_orig_scale_offset")
+}
+
+## HAS_TESTS
+#' @export
+get_fun_orig_scale_offset.bage_mod_norm <- function(mod) {
+    mean <- mod$offset_mean
+    function(x) x * mean
+}
 
 ## 'get_nm_offset_data' --------------------------------------------------------
 
@@ -1444,11 +1526,33 @@ get_nm_outcome_obs.bage_mod <- function(mod) {
 }
 
 
+## 'has_confidential' ---------------------------------------------------------
+
+#' Test Whether Model Includes Confidential
+#'
+#' @param mod A model object.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+has_confidential <- function(mod) {
+    UseMethod("has_confidential")
+}
+
+## HAS_TESTS
+#' @export
+has_confidential.bage_mod <- function(mod) {
+  confidential <- mod$confidential
+  !is.null(confidential)
+}
+
+
+
 ## 'has_covariates' -----------------------------------------------------------
 
 #' Test Whether Model Includes Covariates
 #'
-#' @param x A model object.
+#' @param mod A model object.
 #'
 #' @returns `TRUE` or `FALSE`
 #'
@@ -1462,6 +1566,48 @@ has_covariates <- function(mod) {
 has_covariates.bage_mod <- function(mod) {
   formula_covariates <- mod$formula_covariates
   !is.null(formula_covariates)
+}
+
+
+## 'has_datamod' --------------------------------------------------------------
+
+#' Test Whether Model Includes Datamod
+#'
+#' @param mod A model object.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+has_datamod <- function(mod) {
+    UseMethod("has_datamod")
+}
+
+## HAS_TESTS
+#' @export
+has_datamod.bage_mod <- function(mod) {
+  datamod <- mod$datamod
+  !is.null(datamod)
+}
+
+
+## 'has_datamod' --------------------------------------------------------------
+
+#' Test Whether Model Includes Datamod for Outcome
+#'
+#' @param mod A model object.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+has_datamod_outcome <- function(mod) {
+    UseMethod("has_datamod_outcome")
+}
+
+## HAS_TESTS
+#' @export
+has_datamod_outcome.bage_mod <- function(mod) {
+  datamod <- mod$datamod
+  inherits(datamod, "bage_datamod_outcome")
 }
 
 

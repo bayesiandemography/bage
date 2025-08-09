@@ -73,6 +73,111 @@ test_that("'aggregate_report_comp' works with valid inputs", {
 })
 
 
+## 'draw_fitted' --------------------------------------------------------------
+
+test_that("'draw_fitted' works with 'pois'", {
+  set.seed(0)
+  expected <- exp(rvec::rnorm_rvec(n = 20, n_draw = 50))
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- draw_fitted(nm_distn = "pois",
+                              expected = expected,
+                              disp = disp)
+  set.seed(1)
+  ans_expected <- rvec::rgamma_rvec(n = 20,
+                                    shape = 1 / disp,
+                                    rate = 1 / (disp * expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_fitted' works with 'binom'", {
+  set.seed(0)
+  expected <- rvec::rbeta_rvec(n = 20, shape1 = 3, shape2 = 4, n_draw = 50)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- draw_fitted(nm_distn = "binom",
+                              expected = expected,
+                              disp = disp)
+  set.seed(1)
+  ans_expected <- rvec::rbeta_rvec(n = 20,
+                                   shape1 = expected / disp,
+                                   shape2 = (1 - expected) / disp)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_fitted' throws expected error with invalid 'nm_distn'", {
+  set.seed(0)
+  expected <- rvec::rbeta_rvec(n = 20, shape1 = 3, shape2 = 4, n_draw = 50)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  expect_error(draw_fitted(nm_distn = "wrong",
+                           expected = expected,
+                           disp = disp),
+               "Internal error")
+})
+
+
+## 'draw_outcome_true' ---------------------------------------------------
+
+test_that("'draw_outcome_true' works with pois", {
+  set.seed(0)
+  offset <- runif(n = 20, max = 100)
+  fitted <- rvec::rpois_rvec(n = 20, lambda = 10, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- draw_outcome_true(nm_distn = "pois",
+                                    fitted = fitted,
+                                    offset = offset,
+                                    disp = NULL)
+  set.seed(1)
+  ans_expected <- rvec::rpois_rvec(n = 20, lambda = offset * fitted)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_true' works with binom", {
+  set.seed(0)
+  offset <- rpois(n = 20, lambda = 100)
+  fitted <- rvec::rbeta_rvec(n = 20, shape1 = 1, shape2 = 2, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- draw_outcome_true(nm_distn = "binom",
+                                    fitted = fitted,
+                                    offset = offset,
+                                    disp = NULL)
+  set.seed(1)
+  ans_expected <- rvec::rbinom_rvec(n = 20,
+                                    size = offset,
+                                    prob = fitted)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_true' works with norm", {
+  set.seed(0)
+  offset <- runif(n = 20)
+  fitted <- rvec::rnorm_rvec(n = 20, mean = 3, sd = 2, n_draw = 50)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- draw_outcome_true(nm_distn = "norm",
+                                    fitted = fitted,
+                                    offset = offset,
+                                    disp = disp)
+  set.seed(1)
+  ans_expected <- rvec::rnorm_rvec(n = 20,
+                                   mean = fitted,
+                                   sd = disp / sqrt(offset))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_true' throws expected error with invalid 'nm_distn'", {
+  set.seed(0)
+  offset <- runif(n = 20)
+  fitted <- rvec::rnorm_rvec(n = 20, mean = 3, sd = 2, n_draw = 50)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  expect_error(draw_outcome_true(nm_distn = "wrong",
+                                 fitted = fitted,
+                                 offset = offset,
+                                 disp = disp),
+               "Internal error")
+})
+
+
 ## 'draw_vals_ar' -------------------------------------------------------------
 
 test_that("'draw_vals_ar' works with bage_prior_ar - n_by = 1", {
