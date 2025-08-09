@@ -540,7 +540,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- sqrt(mod$offset_mean) * mod$outcome_sd * vals_disp
-  scale_linpred <- get_fun_scale_linpred(mod)
+  scale_linpred <- get_fun_orig_scale_linpred(mod)
   vals_fitted <- scale_linpred(make_linpred_from_components(mod = mod,
                                                             components = vals_components,
                                                             data = mod$data,
@@ -1929,15 +1929,56 @@ test_that("'get_fun_inv_transform' works with valid inputs", {
 })
 
 
-## 'get_fun_scale_linpred' --------------------------------------------------------
+## 'get_fun_orig_scale_disp' --------------------------------------------------
 
-test_that("'get_fun_scale_linpred' works with valid inputs", {
-    expect_equal(get_fun_scale_linpred(structure(list(outcome_mean = 3, outcome_sd = 2),
-                                                 class = c("bage_mod_norm", "bage_mod")))(1), 5)
+test_that("'get_fun_orig_scale_disp' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                      KEEP.OUT.ATTRS = FALSE)
+  data$income <- rnorm(n = nrow(data))
+  data$wt <- runif(n = nrow(data))
+  formula <- income ~ age + sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  f <- get_fun_orig_scale_disp(mod)
+  x <- runif(1)
+  ans_obtained <- f(x)
+  ans_expected <- x * sd(data$income) * sqrt(mean(data$wt))
+  expect_equal(ans_obtained, ans_expected)
 })
 
 
-## 'get_nm_offset_data' -----------------------------------------------------------
+## 'get_fun_orig_scale_linpred' -----------------------------------------------
+
+test_that("'get_fun_orig_scale_linpred' works with valid inputs", {
+  expect_equal(get_fun_orig_scale_linpred(
+    structure(list(outcome_mean = 3, outcome_sd = 2),
+              class = c("bage_mod_norm", "bage_mod")))(1), 5)
+})
+
+
+## 'get_fun_orig_scale_offset' ------------------------------------------------
+
+test_that("'get_fun_orig_scale_offset' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                      KEEP.OUT.ATTRS = FALSE)
+  data$income <- rnorm(n = nrow(data))
+  data$wt <- runif(n = nrow(data))
+  formula <- income ~ age + sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  f <- get_fun_orig_scale_offset(mod)
+  x <- runif(n = nrow(data))
+  ans_obtained <- f(x)
+  ans_expected <- x * mean(data$wt)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'get_nm_offset_data' -------------------------------------------------------
 
 test_that("'get_nm_offset_data' works with 'bage_mod_pois'", {
   set.seed(0)
@@ -1953,7 +1994,7 @@ test_that("'get_nm_offset_data' works with 'bage_mod_pois'", {
 })
 
 
-## 'get_nm_offset_mod' -----------------------------------------------------------
+## 'get_nm_offset_mod' --------------------------------------------------------
 
 test_that("'get_nm_offset_mod' works with 'bage_mod_pois'", {
   set.seed(0)
@@ -1995,7 +2036,7 @@ test_that("'get_nm_offset_mod' works with 'bage_mod_norm'", {
 })
 
 
-## 'get_nm_outcome_data' -----------------------------------------------------------
+## 'get_nm_outcome_data' ------------------------------------------------------
 
 test_that("'get_nm_outcome_data' works with 'bage_mod_pois'", {
   set.seed(0)
@@ -2029,6 +2070,21 @@ test_that("'get_nm_outcome_obs' works with 'bage_mod_pois'", {
 })
 
 
+## 'has_confidential' ---------------------------------------------------------
+
+test_that("'has_confidential' works with valid inputs", {
+    data <- data.frame(deaths = 1:10 * 3,
+                       time = 2001:2010,
+                       income = rnorm(10))
+    mod <- mod_pois(deaths ~ time,
+                    data = data,
+                    exposure = 1)
+    expect_false(has_confidential(mod))
+    mod <- set_confidential_rr3(mod)
+    expect_true(has_confidential(mod))
+})
+
+
 ## 'has_covariates' -----------------------------------------------------------
 
 test_that("'has_covariates' works with valid inputs", {
@@ -2041,6 +2097,38 @@ test_that("'has_covariates' works with valid inputs", {
     expect_false(has_covariates(mod))
     mod <- set_covariates(mod, ~ income)
     expect_true(has_covariates(mod))
+})
+
+
+## 'has_datamod' --------------------------------------------------------------
+
+test_that("'has_datamod' works with valid inputs", {
+    data <- data.frame(deaths = 1:10 * 3,
+                       time = 2001:2010,
+                       income = rnorm(10))
+    mod <- mod_pois(deaths ~ time,
+                    data = data,
+                    exposure = 1)
+    expect_false(has_datamod(mod))
+    mod$datamod <- new_bage_datamod_undercount(prob = 0.9)
+    expect_true(has_datamod(mod))
+})
+
+
+## 'has_datamod_outcome' ------------------------------------------------------
+
+test_that("'has_datamod_outcome' works with valid inputs", {
+    data <- data.frame(deaths = 1:10 * 3,
+                       time = 2001:2010,
+                       income = rnorm(10))
+    mod <- mod_pois(deaths ~ time,
+                    data = data,
+                    exposure = 1)
+    expect_false(has_datamod_outcome(mod))
+    mod$datamod <- new_bage_datamod_exposure(ratio = 1, dispersion = 0.1)
+    expect_true(has_datamod(mod))
+    mod$datamod <- new_bage_datamod_undercount(prob = 0.9)
+    expect_true(has_datamod(mod))
 })
 
 

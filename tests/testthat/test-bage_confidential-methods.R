@@ -26,13 +26,13 @@ test_that("'draw_outcome_obs_given_conf' works with rr3, pois, no na, has disp",
                                     shape = 2,
                                     rate = 0.4,
                                     n_draw = 100)
-  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  disp_obs <- rvec::runif_rvec(n = 100, n_draw = 100)
   ans <- draw_outcome_obs_given_conf(confidential = confidential,
                                      nm_distn = "pois",
                                      outcome_conf = outcome_conf,
                                      offset = offset,
                                      expected_obs = expected_obs,
-                                     disp = disp)
+                                     disp_obs = disp_obs)
   expect_true(all(abs(as.matrix(ans) - outcome_conf) <= 2L))
   expect_equal(mean(as.numeric(ans)), 50, tolerance = 0.05)
 })
@@ -52,7 +52,7 @@ test_that("'draw_outcome_obs_given_conf' works with rr3, pois, no na, no disp", 
                                      outcome_conf = outcome_conf,
                                      offset = offset,
                                      expected_obs = expected_obs,
-                                     disp = NULL)
+                                     disp_obs = NULL)
   expect_true(all(abs(as.matrix(ans) - outcome_conf) <= 2L))
   expect_equal(mean(as.numeric(ans)), 50, tolerance = 0.05)
 })
@@ -69,13 +69,13 @@ test_that("'draw_outcome_obs_given_conf' works with rr3, pois, has na, has disp"
                                     shape = 2,
                                     rate = 0.4,
                                     n_draw = 100)
-  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  disp_obs <- rvec::runif_rvec(n = 100, n_draw = 100)
   ans <- draw_outcome_obs_given_conf(confidential = confidential,
                                      nm_distn = "pois",
                                      outcome_conf = outcome_conf,
                                      offset = offset,
                                      expected_obs = expected_obs,
-                                     disp = disp)
+                                     disp_obs = disp_obs)
   expect_true(all(abs(as.matrix(ans[-c(1, 4)]) - outcome_conf[-c(1, 4)]) <= 2L))
   expect_equal(mean(as.numeric(ans), na.rm = TRUE), 50, tolerance = 0.01)
 })
@@ -97,7 +97,7 @@ test_that("'draw_outcome_obs_given_conf' works with rr3, pois, has na, no disp",
                                      outcome_conf = outcome_conf,
                                      offset = offset,
                                      expected_obs = expected_obs,
-                                     disp = NULL)
+                                     disp_obs = NULL)
   expect_true(all(abs(as.matrix(ans[-c(1, 4)]) - outcome_conf[-c(1, 4)]) <= 2L))
   expect_equal(mean(as.numeric(ans), na.rm = TRUE), 50, tolerance = 0.01)
 })
@@ -112,13 +112,13 @@ test_that("'draw_outcome_obs_given_conf' works with rr3, binom, no na, has disp"
                                    shape1 = 10,
                                    shape2 = 10,
                                    n_draw = 100)
-  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  disp_obs <- rvec::runif_rvec(n = 100, n_draw = 100)
   ans <- draw_outcome_obs_given_conf(confidential = confidential,
                                      nm_distn = "binom",
                                      outcome_conf = outcome_conf,
                                      offset = offset,
                                      expected_obs = expected_obs,
-                                     disp = disp)
+                                     disp_obs = disp_obs)
   expect_true(all(abs(as.matrix(ans) - outcome_conf) <= 2L))
   ans <- rvec::draws_mean(ans)
   expect_equal(mean(ans), 50, tolerance = 0.01)
@@ -134,13 +134,13 @@ test_that("'draw_outcome_obs_given_conf' works with rr3, binom, no na, no disp",
                                    shape1 = 10,
                                    shape2 = 10,
                                    n_draw = 100)
-  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  disp_obs <- rvec::runif_rvec(n = 100, n_draw = 100)
   ans <- draw_outcome_obs_given_conf(confidential = confidential,
                                      nm_distn = "binom",
                                      outcome_conf = outcome_conf,
                                      offset = offset,
                                      expected_obs = expected_obs,
-                                     disp = NULL)
+                                     disp_obs = NULL)
   expect_true(all(abs(as.matrix(ans) - outcome_conf) <= 2L))
   ans <- rvec::draws_mean(ans)
   expect_equal(mean(ans), 50, tolerance = 0.01)
@@ -158,13 +158,13 @@ test_that("'draw_outcome_obs_given_conf' works with rr3, binom, has na, has disp
                                    shape1 = 10,
                                    shape2 = 10,
                                    n_draw = 100)
-  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  disp_obs <- rvec::runif_rvec(n = 100, n_draw = 100)
   ans <- draw_outcome_obs_given_conf(confidential = confidential,
                                      nm_distn = "binom",
                                      outcome_conf = outcome_conf,
                                      offset = offset,
                                      expected_obs = expected_obs,
-                                     disp = disp)
+                                     disp_obs = disp_obs)
   expect_true(all(abs(as.matrix(ans[-c(1, 4)]) - outcome_conf[-c(1, 4)]) <= 2L))
   ans <- rvec::draws_mean(ans)
   expect_equal(mean(ans, na.rm = TRUE), 50, tolerance = 0.01)
@@ -182,13 +182,13 @@ test_that("'draw_outcome_obs_given_conf' works with rr3, binom, has na, no disp"
                                    shape1 = 10,
                                    shape2 = 10,
                                    n_draw = 100)
-  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  disp_obs <- rvec::runif_rvec(n = 100, n_draw = 100)
   ans <- draw_outcome_obs_given_conf(confidential = confidential,
                                      nm_distn = "binom",
                                      outcome_conf = outcome_conf,
                                      offset = offset,
                                      expected_obs = expected_obs,
-                                     disp = NULL)
+                                     disp_obs = NULL)
   expect_true(all(abs(as.matrix(ans[-c(1, 4)]) - outcome_conf[-c(1, 4)]) <= 2L))
   ans <- rvec::draws_mean(ans)
   expect_equal(mean(ans, na.rm = TRUE), 50, tolerance = 0.01)
@@ -203,7 +203,7 @@ test_that("'draw_outcome_obs_given_conf' throws appropriate error with invalid n
   outcome_conf <- poputils::rr3(outcome_obs)
   offset <- rep(100, 100)
   offset[1] <- NA
-  disp <- rvec::runif_rvec(n = 1, n_draw = 100)
+  disp_obs <- rvec::runif_rvec(n = 100, n_draw = 100)
   expected_obs <- rvec::rbeta_rvec(n = 100,
                                    shape1 = 10,
                                    shape2 = 10,
@@ -213,17 +213,16 @@ test_that("'draw_outcome_obs_given_conf' throws appropriate error with invalid n
                                            outcome_conf = outcome_conf,
                                            offset = offset,
                                            expected_obs = expected_obs,
-                                           disp = disp),
+                                           disp_obs = disp_obs),
                "Internal error: Invalid value for `nm_distn`.")
   expect_error(draw_outcome_obs_given_conf(confidential = confidential,
                                            nm_distn = "wrong",
                                            outcome_conf = outcome_conf,
                                            offset = offset,
                                            expected_obs = expected_obs,
-                                           disp = NULL),
+                                           disp_obs = NULL),
                "Internal error: Invalid value for `nm_distn`.")
 })
-
 
 
 ## 'make_i_lik_part' ----------------------------------------------------------

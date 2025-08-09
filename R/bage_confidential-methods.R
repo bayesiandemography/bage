@@ -30,6 +30,8 @@ draw_outcome_confidential.bage_confidential_rr3 <- function(confidential,
 #' Draw Values for Observed Outcome, Given Values for
 #' Confidentialized Outcome
 #'
+#' If 'disp_obs' is not NULL, it has same length as 'expected_obs'.
+#'
 #' @param confidential Object of class 'bage_confidential'
 #' @param nm_distn Name of distribution of outcome.
 #' "pois", "binom", or "norm"
@@ -37,8 +39,11 @@ draw_outcome_confidential.bage_confidential_rr3 <- function(confidential,
 #' values for outcome.
 #' @param offset Numeric vector with (reported) outcome
 #' @param expected_obs Rvec with expected value for
-#' rate/probability/mean, adjusted for measurement error
-#' @param disp Dispersion. NULL or rvec.
+#' rate/probability/mean for reported value,
+#' including adjustment, where necessary,
+#' for measurement error
+#' @param disp_obs Dispersion adjusted, where necessary,
+#' for measurement error. NULL or rvec.
 #'
 #' @returns An rvec
 #'
@@ -48,7 +53,7 @@ draw_outcome_obs_given_conf <- function(confidential,
                                         outcome_conf,
                                         offset,
                                         expected_obs,
-                                        disp) {
+                                        disp_obs) {
   UseMethod("draw_outcome_obs_given_conf")
 }
 
@@ -59,7 +64,7 @@ draw_outcome_obs_given_conf.bage_confidential_rr3 <- function(confidential,
                                                               outcome_conf,
                                                               offset,
                                                               expected_obs,
-                                                              disp) {
+                                                              disp_obs) {
   ## all variables are organized into
   ## (implicit) arrays with dimension
   ## (n_outcome, n_val, n_draw)
@@ -73,20 +78,20 @@ draw_outcome_obs_given_conf.bage_confidential_rr3 <- function(confidential,
   outcome_true <- rep(outcome_true, times = n_draw)
   offset <- rep(offset, each = n_outcome)
   offset <- rep(offset, times = n_draw)
-  has_disp <- !is.null(disp)
-  if (has_disp) {
-    disp <- as.numeric(disp)
-    disp <- rep(disp, each = n_outcome * n_val)
+  has_disp_obs <- !is.null(disp_obs)
+  if (has_disp_obs) {
+    disp_obs <- as.numeric(disp_obs)
+    disp_obs <- rep(disp_obs, each = n_outcome)
     if (nm_distn == "pois") {
-      size <- 1 / disp
-      prob <- 1 / (1 + expected_obs * offset * disp)
+      size <- 1 / disp_obs
+      prob <- 1 / (1 + expected_obs * offset * disp_obs)
       prob_prior <- dnbinom(x = outcome_true,
                             size = size,
                             prob = prob)
     }
     else if (nm_distn == "binom") {
-      shape1 <- expected_obs / disp
-      shape2 <- (1 - expected_obs) / disp
+      shape1 <- expected_obs / disp_obs
+      shape2 <- (1 - expected_obs) / disp_obs
       prob_prior <- dbetabinom(x = outcome_true,
                                size = offset,
                                shape1 = shape1,

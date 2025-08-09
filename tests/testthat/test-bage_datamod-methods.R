@@ -163,7 +163,7 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, no na", {
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  scale_linpred <- get_fun_scale_linpred(mod)
+  scale_linpred <- get_fun_orig_scale_linpred(mod)
   vals_fitted <- scale_linpred(make_linpred_from_components(mod = mod,
                                                             components = vals_components,
                                                             data = mod$data,
@@ -199,7 +199,7 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, has NA", {
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- mod$outcome_sd * vals_disp
-  scale_linpred <- get_fun_scale_linpred(mod)
+  scale_linpred <- get_fun_orig_scale_linpred(mod)
   vals_fitted <- scale_linpred(make_linpred_from_components(mod = mod,
                                                             components = vals_components,
                                                             data = mod$data,

@@ -42,6 +42,87 @@ aggregate_report_comp <- function(report_comp) {
 
 
 ## HAS_TESTS
+#' Draw Values for Fitted, Given Values
+#' for '.expected' and 'disp'
+#'
+#' Used only with simulation and unfitted models,
+#' since does not use information on outcomes.
+#'
+#' Used only with Poisson and binomial,
+#' in models that include dispersion.
+#'
+#' @param nm_distn Name of distribution, eg "pois"
+#' @param fitted Rates/probs/means. An rvec.
+#' @param disp Dispersion. An rvec.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+draw_fitted <- function(nm_distn,
+                        expected,
+                        disp) {
+  n <- length(expected)
+  if (nm_distn == "pois") {
+    shape <- 1 / disp
+    rate <- 1 / (disp * expected)
+    ans <- rvec::rgamma_rvec(n = n, shape = shape, rate = rate)
+  }
+  else if (nm_distn == "binom") {
+    shape1 <- expected / disp
+    shape2 <- (1 - expected) / disp
+    ans <- rvec::rbeta_rvec(n = n, shape1 = shape1, shape2 = shape2)
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
+  ans
+}
+
+
+## HAS_TESTS
+#' Draw Values for Outcome, Given Values for '.fitted',
+#' and, Where Appropriate, 'disp'
+#'
+#' Used only with simulation and unfitted models,
+#' since does not use information on outcomes.
+#'
+#' If distribution is normal, assume that 'fitted'
+#' and 'disp' are on the original scale.
+#'
+#' @param nm_distn Name of distribution, eg "pois"
+#' @param fitted Rates/probs/means. An rvec.
+#' @param offset True values for offset
+#' @param disp Dispersion. An rvec. Normal model only
+#'
+#' @returns An rvec
+#'
+#' @noRd
+draw_outcome_true <- function(nm_distn,
+                              fitted,
+                              offset,
+                              disp) {
+  n <- length(offset)
+  if (nm_distn == "pois") {
+    lambda <- fitted * offset
+    ans <- rvec::rpois_rvec(n = n, lambda = lambda)
+  }
+  else if (nm_distn == "binom") {
+    ans <- rvec::rbinom_rvec(n = n, size = offset, prob = fitted)
+  }
+  else if (nm_distn == "norm") {
+    sd <- disp / sqrt(offset)
+    ans <- rvec::rnorm_rvec(n = n, mean = fitted, sd = sd)
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
+  ans
+}
+
+
+  
+
+
+
+## HAS_TESTS
 #' Generate AR Values to Use in a Prior with an AR Component
 #'
 #' @param coef Matrix, each column of which is a vector

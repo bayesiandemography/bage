@@ -1,4 +1,51 @@
 
+## 'draw_outcome_true_given_obs' ----------------------------------------------
+
+#' Draw Values for True Outcome, Given Observed Outcome,
+#' Based on Data Model
+#'
+#' Note that 'outcome' is an rvec if it has been inferred
+#' from confidentialized values - otherwise it is
+#' a numeric vector.
+#'
+#' @param datamod Object of class 'bage_datamod'
+#' @param nm_distn Name of distribution of outcome
+#' ("pois", "binom", "norm").
+#' @param outcome Observed values for outcome.
+#' Can be rvec or numeric vector.
+#' @param offset Observed values for offset.
+#' Numeric vector.
+#' @param expected Expected values for rates/prob/mean.
+#' An rvec.
+#' @param disp Dispersion. An rvec or NULL
+#'
+#' @returns An rvec
+#'
+#' @noRd
+draw_outcome_true_given_obs <- function(datamod,
+                                        nm_distn,
+                                        outcome,
+                                        offset,
+                                        expected,
+                                        disp) {
+  UseMethod("draw_outcome_true_given_obs")
+}
+
+#' @export
+draw_outcome_true_given_obs.bage_datamod_exposure <- function(datamod,
+                                                              nm_distn,
+                                                              outcome,
+                                                              offset,
+                                                              expected,
+                                                              disp) {
+  
+} 
+
+
+
+## OLD ########################################################################
+
+
 ## 'draw_vals_outcome_obs' ----------------------------------------------------
 
 #' Generate Observed Values of Outcome Variable, Based on Data Model

@@ -1082,14 +1082,14 @@ models <- tibble(
     ),
     paste(
       "$$",
-      "w_i^{\\text{obs}} \\sim \\text{InvGamma}(2 + \\delta^{-1}, (1 + \\delta^{-1}) r_i w_i^{\\text{true}})",
+      "w_i^{\\text{obs}} \\sim \\text{InvGamma}(2 + \\delta_{g[i]}^{-1}, (1 + \\delta_{g[i]}^{-1}) r_{h[i]} w_i^{\\text{true}})",
       "$$"
     ),
     "$$ y_i^{\\text{obs}} \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]}) $$",
     paste(
       "$$",
       "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i \\\\",
-      "\\epsilon_i \\sim \\text{N}(m_i, s_i^2)",
+      "\\epsilon_i \\sim \\text{N}(m_{g[i]}, s_{h[i]}^2)",
       "$$"
     )
   )
@@ -1126,9 +1126,7 @@ where values for $A_g^{(\pi)}$, $B_g^{(\pi)}$, $A_h^{(\kappa)}$, and $B_h^{(\kap
 Note
 \begin{align}
   u_i & \mid \pi_{g[i]}, \gamma_i, w_i \sim \text{Poisson}(\pi_{g[i]} \gamma_i w_i), (\#eq:datamod-u-i-cond) \\
-  y_i^{\text{obs}} & \mid \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Poisson}((\pi_{g[i]} + \kappa_{h[i]}) \gamma_i w_i) \\
-  E[y_i^{\text{obs}} - y_i^{\text{true}}] & = (\kappa_i - [1 - \pi_i]) \gamma_i w_i \\
-  \text{var}[y_i^{\text{obs}} - y_i^{\text{true}}] & = (\kappa_i + [1 -\pi_i]) \gamma_i w_i
+  y_i^{\text{obs}} & \mid \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Poisson}((\pi_{g[i]} + \kappa_{h[i]}) \gamma_i w_i)
 \end{align}
 
 
@@ -1139,7 +1137,7 @@ We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure
 \begin{align}
   y_i^{\text{obs}} & \sim \text{NegBinom}\left(\xi^{-1}, (1 + (\pi_{g[i]} + \kappa_{h[i]})\mu_i w_i \xi)^{-1}\right) \\
   \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\
-  \kappa_h & \sim \text{Gamma}(A_h^{(\pi)}, B_h^{(\pi)})
+  \kappa_h & \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)})
 \end{align}
 
 
@@ -1156,7 +1154,6 @@ As shown in Appendix \@ref(app:datamod), \@ref(eq:lik-pois-outcome-1) and \@ref(
 \end{equation}
 
 
-
 ## Poisson, measurement errors in exposure
 
 ### System model
@@ -1169,35 +1166,32 @@ Drop gamma errors for rates, and be explicit that outcome depends on actual expo
 ### Data model
 
 \begin{align}
-  w_i^{\text{obs}} & \sim \text{InvGamma}(2 + \delta^{-1}, (1 + \delta^{-1}) r_i w_i^{\text{true}}) \\
-  \delta & \sim \text{Exp}(A_{\delta}) 
+  w_i^{\text{obs}} & \sim \text{InvGamma}(2 + \delta_{g[i]}^{-1}, (1 + \delta_{g[i]}^{-1}) r_{h[i]} w_i^{\text{true}}) \\
+  \delta_g & \sim \text{Exp}(A_g^{(\delta)}) 
 \end{align}
-where values for $r_i$ and $A_{\delta}$ are supplied by the user.
+where values for $r_h$ and $A_g^{(\delta)}$ are supplied by the user.
 
 Note that
 \begin{align}
-  E[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = r_i w_i^{\text{true}} \\
-  \text{var}[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = \delta (r_i w_i^{\text{true}})^2 \\
-  w_i^{\text{true}} \mid w_i^{\text{obs}}  & \sim \text{Gamma}(3 + \delta^{-1}, (1 + \delta^{-1}) r_i [w_i^{\text{obs}}]^{-1}) (\#eq:w-true) \\
-  E[w_i^{\text{true}} \mid w_i^{\text{obs}}] & = \frac{3\delta + 1}{\delta + 1} \frac{w_i^{\text{obs}}}{r_i} \\
-  \text{var}[w_i^{\text{true}} \mid w_i^{\text{obs}}] & = \frac{\delta (3\delta + 1)}{(\delta + 1)^2} \left(\frac{w_i^{\text{obs}}}{r_i}\right)^2
+  E[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = r_{h[i]} w_i^{\text{true}} \\
+  \text{var}[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = \delta_{g[i]} (r_{h[i]} w_i^{\text{true}})^2 \\
+  w_i^{\text{true}} \mid w_i^{\text{obs}}  & \sim \text{Gamma}(3 + \delta_{g[i]}^{-1}, (1 + \delta_{g[i]}^{-1}) r_{h[i]} [w_i^{\text{obs}}]^{-1}) (\#eq:w-true) \\
+  E[w_i^{\text{true}} \mid w_i^{\text{obs}}] & = \frac{3\delta_{g[i]} + 1}{\delta_{g[i]} + 1} \frac{w_i^{\text{obs}}}{r_{h[i]}}
 \end{align}
 
-(\@ref(eq:w-true)) derived in Appendix \@ref(app:datamod))
+\@ref(eq:w-true)) is derived in Appendix \@ref(app:datamod)
 
 ### Combined model seen by TMB
 
 \begin{align}
-  y_i^{\text{obs}} & \sim \text{NegBinom}(3 + \delta^{-1}, [1 + (1 + \delta^{-1})^{-1}r_i^{-1} \mu_i w_i^{\text{obs}}]^{-1} ) \\
-  \delta & \sim \text{Exp}(A_{\delta})
+  y_i^{\text{obs}} & \sim \text{NegBinom}(3 + \delta_{g[i]}^{-1}, [1 + (1 + \delta_{g[i]}^{-1})^{-1}r_{h[i]}^{-1} \mu_i w_i^{\text{obs}}]^{-1} ) \\
+  \delta_g & \sim \text{Exp}(A_g^{(\delta)})
 \end{align}
 
 Note that
-\begin{align}
-E[y_i^{\text{obs}}] &= \left( \frac{3 + \delta^{-1}}{1 + \delta^{-1}} \right) \cdot \frac{\mu_i w_i^{\text{obs}}}{r_i} \\
-\\
-\text{var}(y_i^{\text{obs}}) &= \left( \frac{3 + \delta^{-1}}{1 + \delta^{-1}} \right) \cdot \frac{\mu_i w_i^{\text{obs}}}{r_i} \cdot \left( 1 + \left(1 + \delta^{-1}\right)^{-1} \cdot \frac{\mu_i w_i^{\text{obs}}}{r_i} \right)
-\end{align}
+\begin{equation}
+E[y_i^{\text{obs}}] = \left( \frac{3 + \delta_{g[i]}^{-1}}{1 + \delta_{g[i]}^{-1}} \right) \frac{w_i^{\text{obs}}}{r_{h[i]}} \mu_i 
+\end{equation}
 
 ### Deriving $y_i^{\text{true}}$
 
@@ -1223,9 +1217,10 @@ where values for $A_g^{(\pi)}$ and $B_g^{(\pi)}$ are supplied by the user.
 
 ### Combined model seen by TMB
 
-\begin{equation}
-  y_i^{\text{obs}} \sim \text{BetaBinomial}(w_i, \xi^{-1} \pi_{g[i]} \mu_i, \xi^{-1} [1-\pi_{g[i]} \mu_i])
-\end{equation}
+\begin{align}
+  y_i^{\text{obs}} & \sim \text{BetaBinomial}(w_i, \xi^{-1} \pi_{g[i]} \mu_i, \xi^{-1} [1-\pi_{g[i]} \mu_i]) \\
+  \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)})
+\end{align}
 
 
 ### Deriving $y_i^{\text{true}}$
@@ -1266,24 +1261,24 @@ where
 
 \begin{align}
   y_i^{\text{obs}} & = y_i^{\text{true}} + \epsilon_i \\
-  \epsilon_i & \sim \text{N}(m_i, s_i^2)
+  \epsilon_i & \sim \text{N}(m_{g[i]}, s_{h[i]}^2)
 \end{align}
-where values for $m_i$ and $s_i$ are supplied by the user.
+where values for $m_{g[i]}$ and $s_{h[i]}$ are supplied by the user.
 
 ### Combined model seen by TMB
 
 \begin{equation}
-  y_i^{\text{obs}} \sim \text{N}(\gamma_i + m_i, w_i^{-1}\sigma^2 + s_i^2)
+  y_i^{\text{obs}} \sim \text{N}(\gamma_i + m_{g[i]}, w_i^{-1}\sigma^2 + s_{h[i]}^2)
 \end{equation}
 
 
 ### Deriving $y_i^{\text{true}}$
 
 \begin{equation}
-  y_i^{\text{true}} \sim \text{N}\left(\frac{\tau_1}{\tau_1 + \tau_2} \gamma_i + \frac{\tau_2}{\tau_1 + \tau_2} (y_i^{\text{obs}} - m_i),\quad
+  y_i^{\text{true}} \sim \text{N}\left(\frac{\tau_1}{\tau_1 + \tau_2} \gamma_i + \frac{\tau_2}{\tau_1 + \tau_2} (y_i^{\text{obs}} - m_{g[i]}),\quad
 \left( \tau_1 + \tau_2 \right)^{-1} \right)
 \end{equation}
-where $\tau_1 = \frac{w_i}{\sigma^2}$ and $\tau_2 = \frac{1}{s_i^2}$
+where $\tau_1 = w_i \sigma^{-2}$ and $\tau_2 = s_{h[i]}^{-2}$
 
 # Confidentialization
 
@@ -1297,25 +1292,43 @@ Random rounding to multiples of 3 (RR3) is applied to counts data. Let $y_i^{\te
 - if $y_i^{\text{un}} \bmod 3 = 1$ then $y_i^{\text{con}} = y_i^{\text{un}}-1$ with probability 2/3, and $y_i^{\text{con}} = y_i^{\text{un}} + 2$ with probability 1/3;
 - if $y_i^{\text{un}} \bmod 3 = 2$ then $y_i^{\text{con}} = y_i^{\text{un}}-2$ with probability 1/3, and $y_i^{\text{con}} = y_i^{\text{un}} + 1$ with probability 2/3.
 
-### Model seen by TMB
+### Model seen by TMB {#sec:confid-tmb}
 
 \begin{align}
-  p(y_i^{\text{con}}) & = \sum_{y_i^{\text{un}}} p_{\text{con}}(y_i^{\text{con}} | y_i^{\text{un}}) p_{\text{un}}(y_i^{\text{un}}) \\
-   & =  \sum_{k = -2, -1, 0, 1, 2} p_{\text{con}}(y_i^{\text{con}} | y_i^{\text{con}} + k) p_{\text{un}}(y_i^{\text{con}} + k)
+  p_{\text{con}}(y_i^{\text{con}}) & = \sum_{y_i^{\text{un}}} p_{\text{con}|\text{un}}(y_i^{\text{con}} | y_i^{\text{un}}) p_{\text{un}}(y_i^{\text{un}}) \\
+   & =  \sum_{k = -2}^2 p_{\text{con}|\text{un}}(y_i^{\text{con}} | y_i^{\text{con}} + k) p_{\text{un}}(y_i^{\text{con}} + k)
 \end{align}
 where
 
+- $p_{\text{con}|\text{un}}(\cdot) =
+  \begin{cases}
+  1 & \text{ if   } | y_i^{\text{con}} - y_i^{\text{un}} | = 0 \\
+  \frac{2}{3} & \text{ if   } | y_i^{\text{con}} - y_i^{\text{un}} | = 1 \\
+  \frac{1}{3} & \text{ if   } | y_i^{\text{con}} - y_i^{\text{un}} | = 2
+  \end{cases}$
+  
+and
+
 - $p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid \xi^{-1}, [1 + \mu_i w_i \xi]^{-1}\right)$ in Poisson model with no measurement errors;
 - $p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid \xi^{-1}, [1 + (\pi_{g[i]} + \kappa_{h[i]}) \mu_i w_i \xi]^{-1}\right)$ in Poisson model with measurement error in outcome;
-- $p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid 3 + \delta^{-1}, [1 + (1 + \delta^{-1})^{-1}r_i^{-1} \mu_i w_i^{\text{obs}}]^{-1} \right)$ in Poisson model with measurement error in exposure;
-- $p_{\text{un}}(\cdot) = \text{BetaBinomial}(\cdot \mid w_i, \xi^{-1} \mu_i, \xi^{-1} [1-\mu_i])$ in Binomial model with not measurement error; and
+- $p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid 3 + \delta_{g[i]}^{-1}, [1 + (1 + \delta_{g[i]}^{-1})^{-1}r_{h[i]}^{-1} \mu_i w_i^{\text{obs}}]^{-1} \right)$ in Poisson model with measurement error in exposure;
+- $p_{\text{un}}(\cdot) = \text{BetaBinomial}(\cdot \mid w_i, \xi^{-1} \mu_i, \xi^{-1} [1-\mu_i])$ in Binomial model with no measurement error; and
 - $p_{\text{un}}(\cdot) = \text{BetaBinomial}(\cdot \mid w_i, \xi^{-1} \pi_{g[i]} \mu_i, \xi^{-1} [1-\pi_{g[i]} \mu_i])$ in Binomial model with measurement error in outcome.
 
 
 
 ### Deriving $y_i^{\text{un}}$
 
-#### Poisson, no measurement error
+Draw from
+\begin{equation}
+  p_{\text{un}|\text{con}}(y_i^{\text{un}} \mid y_i^{\text{con}}) \propto  p_{\text{con}|\text{un}}(y_i^{\text{con}} \mid y_i^{\text{un}}) p_{\text{un}}(y_i^{\text{un}})
+\end{equation}
+where $p_{\text{con}|\text{un}}(\cdot)$ and $p_{\text{un}}(\cdot)$ are defined as in Section \@ref(sec:confid-tmb).
+
+
+
+
+
 
 
 
@@ -1595,7 +1608,7 @@ The quantity $p(y_i^{\text{true}} \mid u_i)$ can be obtained by normalizing \@re
 
 ### Derivation of $p(w_i^{\text{true}} \mid w_i^{\text{obs}})$
 
-Assume have no prior information on $w_i^{\text{true}}$, so that $w_i^{\text{true}} \sim \text{Unif}(0, \infty)$. Let $A = 2 + \delta^{-1}$ and $B = (1 + \delta^{-1}) r_i$.
+Assume have no prior information on $w_i^{\text{true}}$, so that $w_i^{\text{true}} \sim \text{Unif}(0, \infty)$. Let $A = 2 + \delta_{g[i]}^{-1}$ and $B = (1 + \delta_{g[i]}^{-1}) r_{h[i]}$.
 
 \begin{align}
   p(w_i^{\text{true}} \mid w_i^{\text{obs}}) & \propto p(w_i^{\text{obs}} \mid w_i^{\text{true}})  p(w_i^{\text{true}}) \\
@@ -1604,7 +1617,7 @@ Assume have no prior information on $w_i^{\text{true}}$, so that $w_i^{\text{tru
   & = \frac{(B w_i^{\text{true}})^A}{\Gamma(A)} (w_i^{\text{obs}})^{-A-1} \exp \left(-\frac{B w_i^{\text{true}}}{w_i^{\text{obs}}} \right) \\
   & \propto (w_i^{\text{true}})^A \exp \left(-\frac{B}{w_i^{\text{obs}}} w_i^{\text{true}} \right) \\
   & \propto \text{Gamma}(w_i^{\text{true}} \mid A + 1, B [w_i^{\text{obs}}]^{-1} ) \\
-  & = \text{Gamma}(w_i^{\text{true}} \mid 3 + \delta^{-1}, (1 + \delta^{-1}) r_i [w_i^{\text{obs}}]^{-1})
+  & = \text{Gamma}(w_i^{\text{true}} \mid 3 + \delta_{g[i]}^{-1}, (1 + \delta_{g[i]}^{-1}) r_{h[i]} [w_i^{\text{obs}}]^{-1})
 \end{align}
 as required.
 
