@@ -11,6 +11,7 @@
 #' @param datamod Object of class 'bage_datamod'
 #' @param nm_distn Name of distribution of outcome
 #' ("pois", "binom", "norm").
+#' @param components Data frame with components.
 #' @param outcome Observed values for outcome.
 #' Can be rvec or numeric vector.
 #' @param offset Observed values for offset.
@@ -24,6 +25,7 @@
 #' @noRd
 draw_outcome_true_given_obs <- function(datamod,
                                         nm_distn,
+                                        components,
                                         outcome,
                                         offset,
                                         expected,
@@ -34,12 +36,117 @@ draw_outcome_true_given_obs <- function(datamod,
 #' @export
 draw_outcome_true_given_obs.bage_datamod_exposure <- function(datamod,
                                                               nm_distn,
+                                                              components,
                                                               outcome,
                                                               offset,
                                                               expected,
                                                               disp) {
-  
-} 
+  if (nm_distn == "pois") {
+    outcome
+  }
+  else
+    cli::cli_abort(paste("Internal error: {.var datamod} has class",
+                         "{.cls {class(datamod)}} but {.var nm_distn}",
+                         "is {.val {nm_distn}}."))
+}
+
+
+#' @export
+draw_outcome_true_given_obs.bage_datamod_miscount <- function(datamod,
+                                                              nm_distn,
+                                                              components,
+                                                              outcome,
+                                                              offset,
+                                                              expected,
+                                                              disp) {
+  if (nm_distn == "pois") {
+    n_outcome <- length(outcome)
+    prob <- get_datamod_prob(datamod = datamod,
+                             components = components)
+    rate <- get_datamod_rate(datamod = datamod,
+                             components = components)
+    prob_obs <- prob / (prob + rate)
+    outcome_true_obs <- rvec::rbinom_rvec(n = n_outcome,
+                                          size = outcome,
+                                          prob = prob_obs)
+    size_unobs <- true_obs + (1 / disp)
+    prob_unobs <- ((1 + prob * expected * offset * disp)
+      / (1 + expected * offset * disp))
+    outcome_true_unobs <- rvec::nbinom_rvec(n = n_outcome,
+                                            size = size_unobs,
+                                            prob = prob_unobs)
+    ans <- outcome_true_obs + outcome_true_unobs
+    ans
+  }
+  else
+    cli::cli_abort(paste("Internal error: {.var datamod} has class",
+                         "{.cls {class(datamod)}} but {.var nm_distn}",
+                         "is {.val {nm_distn}}."))
+}
+
+#' Expecting offset, expected, and disp to be on original scale
+#' @export
+draw_outcome_true_given_obs.bage_datamod_noise <- function(datamod,
+                                                           nm_distn,
+                                                           components,
+                                                           outcome,
+                                                           offset,
+                                                           expected,
+                                                           disp) {
+  if (nm_distn == "norm") {
+    n_outcome <- length(outcome)
+    mean_noise <- get_datamod_mean(datamod)
+    sd_noise <- get_datamod_sd(datamod)
+    prec_true <- offset / (disp^2)
+    prec_noise <- 1 / (sd^2)
+    wt_true <- prec_true / (prec_true + prec_noise)
+    mean_true <- wt_true * expected + (1 - wt_true) * (outcome - mean_noise)
+    sd_true <- 1 / (prec_true + prec_noise)
+    ans <- rvec::rnorm_rvec(n = n_outcome, mean = mean_true, sd = sd_true)
+    ans
+  }
+  else
+    cli::cli_abort(paste("Internal error: {.var datamod} has class",
+                         "{.cls {class(datamod)}} but {.var nm_distn}",
+                         "is {.val {nm_distn}}."))
+}
+
+
+#' @export
+draw_outcome_true_given_obs.bage_datamod_overcount <- function(datamod,
+                                                               nm_distn,
+                                                               components,
+                                                               outcome,
+                                                               offset,
+                                                               expected,
+                                                               disp) {
+  if (nm_distn == "pois") {
+    n_outcome <- length(outcome)
+    rate <- get_datamod_rate(datamod = datamod,
+                             components = components)
+
+    
+    prob_obs <- prob / (prob + rate)
+    outcome_true_obs <- rvec::rbinom_rvec(n = n_outcome,
+                                          size = outcome,
+                                          prob = prob_obs)
+    size_unobs <- true_obs + (1 / disp)
+    prob_unobs <- ((1 + prob * expected * offset * disp)
+      / (1 + expected * offset * disp))
+    outcome_true_unobs <- rvec::nbinom_rvec(n = n_outcome,
+                                            size = size_unobs,
+                                            prob = prob_unobs)
+    ans <- outcome_true_obs + outcome_true_unobs
+    ans
+  }
+  else
+    cli::cli_abort(paste("Internal error: {.var datamod} has class",
+                         "{.cls {class(datamod)}} but {.var nm_distn}",
+                         "is {.val {nm_distn}}."))
+}
+
+
+
 
 
 
