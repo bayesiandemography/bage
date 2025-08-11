@@ -3,6 +3,8 @@
 #' @export
 draw_vals_augment_fitted.bage_mod <- function(mod) {
   ## extract values
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
   outcome <- mod$outcome
   offset <- mod$offset
   seed_augment <- mod$seed_augment
@@ -12,7 +14,11 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   disp <- get_disp(mod)
   inv_transform <- get_fun_inv_transform(mod)
   ## prepare inputs
-  linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
+  components <- components(mod)
+  linpred <- make_linpred_from_components(mod = mod,
+                                          components = components,
+                                          data = data,
+                                          dimnames_terms = dimnames_terms)
   expected <- inv_transform(linpred)
   has_confidential <- has_confidential(mod)
   has_datamod <- has_datamod(mod)
@@ -26,7 +32,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   ## draw values for outcome and offset, where necessary
   if (has_confidential) {
     expected_obs <- make_expected_obs(mod = mod, expected = expected)
-    disp_obs <- make_disp_obs(mod = mod, disp = disp)
+    disp_obs <- make_disp_obs(mod = mod, disp = disp) ## vector
     outcome <- draw_outcome_obs_given_conf(confidential = confidential,
                                            datamod = datamod,
                                            nm_distn = nm_distn,
@@ -38,6 +44,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   if (has_datamod_outcome)
     outcome <- draw_outcome_true_given_obs(datamod = datamod,
                                            nm_distn = nm_distn,
+                                           components = components,
                                            outcome = outcome,
                                            offset = offset,
                                            expected = expected,
@@ -436,24 +443,24 @@ index_val_used <- function(data, by_val) {
 #' account of measurement errors
 #'
 #' @param mod Object of class 'bage_mod'
+#' @param components Data frame with components
 #' @param expected Expected value for rate/prob/mean that does
 #' not account for measurement errors. An rvec.
 #'
 #' @returns An rvec
 #'
 #' @noRd
-make_expected_obs <- function(mod, expected) {
+make_expected_obs <- function(mod, components, expected) {
   UseMethod("make_expected_obs")
 }
 
 
-make_expected_obs.bage_mod_pois <- function(mod, exposure) {
+make_expected_obs.bage_mod_pois <- function(mod, components, exposure) {
   datamod <- mod$datamod
   if (is.null(datamod)) {
     ans <- exposure
   }
   else {
-    components <- components(mod)
     if (inherits(datamod, "bage_datamod_exposure")) {
       ans <- make_expected_obs_exposure(datamod = datamod,
                                         expected = expected)
@@ -507,36 +514,23 @@ make_expected_obs.bage_mod_binom <- function(mod, exposure) {
 make_expected_obs_exposure <- function(datamod,
                                        components,
                                        expected) {
-  ratio <- datamod$ratio
-  matrix_ratio_outcome <- datamod$matrix_ratio_outcome
-  matrix_disp_outcome <- datamod$matrix_disp_outcome
-  matrix_disp_outcome <- as.matrix(matrix_disp_outcome) ## remove after updating rvec
-  is_disp <- (components$term == "datamod"
-    & components$component == "disp")
-  disp <- components$.fitted[is_disp]
-  ratio <- matrix_ratio_outcome %*% ratio
-  disp <- matrix_disp_outcome %*% disp
-  ratio <- as.numeric(ratio) ## convert from matrix
+  ratio <- get_datamod_ratio(datamod)
+  disp <- get_datamod_disp(datamod = datamod,
+                           components = components)
   numerator <- (3 * disp + 1) * expected
   denominator <- (disp + 1) * ratio
   numerator / denominator
 }
-  
+
+
+
 make_expected_obs_miscount <- function(datamod,
                                        components,
                                        expected) {
-  matrix_prob_outcome <- datamod$matrix_prob_outcome
-  matrix_rate_outcome <- datamod$matrix_rate_outcome
-  matrix_prob_outcome <- as.matrix(matrix_prob_outcome) ## remove after updating rvec
-  matrix_rate_outcome <- as.matrix(matrix_rate_outcome) ## remove after updating rvec
-  is_prob <- (components$term == "datamod"
-    & components$component == "prob")
-  is_rate <- (components$term == "datamod"
-    & components$component == "rate")
-  prob <- components$.fitted[is_prob]
-  rate <- components$.fitted[is_rate]
-  prob <- matrix_prob_outcome %*% prob
-  rate <- matrix_prob_outcome %*% rate
+  prob <- get_datamod_prob(datamod = datamod,
+                           components = components)
+  rate <- get_datamod_rate(datamod = datamod,
+                           components = components)
   (prob + rate) * expected
 }
 
@@ -545,26 +539,79 @@ make_expected_obs_miscount <- function(datamod,
 make_expected_obs_overcount <- function(datamod,
                                         components,
                                         expected) {
-  matrix_rate_outcome <- datamod$matrix_rate_outcome
-  matrix_rate_outcome <- as.matrix(matrix_rate_outcome) ## remove after updating rvec
-  is_rate <- (components$term == "datamod"
-    & components$component == "rate")
-  rate <- components$.fitted[is_rate]
-  rate <- matrix_rate_outcome %*% rate
+  rate <- get_datamod_rate(datamod = datamod,
+                           components = components)
   (1 + rate) * expected
 }
+
 
 make_expected_obs_undercount <- function(datamod,
                                          components,
                                          expected) {
+  prob <- get_datamod_prob(datamod = datamod,
+                           components = components)
+  prob * expected
+}
+
+
+get_datamod_ratio <- function(datamod) {
+  ratio <- datamod$ratio
+  matrix_ratio_outcome <- datamod$matrix_ratio_outcome
+  matrix_ratio_outcome <- as.matrix(matrix_ratio_outcome) ## remove after updating rvec
+  ratio <- matrix_ratio_outcome %*% ratio
+  ratio <- as.numeric(ratio) ## convert from matrix
+  ratio
+}
+
+
+get_datamod_disp <- function(datamod, components) {
+  matrix_disp_outcome <- datamod$matrix_disp_outcome
+  matrix_disp_outcome <- as.matrix(matrix_disp_outcome) ## remove after updating rvec
+  is_disp <- (components$term == "datamod"
+    & components$component == "disp")
+  disp <- components$.fitted[is_disp]
+  disp <- matrix_disp_outcome %*% disp
+  disp
+}
+
+
+
+get_datamod_prob <- function(datamod, components) {
   matrix_prob_outcome <- datamod$matrix_prob_outcome
   matrix_prob_outcome <- as.matrix(matrix_prob_outcome) ## remove after updating rvec
   is_prob <- (components$term == "datamod"
     & components$component == "prob")
   prob <- components$.fitted[is_prob]
   prob <- matrix_prob_outcome %*% prob
-  prob * expected
+  prob
 }
+
+get_datamod_rate <- function(datamod, components) {
+  matrix_rate_outcome <- datamod$matrix_rate_outcome
+  matrix_rate_outcome <- as.matrix(matrix_rate_outcome) ## remove after updating rvec
+  is_rate <- (components$term == "datamod"
+    & components$component == "rate")
+  rate <- components$.fitted[is_rate]
+  rate <- matrix_rate_outcome %*% rate
+  rate
+}
+
+
+get_datamod_mean <- function(datamod) {
+  mean <- datamod$mean
+  matrix_mean_outcome <- datamod$matrix_mean_outcome
+  mean <- matrix_mean_outcome %*% mean
+  mean <- as.numeric(mean)
+  mean
+}
+
+get_datamod_sd <- function(datamod) {
+  sd <- datamod$sd
+  matrix_sd_outcome <- datamod$matrix_sd_outcome
+  sd <- matrix_sd_outcome %*% sd
+  sd <- as.numeric(sd)
+  sd
+}  
 
 
 
@@ -584,21 +631,30 @@ make_expected_obs_undercount <- function(datamod,
 #' @returns An rvec
 #'
 #' @noRd
-make_disp_obs <- function(mod, disp) {
+make_disp_obs <- function(mod, components, disp) {
   UseMethod("make_disp_obs")
 }
 
-make_disp_obs.bage_mod_pois <- function(mod, disp) {
+make_disp_obs.bage_mod_pois <- function(mod, components, disp) {
+  outcome <- mod$outcome
   datamod <- mod$datamod
   if (inherits(datamod, "bage_datamod_exposure")) {
-    disp / (3 * disp + 1)
+    disp <- get_datamod_disp(datamod = datamod,
+                             components = components)
+    ans <- disp / (3 * disp + 1)
   }
-  else
-    disp
+  else {
+    n_outcome <- length(outcome)
+    ans <- rep(disp, times = n_outcome)
+  }
+  ans
 }
 
-make_disp_obs.bage_mod_binom <- function(mod, disp) {
-  disp
+make_disp_obs.bage_mod_binom <- function(mod, components, disp) {
+  outcome <- mod$outcome
+  n_outcome <- length(outcome)
+  ans <- rep(disp, times = n_outcome)
+  ans
 }
 
 

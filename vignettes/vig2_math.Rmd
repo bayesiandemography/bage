@@ -62,7 +62,7 @@ We allow $\xi$ to equal 0, in which case the model reduces to
 
 For $\xi > 0$, Equations \@ref(eq:lik-pois-1) and \@ref(eq:lik-pois-2) are equivalent to
 \begin{equation}
-  y_i \sim \text{NegBinom}\left(\xi^{-1}, (1 + \mu_i w_i \xi)^{-1}\right)
+  y_i \sim \text{NegBinom}\left(\xi^{-1}, [1 + \mu_i w_i \xi]^{-1}\right)
 \end{equation}
 [@norton2018sampling; @simpson2022priors].
 This is the format we use internally for estimation. When values for $\gamma_i$ are needed, we generate them on the fly, using the fact that
@@ -1102,7 +1102,7 @@ kable(models,
       caption = "System models and data models")
 ```
 
-## Poisson, measurement errors in outcome variable
+## Poisson, measurement errors in outcome variable {#sec:datamod-pois-out}
 
 ### System model
 
@@ -1135,7 +1135,7 @@ We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure
 ### Combined model seen by TMB
 
 \begin{align}
-  y_i^{\text{obs}} & \sim \text{NegBinom}\left(\xi^{-1}, (1 + (\pi_{g[i]} + \kappa_{h[i]})\mu_i w_i \xi)^{-1}\right) \\
+  y_i^{\text{obs}} & \sim \text{NegBinom}\left(\xi^{-1}, [1 + (\pi_{g[i]} + \kappa_{h[i]})\mu_i w_i \xi]^{-1}\right) \\
   \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\
   \kappa_h & \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)})
 \end{align}
@@ -1143,16 +1143,29 @@ We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure
 
 ### Deriving $y_i^{\text{true}}$
 
-\@ref(eq:datamod-v-i) and \@ref(eq:datamod-u-i-cond) imply that
+#### Undercount and overcount
+
+As shown in Appendix \@ref(app:datamod), equations \@ref(eq:datamod-v-i) and \@ref(eq:datamod-u-i-cond) imply that
 \begin{equation}
-  u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Binomial}\left(y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}}\right)
+  u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i \sim \text{Binomial}\left(y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}}\right)
 \end{equation}
 
-As shown in Appendix \@ref(app:datamod), \@ref(eq:lik-pois-outcome-1) and \@ref(eq:datamod-u-i) imply that
+As also shown in Appendix \@ref(app:datamod), equations \@ref(eq:lik-pois-outcome-1), \@ref(eq:lik-pois-outcome-2), and \@ref(eq:datamod-u-i) imply that
 \begin{equation}
-  y_i^{\text{true}} - u_i \mid u_i, \pi_{g[i]}, \gamma_i, w_i \sim \text{Poisson}((1 - \pi_{g[i]}) \gamma_i w_i)
+  y_i^{\text{true}} - u_i | u_i, y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i \sim \text{NegBinom}\left(\frac{1}{u_i + \xi^{-1}}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
 \end{equation}
 
+We can obtain a value for $y_i^{\text{true}}$ by drawing a value for $u_i$, then drawing a value for $x_i = y_i^{\text{true}} - u_i$, then setting $y_i^{\text{true}} = x_i + u_i$.
+
+#### Undercount only
+
+
+
+#### Overcount only
+
+\begin{equation}
+  y_i^{\text{true}} \mid y_i^{\text{obs}}, \kappa_{h[i]}, \mu_i, \xi, w_i \sim \text{Binomial}\left(y_i^{\text{obs}}, \frac{1}{1 + \kappa_{h[i]}}\right)
+\end{equation}
 
 ## Poisson, measurement errors in exposure
 
@@ -1193,7 +1206,7 @@ Note that
 E[y_i^{\text{obs}}] = \left( \frac{3 + \delta_{g[i]}^{-1}}{1 + \delta_{g[i]}^{-1}} \right) \frac{w_i^{\text{obs}}}{r_{h[i]}} \mu_i 
 \end{equation}
 
-### Deriving $y_i^{\text{true}}$
+### Deriving $w_i^{\text{true}}$
 
 Draw from \@ref(eq:w-true)
 
@@ -1586,23 +1599,43 @@ should look approximately like a randomly-selected column from the original data
 
 ## Derivation of quantities used in data models {#app:datamod}
 
-### Derivation of $y_i^{\text{true}} | u_i$
+### Derivation of $u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i$ in Section \@ref(sec:datamod-pois-out)
 
+Conditional on $\gamma_i, \pi_{g[i]}, \kappa_{h[i]}, w_i$, the quantities $u_i$ and $v_i$ are independent Poisson variates,
 \begin{align}
-    p(y_i^{\text{true}} \mid u_i) & \propto p(u_i \mid y_i^{\text{true}}) p(y_i^{\text{true}}) \\
-    & = \text{Binomial}(u_i \mid y_i^{\text{true}}, \pi_i) \text{Poisson}(y_i^{\text{true}} \mid \lambda) \\
-    & \propto \binom{y_i^{\text{true}}}{u_i}(1-\pi_i)^{y_i^{\text{true}}-u_i} \frac{1}{y_i^{\text{true}}!} \lambda^{y_i^{\text{true}}} \\
-    & \propto \frac{1}{(y_i^{\text{true}}-u_i)!} [(1-\pi_i)\lambda]^{y_i^{\text{true}}} (\#eq:unnormalised)
+  u_i & \sim \text{Poisson}(\pi_{g[i]} \gamma_i w_i) \\
+  v_i & \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i).
 \end{align}
-The quantity $p(y_i^{\text{true}} \mid u_i)$ can be obtained by normalizing \@ref(eq:unnormalised). Summing \@ref(eq:unnormalised) over all possible values, we obtain
+with $y_i^{\text{obs}} = u_i + v_i$, implying that,
 \begin{align}
-    \sum_{y_i^{\text{true}}=u_i}^{\infty} \frac{1}{(y_i^{\text{true}}-u_i)!} [(1-\pi_i)\lambda]^{y_i^{\text{true}}} & = \sum_{i = 0}^{\infty} \frac{1}{i!}[(1-\pi_i)\lambda]^{i + u_i} \\
-    & = [(1-\pi_i)\lambda]^u_i \sum_{i = 0}^{\infty} \frac{[(1-\pi_i)\lambda]^i}{i!} \\
-    & = [(1-\pi_i)\lambda]^u_i e^{(1-\pi_i)\lambda} (\#eq:sum)
+  p(u_i \mid y_i^{\text{obs}}, \gamma_i, \pi_{g[i]}, \kappa_{h[i]}, w_i) & = \text{Binomial}\left(u_i \,\middle|\,  y_i^{\text{obs}}, \frac{\pi_{g[i]} \gamma_i w_i}{\pi_{g[i]} \gamma_i w_i + \kappa_{h[i]} \gamma_i w_i}\right) \\
+  & = \text{Binomial}\left(u_i \,\middle|\,  y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right).
 \end{align}
- by dividing \@ref(eq:unnormalised) by \@ref(eq:sum) gives
+We then have
+\begin{align}
+  p(u_i \mid y_i^{\text{obs}}, \mu_i, \xi, \pi_{g[i]}, \kappa_{h[i]}, w_i) & = \int_0^{\infty} p(u_i \mid y_i^{\text{obs}}, \gamma_i, \pi_{g[i]}, \kappa_{h[i]}, w_i) p(\gamma_i \mid y_i^{\text{obs}}, \mu_i, \xi \pi_{g[i]}, \kappa_{h[i]}, w_i) \, \text{d}\gamma_i \\
+  & = \int_0^{\infty} \text{Binomial}\left(u_i \,\middle|\, y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right) p(\gamma_i \mid \mu_i, \xi) \, \text{d}\gamma_i \\
+  & = \text{Binomial}\left(u_i \,\middle|\, y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right) \int_0^{\infty}  p(\gamma_i \mid \mu_i, \xi) \, \text{d}\gamma_i \\
+  & = \text{Binomial}\left(u_i \,\middle|\, y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right)
+\end{align}
+
+
+
+### Derivation of $y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi$ in Section \@ref(sec:datamod-pois-out)
+ 
+\begin{align}
+    & p(y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) \\
+    & \propto p(u_i \mid y_i^{\text{true}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) p(y_i^{\text{true}} \mid \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) \\
+    & = \text{Binomial}(u_i \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{NegBinom}(y_i^{\text{true}} \mid \xi^{-1}, [1 + \mu_i w_i \xi_i]^{-1}) \\
+    & = \frac{y_i^{\text{true}}!}{u_i! (y_i^{\text{true}} - u_i)!}  \pi_{g[i]}^{u_i} (1-\pi_{g[i]})^{y_i^{\text{true}}-u_i} \\
+    & \quad \times \frac{\Gamma(y_i^{\text{true}} + \xi^{-1})}{y_i^{\text{true}}! \Gamma(\xi^{-1})}
+\left( \frac{1}{ 1 + \mu_i w_i \xi} \right)^{\xi^{-1}}
+\left( \frac{\mu_i w_i \xi}{1 + \mu_i w_i\ \xi} \right)^{y_i^{\text{true}}} \\
+    & \propto \frac{\Gamma(y_i^{\text{true}} + \xi^{-1})}{(y_i^{\text{true}} - u_i)!} \left( \frac{ (1-\pi_{g[i]}) \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)^{y_i^{\text{true}}},
+\end{align}
+which is the kernel for the distribution
 \begin{equation}
-  p(y_i^{\text{true}} \mid u_i) = \frac{[(1-\pi_i)\lambda]^{y_i^{\text{true}}-u_i} e^{-(1-\pi_i)\lambda}}{y_i^{\text{true}}-u_i}. (\#eq:pmf)
+  \text{NegBinom}\left( y_i^{\text{true}} - u_i \,\middle|\, \frac{1}{u_i + \xi^{-1}}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
 \end{equation}
 
 
