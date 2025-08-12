@@ -300,9 +300,13 @@ Known <- function(values) {
 #' of the 'by' variables.
 #' 
 #' Argument `s` controls the size of the errors.
-#' Smaller values tend to give smoother estimates.
-#' `s` can be zero.
-#'
+#' Smaller values give smoother estimates.
+#' `s` can be zero, in which case errors are zero,
+#' and all values lie exactly on straight lines.
+#' This is clearly a simplification, but it allows
+#' the prior to be used with very large
+#' interactions.
+#' 
 #' Argument `sd_slope` controls the size of the slopes of
 #' the lines. Larger values can give more steeply
 #' sloped lines.
@@ -311,14 +315,14 @@ Known <- function(values) {
 #'
 #' When `Lin()` is used with a main effect,
 #'
-#' \deqn{\beta_j = \alpha + j \eta + \epsilon_j}
-#' \deqn{\alpha \sim \text{N}(0, 1)}
+#' \deqn{\beta_j = (j - (J+1)/2) \eta + \epsilon_j}
+#' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
 #' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
 #' 
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,v} \sim  \alpha_u + v \eta_u + \epsilon_{u,v}}
-#' \deqn{\alpha_u \sim \text{N}(0, 1)}
+#' \deqn{\beta_{u,v} = (v - (V + 1)/2) \eta_u + \epsilon_{u,v}}
+#' \deqn{\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 #' 
 #' where
@@ -327,13 +331,18 @@ Known <- function(values) {
 #' - \eqn{v} denotes position within the 'along' variable of the interaction; and
 #' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #' 
-#' The slopes have priors
-#' \deqn{\eta \sim \text{N}(\mathtt{mean_slope}, \mathtt{sd_slope}^2)}
-#' and
-#' \deqn{\eta_u \sim \text{N}(\mathtt{mean_slope}, \mathtt{sd_slope}^2).}
-#'
 #' Parameter \eqn{\tau} has a half-normal prior
 #' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
+#'
+#' When \eqn{\mathtt{s} = 0}, the model reduces to
+#'
+#' \deqn{\beta_j = (j - (J+1)/2) \eta}
+#' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
+#'
+#' or
+#'
+#' \deqn{\beta_{u,v} = (v = (V + 1)/2) \eta_u}
+#' \deqn{\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}.
 #'
 #' @inheritSection AR Constraints
 #'
