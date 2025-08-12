@@ -631,19 +631,33 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 
 Note that $\sum_{v=1}^{V_m} \alpha_{u,v}^{(m)} = 0$.
 
+Scale parameter $A_{\tau}^{(m)}$ is allowed to equal 0, in which case the model reduces to
+\begin{align}
+  \beta_{u,v}^{(m)} & = \left(v - \frac{V_m + 1}{2}\right) \eta_u^{(m)} \\
+  \eta_u^{(m)} & \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right)
+\end{align}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B_{\eta}^{(m)}, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid v - \frac{V_m + 1}{2}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B_{\eta}^{(m)}, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \,\middle|\, v - \frac{V_m + 1}{2}, \tau_m^2 \right) 
 \end{equation}
 
+When $A_{\tau}^{(m)} = 0$, this reduces to
+\begin{equation}
+  \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B_{\eta}^{(m)}, A_{\eta}^{(m)2})
+\end{equation}
 
 ### Forecasting
 
 \begin{equation}
   \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)}, \tau_m^2\right)
+\end{equation}
+
+When $A_{\tau}^{(m)} = 0$, this reduces to
+\begin{equation}
+  \beta_{u,V_m + h}^{(m)} = \left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)}
 \end{equation}
 
 
