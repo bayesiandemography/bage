@@ -1155,7 +1155,7 @@ We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure
 \end{align}
 
 
-### Deriving $y_i^{\text{true}}$
+### Obtaining $y_i^{\text{true}}$
 
 #### Undercount and overcount
 
@@ -1173,7 +1173,13 @@ We can obtain a value for $y_i^{\text{true}}$ by drawing a value for $u_i$, then
 
 #### Undercount only
 
+Draw
+\begin{equation}
+ x_i = y_i^{\text{true}} - y_i^{\text{obs}} \sim \text{NegBinom}\left(\frac{1}{y_i^{\text{obs}} + \xi^{-1}}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+\end{equation}
+then set $y_i^{\text{true}} = y_i^{\text{obs}} + x_i$.
 
+Appendix \@ref(app:datamod) has the derivation.
 
 #### Overcount only
 
@@ -1181,7 +1187,9 @@ We can obtain a value for $y_i^{\text{true}}$ by drawing a value for $u_i$, then
   y_i^{\text{true}} \mid y_i^{\text{obs}}, \kappa_{h[i]}, \mu_i, \xi, w_i \sim \text{Binomial}\left(y_i^{\text{obs}}, \frac{1}{1 + \kappa_{h[i]}}\right)
 \end{equation}
 
-## Poisson, measurement errors in exposure
+Appendix \@ref(app:datamod) has the derivation.
+
+## Poisson, measurement errors in exposure {#sec:datamod-pois-off}
 
 ### System model
 
@@ -1220,7 +1228,7 @@ Note that
 E[y_i^{\text{obs}}] = \left( \frac{3 + \delta_{g[i]}^{-1}}{1 + \delta_{g[i]}^{-1}} \right) \frac{w_i^{\text{obs}}}{r_{h[i]}} \mu_i 
 \end{equation}
 
-### Deriving $w_i^{\text{true}}$
+### Obtaining $w_i^{\text{true}}$
 
 Draw from \@ref(eq:w-true)
 
@@ -1250,7 +1258,7 @@ where values for $A_g^{(\pi)}$ and $B_g^{(\pi)}$ are supplied by the user.
 \end{align}
 
 
-### Deriving $y_i^{\text{true}}$
+### Obtaining $y_i^{\text{true}}$
 
 Draw from distribution defined by
 \begin{align}
@@ -1299,7 +1307,7 @@ where values for $m_{g[i]}$ and $s_{h[i]}$ are supplied by the user.
 \end{equation}
 
 
-### Deriving $y_i^{\text{true}}$
+### Obtaining $y_i^{\text{true}}$
 
 \begin{equation}
   y_i^{\text{true}} \sim \text{N}\left(\frac{\tau_1}{\tau_1 + \tau_2} \gamma_i + \frac{\tau_2}{\tau_1 + \tau_2} (y_i^{\text{obs}} - m_{g[i]}),\quad
@@ -1533,6 +1541,7 @@ replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
 
 ## Definitions {#app:defn}
 
+TODO - UPDATE THIS
 
 | Quantity | Definition                                          |
 |:---------|:----------------------------------------------------|
@@ -1613,29 +1622,25 @@ should look approximately like a randomly-selected column from the original data
 
 ## Derivation of quantities used in data models {#app:datamod}
 
-### Derivation of $u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i$ in Section \@ref(sec:datamod-pois-out)
+### Derivation of $u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i$ in undercount-overcount model in Section \@ref(sec:datamod-pois-out)
 
 Conditional on $\gamma_i, \pi_{g[i]}, \kappa_{h[i]}, w_i$, the quantities $u_i$ and $v_i$ are independent Poisson variates,
 \begin{align}
   u_i & \sim \text{Poisson}(\pi_{g[i]} \gamma_i w_i) \\
-  v_i & \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i).
+  v_i & \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i),
 \end{align}
-with $y_i^{\text{obs}} = u_i + v_i$, implying that,
+with $u_i + v_i = y_i^{\text{obs}}$, implying that,
 \begin{align}
   p(u_i \mid y_i^{\text{obs}}, \gamma_i, \pi_{g[i]}, \kappa_{h[i]}, w_i) & = \text{Binomial}\left(u_i \,\middle|\,  y_i^{\text{obs}}, \frac{\pi_{g[i]} \gamma_i w_i}{\pi_{g[i]} \gamma_i w_i + \kappa_{h[i]} \gamma_i w_i}\right) \\
   & = \text{Binomial}\left(u_i \,\middle|\,  y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right).
 \end{align}
-We then have
+The value of $u_i$ does not depend on $\gamma_i$, and hence does not depend on $\mu_i$ and $\xi$, the determinants of $\gamma_i$. We therefore have
 \begin{align}
-  p(u_i \mid y_i^{\text{obs}}, \mu_i, \xi, \pi_{g[i]}, \kappa_{h[i]}, w_i) & = \int_0^{\infty} p(u_i \mid y_i^{\text{obs}}, \gamma_i, \pi_{g[i]}, \kappa_{h[i]}, w_i) p(\gamma_i \mid y_i^{\text{obs}}, \mu_i, \xi \pi_{g[i]}, \kappa_{h[i]}, w_i) \, \text{d}\gamma_i \\
-  & = \int_0^{\infty} \text{Binomial}\left(u_i \,\middle|\, y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right) p(\gamma_i \mid \mu_i, \xi) \, \text{d}\gamma_i \\
-  & = \text{Binomial}\left(u_i \,\middle|\, y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right) \int_0^{\infty}  p(\gamma_i \mid \mu_i, \xi) \, \text{d}\gamma_i \\
-  & = \text{Binomial}\left(u_i \,\middle|\, y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right)
+  p(u_i \mid y_i^{\text{obs}}, \mu_i, \xi, \pi_{g[i]}, \kappa_{h[i]}, w_i) & = \text{Binomial}\left(u_i \,\middle|\, y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right)
 \end{align}
 
 
-
-### Derivation of $y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi$ in Section \@ref(sec:datamod-pois-out)
+### Derivation of $y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi$ in undercount-overcount model Section \@ref(sec:datamod-pois-out)
  
 \begin{align}
     & p(y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) \\
@@ -1653,7 +1658,46 @@ which is the kernel for the distribution
 \end{equation}
 
 
-### Derivation of $p(w_i^{\text{true}} \mid w_i^{\text{obs}})$
+### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i$ in undercount-only model in Section \@ref(sec:datamod-pois-out)
+
+\begin{align}
+    & p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, w_i, \xi) \\
+    & \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}, \mu_i, w_i, \xi) p(y_i^{\text{true}} \mid \pi_{g[i]}, \mu_i, w_i, \xi) \\
+    & = \text{Binomial}(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{NegBinom}(y_i^{\text{true}} \mid \xi^{-1}, [1 + \mu_i w_i \xi_i]^{-1}) \\
+    & = \frac{y_i^{\text{true}}!}{y_i^{\text{obs}}! (y_i^{\text{true}} - y_i^{\text{obs}})!}  \pi_{g[i]}^{y_i^{\text{obs}}} (1-\pi_{g[i]})^{y_i^{\text{true}}-y_i^{\text{obs}}} \\
+    & \quad \times \frac{\Gamma(y_i^{\text{true}} + \xi^{-1})}{y_i^{\text{true}}! \Gamma(\xi^{-1})}
+\left( \frac{1}{ 1 + \mu_i w_i \xi} \right)^{\xi^{-1}}
+\left( \frac{\mu_i w_i \xi}{1 + \mu_i w_i\ \xi} \right)^{y_i^{\text{true}}} \\
+    & \propto \frac{\Gamma(y_i^{\text{true}} + \xi^{-1})}{(y_i^{\text{true}} - y_i^{\text{obs}})!} \left( \frac{ (1-\pi_{g[i]}) \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)^{y_i^{\text{true}}},
+\end{align}
+which is the kernel for the distribution
+\begin{equation}
+  \text{NegBinom}\left( y_i^{\text{true}} - y_i^{\text{obs}} \,\middle|\, \frac{1}{y_i^{\text{obs}} + \xi^{-1}}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+\end{equation}
+
+
+
+### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \kappa_{h[i]}, \mu_i, \xi, w_i$ in overcount-only model in Section \@ref(sec:datamod-pois-out)
+
+Conditional on $\gamma_i, \kappa_{h[i]}, w_i$, the quantities $y_i^{\text{true}}$ and $v_i$ are independent Poisson variates,
+\begin{align}
+  y_i^{\text{true}} & \sim \text{Poisson}(\gamma_i w_i) \\
+  v_i & \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i),
+\end{align}
+with $y_i^{\text{true}} + v_i = y_i^{\text{obs}}$, implying that,
+\begin{align}
+  p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \gamma_i, \kappa_{h[i]}, w_i) & = \text{Binomial}\left(y_i^{\text{true}} \,\middle|\,  y_i^{\text{obs}}, \frac{ \gamma_i w_i}{\gamma_i w_i + \kappa_{h[i]} \gamma_i w_i}\right) \\
+  & = \text{Binomial}\left(y_i^{\text{true}} \,\middle|\,  y_i^{\text{obs}}, \frac{1}{1 + \kappa_{h[i]}} \right).
+\end{align}
+The value of $y_i^{\text{true}}$ does not depend on $\gamma_i$, and hence does not depend on the determinants of $\gamma_i$, that is, on $\mu_i$ and $\xi$.
+We therefore have
+\begin{align}
+  p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \mu_i, \xi, \kappa_{h[i]}, w_i) & = \text{Binomial}\left(y_i^{\text{true}} \,\middle|\, y_i^{\text{obs}}, \frac{1}{1 + \kappa_{h[i]}} \right).
+\end{align}
+
+
+
+### Derivation of $p(w_i^{\text{true}} \mid w_i^{\text{obs}})$ in Section \@ref(sec:datamod-pois-off)
 
 Assume have no prior information on $w_i^{\text{true}}$, so that $w_i^{\text{true}} \sim \text{Unif}(0, \infty)$. Let $A = 2 + \delta_{g[i]}^{-1}$ and $B = (1 + \delta_{g[i]}^{-1}) r_{h[i]}$.
 
