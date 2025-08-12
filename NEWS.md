@@ -1,4 +1,14 @@
 
+# bage 0.9.5
+
+## Documentation 
+
+* Extended documentation of `Lin()` prior in Mathematical Details
+  vignette, and on online help, to describe case where `s = 0`. Also
+  updated descriptio of prior in online help to match current
+  implementation.
+
+
 # bage 0.9.4
 
 ## Interface
