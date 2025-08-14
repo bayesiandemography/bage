@@ -413,6 +413,120 @@ generate_ssvd_helper <- function(ssvd,
 
 
 ## HAS_TESTS
+#' Get Values for 'disp' for a Data Model
+#'
+#' @param datamod Object of class "bage_datamod"
+#' @param components Data frame with estimate of 'disp'
+#'
+#' @returns An rvec, the same length as 'outcome'
+#'
+#' @noRd
+get_datamod_disp <- function(datamod, components) {
+  matrix_disp_outcome <- datamod$matrix_disp_outcome
+  matrix_disp_outcome <- as.matrix(matrix_disp_outcome) ## remove after updating rvec
+  is_disp <- (components$term == "datamod"
+    & components$component == "disp")
+  disp <- components$.fitted[is_disp]
+  disp <- matrix_disp_outcome %*% disp
+  disp
+}
+
+
+## HAS_TESTS
+#' Get Values for 'mean' for a Data Model
+#'
+#' @param datamod Object of class "bage_datamod"
+#' that has a 'mean' parameter
+#'
+#' @returns A numeric vector, the same length as 'outcome'
+#'
+#' @noRd
+get_datamod_mean <- function(datamod) {
+  mean <- datamod$mean
+  matrix_mean_outcome <- datamod$matrix_mean_outcome
+  mean <- matrix_mean_outcome %*% mean
+  mean <- as.numeric(mean)
+  mean
+}
+
+
+## HAS_TESTS
+#' Get Values for 'prob' for a Data Model
+#'
+#' @param datamod Object of class "bage_datamod"
+#' @param components Data frame with estimate of 'prob'
+#'
+#' @returns An rvec, the same length as 'outcome'
+#'
+#' @noRd
+get_datamod_prob <- function(datamod, components) {
+  matrix_prob_outcome <- datamod$matrix_prob_outcome
+  matrix_prob_outcome <- as.matrix(matrix_prob_outcome) ## remove after updating rvec
+  is_prob <- (components$term == "datamod"
+    & components$component == "prob")
+  prob <- components$.fitted[is_prob]
+  prob <- matrix_prob_outcome %*% prob
+  prob
+}
+
+
+## HAS_TESTS
+#' Get Values for 'rate' for a Data Model
+#'
+#' @param datamod Object of class "bage_datamod"
+#' @param components Data frame with estimate of 'rate'
+#'
+#' @returns An rvec, the same length as 'outcome'
+#'
+#' @noRd
+get_datamod_rate <- function(datamod, components) {
+  matrix_rate_outcome <- datamod$matrix_rate_outcome
+  matrix_rate_outcome <- as.matrix(matrix_rate_outcome) ## remove after updating rvec
+  is_rate <- (components$term == "datamod"
+    & components$component == "rate")
+  rate <- components$.fitted[is_rate]
+  rate <- matrix_rate_outcome %*% rate
+  rate
+}
+
+
+## HAS_TESTS
+#' Get Values for 'ratio' for a Data Model
+#'
+#' @param datamod Object of class "bage_datamod"
+#' that has a 'ratio' parameter
+#'
+#' @returns A numeric vector, the same length as 'outcome'
+#'
+#' @noRd
+get_datamod_ratio <- function(datamod) {
+  ratio <- datamod$ratio
+  matrix_ratio_outcome <- datamod$matrix_ratio_outcome
+  ratio <- matrix_ratio_outcome %*% ratio
+  ratio <- as.numeric(ratio) ## convert from matrix
+  ratio
+}
+
+
+## HAS_TESTS
+#' Get Values for 'sd' for a Data Model
+#'
+#' @param datamod Object of class "bage_datamod"
+#' that has a 'sd' parameter
+#'
+#' @returns A numeric vector, the same length as 'outcome'
+#'
+#' @noRd
+get_datamod_sd <- function(datamod) {
+  sd <- datamod$sd
+  matrix_sd_outcome <- datamod$matrix_sd_outcome
+  sd <- matrix_sd_outcome %*% sd
+  sd <- as.numeric(sd)
+  sd
+}
+
+
+## HAS_TESTS
 #' Extract Values for Dispersion
 #'
 #' Works with fitted or unfitted models
@@ -452,6 +566,100 @@ get_term_from_est <- function(est, index_term) {
   nm_term <- unlist(nm_term, use.names = FALSE)
   ans <- nm_term[index_term]
   ans <- unique(ans)
+  ans
+}
+
+
+
+#' Impute Missing Values for True Outcome
+#'
+#' Should only be called when 'outcome'
+#' has missing values (since it converts
+#' 'outcome' to an rvec.)
+#'
+#' In "norm" case, assume that 'offset',
+#' 'expected', and 'disp' are all on the original
+#' scale.
+#'
+#' Imputation not done for cells where
+#' 'offset' is NA.
+#' 
+#' @param nm_distn Name of distribution:
+#' "pois", "binom", or "norm"
+#' @param outcome Values for true outcome,
+#' which must contain NAs. Numeric or rvec.
+#' @param offset Exposure/trials/weights.
+#' Numeric or rvec.
+#' @param expected Expected values
+#' for rate/prob/mean. An rvec.
+#' @param disp Dispersion. An rvec or NULL.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+impute_outcome_true <- function(nm_distn,
+                                outcome,
+                                offset,
+                                expected,
+                                disp) {
+  n_draw <- rvec::n_draw(expected)
+  n_val <- length(expected)
+  has_disp <- !is.null(disp)
+  if (rvec::is_rvec(outcome))
+    outcome <- as.numeric(outcome)
+  else
+    outcome <- rep(outcome, times = n_draw)
+  if (rvec::is_rvec(offset))
+    offset <- as.numeric(offset)
+  else
+    offset <- rep(offset, times = n_draw)
+  expected <- as.numeric(expected)
+  if (has_disp) {
+    disp <- as.numeric(disp)
+    disp <- rep(disp, each = n_val)
+  }
+  if (!anyNA(outcome))
+    cli::cli_abort("Internal error: {.fun impute_outcome_true} called, but no missing values.")
+  is_impute <- is.na(outcome) & !is.na(offset)
+  n_impute <- sum(is_impute)
+  ans <- outcome
+  if (n_impute > 0L) {
+    if (nm_distn == "pois") {
+      if (has_disp) {
+        shape <- 1 / disp[is_impute]
+        rate <- 1 / (expected[is_impute] * offset[is_impute] * disp[is_impute])
+        lambda <- stats::rgamma(n = n_impute,
+                                shape = shape,
+                                rate = rate) # doesn't need guarding
+      }
+      else 
+        lambda <- expected[is_impute] * offset[is_impute]
+      ans_impute <- rpois_guarded(lambda)
+    }
+    else if (nm_distn == "binom") {
+      if (has_disp) {
+        shape1 <- expected[is_impute] / disp[is_impute]
+        shape2 <- (1 - expected[is_impute]) / disp[is_impute]
+        prob <- stats::rbeta(n = n_impute,
+                             shape1 = shape1,
+                             shape2 = shape2) # doesn't need guarding
+      }
+      else
+        prob <- expected[is_impute]
+      size <- offset[is_impute]
+      ans_impute <- rbinom_guarded(size = size, prob = prob)
+    }
+    else if (nm_distn == "norm") {
+      mean <- expected[is_impute]
+      sd <- disp[is_impute] / sqrt(offset[is_impute])
+      ans_impute <- stats::rnorm(n = n_impute, mean = mean, sd = sd)
+    }
+    else
+      cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
+    ans[is_impute] <- ans_impute
+  }
+  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
@@ -903,24 +1111,6 @@ make_draws_hyperrandfree <- function(est, draws_post) {
 
 
 ## HAS_TESTS
-#' Construct Estimates of Effects from Estimates of Free Parameters
-#'
-#' @param mod A fitted object of class "bage_mod"
-#' @param effectfree Posterior draws for free parameters
-#'
-#' @returns A matrix
-#' 
-#' @noRd
-make_effects <- function(mod, effectfree) {
-  matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-  offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
-  ans <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
-  ans <- Matrix::as.matrix(ans)
-  ans
-}
-
-
-## HAS_TESTS
 #' Make Initial Draws from Posterior Distribution
 #'
 #' Make draws of variables included in 'prec'
@@ -962,6 +1152,24 @@ make_draws_post <- function(est, prec, map, n_draw) {
   ans <- matrix(NA_real_, nrow = length(is_fixed), ncol = n_draw)
   ans[!is_fixed, ] <- draws_nonfixed
   ans[is_fixed, ] <- est_unlist[is_fixed]
+  ans
+}
+
+
+## HAS_TESTS
+#' Construct Estimates of Effects from Estimates of Free Parameters
+#'
+#' @param mod A fitted object of class "bage_mod"
+#' @param effectfree Posterior draws for free parameters
+#'
+#' @returns A matrix
+#' 
+#' @noRd
+make_effects <- function(mod, effectfree) {
+  matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
+  offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
+  ans <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
+  ans <- Matrix::as.matrix(ans)
   ans
 }
 

@@ -247,6 +247,125 @@ test_that("'get_term_from_est' works", {
 })
 
 
+## 'get_datamod_disp' ----------------------------------------------------
+
+test_that("'get_datamod_disp' works", {
+  ratio <- c(0.1, 0.4, 0.2)
+  disp_mean <- c(0.5, 0.2, 0.3, 0.4)
+  matrix_ratio_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  matrix_disp_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_exposure(ratio = ratio,
+                                       disp_mean = disp_mean,
+                                       matrix_ratio_outcome = matrix_ratio_outcome,
+                                       matrix_disp_outcome = matrix_disp_outcome)
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 4)),
+    component = c("(Intercept)", rep("disp", 4)),
+    level = c("(Intercept)", 0:3),
+    .fitted = rvec::runif_rvec(n = 5, n_draw = 10)
+  )
+  ans_obtained <- get_datamod_disp(datamod = datamod,
+                                   components = components)
+  ans_expected <- as.matrix(matrix_disp_outcome) %*% components$.fitted[-1]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'get_datamod_mean' ---------------------------------------------------------
+
+test_that("'get_datamod_mean' works", {
+  mean <- c(0.1, 0.4, 0.2)
+  sd <- c(0.5, 0.2, 0.3, 0.4)
+  matrix_mean_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  matrix_sd_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_noise(mean = mean,
+                                    sd = sd,
+                                    matrix_mean_outcome = matrix_mean_outcome,
+                                    matrix_sd_outcome = matrix_disp_outcome)
+  ans_obtained <- get_datamod_mean(datamod)
+  ans_expected <- as.numeric(matrix_mean_outcome %*% mean)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'get_datamod_prob' ----------------------------------------------------
+
+test_that("'get_datamod_prob' works", {
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- c(0.3, 0.2, 0.3, 0.2)
+  matrix_prob_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
+                                         prob_disp = prob_disp,
+                                         matrix_prob_outcome = matrix_prob_outcome)
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 4)),
+    component = c("(Intercept)", rep("prob", 4)),
+    level = c("(Intercept)", 0:3),
+    .fitted = rvec::runif_rvec(n = 5, n_draw = 10)
+  )
+  ans_obtained <- get_datamod_prob(datamod = datamod,
+                                   components = components)
+  ans_expected <- as.matrix(matrix_prob_outcome) %*% components$.fitted[-1]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'get_datamod_rate' ----------------------------------------------------
+
+test_that("'get_datamod_rate' works", {
+  rate_mean <- c(0.5, 0.2, 0.3, 0.4)
+  rate_disp <- c(0.3, 0.2, 0.3, 0.2)
+  matrix_rate_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
+                                        rate_disp = rate_disp,
+                                        matrix_rate_outcome = matrix_rate_outcome)
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 4)),
+    component = c("(Intercept)", rep("rate", 4)),
+    level = c("(Intercept)", 0:3),
+    .fitted = rvec::runif_rvec(n = 5, n_draw = 10)
+  )
+  ans_obtained <- get_datamod_rate(datamod = datamod,
+                                   components = components)
+  ans_expected <- as.matrix(matrix_rate_outcome) %*% components$.fitted[-1]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'get_datamod_ratio' ----------------------------------------------------
+
+test_that("'get_datamod_ratio' works", {
+  ratio <- c(0.1, 0.4, 0.2)
+  disp_mean <- c(0.5, 0.2, 0.3, 0.4)
+  matrix_ratio_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  matrix_disp_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_exposure(ratio = ratio,
+                                       disp_mean = disp_mean,
+                                       matrix_ratio_outcome = matrix_ratio_outcome,
+                                       matrix_disp_outcome = matrix_disp_outcome)
+  ans_obtained <- get_datamod_ratio(datamod)
+  ans_expected <- as.numeric(matrix_ratio_outcome %*% ratio)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'get_datamod_sd' ---------------------------------------------------------
+
+test_that("'get_datamod_sd' works", {
+  mean <- c(0.1, 0.4, 0.2)
+  sd <- c(0.5, 0.2, 0.3, 0.4)
+  matrix_mean_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  matrix_sd_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_noise(mean = mean,
+                                    sd = sd,
+                                    matrix_mean_outcome = matrix_mean_outcome,
+                                    matrix_sd_outcome = matrix_disp_outcome)
+  ans_obtained <- get_datamod_sd(datamod)
+  ans_expected <- as.numeric(matrix_sd_outcome %*% sd)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'get_disp' -----------------------------------------------------------------
 
 test_that("'get_disp' works - unfitted", {
@@ -285,7 +404,177 @@ test_that("'get_disp' works - fitted", {
 })  
 
 
-## 'make_combined_matrix_effect_outcome' -----------------------------------------
+## 'impute_outcome_true' ------------------------------------------------------
+
+test_that("'impute_outcome_true' works with pois, offset complete, has disp", {
+  set.seed(0)
+  outcome <- rpois(n = 20, lambda = 10)
+  outcome[c(2, 10)] <- NA
+  offset <- rep(20, 20)
+  expected <- rvec::rgamma_rvec(n = 20, shape = 1, rate = 2, n_draw = 50)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- impute_outcome_true(nm_distn = "pois",
+                                      outcome = outcome,
+                                      offset = offset,
+                                      expected = expected,
+                                      disp = disp)
+  set.seed(1)
+  lambda <- rvec::rgamma_rvec(n = 2,
+                              shape = 1/disp,
+                              rate = 1/(expected[c(2, 10)] * offset[c(2, 10)] * disp))
+  imputed <- rvec::rpois_rvec(n = 2, lambda = lambda)
+  ans_expected <- rvec::rvec_dbl(matrix(outcome, nrow = 20, ncol = 50))
+  ans_expected[c(2, 10)] <- imputed
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'impute_outcome_true' works with pois, offset complete, outcome is rvec, no disp", {
+  set.seed(0)
+  outcome <- rvec::rpois_rvec(n = 20, lambda = 10, n_draw = 50)
+  outcome[c(2, 10)] <- NA
+  offset <- rep(20, 20)
+  expected <- rvec::rgamma_rvec(n = 20, shape = 1, rate = 2, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- impute_outcome_true(nm_distn = "pois",
+                                      outcome = outcome,
+                                      offset = offset,
+                                      expected = expected,
+                                      disp = NULL)
+  set.seed(1)
+  lambda <- expected[c(2, 10)] * offset[c(2, 10)]
+  imputed <- rvec::rpois_rvec(n = 2, lambda = lambda)
+  ans_expected <- outcome
+  ans_expected[c(2, 10)] <- imputed
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'impute_outcome_true' works with pois, offset complete, offset is rvec, no disp", {
+  set.seed(0)
+  outcome <- rpois(n = 20, lambda = 10)
+  outcome[c(2, 10)] <- NA
+  offset <- rvec::runif_rvec(n = 20, min = 1, max = 30, n_draw = 50)
+  expected <- rvec::rgamma_rvec(n = 20, shape = 1, rate = 2, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- impute_outcome_true(nm_distn = "pois",
+                                      outcome = outcome,
+                                      offset = offset,
+                                      expected = expected,
+                                      disp = NULL)
+  set.seed(1)
+  lambda <- expected[c(2, 10)] * offset[c(2, 10)]
+  imputed <- rvec::rpois_rvec(n = 2, lambda = lambda)
+  ans_expected <- rvec::rvec_dbl(matrix(outcome, nrow = 20, ncol = 50))
+  ans_expected[c(2, 10)] <- imputed
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+test_that("'impute_outcome_true' works with binom, offset complete, has disp", {
+  set.seed(0)
+  offset <- rep(20, 20)
+  outcome <- rbinom(n = 20, size = 10, prob = 0.4)
+  outcome[c(2, 10)] <- NA
+  expected <- rvec::rbeta_rvec(n = 20, shape1 = 1, shape2 = 1, n_draw = 50)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- impute_outcome_true(nm_distn = "binom",
+                                      outcome = outcome,
+                                      offset = offset,
+                                      expected = expected,
+                                      disp = disp)
+  set.seed(1)
+  prob <- rvec::rbeta_rvec(n = 2,
+                           shape1 = expected[c(2,10)]/disp,
+                           shape2 = (1-expected[c(2,10)])/disp)
+  imputed <- rvec::rbinom_rvec(n = 2, size = offset[c(2,10)], prob = prob)
+  ans_expected <- rvec::rvec_dbl(matrix(outcome, nrow = 20, ncol = 50))
+  ans_expected[c(2, 10)] <- imputed
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'impute_outcome_true' works with binom, offset has NA, no disp", {
+  set.seed(0)
+  offset <- rep(20, 20)
+  offset[19] <- NA
+  outcome <- rbinom(n = 20, size = 10, prob = 0.4)
+  outcome[c(2, 10, 19)] <- NA
+  expected <- rvec::rbeta_rvec(n = 20, shape1 = 1, shape2 = 1, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- impute_outcome_true(nm_distn = "binom",
+                                      outcome = outcome,
+                                      offset = offset,
+                                      expected = expected,
+                                      disp = NULL)
+  set.seed(1)
+  prob <- expected[c(2,10)]
+  imputed <- rvec::rbinom_rvec(n = 2, size = offset[c(2,10)], prob = prob)
+  ans_expected <- rvec::rvec_dbl(matrix(outcome, nrow = 20, ncol = 50))
+  ans_expected[c(2, 10)] <- imputed
+  ans_expected[19] <- NA
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'impute_outcome_true' works with norm, offset complete", {
+  set.seed(0)
+  offset <- 1:20
+  outcome <- rnorm(n = 20, mean = 100, sd = 5)
+  outcome[c(2, 10)] <- NA
+  expected <- rvec::rnorm_rvec(n = 20, mean = 100, sd = 5, n_draw = 50)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- impute_outcome_true(nm_distn = "norm",
+                                      outcome = outcome,
+                                      offset = offset,
+                                      expected = expected,
+                                      disp = disp)
+  set.seed(1)
+  imputed <- rvec::rnorm_rvec(n = 2,
+                              mean = expected[c(2, 10)],
+                              sd = disp / sqrt(offset[c(2,10)]))
+  ans_expected <- rvec::rvec_dbl(matrix(outcome, nrow = 20, ncol = 50))
+  ans_expected[c(2, 10)] <- imputed
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'impute_outcome_true' raises error when nothing to impute", {
+  set.seed(0)
+  offset <- 1:20
+  outcome <- rnorm(n = 20, mean = 100, sd = 5)
+  expected <- rvec::rnorm_rvec(n = 20, mean = 100, sd = 5, n_draw = 50)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  set.seed(1)
+  expect_error(impute_outcome_true(nm_distn = "norm",
+                                   outcome = outcome,
+                                   offset = offset,
+                                   expected = expected,
+                                   disp = disp),
+               "Internal error: `impute_outcome_true\\(\\)` called")
+})
+
+test_that("'impute_outcome_true' raises error with invalid nm_distn", {
+  set.seed(0)
+  offset <- 1:20
+  outcome <- rnorm(n = 20, mean = 100, sd = 5)
+  outcome[1] <- NA
+  expected <- rvec::rnorm_rvec(n = 20, mean = 100, sd = 5, n_draw = 50)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  set.seed(1)
+  expect_error(impute_outcome_true(nm_distn = "wrong",
+                                   outcome = outcome,
+                                   offset = offset,
+                                   expected = expected,
+                                   disp = disp),
+               "Internal error: Invalid value")
+})
+
+
+
+
+  
+
+
+## 'make_combined_matrix_effect_outcome' --------------------------------------
 
 test_that("'make_combined_matrix_effect_outcome' works with valid inputs", {
     set.seed(0)
@@ -845,6 +1134,8 @@ test_that("'fit_inner_outer' throws error when 'start_oldpar' is TRUE", {
                                vars_inner = c("age", "sex")),
                "`start_oldpar` must be FALSE when using \"inner-outer\" method.")
 })
+
+
 
 
 ## 'infer_trend_cyc_seas_err_forecast' --------------------------------------------

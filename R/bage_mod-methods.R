@@ -293,7 +293,7 @@ components.bage_mod <- function(object,
 
 ## 'computations' -------------------------------------------------------------
 
-#' Information on Computations Performed Duration Model Fitting
+#' Information on Computations Performed During Model Fitting
 #'
 #' Get information on computations performed by function [fit()].
 #' The information includes the total time used for fitting, and
@@ -2333,7 +2333,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
   if (condition_on == "fitted") {
     fitted <- aug$.fitted
     lambda <- offset * fitted
-    y_rep <- rpois_rvec_guarded(n = n_obs, lambda = lambda)
+    y_rep <- rpois_guarded(n = n_obs, lambda = lambda)
   }
   else if (condition_on == "expected") {
     check_has_disp_if_condition_on_expected(x)

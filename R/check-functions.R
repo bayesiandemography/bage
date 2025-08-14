@@ -143,6 +143,59 @@ check_covariates_formula <- function(formula, mod) {
 }
 
 
+#' Check that Data Frame Holding Values for a Data Model is Valid
+#'
+#' @param x Data frame with values
+#' @param nm_x Name for 'x' to be used in error messages
+#' @param measure_vars Names of measure variables in 'x'
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_datamod_val <- function(x, nm_x, measure_vars) {
+  check_is_dataframe(x = x, nm_x = nm_x)
+  nms <- names(x)
+  ## no duplicate variables
+  i_dup <- match(TRUE, duplicated(nms), nomatch = 0L)
+  if (i_dup > 0L)
+    cli::cli_abort(paste("{.arg {nm_x}} has more than one variable",
+                         "called {.val {nms[[i_dup]]}}."))
+  ## check measure variables
+  for (var in measure_vars) {
+    i_var <- match(var, nms, nomatch = 0L)
+    if (i_var == 0L)
+      cli::cli_abort(paste("{.arg {nm_x}} does not have a variable",
+                           "called {.val {var}}."))
+    n_na <- sum(is.na(x[[var]]))
+    if (n_na > 0L)
+      cli::cli_abort(paste("Variable {.var {var}} in {.arg {nm_x}}",
+                           "has {cli::qty(n_na)} NA{?s}."))
+    n_inf <- sum(is.infinite(x[[var]]))
+    if (n_inf > 0L)
+      cli::cli_abort(paste("Variable {.var {var}} in {.arg {nm_x}}",
+                           "has {cli::qty(n_na)} non-finite value{?s}."))
+  }
+  ## check by variables
+  nms_by <- setdiff(nms, measure_vars)
+  if ((length(nms_by) == 0L) && nrow(x) > 1L)
+    cli::cli_abort(paste("{.arg {nm_x}} has more than one row,",
+                         "but does not have any 'by' variables."))
+  by_val <- x[nms_by]
+  i_dup <- match(TRUE, duplicated(by_val), nomatch = 0L)
+  if (i_dup > 0L) {
+    row <- by_val[i_dup, , drop = FALSE]
+    levels <- sprintf("%s=%s", names(row), row)
+    levels <- paste(levels, collapse = ", ")
+    n_by <- length(nms_by)
+    cli::cli_abort(c(paste("{.arg {nm_x}} has duplicated combinations of 'by'",
+                           "{cli::qty(n_by)} variable{?s}."),
+                     i = "Two rows with {levels}."))
+  }
+  invisible(TRUE)
+}
+
+
+
 ## HAS_TESTS
 #' Check that 'est' Object Returned by TMB has No NAs
 #'
