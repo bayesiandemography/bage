@@ -49,27 +49,26 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
                                            offset = offset,
                                            expected = expected,
                                            disp = disp)
+  if (has_datamod_offset)
+    offset <- draw_offset_true_given_obs(datamod = datamod,
+                                         nm_distn = nm_distn,
+                                         outcome = outcome,
+                                         offset = offset,
+                                         expected = expected)
   if (has_missing_outcome)
     outcome <- impute_outcome_true(nm_distn = nm_distn,
                                    outcome = outcome,
                                    offset = offset,
                                    expected = expected,
                                    disp = disp)
-  if (has_datamod_offset)
-    offset <- draw_offset_true_given_obs(datamod = datamod,
-                                         nm_distn = nm_distn,
-                                         outcome = outcome,
-                                         offset = offset,
-                                         expected = expected,
-                                         disp = disp)
   ## derive '.fitted' and, in models with dispersion, '.expected'
   ans <- mod$data
   if (has_disp) {
-    ans$.fitted <- draw_vals_fitted_given_outcome(mod = mod,
-                                                  vals_expected = expected,
-                                                  vals_disp = disp,
-                                                  outcome = outcome,
-                                                  offset = offset)
+    ans$.fitted <- draw_fitted_given_outcome(mod = mod,
+                                             outcome = outcome,
+                                             offset = offset,
+                                             expected = expected,
+                                             disp = disp)
     ans$.expected <- expected
   }
   else
@@ -126,7 +125,7 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   ## prepare inputs
   linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
   disp <- get_disp(mod)
-  has_datamod <- has_datamod(mod)
+  has_datamod_outcome <- has_datamod(mod)
   has_missing_outcome <- anyNA(outcome)
   expected_scaled <- scale_linpred(linpred)
   disp_scaled <- scale_disp(disp)
@@ -135,17 +134,17 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
   ## draw values for outcome, where necessary
-  if (has_datamod)
-    outcome <- draw_outcome_true_given_obs(confidential = NULL,
-                                           datamod = datamod,
+  if (has_datamod_outcome)
+    outcome <- draw_outcome_true_given_obs(datamod = datamod,
                                            nm_distn = nm_distn,
+                                           components = NULL,
                                            outcome = outcome,
                                            offset = offset_scaled,
                                            expected = expected_scaled,
                                            disp = disp_scaled)
   if (has_missing_outcome)
     outcome <- impute_outcome_true(nm_distn = nm_distn,
-                                   outcome = outcome,
+                                   outcome = outcome, ## scaled
                                    offset = offset_scaled,
                                    expected = expected_scaled,
                                    disp = disp_scaled)
@@ -216,7 +215,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   outcome <- draw_outcome_true(nm_distn = nm_distn,
                                offset = offset,
                                fitted = fitted,
-                               disp = disp)
+                               disp = NULL)
   ## if reported outcome different from true outcome,
   ## then record true and reported outcomes;
   ## otherwise just record true outcome
@@ -255,7 +254,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   if (has_datamod_offset) {
     nm_offset_data <- get_nm_offset_data(mod)
     offset_obs <- draw_offset_obs(datamod = datamod,
-                                  offset_true = offset_true)
+                                  offset_true = offset)
     if (!quiet)
       cli::cli_alert_info(paste("Overwriting existing values for",
                                 "{.var {nm_offset_data}}."))
@@ -361,79 +360,6 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
 
 
 
-  
-
-  
-
-  
-#' Make Matrix Mapping from Value on to Outcome
-#'
-#' Assume that all variables found in 'by_val'
-#' can be found in 'data'.
-#'
-#' Assume that 'by_val' is unique.
-#' 
-#' Assume that all combinations of 'by'
-#' variables found in 'data' can be found
-#' in 'by_val'.
-#'
-#' Do not assume that all combinations of
-#' variables found in 'by_val'
-#' can be found in 'data'.
-#'
-#' @param data Dataset for model
-#' @param by_val Data frame with variables defining
-#' level for value. 
-#'
-#' @returns A sparse matrix
-#'
-#' @noRd    
-make_matrix_val_used_outcome <- function(data, by_val) {
-  nms <- names(by_val)
-  key_data <- Reduce(paste_dot, data[nms])
-  key_val <- Reduce(paste_dot, by_val)
-  key_val_used <- key_val[key_val %in% key_data]
-  i <- seq_len(key_data)
-  j <- match(key_data, key_val_used)
-  Matrix::sparseMatrix(x = 1, i = i, j = j)
-}
-
-
-#' Make Index Between All Values and Values
-#' that are Mapped on to Outcome
-#'
-#' Assume that 'by_val' is unique.
-#' 
-#' Assume that all combinations of categorical
-#' variables found in 'data' can be found
-#' in 'by_val'.
-#'
-#' Do not assume that all combinations of
-#' categorical variables found in 'by_val'
-#' can be found in 'data'.
-#'
-#' @param data Dataset for model
-#' @param by_val Data frame with variables defining
-#' level for value. 
-#'
-#' @returns An integer vector
-#'
-#' @noRd    
-index_val_used <- function(data, by_val) {
-  nms <- names(by_val)
-  key_data <- Reduce(paste_dot, data[nms])
-  key_val <- Reduce(paste_dot, by_val)
-  key_val_used <- key_val[key_val %in% key_data]
-  match(key_val, key_val_used, nomatch = 0L)
-}
-
-  
-
-
-
-
-
-
 ## 'make_expected_obs' --------------------------------------------------------
 
 #' Make Expected Values Used in Model for Observed Outcome
@@ -509,111 +435,6 @@ make_expected_obs.bage_mod_binom <- function(mod, exposure) {
 ## not needed for bage_mod_norm
 
 
-## helper functions:
-
-make_expected_obs_exposure <- function(datamod,
-                                       components,
-                                       expected) {
-  ratio <- get_datamod_ratio(datamod)
-  disp <- get_datamod_disp(datamod = datamod,
-                           components = components)
-  numerator <- (3 * disp + 1) * expected
-  denominator <- (disp + 1) * ratio
-  numerator / denominator
-}
-
-
-
-make_expected_obs_miscount <- function(datamod,
-                                       components,
-                                       expected) {
-  prob <- get_datamod_prob(datamod = datamod,
-                           components = components)
-  rate <- get_datamod_rate(datamod = datamod,
-                           components = components)
-  (prob + rate) * expected
-}
-
-
-    
-make_expected_obs_overcount <- function(datamod,
-                                        components,
-                                        expected) {
-  rate <- get_datamod_rate(datamod = datamod,
-                           components = components)
-  (1 + rate) * expected
-}
-
-
-make_expected_obs_undercount <- function(datamod,
-                                         components,
-                                         expected) {
-  prob <- get_datamod_prob(datamod = datamod,
-                           components = components)
-  prob * expected
-}
-
-
-get_datamod_ratio <- function(datamod) {
-  ratio <- datamod$ratio
-  matrix_ratio_outcome <- datamod$matrix_ratio_outcome
-  matrix_ratio_outcome <- as.matrix(matrix_ratio_outcome) ## remove after updating rvec
-  ratio <- matrix_ratio_outcome %*% ratio
-  ratio <- as.numeric(ratio) ## convert from matrix
-  ratio
-}
-
-
-get_datamod_disp <- function(datamod, components) {
-  matrix_disp_outcome <- datamod$matrix_disp_outcome
-  matrix_disp_outcome <- as.matrix(matrix_disp_outcome) ## remove after updating rvec
-  is_disp <- (components$term == "datamod"
-    & components$component == "disp")
-  disp <- components$.fitted[is_disp]
-  disp <- matrix_disp_outcome %*% disp
-  disp
-}
-
-
-
-get_datamod_prob <- function(datamod, components) {
-  matrix_prob_outcome <- datamod$matrix_prob_outcome
-  matrix_prob_outcome <- as.matrix(matrix_prob_outcome) ## remove after updating rvec
-  is_prob <- (components$term == "datamod"
-    & components$component == "prob")
-  prob <- components$.fitted[is_prob]
-  prob <- matrix_prob_outcome %*% prob
-  prob
-}
-
-get_datamod_rate <- function(datamod, components) {
-  matrix_rate_outcome <- datamod$matrix_rate_outcome
-  matrix_rate_outcome <- as.matrix(matrix_rate_outcome) ## remove after updating rvec
-  is_rate <- (components$term == "datamod"
-    & components$component == "rate")
-  rate <- components$.fitted[is_rate]
-  rate <- matrix_rate_outcome %*% rate
-  rate
-}
-
-
-get_datamod_mean <- function(datamod) {
-  mean <- datamod$mean
-  matrix_mean_outcome <- datamod$matrix_mean_outcome
-  mean <- matrix_mean_outcome %*% mean
-  mean <- as.numeric(mean)
-  mean
-}
-
-get_datamod_sd <- function(datamod) {
-  sd <- datamod$sd
-  matrix_sd_outcome <- datamod$matrix_sd_outcome
-  sd <- matrix_sd_outcome %*% sd
-  sd <- as.numeric(sd)
-  sd
-}  
-
-
 
 
 
@@ -658,3 +479,389 @@ make_disp_obs.bage_mod_binom <- function(mod, components, disp) {
 }
 
 
+
+
+
+
+
+## 'draw_fitted_given_outcome' ------------------------------------------------
+
+#' Draw Values for '.fitted' when 'outcome' (and 'offset')
+#' Known, and when 'disp' non-NULL
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param expected Backtransformed linear predictor. An rvec.
+#' @param disp Dispersion. An rvec.
+#' @param outcome Values for outcome. A vector or NULL.
+#' @param offset Values for offset. NULL iff 'outcome' is NULL;
+#' otherwise a vector.
+#'
+#' @returns An rvec.
+#'
+#' @noRd
+draw_fitted_given_outcome <- function(mod,
+                                      outcome,
+                                      offset,
+                                      expected,
+                                      disp) {
+  UseMethod("draw_fitted_given_outcome")
+}
+
+## HAS_TESTS
+#' @export
+draw_fitted_given_outcome.bage_mod_pois <- function(mod,
+                                                    expected,
+                                                    disp,
+                                                    outcome,
+                                                    offset) {
+  ## reformat everything to numeric vectors of
+  ## same length to deal with NAs
+  ## in 'outcome' and 'offset'
+  n_val <- length(expected)
+  n_draw <- rvec::n_draw(expected)
+  expected <- as.numeric(expected)
+  disp <- as.numeric(disp)
+  disp <- rep(disp, each = n_val)
+  if (rvec::is_rvec(outcome))
+    outcome <- as.numeric(outcome)
+  else
+    outcome <- rep(outcome, times = n_draw)
+  if (rvec::is_rvec(offset))
+    offset <- as.numeric(offset)
+  else
+    offset <- rep(offset, times = n_draw)
+  is_na <- is.na(outcome) | is.na(offset)
+  outcome[is_na] <- 0
+  offset[is_na] <- 0
+  ans <- stats::rgamma(n = length(expected),
+                       shape = outcome + 1 / disp,
+                       rate = offset + 1 / (disp * expected))
+  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
+  ans
+}
+
+## HAS_TESTS
+#' @export
+draw_fitted_given_outcome.bage_mod_binom <- function(mod,
+                                                     expected,
+                                                     disp,
+                                                     outcome,
+                                                     offset) {
+  ## reformat everything to numeric vectors of
+  ## same length to deal with NAs
+  ## in 'outcome' and 'offset'
+  n_val <- length(expected)
+  n_draw <- rvec::n_draw(expected)
+  expected <- as.numeric(expected)
+  disp <- as.numeric(disp)
+  disp <- rep(disp, each = n_val)
+  if (rvec::is_rvec(outcome))
+    outcome <- as.numeric(outcome)
+  else
+    outcome <- rep(outcome, times = n_draw)
+  if (rvec::is_rvec(offset))
+    offset <- as.numeric(offset)
+  else
+    offset <- rep(offset, times = n_draw)
+  is_na <- is.na(outcome) | is.na(offset)
+  outcome[is_na] <- 0
+  offset[is_na] <- 0
+  ans <- stats::rbeta(n = length(expected),
+                      shape1 = outcome + expected / disp,
+                      shape2 = offset - outcome + (1 - expected) / disp)
+  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
+  ans
+}
+
+
+
+
+
+## HAS_TESTS
+#' @export
+forecast_augment.bage_mod <- function(mod,
+                                      data_forecast,
+                                      components_forecast,
+                                      linpred_forecast) {
+  ## extract values
+  outcome_est <- mod$outcome
+  datamod <- mod$datamod
+  confidential <- mod$confidential
+  seed_augment <- mod$seed_augment
+  nms_data_forecast <- names(data_forecast)
+  nm_distn <- nm_distn(mod)
+  nm_outcome_data <- get_nm_outcome_data(mod)
+  nm_offset_data <- get_nm_offset_data(mod)
+  nm_offset_data_true <- paste0(".", nm_offset_data)
+  has_offset_est <- !is.null(nm_offset_data)
+  has_disp <- has_disp(mod)
+  inv_transform <- get_fun_inv_transform(mod)
+  ## prepare inputs
+  has_confidential <- has_confidential(mod)
+  has_datamod <- has_datamod(mod)
+  has_datamod_outcome <- has_datamod_outcome(mod)
+  has_datamod_offset <- has_datamod && !has_datamod_outcome
+  is_derive_outcome_obs <- has_datamod_outcome || has_confidential
+  has_missing_outcome_est <- anyNA(outcome_est)
+  has_offset_forecast <- (has_offset_est
+    && (nm_offset_data %in% nms_data_forecast))
+  has_offset_forecast_true <- (has_datamod_offset
+    && (nm_offset_data_true %in% nms_data_forecast))
+  has_offset <- has_offest_forecast || has_offset_forecast_true
+  blank <- rep(NA_real_, times = nrow(data_forecast))
+  ans <- data_forecast
+  ## prepare seeds
+  seed_restore <- make_seed() ## create randomly-generated seed
+  set.seed(seed_augment) ## set pre-determined seed
+  ## forecast fitted and (if has disp) expected
+  if (has_disp) {
+    expected <- inv_transform(linpred_forecast)
+    disp <- get_disp(mod)
+    fitted <- draw_fitted(mod = mod,
+                          expected = expected,
+                          disp = disp)
+  }
+  else {
+    disp <- NULL
+    fitted <- inv_transform(linpred_forecast)
+  }
+  ## if have offset in 'data_forecast', then also
+  ## forecast outcome, and possibly true/observed offset
+  if (has_offset) {
+    if (has_datamod) {
+      is_derive_offset_true <- has_offset_forecast && !has_offset_forecast_true
+      is_derive_offset_obs <- !has_offset_forecast && has_offset_forecast_true
+      if (is_derive_offset_true) {
+        offset_forecast_obs <- data_forecast[[nm_offset_data]]
+        offset_forecast <- draw_offset_true_given_obs(datamod = datamod,
+                                                      nm_distn = nm_distn,
+                                                      components = components_forecast,                                                  
+                                                      offset = offset_forecast_obs,
+                                                      expected = expected)
+        ans <- insert_after(df = ans,
+                            nm_after = nm_offset_data,
+                            x = offset_forecast,
+                            nm_x = nm_offset_data_true)
+      }
+      else if (is_derive_offset_obs) {
+        offset_forecast <- data_forecast[[nm_offset_data_true]]
+        offset_forecast_obs <- draw_offset_obs(datamod = datamod,
+                                               offset_true = offset_forecast)
+        ans <- insert_before(df = ans,
+                             nm_before = nm_offset_data_true,
+                             x = offset_forecast_obs,
+                             nm_x = nm_offset_data)
+      }
+      else {
+        offset_forecast <- data_forecast[[nm_offset_data]]
+      }
+    }
+    else
+      offset_forecast <- data_forecast[[nm_offset_data]]
+    outcome_true <- draw_outcome_true(nm_distn = nm_distn,
+                                      offset = offset_forecast,
+                                      fitted = fitted,
+                                      disp = NULL)
+    if (is_derive_outcome_obs) {
+      outcome <- outcome_true
+      if (has_datamod_outcome)
+        outcome <- draw_outcome_obs(datamod = datamod_outcome,
+                                    components = components_forecast,
+                                    outcome_true = outcome)
+      if (has_confidential)
+        outcome <- draw_outcome_confidential(confidential = confidential,
+                                             outcome_obs = outcome)
+      ans[[nm_outcome_data]] <- outcome
+      nm_outcome_data_true <- paste0(".", nm_outcome_data)
+      ans <- insert_after(df = ans,
+                          nm_after = nm_outcome_data,
+                          x = outcome_true,
+                          nm_x = nm_outcome_data_true)
+    }
+    else {
+      ## even where no confidentialization or mismeasurement,
+      ## need to report two values if historical values
+      ## contained NAs
+      if (has_missing_outcome_est) {
+        ans[[nm_outcome_data]] <- blank
+        ans <- insert_after(df = ans,
+                            nm_after = nm_outcome_data,
+                            x = outcome_true,
+                            nm_x = nm_outcome_data_true)
+      }
+      else
+        ans[[nm_outcome_data]] <- outcome_true
+    }
+  }
+  else {
+    ans[[nm_outcome_data]] <- blank
+    if (is_derive_outcome_obs)
+      ans <- insert_after(df = ans,
+                          nm_after = nm_outcome_data,
+                          x = blank,
+                          nm_x = nm_outcome_data_true)
+  }
+  ## restore seed
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  ans$.observed <- NA_real_
+  ans$.fitted <- fitted
+  if (has_disp)
+    ans$.expected <- expected
+  ans
+}
+
+
+
+## HAS_TESTS - NOT YET REVISED
+#' @export
+forecast_augment.bage_mod_norm <- function(mod,
+                                           data_forecast,
+                                           components_forecast,
+                                           linpred_forecast) {
+  outcome_est <- mod$outcome
+  datamod_outcome <- mod$datamod_outcome
+  seed_augment <- mod$seed_augment
+  nm_distn <- nm_distn(mod)
+  nm_outcome_data <- get_nm_outcome_data(mod)
+  nm_outcome_data_true <- paste0(".", nm_outcome_data)
+  nm_offset_data <- get_nm_offset_data(mod)
+  has_offset_est <- !is.null(nm_offset_data)
+  scale_linpred <- get_fun_orig_scale_linpred(mod)
+  has_datamod_outcome <- !is.null(datamod_outcome)
+  has_imputed_outcome_est <- anyNA(outcome_est)
+  blank <- rep(NA_real_, times = nrow(data_forecast))
+  ones <- rep(1, times = nrow(data_forecast))
+  if (has_offset_est) {
+    if (nm_offset_data %in% names(data_forecast))
+      offset_forecast <- data_forecast[[nm_offset_data]]
+    else
+      offset_forecast <- blank
+  }
+  else
+    offset_forecast <- ones
+  has_offset_forecast <- !all(is.na(offset_forecast))
+  ans <- data_forecast
+  ## Derive fitted
+  fitted <- scale_linpred(linpred_forecast)
+  ans$.fitted <- fitted
+  ## Derive outcome and observed. If have data model
+  ## or imputed outcomes in historical estimates,
+  ## then have two versions of outcome variable in forecasts
+  if (has_offset_forecast)  {
+    offset_mean <- mod$offset_mean
+    outcome_sd <- mod$outcome_sd
+    disp <- get_disp(mod)
+    disp <- sqrt(offset_mean) * outcome_sd * disp
+    seed_restore <- make_seed() ## create randomly-generated seed
+    set.seed(seed_augment) ## set pre-determined seed
+    outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
+                                           nm_distn = nm_distn,
+                                           outcome_obs = blank,
+                                           fitted = fitted,
+                                           disp = disp,
+                                           offset = offset_forecast)
+    if (has_datamod_outcome) {
+      outcome_obs <- draw_vals_outcome_obs(datamod = datamod_outcome,
+                                           outcome_true = outcome_true)
+      ans[[nm_outcome_data]] <- outcome_obs
+      ans <- insert_after(df = ans,
+                          nm_after = nm_outcome_data,
+                          x = outcome_true,
+                          nm_x = nm_outcome_data_true)
+    }
+    else {
+      if (has_imputed_outcome_est) {
+        ans[[nm_outcome_data]] <- blank
+        ans <- insert_after(df = ans,
+                            nm_after = nm_outcome_data,
+                            x = outcome_true,
+                            nm_x = nm_outcome_data_true)
+      }
+      else
+        ans[[nm_outcome_data]] <- outcome_true
+    }
+    set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  }
+  else {
+    ans[[nm_outcome_data]] <- blank
+    if (has_datamod_outcome || has_imputed_outcome_est)
+      ans <- insert_after(df = ans,
+                          nm_after = nm_outcome_data,
+                          x = blank,
+                          nm_x = nm_outcome_data_true)
+  }
+  ans$.fitted <- fitted
+  ans
+}
+
+    
+  
+check_datamod_by_val <- function(by_val, data, nm_val) {
+  nms_by <- names(by_val)
+  nms_data <- names(data)
+  i_data <- match(nms_by, nms_data, nomatch = 0L)
+  i_nomatch <- match(0L, i_data, nomatch = 0L)
+  if (i_nomatch > 0L) {
+    nm_nomatch <- nms_by[[i_nomatch]]
+    cli::cli_abort(c("{.arg {nm_x}} has variable not found in {.arg data}.",
+                     "Variable not found: {.var {nm_nomatch}}."))
+  }
+  key_by <- Reduce(paste_dot, by_val)
+  key_data <- Reduce(paste_dot, data[nms_by])
+  i_data <- match(key_by, key_data, nomatch = 0L)
+  i_nomatch <- match(0L, i_data, nomatch = 0L)
+  if (i_nomatch > 0L) {
+    row <- data[i_nomatch, , drop = FALSE]
+    levels <- sprintf("%s=%s", names(row), row)
+    levels <- paste(levels, collapse = ", ")
+    n_by <- length(nms_by)
+    cli::cli_abort(c("{.arg {nm_val}} does not cover all combinations in data.",
+                     i = paste("{.arg {data} has {levels},",
+                               "but {.arg {nm_val}} does not.")))
+  }
+  i_by <- match(key_data, key_by, nomatch = 0L)
+  i_nomatch <- match(0L, i_by, nomatch = 0L)
+  if (i_nomatch > 0L) {
+    row <- by_val[i_nomatch, , drop = FALSE]
+    levels <- sprintf("%s=%s", names(row), row)
+    levels <- paste(levels, collapse = ", ")
+    n_by <- length(nms_by)
+    cli::cli_abort(c("{.arg {nm_val}} has unused rows.",
+                     i = paste("{.arg {nm_val}} has {levels},",
+                               "but {.arg data} does not.")))
+  }
+  invisible(TRUE)
+}
+  
+
+
+set_datamod_undercount <- function(mod, prob) {
+  measure_vars <- c("mean", "disp")
+  data <- mod$data
+  nm_distn <- nm_distn(mod)
+  if (!(nm_distn %in% c("pois", "binom"))) {
+    model_descr <- model_descr(mod)
+    cli::cli_abort(c(paste("An undercount data model can only be used",
+                           "with a Poisson or binomial model."),
+                     i = "This is a {model_descr} model."))
+  }
+  check_datamod_val(x = prob,
+                    nm_x = "prob",
+                    measure_vars = measure_vars)
+  by_vars <- prob[setdiff(names(prob), measure_vars)]
+  check_datamod_by_val(by_val = by_val,
+                       data = data)
+  ## NEED TO MODIFY TO ALLOW FOR ONE-ROW, NO-BY-VAR OPTION
+  matrix_prob_outcome <- make_matrix_val_outcome(data = data,
+                                                 by_val = by_val)
+  datamod <- new_bage_datamod_undercount(prob_mean = prob$mean,
+                                         prob_disp = prob$disp,
+                                         matrix_prob_outcome = matrix_prob_outcome)
+  mod$datamod <- datamod
+  mod
+}
+
+  
+  

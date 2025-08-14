@@ -1166,7 +1166,7 @@ As shown in Appendix \@ref(app:datamod), equations \@ref(eq:datamod-v-i) and \@r
 
 As also shown in Appendix \@ref(app:datamod), equations \@ref(eq:lik-pois-outcome-1), \@ref(eq:lik-pois-outcome-2), and \@ref(eq:datamod-u-i) imply that
 \begin{equation}
-  y_i^{\text{true}} - u_i | u_i, y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i \sim \text{NegBinom}\left(\frac{1}{u_i + \xi^{-1}}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+  y_i^{\text{true}} - u_i | u_i, y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i \sim \text{NegBinom}\left(u_i + \xi^{-1}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
 \end{equation}
 
 We can obtain a value for $y_i^{\text{true}}$ by drawing a value for $u_i$, then drawing a value for $x_i = y_i^{\text{true}} - u_i$, then setting $y_i^{\text{true}} = x_i + u_i$.
@@ -1175,7 +1175,7 @@ We can obtain a value for $y_i^{\text{true}}$ by drawing a value for $u_i$, then
 
 Draw
 \begin{equation}
- x_i = y_i^{\text{true}} - y_i^{\text{obs}} \sim \text{NegBinom}\left(\frac{1}{y_i^{\text{obs}} + \xi^{-1}}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+ x_i = y_i^{\text{true}} - y_i^{\text{obs}} \sim \text{NegBinom}\left(y_i^{\text{obs}} + \xi^{-1s}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
 \end{equation}
 then set $y_i^{\text{true}} = y_i^{\text{obs}} + x_i$.
 
@@ -1232,7 +1232,7 @@ E[y_i^{\text{obs}}] = \left( \frac{3 + \delta_{g[i]}^{-1}}{1 + \delta_{g[i]}^{-1
 
 Draw from \@ref(eq:w-true)
 
-## Binomial, measurement errors in outcome variable
+## Binomial, measurement errors in outcome variable {#sec:datamod-binom}
 
 ### System model
 
@@ -1260,20 +1260,15 @@ where values for $A_g^{(\pi)}$ and $B_g^{(\pi)}$ are supplied by the user.
 
 ### Obtaining $y_i^{\text{true}}$
 
+
 Draw from distribution defined by
 \begin{align}
-p(y_i^{\text{true}} \mid y_i^{\text{obs}}, w_i, \gamma_i, \pi_{g[i]}) & = \frac{p(y_i^{\text{true}}, y_i^{\text{obs}} \mid w_i, \gamma_i, \pi_{g[i]})}{p(y_i^{\text{obs}} \mid w_i, \gamma_i, \pi_{g[i]})} \\
-& = \frac{ \text{Multinomial}([y_1, y_2, y_3] \mid w_i, [p_1, p_2, p_3]) }{\text{Binomial}(y_1 \mid w_i, p_1)}
+& p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \mu_i, \xi, w_i, \pi_{g[i]}) \\
+& \propto \frac{1}{(y_i^{\text{true}}-y_i^{\text{obs}})! (w_i-y_i^{\text{true}})!}\; (1-\pi_{g[i]})^{y_i^{\text{true}}}
+  B(y_i^{\text{true}}+\xi^{-1}\mu_i, w_i-y_i^{\text{true}}+\xi^{-1}[1-\mu_i])
 \end{align}
-for $y_i^{\text{true}} = y_i^{\text{obs}}, \cdots, w_i$, where
-\begin{align}
-  y_1 & = y_i^{\text{obs}} \\
-  y_2 & = y_i^{\text{true}} - y_i^{\text{obs}} \\
-  y_3 & = w_i - y_i^{\text{true}}\\
-  p_1 & = \pi_{g[i]} \gamma_i \\
-  p_2 & = (1 - \pi_{g[i]}) \gamma_i \\
-  p_3 & = 1 - \gamma_i
-\end{align}
+
+Derivation in Appendix \@ref(app:datamod).
 
 ## Normal, measurement errors in outcome variable
 
@@ -1359,12 +1354,6 @@ Draw from
   p_{\text{un}|\text{con}}(y_i^{\text{un}} \mid y_i^{\text{con}}) \propto  p_{\text{con}|\text{un}}(y_i^{\text{con}} \mid y_i^{\text{un}}) p_{\text{un}}(y_i^{\text{un}})
 \end{equation}
 where $p_{\text{con}|\text{un}}(\cdot)$ and $p_{\text{un}}(\cdot)$ are defined as in Section \@ref(sec:confid-tmb).
-
-
-
-
-
-
 
 
 
@@ -1654,7 +1643,7 @@ The value of $u_i$ does not depend on $\gamma_i$, and hence does not depend on $
 \end{align}
 which is the kernel for the distribution
 \begin{equation}
-  \text{NegBinom}\left( y_i^{\text{true}} - u_i \,\middle|\, \frac{1}{u_i + \xi^{-1}}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+  \text{NegBinom}\left( y_i^{\text{true}} - u_i \,\middle|\, u_i + \xi^{-1}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
 \end{equation}
 
 
@@ -1672,7 +1661,7 @@ which is the kernel for the distribution
 \end{align}
 which is the kernel for the distribution
 \begin{equation}
-  \text{NegBinom}\left( y_i^{\text{true}} - y_i^{\text{obs}} \,\middle|\, \frac{1}{y_i^{\text{obs}} + \xi^{-1}}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+  \text{NegBinom}\left( y_i^{\text{true}} - y_i^{\text{obs}} \,\middle|\, y_i^{\text{obs}} + \xi^{-1}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
 \end{equation}
 
 
@@ -1711,6 +1700,18 @@ Assume have no prior information on $w_i^{\text{true}}$, so that $w_i^{\text{tru
   & = \text{Gamma}(w_i^{\text{true}} \mid 3 + \delta_{g[i]}^{-1}, (1 + \delta_{g[i]}^{-1}) r_{h[i]} [w_i^{\text{obs}}]^{-1})
 \end{align}
 as required.
+
+### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i$ in binomial undercount model in Section \@ref(sec:datamod-binom)
+
+\begin{align}
+  & p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i) \\
+  & \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times p(y_i^{\text{true}} \mid \mu_i, \xi) \\
+  & = \text{Binomial}(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{BetaBinomial}(y_i^{\text{true}} \mid w_i, \xi^{-1}\mu_i, \xi^{-1}[1 - \mu_i]) \\
+  & = \binom{y_i^{\text{true}}}{y_i^{\text{obs}}} \pi_{g[i]}^{y_i^{\text{obs}}} (1-\pi_{g[i]})^{y_i^{\text{true}} - y_i^{\text{obs}}} \times \binom{w_i}{y_i^{\text{true}}}
+  \frac{B(y_i^{\text{true}}+\xi^{-1}\mu_i, w_i-y_i^{\text{true}}+\xi^{-1}[1-\mu_i])}{B(\xi^{-1}\mu_i, \xi^{-1}[1-\mu_i])} \\
+  & \propto \frac{1}{(y_i^{\text{true}}-y_i^{\text{obs}})! (w_i-y_i^{\text{true}})!}\; (1-\pi_{g[i]})^{y_i^{\text{true}}}
+  B(y_i^{\text{true}}+\xi^{-1}\mu_i, w_i-y_i^{\text{true}}+\xi^{-1}[1-\mu_i])
+\end{align}
 
 
 # References

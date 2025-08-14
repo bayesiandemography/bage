@@ -213,6 +213,113 @@ test_that("'check_covariates_formula' throws the correct error when 'formula' in
 })
 
 
+## 'check_datamod_val' --------------------------------------------------------
+
+test_that("'check_datamod_val' returns TRUE with valid inputs", {
+  set.seed(0)
+  x <- expand.grid(age = 0:2, sex = c("f", "m"))
+  x$mean <- runif(6)
+  x$disp <- runif(6)
+  expect_true(check_datamod_val(x = x,
+                                nm_x = "prob",
+                                measure_vars = c("mean", "disp")))
+})
+
+test_that("'check_datamod_val' raises correct error wtih duplicated variables", {
+  set.seed(0)
+  x <- expand.grid(age = 0:2, sex = c("f", "m"))
+  x$mean <- runif(6)
+  x$disp <- runif(6)
+  names(x)[2] <- "age"
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "`prob` has more than one variable called \"age\".")
+})
+
+test_that("'check_datamod_val' raises correct error missing measure var", {
+  set.seed(0)
+  x <- expand.grid(age = 0:2, sex = c("f", "m"))
+  x$mean <- runif(6)
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "`prob` does not have a variable called \"disp\".")
+})
+
+test_that("'check_datamod_val' raises correct error with NA in measure var", {
+  set.seed(0)
+  x <- expand.grid(age = 0:2, sex = c("f", "m"))
+  x$mean <- runif(6)
+  x$disp <- c(runif(5), NA)
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "Variable `disp` in `prob` has NA.")
+  x$disp <- c(NA, runif(4), NA)
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "Variable `disp` in `prob` has NAs.")
+})
+
+test_that("'check_datamod_val' raises correct error with Inf in measure var", {
+  set.seed(0)
+  x <- expand.grid(age = 0:2, sex = c("f", "m"))
+  x$mean <- runif(6)
+  x$disp <- c(runif(5), Inf)
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "Variable `disp` in `prob` has non-finite value.")
+  x$disp <- c(-Inf, runif(4), Inf)
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "Variable `disp` in `prob` has non-finite values.")
+})
+
+test_that("'check_datamod_val' raises correct error with no by variables", {
+  set.seed(0)
+  x <- data.frame(mean = runif(6), disp = runif(6))
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "`prob` has more than one row, but does not have any 'by' variables.")
+})
+
+test_that("'check_datamod_val' raises correct error with duplicated by variables - two variables", {
+  set.seed(0)
+  x <- expand.grid(age = 0:2, sex = c("f", "m"))
+  x <- rbind(x, data.frame(age = 0, sex = "f"))
+  x$mean <- runif(7)
+  x$disp <- runif(7)
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "`prob` has duplicated combinations of 'by' variables.")
+})
+
+test_that("'check_datamod_val' raises correct error with duplicated by variables - one variable", {
+  set.seed(0)
+  x <- data.frame(age = c(0:2, 0))
+  x$mean <- runif(4)
+  x$disp <- runif(4)
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "`prob` has duplicated combinations of 'by' variable.")
+})
+
+
+
+
+
+
+
+  
+
+
 ## 'check_est' ----------------------------------------------------------------
 
 test_that("'check_est' returns TRUE with valid inputs", {
@@ -482,7 +589,7 @@ test_that("'check_is_ssvd' works with valid inputs", {
 })
 
 
-## 'check_length_effect_ge' ------------------------------------------------------
+## 'check_length_effect_ge' ---------------------------------------------------
 
 test_that("'check_length_effect_ge' returns TRUE with valid inputs", {
     expect_true(check_length_effect_ge(length_effect = 10L,
@@ -642,7 +749,7 @@ test_that("'check_mod_has_obs' returns correct error with no valid rows - no exp
 })
 
 
-## 'check_min_max_ar' --------------------------------------------------------------
+## 'check_min_max_ar' ---------------------------------------------------------
 
 test_that("'check_min_max_ar' returns TRUE with valid inputs", {
     expect_true(check_min_max_ar(min = -1, max = 1))

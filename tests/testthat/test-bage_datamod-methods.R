@@ -1,41 +1,120 @@
 
-## 'draw_vals_outcome_true' ---------------------------------------------------
 
-test_that("'draw_vals_outcome_true' works with NULL, pois, offset complete", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$deaths <- rpois(n = nrow(data), lambda = 20)
-  data$deaths[c(1, 5, 10)] <- NA
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = 1)
-  vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim)
-  vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_from_components(mod = mod,
-                                                    components = vals_components,
-                                                    data = mod$data,
-                                                    dimnames_term = mod$dimnames_terms))
-  vals_fitted <- draw_vals_fitted(mod = mod,
-                                  vals_expected = vals_expected,
-                                  vals_disp = vals_disp,
-                                  outcome = NULL,
-                                  offset = NULL)
-  set.seed(1)
-  ans_obtained <- draw_vals_outcome_true(datamod = NULL,
-                                         nm_distn = "pois",
-                                         outcome_obs = mod$outcome,
-                                         fitted = vals_fitted,
-                                         disp = vals_disp,
-                                         offset = mod$offset)
-  set.seed(1)
-  ans_expected <- rvec::rvec_dbl(matrix(data$deaths, nrow = nrow(data), ncol = 10))
-  ans_expected[c(1, 5, 10)] <- rvec::rpois_rvec(n = 3,
-                                                lambda = mod$offset[c(1, 5, 10)] * vals_fitted[c(1, 5, 10)])
+## 'make_expected_obs_exposure' -----------------------------------------------
+
+test_that("'make_expected_obs_exposure' works", {
+  ratio <- c(0.5, 0.2, 0.3, 0.4)
+  disp_mean <- c(0.3, 0.2, 0.3, 0.2)
+  matrix_ratio_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  matrix_disp_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_exposure(ratio = ratio,
+                                       disp_mean = disp_mean,
+                                       matrix_ratio_outcome = matrix_ratio_outcome,
+                                       matrix_disp_outcome = matrix_disp_outcome)
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 4)),
+    component = c("(Intercept)", rep("disp", 4)),
+    level = c("(Intercept)", 0:3),
+    .fitted = rvec::runif_rvec(n = 5, n_draw = 10)
+  )
+  expected <- exp(rvec::rnorm_rvec(n = 12, n_draw = 10))
+  ans_obtained <- make_expected_obs_exposure(datamod = datamod,
+                                             components = components,
+                                             expected = expected)
+  ratio <- as.numeric(matrix_ratio_outcome %*% ratio)
+  disp <- as.matrix(matrix_disp_outcome) %*% components$.fitted[-1]
+  ans_expected <- ((3 + 1/disp)/(1 + 1/disp)) * (expected / ratio)
   expect_equal(ans_obtained, ans_expected)
 })
+
+
+## 'make_expected_obs_miscount' ----------------------------------------------
+
+test_that("'make_expected_obs_miscount' works", {
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- c(0.3, 0.2, 0.3, 0.2)
+  rate_mean <- c(0.5, 0.2, 0.3, 0.4)
+  rate_disp <- c(0.3, 0.2, 0.3, 0.2)
+  matrix_prob_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  matrix_rate_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       rate_mean = rate_mean,
+                                       rate_disp = rate_disp,
+                                       matrix_prob_outcome = matrix_prob_outcome,
+                                       matrix_rate_outcome = matrix_rate_outcome)
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 8)),
+    component = c("(Intercept)", rep(c("prob", "rate"), each = 4)),
+    level = c("(Intercept)", 0:3, 0:3),
+    .fitted = rvec::runif_rvec(n = 9, n_draw = 10)
+  )
+  expected <- exp(rvec::rnorm_rvec(n = 12, n_draw = 10))
+  ans_obtained <- make_expected_obs_miscount(datamod = datamod,
+                                             components = components,
+                                             expected = expected)
+  prob <- as.matrix(matrix_prob_outcome) %*% components$.fitted[2:5]
+  rate <- as.matrix(matrix_rate_outcome) %*% components$.fitted[6:9]
+  ans_expected <- (prob + rate) * expected
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_expected_obs_overcount' ----------------------------------------------
+
+test_that("'make_expected_obs_overcount' works", {
+  rate_mean <- c(0.5, 0.2, 0.3, 0.4)
+  rate_disp <- c(0.3, 0.2, 0.3, 0.2)
+  matrix_rate_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
+                                        rate_disp = rate_disp,
+                                        matrix_rate_outcome = matrix_rate_outcome)
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 4)),
+    component = c("(Intercept)", rep("rate", 4)),
+    level = c("(Intercept)", 0:3),
+    .fitted = rvec::runif_rvec(n = 5, n_draw = 10)
+  )
+  expected <- exp(rvec::rnorm_rvec(n = 12, n_draw = 10))
+  ans_obtained <- make_expected_obs_overcount(datamod = datamod,
+                                              components = components,
+                                              expected = expected)
+  rate <- as.matrix(matrix_rate_outcome) %*% components$.fitted[-1]
+  ans_expected <- (1 + rate) * expected
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_expected_obs_undercount' ----------------------------------------------
+
+test_that("'make_expected_obs_undercount' works", {
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- c(0.3, 0.2, 0.3, 0.2)
+  matrix_prob_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
+                                         prob_disp = prob_disp,
+                                         matrix_prob_outcome = matrix_prob_outcome)
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 4)),
+    component = c("(Intercept)", rep("prob", 4)),
+    level = c("(Intercept)", 0:3),
+    .fitted = rvec::runif_rvec(n = 5, n_draw = 10)
+  )
+  expected <- exp(rvec::rnorm_rvec(n = 12, n_draw = 10))
+  ans_obtained <- make_expected_obs_undercount(datamod = datamod,
+                                               components = components,
+                                               expected = expected)
+  prob <- as.matrix(matrix_prob_outcome) %*% components$.fitted[-1]
+  ans_expected <- prob * expected
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+
+## OLD ################################################################
+
+
+## 'draw_vals_outcome_true' ---------------------------------------------------
 
 test_that("'draw_vals_outcome_true' works with pois, NULL, offset has NA", {
   set.seed(0)

@@ -97,6 +97,45 @@ test_that("'insert_after' works with tibbles", {
 })
 
 
+## 'insert_before' -------------------------------------------------------
+
+test_that("'insert_before' works with data frames", {
+  df <- data.frame(x = 1:3, y = 3:1)
+  x <- 11:13
+  nm_x = "new"
+  ans_obtained <- insert_before(df = df,
+                                nm_before = "x",
+                                x = x,
+                                nm_x = nm_x)
+  ans_expected <- data.frame(new = 11:13, x = 1:3, y = 3:1)
+  expect_identical(ans_obtained, ans_expected)
+  ans_obtained <- insert_before(df = df,
+                                nm_before = "y",
+                                x = x,
+                                nm_x = nm_x)
+  ans_expected <- data.frame(x = 1:3, new = 11:13, y = 3:1)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'insert_before' works with tibbles", {
+  df <- tibble::tibble(x = 1:3, y = 3:1)
+  x <- 11:13
+  nm_x = "new"
+  ans_obtained <- insert_before(df = df,
+                                nm_before = "x",
+                                x = x,
+                                nm_x = nm_x)
+  ans_expected <- tibble(new = 11:13, x = 1:3, y = 3:1)
+  expect_identical(ans_obtained, ans_expected)
+  ans_obtained <- insert_before(df = df,
+                                nm_before = "y",
+                                x = x,
+                                nm_x = nm_x)
+  ans_expected <- tibble(x = 1:3, new = 11:13, y = 3:1)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'is_not_testing_or_snapshot' -----------------------------------------------
 
 test_that("'is_not_testing_or_snapshot' is FALSE in a test", {
@@ -145,6 +184,79 @@ test_that("'paste_dot' works with valid inputs", {
 })
 
 
+## 'rbinom_guarded' ------------------------------------------------------------
+
+test_that("'rbinom_guarded' works when values below threshold - size, prob both rvec", {
+  set.seed(0)
+  prob <- rvec::rvec_dbl(matrix(runif(n = 200), nrow = 10))
+  size <- rvec::rvec_int(matrix(rpois(n = 200, lambda = 10), nrow = 10))
+  set.seed(1)
+  ans_obtained <- rbinom_guarded(size = size, prob = prob)
+  set.seed(1)
+  ans_expected <- rvec::rbinom_rvec(n = 10, size = size, prob = prob)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'rbinom_guarded' works when values below threshold - size rvec, prob numeric", {
+  set.seed(0)
+  prob <- runif(n = 10)
+  size <- rvec::rvec_int(matrix(rpois(n = 200, lambda = 10), nrow = 10))
+  set.seed(1)
+  ans_obtained <- rbinom_guarded(size = size, prob = prob)
+  set.seed(1)
+  ans_expected <- rvec::rbinom_rvec(n = 10, size = size, prob = prob)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'rbinom_guarded' works when values below threshold - size numeric, prob rvec", {
+  set.seed(0)
+  prob <- rvec::rvec_dbl(matrix(runif(n = 200), nrow = 10))
+  size <- rpois(n = 10, lambda = 10)
+  set.seed(1)
+  ans_obtained <- rbinom_guarded(size = size, prob = prob)
+  set.seed(1)
+  ans_expected <- rvec::rbinom_rvec(n = 10, size = size, prob = prob)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'rbinom_guarded' works when values below threshold - size, prob both numeric", {
+  set.seed(0)
+  prob <- runif(n = 200)
+  size <- rpois(n = 200, lambda = 10) 
+  set.seed(1)
+  ans_obtained <- rbinom_guarded(size = size, prob = prob)
+  set.seed(1)
+  ans_expected <- as.double(rbinom(n = 200, size = size, prob = prob))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'rbinom_guarded' works when values above threshold - size, prob both rvec", {
+  set.seed(0)
+  size <- rvec::rvec_dbl(matrix(rpois(n = 200, lambda = 100), nrow = 10))
+  size[10] <- 1e10
+  prob <- c(rvec::rvec_dbl(matrix(runif(n = 180), nrow = 9)), 0.9)
+  set.seed(1)
+  expect_warning(
+    ans_obtained <- rbinom_guarded(size = size, prob = prob),
+    "Large values for `size` \\* `prob` used to generate binomial variates."
+  )
+  set.seed(1)
+  ans_expected <- c(rvec::rbinom_rvec(n = 9,
+                                      size = size[1:9],
+                                      prob = prob[1:9]),
+                    0.9 * 1e10)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'rbinom_guarded' throws error when size, prob different lengths", {
+  set.seed(0)
+  prob <- rvec::rvec_dbl(matrix(runif(n = 200), nrow = 10))
+  size <- rpois(n = 9, lambda = 10)
+  expect_error(rbinom_guarded(size = size, prob = prob),
+               "Internal error")
+})
+
+
 ## 'rmvnorm_chol', 'rmvnorm_eigen' --------------------------------------------
 
 test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
@@ -160,29 +272,54 @@ test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
 })
 
 
-## 'rpois_rvec_guarded' -------------------------------------------------------
+## 'rpois_guarded' ------------------------------------------------------------
 
-test_that("'rpois_rvec_guarded' works when values below threshold", {
+test_that("'rpois_guarded' works when values below threshold - rvec", {
   set.seed(0)
   lambda <- rvec::rvec_dbl(matrix(runif(n = 200, max = 100), nrow = 10))
   set.seed(1)
-  ans_obtained <- rpois_rvec_guarded(n = 10, lambda = lambda)
+  ans_obtained <- rpois_guarded(lambda = lambda)
   set.seed(1)
   ans_expected <- rvec::rpois_rvec(n = 10, lambda = lambda)
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'rpois_rvec_guarded' works when values above threshold", {
+test_that("'rpois_guarded' works when values below threshold - numeric", {
+  set.seed(0)
+  lambda <- runif(n = 200, max = 100)
+  set.seed(1)
+  ans_obtained <- rpois_guarded(lambda = lambda)
+  set.seed(1)
+  ans_expected <- as.double(rpois(n = 200, lambda = lambda))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'rpois_guarded' works when values above threshold - rvec", {
   set.seed(0)
   lambda <- rvec::rvec_dbl(matrix(runif(n = 200, max = 100), nrow = 10))
   lambda[10] <- 1e9
   set.seed(1)
   expect_warning(
-    ans_obtained <- rpois_rvec_guarded(n = 10, lambda = lambda),
+    ans_obtained <- rpois_guarded(lambda = lambda),
     "Large values for `lambda` used to generate Poisson variates."
   )
   set.seed(1)
   ans_expected <- c(rvec::rpois_rvec(n = 9, lambda = lambda[1:9]), 1e9)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'rpois_guarded' works when values above threshold - numeric", {
+  set.seed(0)
+  lambda <- runif(n = 200, max = 100)
+  lambda[10] <- 1e9
+  set.seed(1)
+  expect_warning(
+    ans_obtained <- rpois_guarded(lambda = lambda),
+    "Large values for `lambda` used to generate Poisson variates."
+  )
+  set.seed(1)
+  ans_expected <- rep(1e9, times = 200)
+  ans_expected[-10] <- rpois(n = 199, lambda = lambda[-10])
   expect_identical(ans_obtained, ans_expected)
 })
 

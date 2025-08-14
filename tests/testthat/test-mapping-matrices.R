@@ -935,6 +935,21 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time 
 })
 
 
+## 'make_matrix_val_outcome' --------------------------------------------------
+
+test_that("'make_matrix_val_outcome' works with valid inputs", {
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  by_val <- unique(data[c("sex", "age")])
+  ans_obtained <- make_matrix_val_outcome(data = data, by_val = by_val)
+  j <- match(paste(data$sex, data$age),
+             paste(by_val$sex, by_val$age))
+  ans_expected <- Matrix::sparseMatrix(x = 1,
+                                       i = seq_len(nrow(data)),
+                                       j = j)
+  expect_identical(ans_obtained, ans_expected)
+})
+  
+  
 ## 'make_matrix_unconstr_constr' ----------------------------------------------
 
 test_that("'make_matrix_unconstr_constr' works when array representation of constrained vector has dimension 4", {
