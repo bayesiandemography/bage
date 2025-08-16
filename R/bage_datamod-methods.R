@@ -7,12 +7,9 @@
 #'
 #' @param datamod Object of class 'bage_datamod'
 #' @param nm_distn Name of distribution of offset.
-#' Currently only "pois" allowed.
 #' @param components Data frame with components.
 #' @param offset Observed values for offset.
 #' Numeric vector.
-#' @param expected Expected values for rates.
-#' An rvec.
 #'
 #' @returns An rvec
 #'
@@ -20,8 +17,7 @@
 draw_offset_true_given_obs <- function(datamod,
                                        nm_distn,
                                        components,
-                                       offset,
-                                       expected) {
+                                       offset) {
   UseMethod("draw_offset_true_given_obs")
 }
 
@@ -29,8 +25,7 @@ draw_offset_true_given_obs <- function(datamod,
 draw_offset_true_given_obs.bage_datamod_exposure <- function(datamod,
                                                              nm_distn,
                                                              components,
-                                                             offset,
-                                                             expected) {
+                                                             offset) {
   if (nm_distn == "pois") {
     n_offset <- length(offset)
     ratio <- get_datamod_ratio(datamod)

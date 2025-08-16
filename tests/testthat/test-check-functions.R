@@ -213,6 +213,49 @@ test_that("'check_covariates_formula' throws the correct error when 'formula' in
 })
 
 
+
+## 'check_datamod_by_val' -----------------------------------------------------
+
+test_that("'check_datamod_by_val' returns TRUE with valid inputs", {
+  set.seed(0)
+  by_val <- expand.grid(age = 0:2, sex = c("f", "m"))
+  data <- expand.grid(reg = 1:2, age = 0:1, sex = c("f", "m"))
+  expect_true(check_datamod_by_val(by_val = by_val,
+                                   data = data,
+                                   nm_val = "prob"))
+})
+
+test_that("'check_datamod_by_val' throws correct error when by_val has extra variable", {
+  set.seed(0)
+  by_val <- expand.grid(age = 0:2, sex = c("f", "m"), wrong = 1:2)
+  data <- expand.grid(reg = 1:2, age = 0:1, sex = c("f", "m"))
+  expect_error(check_datamod_by_val(by_val = by_val,
+                                    data = data,
+                                    nm_val = "prob"),
+               "Variable `wrong` from `prob` not found in `data`.")
+})
+
+test_that("'check_datamod_by_val' throws correct error when by_val missing combination of by variables", {
+  set.seed(0)
+  by_val <- expand.grid(age = 0:2, sex = c("f", "m"))
+  data <- expand.grid(reg = 1:2, age = 0:3, sex = c("f", "m"))
+  expect_error(check_datamod_by_val(by_val = by_val,
+                                    data = data,
+                                    nm_val = "prob"),
+               "`prob` does not include all combinations of 'by' variables.")
+})
+
+test_that("'check_datamod_by_val' throws correct error when by_val missing single by variables", {
+  set.seed(0)
+  by_val <- expand.grid(age = 0:2)
+  data <- expand.grid(reg = 1:2, age = 0:3, sex = c("f", "m"))
+  expect_error(check_datamod_by_val(by_val = by_val,
+                                    data = data,
+                                    nm_val = "prob"),
+               "`prob` does not include all levels of 'by' variable.")
+})
+
+
 ## 'check_datamod_val' --------------------------------------------------------
 
 test_that("'check_datamod_val' returns TRUE with valid inputs", {
@@ -245,6 +288,17 @@ test_that("'check_datamod_val' raises correct error missing measure var", {
                                  nm_x = "prob",
                                  measure_vars = c("mean", "disp")),
                "`prob` does not have a variable called \"disp\".")
+})
+
+test_that("'check_datamod_val' raises correct error with non-numeric measure var", {
+  set.seed(0)
+  x <- expand.grid(age = 0:2, sex = c("f", "m"))
+  x$mean <- runif(6)
+  x$disp <- "a"
+  expect_error(check_datamod_val(x = x,
+                                 nm_x = "prob",
+                                 measure_vars = c("mean", "disp")),
+               "Variable `disp` in `prob` is non-numeric.")
 })
 
 test_that("'check_datamod_val' raises correct error with NA in measure var", {
@@ -308,16 +362,8 @@ test_that("'check_datamod_val' raises correct error with duplicated by variables
   expect_error(check_datamod_val(x = x,
                                  nm_x = "prob",
                                  measure_vars = c("mean", "disp")),
-               "`prob` has duplicated combinations of 'by' variable.")
+               "`prob` has duplicated levels for 'by' variable.")
 })
-
-
-
-
-
-
-
-  
 
 
 ## 'check_est' ----------------------------------------------------------------
@@ -604,6 +650,20 @@ test_that("'check_length_effect_ge' throws correct error with length less than m
                                         nm = "age",
                                         prior = N()),
                  "`N\\(\\)` prior cannot be used for `age` term.")                
+})
+
+
+## 'check_lt_one' -------------------------------------------------------------
+
+test_that("'check_lt_one' returns TRUE with valid inputs", {
+  expect_true(check_lt_one(c(0.9, -30, 0.5, NA, -Inf), nm_x = "x"))
+})
+
+test_that("'check_lt_one' throws correct error with valid inputs", {
+  expect_error(check_lt_one(c(1, -0.000001, 0.3, NA, -Inf), nm_x = "x", nm_df = "d"),
+               "Variable `x` in `d` has value greater than or equal to 1.")
+  expect_error(check_lt_one(c(1, -0.000001, 3, NA, Inf), nm_x = "x", nm_df = "d"),
+               "Variable `x` in `d` has values greater than or equal to 1.")
 })
 
 
@@ -1150,6 +1210,20 @@ test_that("'check_original_scale' raises warning when 'original_scale' ignored",
                        "with `mod_norm\\(\\)`."))
 })
               
+
+## 'check_positive' -----------------------------------------------------------
+
+test_that("'check_positive' returns TRUE with valid inputs", {
+  expect_true(check_positive(c(1, 0.000001, 3, NA, Inf), nm_x = "x", nm_df = "d"))
+})
+
+test_that("'check_positive' throws correct error with valid inputs", {
+  expect_error(check_positive(c(1, -0.000001, 3, NA, Inf), nm_x = "x", nm_df = "d"),
+               "Variable `x` in `d` has value less than or equal to 0.")
+  expect_error(check_positive(c(1, -0.000001, -3, NA, Inf), nm_x = "x", nm_df = "d"),
+               "Variable `x` in `d` has values less than or equal to 0.")
+})
+
 
 ## 'check_resp_le_offset' -----------------------------------------------------
 

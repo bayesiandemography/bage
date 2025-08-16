@@ -630,6 +630,51 @@ test_that("'make_data_df' works", {
 })
 
 
+## 'make_datamod_levels' -----------------------------------------------------
+
+test_that("'make_datamod_levels' works with valid inputs - multiple rows", {
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  by_val <- expand.grid(age = 0:5, sex = c("F", "M"))
+  ans_obtained <- make_datamod_levels(data = data,
+                                       by_val = by_val)
+  ans_expected <- paste(0:4, rep(c("F", "M"), each = 5), sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_datamod_levels' works with valid inputs - one row", {
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  by_val <- data.frame(mean = 1)[-1]
+  ans_obtained <- make_datamod_levels(data = data,
+                                       by_val = by_val)
+  ans_expected <- character()
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_datamod_measure' -----------------------------------------------------
+
+test_that("'make_datamod_measure' works with valid inputs - multiple rows", {
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  by_val <- expand.grid(age = 0:5, sex = c("F", "M"))
+  measure <- 1:12
+  ans_obtained <- make_datamod_measure(data = data,
+                                       by_val = by_val,
+                                       measure = measure)
+  ans_expected <- measure[-c(6, 12)]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_datamod_measure' works with valid inputs - one row", {
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  by_val <- data.frame(mean = 1)[-1]
+  ans_obtained <- make_datamod_measure(data = data,
+                                       by_val = by_val,
+                                       measure = 0.5)
+  ans_expected <- 0.5
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_dimnames_terms' ------------------------------------------------------
 
 test_that("'make_dimnames_terms' works - includes intercept", {
@@ -878,7 +923,7 @@ test_that("'make_lengths_hyperrandfree' works with valid inputs", {
 })
 
 
-## 'make_levels_effects' ----------------------------------------------------------
+## 'make_levels_effects' ------------------------------------------------------
 
 test_that("'make_levels_effects' works with valid inputs - pois, complete levels", {
     set.seed(0)
@@ -1000,8 +1045,7 @@ test_that("'make_levels_forecast_all' works with no intercept", {
 })
 
 
-## 'make_map_effectfree_fixed' ---------------------------------------------------
-
+## 'make_map_effectfree_fixed' ------------------------------------------------
 test_that("'make_map_effectfree_fixed' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(time = 0:2,
@@ -1161,7 +1205,7 @@ test_that("'make_matrices_effect_outcome' works with valid inputs - no intercept
 })
 
 
-## 'make_matrices_effectfree_effect' ------------------------------------------------
+## 'make_matrices_effectfree_effect' ------------------------------------------
 
 test_that("'make_matrices_effectfree_effect' works with valid inputs", {
     set.seed(0)

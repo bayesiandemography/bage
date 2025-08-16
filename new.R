@@ -798,70 +798,15 @@ forecast_augment.bage_mod_norm <- function(mod,
 
     
   
-check_datamod_by_val <- function(by_val, data, nm_val) {
-  nms_by <- names(by_val)
-  nms_data <- names(data)
-  i_data <- match(nms_by, nms_data, nomatch = 0L)
-  i_nomatch <- match(0L, i_data, nomatch = 0L)
-  if (i_nomatch > 0L) {
-    nm_nomatch <- nms_by[[i_nomatch]]
-    cli::cli_abort(c("{.arg {nm_x}} has variable not found in {.arg data}.",
-                     "Variable not found: {.var {nm_nomatch}}."))
-  }
-  key_by <- Reduce(paste_dot, by_val)
-  key_data <- Reduce(paste_dot, data[nms_by])
-  i_data <- match(key_by, key_data, nomatch = 0L)
-  i_nomatch <- match(0L, i_data, nomatch = 0L)
-  if (i_nomatch > 0L) {
-    row <- data[i_nomatch, , drop = FALSE]
-    levels <- sprintf("%s=%s", names(row), row)
-    levels <- paste(levels, collapse = ", ")
-    n_by <- length(nms_by)
-    cli::cli_abort(c("{.arg {nm_val}} does not cover all combinations in data.",
-                     i = paste("{.arg {data} has {levels},",
-                               "but {.arg {nm_val}} does not.")))
-  }
-  i_by <- match(key_data, key_by, nomatch = 0L)
-  i_nomatch <- match(0L, i_by, nomatch = 0L)
-  if (i_nomatch > 0L) {
-    row <- by_val[i_nomatch, , drop = FALSE]
-    levels <- sprintf("%s=%s", names(row), row)
-    levels <- paste(levels, collapse = ", ")
-    n_by <- length(nms_by)
-    cli::cli_abort(c("{.arg {nm_val}} has unused rows.",
-                     i = paste("{.arg {nm_val}} has {levels},",
-                               "but {.arg data} does not.")))
-  }
-  invisible(TRUE)
-}
-  
 
 
-set_datamod_undercount <- function(mod, prob) {
-  measure_vars <- c("mean", "disp")
-  data <- mod$data
-  nm_distn <- nm_distn(mod)
-  if (!(nm_distn %in% c("pois", "binom"))) {
-    model_descr <- model_descr(mod)
-    cli::cli_abort(c(paste("An undercount data model can only be used",
-                           "with a Poisson or binomial model."),
-                     i = "This is a {model_descr} model."))
-  }
-  check_datamod_val(x = prob,
-                    nm_x = "prob",
-                    measure_vars = measure_vars)
-  by_vars <- prob[setdiff(names(prob), measure_vars)]
-  check_datamod_by_val(by_val = by_val,
-                       data = data)
-  ## NEED TO MODIFY TO ALLOW FOR ONE-ROW, NO-BY-VAR OPTION
-  matrix_prob_outcome <- make_matrix_val_outcome(data = data,
-                                                 by_val = by_val)
-  datamod <- new_bage_datamod_undercount(prob_mean = prob$mean,
-                                         prob_disp = prob$disp,
-                                         matrix_prob_outcome = matrix_prob_outcome)
-  mod$datamod <- datamod
-  mod
-}
+
+
+
+
+
+
+
 
   
   
