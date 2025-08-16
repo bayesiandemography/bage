@@ -490,6 +490,57 @@ make_data_df <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make the Levels Vector to be Used in a Data Model Object
+#'
+#'
+#' @param data Data frame with data from main model
+#' @param by_val Data frame with 'by' variables.
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_datamod_levels <- function(data, by_val) {
+  if (length(by_val) > 0L) {
+    nms <- names(by_val)
+    key_data <- Reduce(paste_dot, data[nms])
+    key_val <- Reduce(paste_dot, by_val)
+    intersect(key_val, key_data)
+  }
+  else {
+    character()
+  }
+}
+
+
+## HAS_TESTS
+#' Make the Measure Variable to be Used in a Data Model Object
+#'
+#' Remove values that do not map on to 'data'
+#'
+#' @param data Data frame with data from main model
+#' @param by_val Data frame with 'by' variables
+#' for measure variable for data model
+#' @param measure Numeric vector with values for
+#' measure variable.
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+make_datamod_measure <- function(data, by_val, measure) {
+  if (length(by_val) > 0L) {
+    nms <- names(by_val)
+    key_data <- Reduce(paste_dot, data[nms])
+    key_val <- Reduce(paste_dot, by_val)
+    is_keep <- key_val %in% key_data
+    measure[is_keep]
+  }
+  else {
+    measure
+  }
+}
+
+
+## HAS_TESTS
 #' Make Dimnames for Terms in Model
 #'
 #' Handles case where formula does not have intercept.

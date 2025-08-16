@@ -119,6 +119,278 @@ test_that("'set_covariates' issues message with existing covariates", {
 })
 
 
+## 'set_datamod_exposure' -----------------------------------------------------
+
+test_that("'set_datamod_exposure' works with 2 by variables", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  ratio <- data.frame(ratio = 1)
+  disp <- expand.grid(age = 0:3, sex = 1:2)
+  disp$mean <- 0.6
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_datamod_exposure(mod, ratio = ratio, disp = disp)
+  expect_s3_class(mod$datamod, "bage_datamod_exposure")
+})
+
+test_that("'set_datamod_exposure' works with 1 by variable", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  ratio <- data.frame(ratio = 1)
+  disp <- expand.grid(age = 0:3)
+  disp$mean <- 1:4
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_datamod_exposure(mod, ratio = ratio, disp = disp)
+  expect_s3_class(mod$datamod, "bage_datamod_exposure")
+})
+
+test_that("'set_datamod_exposure' throws correct error with non-Poisson", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  ratio <- data.frame(ratio = 1)
+  disp <- expand.grid(age = 0:3)
+  disp$mean <- 1:4
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                  data = data,
+                  size = popn)
+  expect_error(set_datamod_exposure(mod, ratio = ratio, disp = disp),
+               "An exposure data model can only be used with a Poisson model.")
+}) 
+
+
+## 'set_datamod_miscount' -----------------------------------------------------
+
+test_that("'set_datamod_miscount' works with 2 by variables", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  prob <- data.frame(mean = 0.9, disp = 2)
+  rate <- expand.grid(age = 0:3, sex = 1:2)
+  rate$mean <- 0.6
+  rate$disp <- 1:8
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_datamod_miscount(mod, prob = prob, rate = rate)
+  expect_s3_class(mod$datamod, "bage_datamod_miscount")
+})
+
+test_that("'set_datamod_miscount' works with 1 by variable", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  prob <- expand.grid(age = 0:3)
+  prob$mean <- 0.5
+  prob$disp <- 1:4
+  rate <- data.frame(mean = 1, disp = 0.1)
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_datamod_miscount(mod, prob = prob, rate = rate)
+  expect_s3_class(mod$datamod, "bage_datamod_miscount")
+})
+
+test_that("'set_datamod_miscount' throws correct error with non-Poisson", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  prob <- expand.grid(age = 0:3)
+  prob$mean <- 0.5
+  prob$disp <- 1:4
+  rate <- data.frame(mean = 1, disp = 0.1)
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                  data = data,
+                  size = popn)
+  expect_error(set_datamod_miscount(mod, prob = prob, rate = rate),
+               "A miscount data model can only be used with a Poisson model.")
+})
+
+
+## 'set_datamod_noise' -----------------------------------------------------
+
+test_that("'set_datamod_noise' works with 2 by variables", {
+  set.seed(0)
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$income <- rnorm(nrow(data))
+  data$wt <- 1
+  mean <- data.frame(mean = 0.9)
+  sd <- expand.grid(age = 0:3, sex = 1:2)
+  sd$sd <- 0.6
+  formula <- income ~ age:sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weight = wt)
+  mod <- set_datamod_noise(mod, mean = mean, sd = sd)
+  expect_s3_class(mod$datamod, "bage_datamod_noise")
+})
+
+test_that("'set_datamod_noise' works with 1 by variable", {
+  set.seed(0)
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$income <- rnorm(nrow(data))
+  data$wt <- 1
+  mean <- data.frame(mean = 0.9)
+  sd <- expand.grid(age = 0:3)
+  sd$sd <- 1
+  formula <- income ~ age:sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  mod <- set_datamod_noise(mod, mean = mean, sd = sd)
+  expect_s3_class(mod$datamod, "bage_datamod_noise")
+})
+
+test_that("'set_datamod_noise' throws correct error with non-Poisson", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  mean <- data.frame(mean = 0.9)
+  sd <- expand.grid(age = 0:3)
+  sd$sd <- 1
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  expect_error(set_datamod_noise(mod, mean = mean, sd = sd),
+               "A noise data model can only be used with a normal model.")
+})
+
+
+
+## 'set_datamod_overcount' -----------------------------------------------------
+
+test_that("'set_datamod_overcount' works with 2 by variables", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  rate <- expand.grid(age = 0:3, sex = 1:2)
+  rate$mean <- 0.6
+  rate$disp <- 1:8
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_datamod_overcount(mod, rate = rate)
+  expect_s3_class(mod$datamod, "bage_datamod_overcount")
+})
+
+test_that("'set_datamod_overcount' works with 1 by variable", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  rate <- expand.grid(age = 0:3)
+  rate$mean <- 0.5
+  rate$disp <- 1:4
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_datamod_overcount(mod, rate = rate)
+  expect_s3_class(mod$datamod, "bage_datamod_overcount")
+})
+
+test_that("'set_datamod_overcount' throws correct error with non-Poisson", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  rate <- data.frame(mean = 1, disp = 0.1)
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  expect_error(set_datamod_overcount(mod, rate = rate),
+               "An overcount data model can only be used with a Poisson model.")
+})
+
+
+## 'set_datamod_undercount' ---------------------------------------------------
+
+test_that("'set_datamod_undercount' works with 2 by variables - Poisson", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  prob <- expand.grid(age = 0:3, sex = 1:2)
+  prob$mean <- 0.6
+  prob$disp <- 1:8
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_datamod_undercount(mod, prob = prob)
+  expect_s3_class(mod$datamod, "bage_datamod_undercount")
+})
+
+test_that("'set_datamod_undercount' works with 2 by variables - binomial", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  prob <- expand.grid(age = 0:3, sex = 1:2)
+  prob$mean <- 0.6
+  prob$disp <- 1:8
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                  data = data,
+                  size = popn)
+  mod <- set_datamod_undercount(mod, prob = prob)
+  expect_s3_class(mod$datamod, "bage_datamod_undercount")
+})
+
+test_that("'set_datamod_undercount' works with 1 by variable - Poisson", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  prob <- expand.grid(age = 0:3)
+  prob$mean <- 0.5
+  prob$disp <- 1:4
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_datamod_undercount(mod, prob = prob)
+  expect_s3_class(mod$datamod, "bage_datamod_undercount")
+})
+
+test_that("'set_datamod_undercount' works with 1 by variable - binomial", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  prob <- expand.grid(age = 0:3)
+  prob$mean <- 0.5
+  prob$disp <- 1:4
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  mod <- set_datamod_undercount(mod, prob = prob)
+  expect_s3_class(mod$datamod, "bage_datamod_undercount")
+})
+
+test_that("'set_datamod_undercount' throws correct error with non-Poisson", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$income <- 1
+  prob <- data.frame(mean = 1, disp = 0.1)
+  formula <- income ~ age:sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = popn)
+  expect_error(set_datamod_undercount(mod, prob = prob),
+               "An undercount data model can only be used with a Poisson or binomial model.")
+})
+
+
 ## 'set_datamod_outcome_rr3' --------------------------------------------------
 
 test_that("'set_datamod_outcome_rr3' throws deprecation warning but returns value", {

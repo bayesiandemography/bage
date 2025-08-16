@@ -143,6 +143,53 @@ check_covariates_formula <- function(formula, mod) {
 }
 
 
+## HAS_TESTS
+#' Check that 'by' Variables in Data Frame Holding Values
+#' for a Data Model are Valid
+#'
+#' @param by_val Data frame with 'by' variables
+#' @param data Data frame with main data from model
+#' @param nm_val Name for data frame with data model values,
+#' to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_datamod_by_val <- function(by_val, data, nm_val) {
+  nms_by <- names(by_val)
+  nms_data <- names(data)
+  nm_in_data <- nms_by %in% nms_data
+  i_not_in_data <- match(FALSE, nm_in_data, nomatch = 0L)
+  if (i_not_in_data > 0L) {
+    nm_nomatch <- nms_by[[i_not_in_data]]
+    cli::cli_abort(paste("Variable {.var {nm_nomatch}} from {.arg {nm_val}}",
+                         "not found in {.arg data}."))
+  }
+  key_by <- Reduce(paste_dot, by_val)
+  key_data <- Reduce(paste_dot, data[nms_by])
+  data_in_by <- key_data %in% key_by
+  i_not_in_by <- match(FALSE, data_in_by, nomatch = 0L)
+  if (i_not_in_by > 0L) {
+    row <- data[i_not_in_by, nms_by, drop = FALSE]
+    levels <- sprintf("{.var %s}={.val %s}", names(row), row)
+    levels <- paste(levels, collapse = ", ")
+    n_by <- length(nms_by)
+    if (n_by > 1L)
+      cli::cli_abort(c(paste("{.arg {nm_val}} does not include all",
+                             "combinations of 'by' variables."),
+                       i = paste0("{.arg data} has ", levels,
+                                  ", but {.arg {nm_val}} does not.")))
+    else
+      cli::cli_abort(c(paste("{.arg {nm_val}} does not include all",
+                             "levels of 'by' variable."),
+                       i = paste0("{.arg data} has ", levels,
+                                  ", but {.arg {nm_val}} does not.")))
+  }
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that Data Frame Holding Values for a Data Model is Valid
 #'
 #' @param x Data frame with values
@@ -166,11 +213,16 @@ check_datamod_val <- function(x, nm_x, measure_vars) {
     if (i_var == 0L)
       cli::cli_abort(paste("{.arg {nm_x}} does not have a variable",
                            "called {.val {var}}."))
-    n_na <- sum(is.na(x[[var]]))
+    if (!is.numeric(x[[i_var]])) {
+      cls <- class(x[[i_var]])
+      cli::cli_abort(c("Variable {.var {var}} in {.arg {nm_x}} is non-numeric.",
+                       i = "{.var {var}} has class {.cls {cls}}."))
+    }
+    n_na <- sum(is.na(x[[i_var]]))
     if (n_na > 0L)
       cli::cli_abort(paste("Variable {.var {var}} in {.arg {nm_x}}",
                            "has {cli::qty(n_na)} NA{?s}."))
-    n_inf <- sum(is.infinite(x[[var]]))
+    n_inf <- sum(is.infinite(x[[i_var]]))
     if (n_inf > 0L)
       cli::cli_abort(paste("Variable {.var {var}} in {.arg {nm_x}}",
                            "has {cli::qty(n_na)} non-finite value{?s}."))
@@ -184,16 +236,21 @@ check_datamod_val <- function(x, nm_x, measure_vars) {
   i_dup <- match(TRUE, duplicated(by_val), nomatch = 0L)
   if (i_dup > 0L) {
     row <- by_val[i_dup, , drop = FALSE]
-    levels <- sprintf("%s=%s", names(row), row)
+    levels <- sprintf("{.var %s}={.val %s}", names(row), row)
     levels <- paste(levels, collapse = ", ")
     n_by <- length(nms_by)
-    cli::cli_abort(c(paste("{.arg {nm_x}} has duplicated combinations of 'by'",
-                           "{cli::qty(n_by)} variable{?s}."),
-                     i = "Two rows with {levels}."))
+    if (n_by > 1L) {
+      cli::cli_abort(c(paste("{.arg {nm_x}} has duplicated combinations",
+                             "of 'by' variables."),
+                       i = paste0("Two rows with ", levels, ".")))
+    }
+    else {
+      cli::cli_abort(c("{.arg {nm_x}} has duplicated levels for 'by' variable.",
+                       i = paste0("Two rows with ", levels, ".")))
+    }
   }
   invisible(TRUE)
 }
-
 
 
 ## HAS_TESTS
@@ -514,6 +571,27 @@ check_length_effect_ge <- function(length_effect, min, nm, prior) {
                                    "used with terms that have at least {min} element{?s}."),
                          i = "{.var {nm}} term has {length_effect} element{?s}."))
     invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check All Elements of Numeric Vector are Less than One
+#'
+#' @param x A numeric vector
+#' @param nm_x Name of 'x' to be used in error messages
+#' @param nm_df Name of data frame containing 'x',
+#' to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_lt_one <- function(x, nm_x, nm_df) {
+  n_ge_one <- sum(!is.na(x) & (x >= 1))
+  if (n_ge_one > 0L)
+    cli::cli_abort(paste("Variable {.var {nm_x}} in {.arg {nm_df}}",
+                         "has {cli::qty(n_ge_one)} value{?s}",
+                         "greater than or equal to 1."))
+  invisible(TRUE)
 }
 
 
@@ -986,6 +1064,27 @@ check_offset_not_in_formula <- function(nm_offset_data, nm_offset_mod, formula) 
                        i = "{.arg formula}: {.val {deparse1(formula)}}."))
     }
   }
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check All Elements of Numeric Vector are Positive
+#'
+#' @param x A numeric vector
+#' @param nm_x Name of 'x' to be used in error messages
+#' @param nm_df Name of data frame containing 'x',
+#' to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_positive <- function(x, nm_x, nm_df) {
+  n_nonpos <- sum(!is.na(x) & (x <= 0))
+  if (n_nonpos > 0L)
+    cli::cli_abort(paste("Variable {.var {nm_x}} in {.arg {nm_df}}",
+                         "has {cli::qty(n_nonpos)} value{?s}",
+                         "less than or equal to 0."))
   invisible(TRUE)
 }
 

@@ -937,7 +937,7 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time 
 
 ## 'make_matrix_val_outcome' --------------------------------------------------
 
-test_that("'make_matrix_val_outcome' works with valid inputs", {
+test_that("'make_matrix_val_outcome' works with valid inputs - multiple rows", {
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   by_val <- unique(data[c("sex", "age")])
   ans_obtained <- make_matrix_val_outcome(data = data, by_val = by_val)
@@ -946,6 +946,16 @@ test_that("'make_matrix_val_outcome' works with valid inputs", {
   ans_expected <- Matrix::sparseMatrix(x = 1,
                                        i = seq_len(nrow(data)),
                                        j = j)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_val_outcome' works with valid inputs - one row", {
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  by_val <- data.frame(mean = 1)[-1]
+  ans_obtained <- make_matrix_val_outcome(data = data, by_val = by_val)
+  ans_expected <- Matrix::sparseMatrix(x = 1,
+                                       i = seq_len(nrow(data)),
+                                       j = rep(1L, nrow(data)))
   expect_identical(ans_obtained, ans_expected)
 })
   

@@ -788,7 +788,8 @@ make_matrix_unconstr_constr_along <- function(dim_after) {
 #' values (eg ratios used in data models)
 #' to 'data' data frame for model.
 #'
-#' Assume that all variables found in 'by_val'
+#' Do not assume that all variables
+#' found in 'by_val'
 #' can be found in 'data'.
 #'
 #' Assume that 'by_val' is unique.
@@ -807,11 +808,18 @@ make_matrix_unconstr_constr_along <- function(dim_after) {
 #'
 #' @noRd    
 make_matrix_val_outcome <- function(data, by_val) {
-  nms <- names(by_val)
-  key_data <- Reduce(paste_dot, data[nms])
-  key_val <- Reduce(paste_dot, by_val)
-  i <- seq_along(key_data)
-  j <- match(key_data, key_val)
+  n <- nrow(data)
+  if (length(by_val) > 0L) {
+    nms <- names(by_val)
+    key_data <- Reduce(paste_dot, data[nms])
+    key_val <- Reduce(paste_dot, by_val)
+    key_val <- intersect(key_val, key_data)
+    j <- match(key_data, key_val)
+  }
+  else {
+    j <- rep.int(1L, times = n)
+  }
+  i <- seq_len(n)
   Matrix::sparseMatrix(x = 1, i = i, j = j)
 }
 
