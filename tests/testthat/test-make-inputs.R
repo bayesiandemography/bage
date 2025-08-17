@@ -636,7 +636,8 @@ test_that("'make_datamod_levels' works with valid inputs - multiple rows", {
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   by_val <- expand.grid(age = 0:5, sex = c("F", "M"))
   ans_obtained <- make_datamod_levels(data = data,
-                                       by_val = by_val)
+                                      by_val = by_val,
+                                      nm_component = "rate")
   ans_expected <- paste(0:4, rep(c("F", "M"), each = 5), sep = ".")
   expect_identical(ans_obtained, ans_expected)
 })
@@ -645,8 +646,9 @@ test_that("'make_datamod_levels' works with valid inputs - one row", {
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   by_val <- data.frame(mean = 1)[-1]
   ans_obtained <- make_datamod_levels(data = data,
-                                       by_val = by_val)
-  ans_expected <- character()
+                                      by_val = by_val,
+                                      nm_component = "rate")
+  ans_expected <- "rate"
   expect_identical(ans_obtained, ans_expected)
 })
 

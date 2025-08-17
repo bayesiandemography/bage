@@ -495,11 +495,13 @@ make_data_df <- function(mod) {
 #'
 #' @param data Data frame with data from main model
 #' @param by_val Data frame with 'by' variables.
+#' @param nm_component Name of component. Used
+#' as when 'by_var' is empty.
 #'
 #' @returns A character vector
 #'
 #' @noRd
-make_datamod_levels <- function(data, by_val) {
+make_datamod_levels <- function(data, by_val, nm_component) {
   if (length(by_val) > 0L) {
     nms <- names(by_val)
     key_data <- Reduce(paste_dot, data[nms])
@@ -507,7 +509,7 @@ make_datamod_levels <- function(data, by_val) {
     intersect(key_val, key_data)
   }
   else {
-    character()
+    nm_component
   }
 }
 

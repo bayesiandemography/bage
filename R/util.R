@@ -337,3 +337,114 @@ rvec_to_mean <- function(data) {
   data[is_rvec] <- lapply(data[is_rvec], rvec::draws_mean)
   data
 }
+
+
+
+## HAS_TESTS
+#' Obtain a Draws from the Posterior
+#' of a Beta-Binomial Model with Binomial
+#' Measurement Error
+#'
+#' Obtain draws of \eqn{x | n, \mu, \xi, \pi}
+#' from the model
+#'
+#' \deqn{x \sim \text{BetaBinom}(n, \mu/\xi (1-\mu)/\xi)}
+#' \deqn{y \sim \text{Binomial}(x, \pi)}.
+#'
+#' That is, draw \eqn{x}, where
+#' deqn{p(x | n, y, mu, xi, pi) \propto \frac{(1-pi)^x B(x+mu/xi, n-x+(1-mu)/xi)}{(x-y)!(n-x)!}}
+#' for \eqn{x = y, \cdots, n}.
+#'
+#' @param n The total number of trials. Numeric vector.
+#' @param y The observed number of successes. 
+#' Vector with same length as 'n'
+#' @param mu The probability of a success.
+#' Vector with same length as 'n'
+#' @param xi Dispersion.
+#' Vector of positive reals with same length as 'n'
+#' @param pi The probability of detection.
+#' Vector of reals between 0 and 1 with same length as 'n'
+#'
+#' @returns An integer
+#'
+#' @noRd
+sample_post_binom_betabinom <- function(n, y, mu, xi, pi) {
+  stopifnot(is.numeric(n),
+            all(n >= 0, na.rm = TRUE),
+            !any(is.infinite(n), na.rm = TRUE),
+            all(round(n) == n, na.rm = TRUE))
+  stopifnot(identical(length(y), length(n)),
+            is.numeric(y),
+            all(y >= 0, na.rm = TRUE),
+            all(round(y) == y, na.rm = TRUE),
+            all(y <= n, na.rm = TRUE))
+  stopifnot(identical(length(mu), length(n)),
+            is.numeric(mu),
+            all(mu >= 0, na.rm = TRUE),
+            all(mu <= 1, na.rm = TRUE))
+  stopifnot(identical(length(xi), length(n)),
+            is.numeric(xi),
+            all(xi > 0, na.rm = TRUE))
+  stopifnot(identical(length(pi), length(n)),
+            is.numeric(pi),
+            all(pi >= 0, na.rm = TRUE),
+            all(pi <= 1, na.rm = TRUE))
+  ans <- numeric(length = length(n))
+  for (i in seq_along(ans)) {
+    ans[[i]] <- sample_post_binom_betabinom_inner(n = n[[i]],
+                                                  y = y[[i]],
+                                                  mu = mu[[i]],
+                                                  xi = xi[[i]],
+                                                  pi = pi[[i]])
+  }
+  ans
+}
+
+
+
+## HAS_TESTS
+#' Obtain a Single Draw from the Posterior
+#' of a Beta-Binomial Model with Binomial
+#' Measurement Error
+#'
+#' Obtain a single draw of \eqn{x | n, \mu, \xi, \pi}
+#' from the model
+#'
+#' \deqn{x \sim \text{BetaBinom}(n, \mu/\xi (1-\mu)/\xi)}
+#' \deqn{y \sim \text{Binomial}(x, \pi)}.
+#'
+#' That is, draw \eqn{x}, where
+#' deqn{p(x | n, y, mu, xi, pi) \propto \frac{(1-pi)^x B(x+mu/xi, n-x+(1-mu)/xi)}{(x-y)!(n-x)!}}
+#' for \eqn{x = y, \cdots, n}.
+#'
+#' @param n The total number of trials. An integer.
+#' @param y The observed number of successes. An integer.
+#' @param mu The probability of a success. A real between 0 and 1.
+#' @param xi Dispersion. A positive real.
+#' @param pi The probability of detection. A real between 0 and 1.
+#'
+#' @returns An integer
+#'
+#' @noRd
+sample_post_binom_betabinom_inner <- function(n, y, mu, xi, pi) {
+  if (is.na(n) || is.na(y) || is.na(mu) || is.na(xi) || is.na(pi))
+    return(NA_real_)
+  if (y == n)
+    return(y)
+  x <- seq.int(from = y, to = n)
+  num1 <- x * log(1 - pi)
+  num2 <- lbeta(x + mu / xi, n - x + (1 - mu) / xi)
+  den1 <- lfactorial(x - y)
+  den2 <- lfactorial(n - x)
+  log_wt <- num1 + num2 - den1 - den2
+  log_wt <- log_wt - max(log_wt)
+  wt <- exp(log_wt)
+  sample(x, size = 1L, prob = wt)
+}
+
+  
+                                              
+  
+
+
+

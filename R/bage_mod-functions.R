@@ -208,7 +208,8 @@ set_datamod_exposure <- function(mod, ratio, disp)  {
                                       by_val = by_val_ratio,
                                       measure = ratio$ratio)
   ratio_levels <- make_datamod_levels(data = data,
-                                      by_val = by_val_ratio)
+                                      by_val = by_val_ratio,
+                                      nm_component = "ratio")
   ratio_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                   by_val = by_val_ratio)
   ## process 'disp'
@@ -227,7 +228,8 @@ set_datamod_exposure <- function(mod, ratio, disp)  {
                                     by_val = by_val_disp,
                                     measure = disp$mean)
   disp_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_disp)
+                                     by_val = by_val_disp,
+                                     nm_component = "levels")
   disp_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_disp)
   ## construct datamod and add to 'mod'
@@ -296,7 +298,8 @@ set_datamod_miscount <- function(mod, prob, rate) {
                                     by_val = by_val_prob,
                                     measure = prob$disp)
   prob_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_prob)
+                                     by_val = by_val_prob,
+                                     nm_component = "prob")
   prob_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_prob)
   ## process 'rate'
@@ -321,7 +324,8 @@ set_datamod_miscount <- function(mod, prob, rate) {
                                     by_val = by_val_rate,
                                     measure = rate$disp)
   rate_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_rate)
+                                     by_val = by_val_rate,
+                                     nm_component = "rate")
   rate_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_rate)
   ## construct datamod and add to 'mod'
@@ -380,7 +384,8 @@ set_datamod_noise <- function(mod, mean, sd) {
                                     by_val = by_val_mean,
                                     measure = mean$mean)
   mean_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_mean)
+                                     by_val = by_val_mean,
+                                     nm_component = "mean")
   mean_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_mean)
   ## process 'sd'
@@ -399,7 +404,8 @@ set_datamod_noise <- function(mod, mean, sd) {
                                 by_val = by_val_sd,
                                 measure = sd$sd)
   sd_levels <- make_datamod_levels(data = data,
-                                   by_val = by_val_sd)
+                                   by_val = by_val_sd,
+                                   nm_component = "sd")
   sd_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                by_val = by_val_sd)
   ## construct datamod and add to 'mod'
@@ -458,7 +464,8 @@ set_datamod_overcount <- function(mod, rate) {
                                     by_val = by_val_rate,
                                     measure = rate$disp)
   rate_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_rate)
+                                     by_val = by_val_rate,
+                                     nm_component = "rate")
   rate_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_rate)
   ## construct datamod and add to object
@@ -518,7 +525,8 @@ set_datamod_undercount <- function(mod, prob) {
                                     by_val = by_val_prob,
                                     measure = prob$disp)
   prob_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_prob)
+                                     by_val = by_val_prob,
+                                     nm_component = "prob")
   prob_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_prob)
   ## construct datamod and add to object

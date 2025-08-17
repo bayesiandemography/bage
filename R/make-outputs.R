@@ -422,12 +422,12 @@ generate_ssvd_helper <- function(ssvd,
 #'
 #' @noRd
 get_datamod_disp <- function(datamod, components) {
-  matrix_disp_outcome <- datamod$matrix_disp_outcome
-  matrix_disp_outcome <- as.matrix(matrix_disp_outcome) ## remove after updating rvec
+  disp_matrix_outcome <- datamod$disp_matrix_outcome
+  disp_matrix_outcome <- as.matrix(disp_matrix_outcome) ## remove after updating rvec
   is_disp <- (components$term == "datamod"
     & components$component == "disp")
   disp <- components$.fitted[is_disp]
-  disp <- matrix_disp_outcome %*% disp
+  disp <- disp_matrix_outcome %*% disp
   disp
 }
 
@@ -442,9 +442,9 @@ get_datamod_disp <- function(datamod, components) {
 #'
 #' @noRd
 get_datamod_mean <- function(datamod) {
-  mean <- datamod$mean
-  matrix_mean_outcome <- datamod$matrix_mean_outcome
-  mean <- matrix_mean_outcome %*% mean
+  mean_mean <- datamod$mean_mean
+  mean_matrix_outcome <- datamod$mean_matrix_outcome
+  mean <- mean_matrix_outcome %*% mean_mean
   mean <- as.numeric(mean)
   mean
 }
@@ -460,12 +460,12 @@ get_datamod_mean <- function(datamod) {
 #'
 #' @noRd
 get_datamod_prob <- function(datamod, components) {
-  matrix_prob_outcome <- datamod$matrix_prob_outcome
-  matrix_prob_outcome <- as.matrix(matrix_prob_outcome) ## remove after updating rvec
+  prob_matrix_outcome <- datamod$prob_matrix_outcome
+  prob_matrix_outcome <- as.matrix(prob_matrix_outcome) ## remove after updating rvec
   is_prob <- (components$term == "datamod"
     & components$component == "prob")
   prob <- components$.fitted[is_prob]
-  prob <- matrix_prob_outcome %*% prob
+  prob <- prob_matrix_outcome %*% prob
   prob
 }
 
@@ -480,12 +480,12 @@ get_datamod_prob <- function(datamod, components) {
 #'
 #' @noRd
 get_datamod_rate <- function(datamod, components) {
-  matrix_rate_outcome <- datamod$matrix_rate_outcome
-  matrix_rate_outcome <- as.matrix(matrix_rate_outcome) ## remove after updating rvec
+  rate_matrix_outcome <- datamod$rate_matrix_outcome
+  rate_matrix_outcome <- as.matrix(rate_matrix_outcome) ## remove after updating rvec
   is_rate <- (components$term == "datamod"
     & components$component == "rate")
   rate <- components$.fitted[is_rate]
-  rate <- matrix_rate_outcome %*% rate
+  rate <- rate_matrix_outcome %*% rate
   rate
 }
 
@@ -500,9 +500,9 @@ get_datamod_rate <- function(datamod, components) {
 #'
 #' @noRd
 get_datamod_ratio <- function(datamod) {
-  ratio <- datamod$ratio
-  matrix_ratio_outcome <- datamod$matrix_ratio_outcome
-  ratio <- matrix_ratio_outcome %*% ratio
+  ratio_ratio <- datamod$ratio_ratio
+  ratio_matrix_outcome <- datamod$ratio_matrix_outcome
+  ratio <- ratio_matrix_outcome %*% ratio_ratio
   ratio <- as.numeric(ratio) ## convert from matrix
   ratio
 }
@@ -518,9 +518,9 @@ get_datamod_ratio <- function(datamod) {
 #'
 #' @noRd
 get_datamod_sd <- function(datamod) {
-  sd <- datamod$sd
-  matrix_sd_outcome <- datamod$matrix_sd_outcome
-  sd <- matrix_sd_outcome %*% sd
+  sd_sd <- datamod$sd_sd
+  sd_matrix_outcome <- datamod$sd_matrix_outcome
+  sd <- sd_matrix_outcome %*% sd_sd
   sd <- as.numeric(sd)
   sd
 }
