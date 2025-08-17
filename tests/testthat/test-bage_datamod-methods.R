@@ -695,245 +695,72 @@ test_that("'make_expected_obs_undercount' works", {
 })
 
 
+## 'make_i_lik_part' ---------------------------------------------------------------
 
-## OLD ################################################################
-
-
-## 'draw_vals_outcome_true' ---------------------------------------------------
-
-test_that("'draw_vals_outcome_true' works with pois, NULL, offset has NA", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 0.5 * data$popn)
-  data$deaths[3] <- NA
-  data$popn[3] <- NA
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim)
-  vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_from_components(mod = mod,
-                                                    components = vals_components,
-                                                    data = mod$data,
-                                                    dimnames_term = mod$dimnames_terms))
-  vals_fitted <- draw_vals_fitted(mod = mod,
-                                  vals_expected = vals_expected,
-                                  vals_disp = vals_disp,
-                                  outcome = NULL,
-                                  offset = NULL)
-  set.seed(1)
-  ans_obtained <- draw_vals_outcome_true(datamod = NULL,
-                                         nm_distn = "pois",
-                                         outcome_obs = mod$outcome,
-                                         fitted = vals_fitted,
-                                         disp = vals_disp,
-                                         offset = mod$offset)
-  set.seed(1)
-  ans_expected <- rvec::rvec(matrix(1 * data$deaths, nrow = nrow(data), ncol = 10))
-  ans_expected[3] <- NA
-  expect_equal(ans_obtained, ans_expected)
+test_that("'make_i_lik' works with bage_datamod_exposure", {
+  x <- new_bage_datamod_exposure(ratio_ratio = 1,
+                                 ratio_levels = "ratio",
+                                 ratio_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
+                                                                             i = 1:5,
+                                                                             j = rep(1, 5)),
+                                 disp_mean = 1,
+                                 disp_levels = "disp",
+                                 disp_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
+                                                                            i = 1:5,
+                                                                            j = rep(1, 5)))
+  expect_identical(make_i_lik_part(x), 1000L)
 })
 
-test_that("'draw_vals_outcome_true' works with NULL, binom, data complete", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 20)
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.8)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim)
-  vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_from_components(mod = mod,
-                                                         components = vals_components,
-                                                         data = mod$data,
-                                                         dimnames_term = mod$dimnames_terms))
-  vals_fitted <- draw_vals_fitted(mod = mod,
-                                  vals_expected = vals_expected,
-                                  vals_disp = vals_disp,
-                                  outcome = NULL,
-                                  offset = NULL)
-  set.seed(1)
-  ans_obtained <- draw_vals_outcome_true(datamod = NULL,
-                                         nm_distn = "binom",
-                                         outcome_obs = mod$outcome,
-                                         fitted = vals_fitted,
-                                         disp = vals_disp,
-                                         offset = mod$offset)
-  set.seed(1)
-  ans_expected <- rvec::rvec(matrix(1*data$deaths, nrow = nrow(data), ncol = 10))
-  expect_equal(ans_obtained, ans_expected)
+test_that("'make_i_lik' works with bage_datamod_miscount", {
+  x <- new_bage_datamod_miscount(prob_mean = 0.5,
+                                 prob_disp = 1,
+                                 prob_levels = "prob",
+                                 prob_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
+                                                                            i = 1:5,
+                                                                            j = rep(1, 5)),
+                                 rate_mean = 0.5,
+                                 rate_disp = 1,
+                                 rate_levels = "rate",
+                                 rate_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
+                                                                            i = 1:5,
+                                                                            j = rep(1, 5)))
+  expect_identical(make_i_lik_part(x), 2000L)
 })
 
-test_that("'draw_vals_outcome_true' works with NULL, binom, has offset has na", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 20)
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.8)
-  data$deaths[1] <- NA
-  data$popn[3] <- NA
-  formula <- deaths ~ age + sex + time
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim)
-  vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_from_components(mod = mod,
-                                                         components = vals_components,
-                                                         data = mod$data,
-                                                         dimnames_term = mod$dimnames_terms))
-  vals_fitted <- draw_vals_fitted(mod = mod,
-                                  vals_expected = vals_expected,
-                                  vals_disp = vals_disp,
-                                  outcome = NULL,
-                                  offset = NULL)
-  set.seed(1)
-  ans_obtained <- draw_vals_outcome_true(datamod = NULL,
-                                         nm_distn = "binom",
-                                         outcome_obs = mod$outcome,
-                                         fitted = vals_fitted,
-                                         disp = vals_disp,
-                                         offset = mod$offset)
-  set.seed(1)
-  ans_expected <- rvec::rvec(matrix(1*data$deaths, nrow = nrow(data), ncol = 10))
-  ans_expected[1] <- rvec::rbinom_rvec(n = 1 ,
-                                       size = mod$offset[1],
-                                       prob = vals_fitted[1])
-  expect_equal(ans_obtained, ans_expected)
+test_that("'make_i_lik' works with bage_datamod_noise", {
+  x <- new_bage_datamod_noise(mean_mean = 0.5,
+                              mean_levels = "mean",
+                              mean_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
+                                                                         i = 1:5,
+                                                                         j = rep(1, 5)),
+                              sd_sd = 0.5,
+                              sd_levels = "sd",
+                              sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
+                                                                       i = 1:5,
+                                                                       j = rep(1, 5)))
+  expect_identical(make_i_lik_part(x), 3000L)
 })
 
-test_that("'draw_vals_outcome_true' works with NULL, norm, no na", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$income <- rnorm(n = nrow(data), mean = 20, sd = 3)
-  data$income[1] <- NA
-  data$wt <- rpois(n = nrow(data), lambda = 100)
-  formula <- income ~ age + sex + time
-  mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = wt)
-  vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim)
-  vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  scale_linpred <- get_fun_orig_scale_linpred(mod)
-  vals_fitted <- scale_linpred(make_linpred_from_components(mod = mod,
-                                                            components = vals_components,
-                                                            data = mod$data,
-                                                            dimnames_term = mod$dimnames_terms))
-  set.seed(1)
-  ans_obtained <- draw_vals_outcome_true(datamod = NULL,
-                                         nm_distn = "norm",
-                                         outcome_obs = scale_linpred(mod$outcome),
-                                         fitted = vals_fitted,
-                                         disp = mod$outcome_sd * vals_disp,
-                                         offset = mod$offset)
-  set.seed(1)
-  ans_expected <- rvec::rvec(matrix(data$income, nrow = nrow(data), ncol = 10))
-  ans_expected[1] <- rvec::rnorm_rvec(n = 1 ,
-                                      mean = vals_fitted[1],
-                                      sd = mod$outcome_sd * vals_disp / sqrt(mod$offset[1]))
-  expect_equal(ans_obtained, ans_expected)
+test_that("'make_i_lik' works with bage_datamod_overcount", {
+  x <- new_bage_datamod_overcount(rate_mean = 0.5,
+                                  rate_disp = 1,
+                                  rate_levels = "rate",
+                                  rate_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
+                                                                             i = 1:5,
+                                                                             j = rep(1, 5)))
+  expect_identical(make_i_lik_part(x), 4000L)
 })
 
-test_that("'draw_vals_outcome_true' works with NULL, norm, has NA", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$income <- rnorm(n = nrow(data), mean = 20, sd = 3)
-  data$wt <- rpois(n = nrow(data), lambda = 100)
-  data$income[3] <- NA
-  data$wt[3] <- NA
-  formula <- income ~ age + sex + time
-  mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = wt)
-  vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim)
-  vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_disp <- mod$outcome_sd * vals_disp
-  scale_linpred <- get_fun_orig_scale_linpred(mod)
-  vals_fitted <- scale_linpred(make_linpred_from_components(mod = mod,
-                                                            components = vals_components,
-                                                            data = mod$data,
-                                                            dimnames_term = mod$dimnames_terms))
-  set.seed(1)
-  ans_obtained <- draw_vals_outcome_true(datamod = NULL,
-                                         nm_distn = "norm",
-                                         outcome_obs = scale_linpred(mod$outcome),
-                                         fitted = vals_fitted,
-                                         disp = vals_disp,
-                                         offset = mod$offset)
-  set.seed(1)
-  ans_expected <- rvec::rvec(matrix(data$income, nrow = nrow(data), ncol = 10))
-  ans_expected[3]<- NA
-  expect_equal(ans_obtained, ans_expected)
+test_that("'make_i_lik' works with bage_datamod_undercount", {
+  x <- new_bage_datamod_undercount(prob_mean = 0.5,
+                                  prob_disp = 1,
+                                  prob_levels = "prob",
+                                  prob_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
+                                                                             i = 1:5,
+                                                                             j = rep(1, 5)))
+  expect_identical(make_i_lik_part(x), 5000L)
 })
 
-test_that("'draw_vals_outcome_true' method for NULL throws correct error with invalid nm_distn", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$deaths <- rpois(n = nrow(data), lambda = 20)
-  data$deaths[c(1, 5, 10)] <- NA
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = 1)
-  vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim)
-  vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_from_components(mod = mod,
-                                                    components = vals_components,
-                                                    data = mod$data,
-                                                    dimnames_term = mod$dimnames_terms))
-  vals_fitted <- draw_vals_fitted(mod = mod,
-                                  vals_expected = vals_expected,
-                                  vals_disp = vals_disp,
-                                  outcome = NULL,
-                                  offset = NULL)
-  set.seed(1)
-  expect_error(draw_vals_outcome_true(datamod = NULL,
-                                      nm_distn = "wrong",
-                                      outcome_obs = mod$outcome,
-                                      fitted = vals_fitted,
-                                      disp = vals_disp,
-                                      offset = mod$offset),
-               "Internal error: Invalid value for `nm_distn`.")
-})
-
-
-
-## 'make_i_lik' ---------------------------------------------------------------
-
-test_that("'make_i_lik' works with bage_datamod_outcome_rr3", {
-  x <- new_bage_datamod_outcome_rr3()
-  expect_identical(make_i_lik(x, nm_distn = "binom", has_disp = FALSE), 102L)
-  expect_identical(make_i_lik(x, nm_distn = "pois", has_disp = FALSE), 302L)
-  expect_identical(make_i_lik(x, nm_distn = "binom", has_disp = TRUE), 104L)
-  expect_identical(make_i_lik(x, nm_distn = "pois", has_disp = TRUE), 304L)
-  expect_error(make_i_lik(x, nm_distn = "wrong", has_disp = TRUE),
-               "Internal error: Invalid inputs.")
-})
-
-
-## 'str_call_datamod' ----------------------------------------------------------------------
-
-test_that("'str_call_datamod' works", {
-  expect_identical(str_call_datamod(new_bage_datamod_outcome_rr3()),
-                   "rr3()")
-})
 
 
 

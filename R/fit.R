@@ -247,7 +247,7 @@ make_fit_data <- function(mod, aggregate) {
   dimnames_terms <- mod$dimnames_terms
   terms_effect <- make_terms_effects(dimnames_terms)
   has_covariates <- has_covariates(mod)
-  i_lik <- make_i_lik_mod(mod) ## index of function to use for calculating likelihood in TMB
+  i_lik <- make_i_lik(mod) ## index of function to use for calculating likelihood in TMB
   terms_effectfree <- make_terms_effectfree(mod)
   uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(mod)
   matrices_effectfree_effect <- make_matrices_effectfree_effect(mod)

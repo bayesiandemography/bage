@@ -981,17 +981,17 @@ Type loglik_not_uses_disp(Type outcome,
 			  int i_lik) {
   Type ans = 0;
   switch(i_lik) {
-  case 101:
-    ans = loglik_binom_not_uses_disp(outcome, linpred, offset);
-    break;
-  case 102:
-    ans = loglik_binom_not_uses_disp_rr3(outcome, linpred, offset);
-    break;
-  case 301:
+  case 200000:
     ans = loglik_pois_not_uses_disp(outcome, linpred, offset);
     break;
-  case 302:
+  case 200010:
     ans = loglik_pois_not_uses_disp_rr3(outcome, linpred, offset);
+    break;
+  case 400000:
+    ans = loglik_binom_not_uses_disp(outcome, linpred, offset);
+    break;
+  case 400010:
+    ans = loglik_binom_not_uses_disp_rr3(outcome, linpred, offset);
     break;
   default:                                                                             // # nocov
     error("Internal error: function 'loglik_not_uses_disp' cannot handle i_lik = %d",  // # nocov
@@ -1008,20 +1008,20 @@ Type loglik_uses_disp(Type outcome,
 		      int i_lik) {
   Type ans = 0;
   switch(i_lik) {
-  case 103:
-    ans = loglik_binom_uses_disp(outcome, linpred, offset, disp);
-    break;
-  case 104:
-    ans = loglik_binom_uses_disp_rr3(outcome, linpred, offset, disp);
-    break;
-  case 201:
-    ans = loglik_norm(outcome, linpred, offset, disp);
-    break;
-  case 303:
+  case 100000:
     ans = loglik_pois_uses_disp(outcome, linpred, offset, disp);
     break;
-  case 304:
+  case 100010:
     ans = loglik_pois_uses_disp_rr3(outcome, linpred, offset, disp);
+    break;
+  case 300000:
+    ans = loglik_binom_uses_disp(outcome, linpred, offset, disp);
+    break;
+  case 300010:
+    ans = loglik_binom_uses_disp_rr3(outcome, linpred, offset, disp);
+    break;
+  case 500000:
+    ans = loglik_norm(outcome, linpred, offset, disp);
     break;
   default:                                                                         // # nocov
     error("Internal error: function 'loglik_uses_disp' cannot handle i_lik = %d",  // # nocov

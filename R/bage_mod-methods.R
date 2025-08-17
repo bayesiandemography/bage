@@ -1878,9 +1878,21 @@ make_expected_obs.bage_mod_binom <- function(mod, components, expected) {
 }
 
 
-## 'make_i_lik_mod' -----------------------------------------------------------
 
+## 'make_i_lik' ---------------------------------------------------------------
+
+## HAS_TESTS
 #' Make 'i_lik' Index used by TMB
+#'
+#' Consists of 6 digits
+#' - First 2 digits give identity of model
+#'     - Poisson-with-disp, Poisson-without-disp, etc
+#' - Second 2 digits give identify of data model
+#'     - bage_datamod_exposure, bage_datamod_miscount, etc
+#'     - if 0, then no data model
+#' - Third 2 digits give identity of confidentialization process
+#'     - bage_confidential_rr3, etc
+#'     - if 0, then no confidentialization
 #'
 #' Create when 'fit' is called, since index
 #' can be changed after 'mod' object is
@@ -1891,82 +1903,24 @@ make_expected_obs.bage_mod_binom <- function(mod, components, expected) {
 #' @returns An integer scalar
 #'
 #' @noRd
-make_i_lik_mod <- function(mod) {
-  UseMethod("make_i_lik_mod")
+make_i_lik <- function(mod) {
+  UseMethod("make_i_lik")
 }
 
 ## HAS_TESTS
 #' @export
-make_i_lik_mod.bage_mod_pois <- function(mod) {
-  datamod_outcome <- mod$datamod_outcome
-  nm_distn <- nm_distn(mod)
-  has_disp <- has_disp(mod)
-  if (is.null(datamod_outcome) && has_disp)
-    303L
-  else if (is.null(datamod_outcome) && !has_disp)
-    301L
-  else
-    make_i_lik(mod = datamod_outcome,
-               nm_distn = nm_distn,
-               has_disp = has_disp)
-}
-
-## HAS_TESTS
-#' @export
-make_i_lik_mod.bage_mod_binom <- function(mod) {
-  datamod_outcome <- mod$datamod_outcome
-  nm_distn <- nm_distn(mod)
-  has_disp <- has_disp(mod)
-  if (is.null(datamod_outcome) && has_disp)
-    103L
-  else if (is.null(datamod_outcome) && !has_disp)
-    101L
-  else
-    make_i_lik(mod = datamod_outcome,
-               nm_distn = nm_distn,
-               has_disp = has_disp)
-}
-
-## HAS_TESTS
-#' @export
-make_i_lik_mod.bage_mod_norm <- function(mod) {
-  datamod_outcome <- mod$datamod_outcome
-  if (is.null(datamod_outcome))
-    201L
-  else
-    cli::cli_abort("Internal error: Invalid inputs.")
-}
-
-## 'make_i_lik_tmp' -----------------------------------------------------------
-
-#' Make 'i_lik' Index used by TMB
-#'
-#' Create when 'fit' is called, since index
-#' can be changed after 'mod' object is
-#' constructed.
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns An integer scalar
-#'
-#' @noRd
-make_i_lik_tmp <- function(mod) {
-  UseMethod("make_i_lik_tmp")
-}
-
-## HAS_TESTS
-#' @export
-make_i_lik_tmp.bage_mod <- function(mod) {
-  datamod_outcome <- mod$datamod_outcome
-  datamod_offset <- mod$datamod_offset
-  confidential <- mod$confidential
+make_i_lik.bage_mod <- function(mod) {
   ans <- make_i_lik_part(mod)
-  if (!is.null(datamod_outcome))
-    ans <- ans + make_i_lik_part(datamod_outcome)
-  if (!is.null(datamod_offset))
-    ans <- ans + make_i_lik_part(datamod_offset)
-  if (!is.null(confidential))
+  has_datamod <- has_datamod(mod)
+  if (has_datamod) {
+    datamod <- mod$datamod
+    ans <- ans + make_i_lik_part(datamod)
+  }
+  has_confidential <- has_confidential(mod)
+  if (has_confidential) {
+    confidential <- mod$confidential
     ans <- ans + make_i_lik_part(confidential)
+  }
   ans
 }
 
@@ -1978,9 +1932,9 @@ make_i_lik_tmp.bage_mod <- function(mod) {
 make_i_lik_part.bage_mod_pois <- function(mod) {
   has_disp <- has_disp(mod)
   if (has_disp)
-    1L * as.integer(1e6)
+    100000L
   else
-    2L * as.integer(1e6)
+    200000L
 }
 
 ## HAS_TESTS
@@ -1988,15 +1942,15 @@ make_i_lik_part.bage_mod_pois <- function(mod) {
 make_i_lik_part.bage_mod_binom <- function(mod) {
   has_disp <- has_disp(mod)
   if (has_disp)
-    3L * as.integer(1e6)
+    300000L
   else
-    4L * as.integer(1e6)
+    400000L
 }
 
 ## HAS_TESTS
 #' @export
 make_i_lik_part.bage_mod_norm <- function(mod) {
-  5L * as.integer(1e6)
+  500000L
 }
 
 
