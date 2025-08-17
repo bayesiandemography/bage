@@ -250,14 +250,18 @@ test_that("'get_term_from_est' works", {
 ## 'get_datamod_disp' ----------------------------------------------------
 
 test_that("'get_datamod_disp' works", {
-  ratio <- c(0.1, 0.4, 0.2)
+  ratio_ratio <- c(0.1, 0.4, 0.2)
+  ratio_levels <- 1:3
+  ratio_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
   disp_mean <- c(0.5, 0.2, 0.3, 0.4)
-  matrix_ratio_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  matrix_disp_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
-  datamod <- new_bage_datamod_exposure(ratio = ratio,
+  disp_levels <- 1:4
+  disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
+                                       ratio_levels = ratio_levels,
+                                       ratio_matrix_outcome = ratio_matrix_outcome,
                                        disp_mean = disp_mean,
-                                       matrix_ratio_outcome = matrix_ratio_outcome,
-                                       matrix_disp_outcome = matrix_disp_outcome)
+                                       disp_levels = disp_levels,
+                                       disp_matrix_outcome = disp_matrix_outcome)
   components <- tibble::tibble(
     term = c("(Intercept)", rep("datamod", 4)),
     component = c("(Intercept)", rep("disp", 4)),
@@ -266,24 +270,28 @@ test_that("'get_datamod_disp' works", {
   )
   ans_obtained <- get_datamod_disp(datamod = datamod,
                                    components = components)
-  ans_expected <- as.matrix(matrix_disp_outcome) %*% components$.fitted[-1]
+  ans_expected <- as.matrix(disp_matrix_outcome) %*% components$.fitted[-1]
   expect_identical(ans_obtained, ans_expected)
 })
 
 
 ## 'get_datamod_mean' ---------------------------------------------------------
 
-test_that("'get_datamod_mean' works", {
-  mean <- c(0.1, 0.4, 0.2)
-  sd <- c(0.5, 0.2, 0.3, 0.4)
-  matrix_mean_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  matrix_sd_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
-  datamod <- new_bage_datamod_noise(mean = mean,
-                                    sd = sd,
-                                    matrix_mean_outcome = matrix_mean_outcome,
-                                    matrix_sd_outcome = matrix_disp_outcome)
+test_that("'get_datamod_mean_mean' works", {
+  mean_mean <- c(0.1, 0.4, 0.2)
+  mean_levels <- 1:3
+  mean_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  sd_sd <- c(0.5, 0.2, 0.3, 0.4)
+  sd_levels <- 1:4
+  sd_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
+                                    mean_levels = mean_levels,
+                                    mean_matrix_outcome = mean_matrix_outcome,
+                                    sd_sd = sd_sd,
+                                    sd_levels = sd_levels,
+                                    sd_matrix_outcome = sd_matrix_outcome)
   ans_obtained <- get_datamod_mean(datamod)
-  ans_expected <- as.numeric(matrix_mean_outcome %*% mean)
+  ans_expected <- as.numeric(mean_matrix_outcome %*% mean_mean)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -293,10 +301,12 @@ test_that("'get_datamod_mean' works", {
 test_that("'get_datamod_prob' works", {
   prob_mean <- c(0.5, 0.2, 0.3, 0.4)
   prob_disp <- c(0.3, 0.2, 0.3, 0.2)
-  matrix_prob_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
                                          prob_disp = prob_disp,
-                                         matrix_prob_outcome = matrix_prob_outcome)
+                                         prob_levels = prob_levels,
+                                         prob_matrix_outcome = prob_matrix_outcome)
   components <- tibble::tibble(
     term = c("(Intercept)", rep("datamod", 4)),
     component = c("(Intercept)", rep("prob", 4)),
@@ -305,7 +315,7 @@ test_that("'get_datamod_prob' works", {
   )
   ans_obtained <- get_datamod_prob(datamod = datamod,
                                    components = components)
-  ans_expected <- as.matrix(matrix_prob_outcome) %*% components$.fitted[-1]
+  ans_expected <- as.matrix(prob_matrix_outcome) %*% components$.fitted[-1]
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -315,10 +325,12 @@ test_that("'get_datamod_prob' works", {
 test_that("'get_datamod_rate' works", {
   rate_mean <- c(0.5, 0.2, 0.3, 0.4)
   rate_disp <- c(0.3, 0.2, 0.3, 0.2)
-  matrix_rate_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  rate_levels <- 1:4
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
                                         rate_disp = rate_disp,
-                                        matrix_rate_outcome = matrix_rate_outcome)
+                                        rate_levels = rate_levels,
+                                        rate_matrix_outcome = rate_matrix_outcome)
   components <- tibble::tibble(
     term = c("(Intercept)", rep("datamod", 4)),
     component = c("(Intercept)", rep("rate", 4)),
@@ -327,7 +339,7 @@ test_that("'get_datamod_rate' works", {
   )
   ans_obtained <- get_datamod_rate(datamod = datamod,
                                    components = components)
-  ans_expected <- as.matrix(matrix_rate_outcome) %*% components$.fitted[-1]
+  ans_expected <- as.matrix(rate_matrix_outcome) %*% components$.fitted[-1]
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -335,16 +347,20 @@ test_that("'get_datamod_rate' works", {
 ## 'get_datamod_ratio' ----------------------------------------------------
 
 test_that("'get_datamod_ratio' works", {
-  ratio <- c(0.1, 0.4, 0.2)
+  ratio_ratio <- c(0.1, 0.4, 0.2)
+  ratio_levels <- 1:3
+  ratio_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
   disp_mean <- c(0.5, 0.2, 0.3, 0.4)
-  matrix_ratio_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  disp_levels <- 1:4
   matrix_disp_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
-  datamod <- new_bage_datamod_exposure(ratio = ratio,
+  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
+                                       ratio_levels = ratio_levels,
+                                       ratio_matrix_outcome = ratio_matrix_outcome,
                                        disp_mean = disp_mean,
-                                       matrix_ratio_outcome = matrix_ratio_outcome,
-                                       matrix_disp_outcome = matrix_disp_outcome)
+                                       disp_levels = disp_levels,
+                                       disp_matrix_outcome = disp_matrix_outcome)
   ans_obtained <- get_datamod_ratio(datamod)
-  ans_expected <- as.numeric(matrix_ratio_outcome %*% ratio)
+  ans_expected <- as.numeric(ratio_matrix_outcome %*% ratio_ratio)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -352,16 +368,20 @@ test_that("'get_datamod_ratio' works", {
 ## 'get_datamod_sd' ---------------------------------------------------------
 
 test_that("'get_datamod_sd' works", {
-  mean <- c(0.1, 0.4, 0.2)
-  sd <- c(0.5, 0.2, 0.3, 0.4)
-  matrix_mean_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  matrix_sd_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
-  datamod <- new_bage_datamod_noise(mean = mean,
-                                    sd = sd,
-                                    matrix_mean_outcome = matrix_mean_outcome,
-                                    matrix_sd_outcome = matrix_disp_outcome)
+  mean_mean <- c(0.1, 0.4, 0.2)
+  mean_levels <- 1:3
+  mean_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  sd_sd <- c(0.5, 0.2, 0.3, 0.4)
+  sd_levels <- 1:4
+  sd_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
+                                    mean_levels = mean_levels,
+                                    mean_matrix_outcome = mean_matrix_outcome,
+                                    sd_sd = sd_sd,
+                                    sd_levels = sd_levels,
+                                    sd_matrix_outcome = sd_matrix_outcome)
   ans_obtained <- get_datamod_sd(datamod)
-  ans_expected <- as.numeric(matrix_sd_outcome %*% sd)
+  ans_expected <- as.numeric(sd_matrix_outcome %*% sd_sd)
   expect_identical(ans_obtained, ans_expected)
 })
 

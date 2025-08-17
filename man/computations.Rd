@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{computations}
 \alias{computations}
-\title{Information on Computations Performed Duration Model Fitting}
+\title{Information on Computations Performed During Model Fitting}
 \usage{
 computations(object)
 }

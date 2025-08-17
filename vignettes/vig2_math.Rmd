@@ -1125,6 +1125,10 @@ Same as original model, but be explicit that modelling actual outcome:
   y_i^{\text{true}} & \sim \text{Poisson}(\gamma_i w_i) (\#eq:lik-pois-outcome-1) \\
   \gamma_i & \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  (\#eq:lik-pois-outcome-2)
 \end{align}
+with option that $\xi \equiv 0$ so that
+\begin{equation}
+  y_i^{\text{true}} \sim \text{Poisson}(\mu_i w_i). (\#eq:like-pois-outcome-3)
+\end{equation}
 
 ### Data model
 
@@ -1149,7 +1153,10 @@ We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure
 ### Combined model seen by TMB
 
 \begin{align}
-  y_i^{\text{obs}} & \sim \text{NegBinom}\left(\xi^{-1}, [1 + (\pi_{g[i]} + \kappa_{h[i]})\mu_i w_i \xi]^{-1}\right) \\
+  y_i^{\text{obs}} & \sim \begin{cases}
+    \text{NegBinom}\left(\xi^{-1}, [1 + (\pi_{g[i]} + \kappa_{h[i]})\mu_i w_i \xi]^{-1}\right) & \xi > 0 \\
+    \text{Poisson}([\pi_{g[i]} + \kappa_{h[i]}]\mu_i w_i) & \xi \equiv 0
+  \end{cases} \\
   \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\
   \kappa_h & \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)})
 \end{align}
@@ -1161,12 +1168,17 @@ We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure
 
 As shown in Appendix \@ref(app:datamod), equations \@ref(eq:datamod-v-i) and \@ref(eq:datamod-u-i-cond) imply that
 \begin{equation}
-  u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i \sim \text{Binomial}\left(y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}}\right)
+  u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i \sim  \text{Binomial}\left(y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}}\right)
 \end{equation}
+
 
 As also shown in Appendix \@ref(app:datamod), equations \@ref(eq:lik-pois-outcome-1), \@ref(eq:lik-pois-outcome-2), and \@ref(eq:datamod-u-i) imply that
 \begin{equation}
-  y_i^{\text{true}} - u_i | u_i, y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i \sim \text{NegBinom}\left(u_i + \xi^{-1}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+  y_i^{\text{true}} - u_i | u_i, y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i \sim
+  \begin{cases}
+  \text{NegBinom}\left(u_i + \xi^{-1}, \frac{1 + \pi_{g[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right) & \xi > 0 \\
+  \text{Poisson}([1-\pi_{g[i]}]\mu_i w_i) & \xi \equiv 0
+  \end{cases}
 \end{equation}
 
 We can obtain a value for $y_i^{\text{true}}$ by drawing a value for $u_i$, then drawing a value for $x_i = y_i^{\text{true}} - u_i$, then setting $y_i^{\text{true}} = x_i + u_i$.
@@ -1175,7 +1187,11 @@ We can obtain a value for $y_i^{\text{true}}$ by drawing a value for $u_i$, then
 
 Draw
 \begin{equation}
- x_i = y_i^{\text{true}} - y_i^{\text{obs}} \sim \text{NegBinom}\left(y_i^{\text{obs}} + \xi^{-1s}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+ x_i = y_i^{\text{true}} - y_i^{\text{obs}} \sim
+ \begin{cases}
+   \text{NegBinom}\left(y_i^{\text{obs}} + \xi^{-1}, \frac{1 + \pi_{g[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi}  \right) & \xi > 0 \\
+   \text{Poisson}([1-\pi_{g[i]}] \mu_i w_i) & \xi \equiv 0
+  \end{cases}   
 \end{equation}
 then set $y_i^{\text{true}} = y_i^{\text{obs}} + x_i$.
 
@@ -1241,6 +1257,10 @@ Same as original model, but be explicit that modelling actual outcome:
   y_i^{\text{true}} & \sim \text{Binom}(w_i, \gamma_i) (\#eq:lik-binom-outcome-1) \\
   \gamma_i & \sim \text{Beta}\left(\xi^{-1}\mu_i, \xi^{-1} (1-\mu_i) \right),  (\#eq:lik-binom-outcome-2)
 \end{align}
+with option that $\xi \equiv 0$ so that
+\begin{equation}
+  y_i^{\text{true}} \sim \text{Binomial}(w_i, \mu_i). (\#eq:like-binom-outcome-3)
+\end{equation}
 
 ### Data model
 
@@ -1253,20 +1273,31 @@ where values for $A_g^{(\pi)}$ and $B_g^{(\pi)}$ are supplied by the user.
 ### Combined model seen by TMB
 
 \begin{align}
-  y_i^{\text{obs}} & \sim \text{BetaBinomial}(w_i, \xi^{-1} \pi_{g[i]} \mu_i, \xi^{-1} [1-\pi_{g[i]} \mu_i]) \\
+  y_i^{\text{obs}} & \sim
+  \begin{cases}
+  \text{BetaBinom}(w_i, \xi^{-1} \pi_{g[i]} \mu_i, \xi^{-1} [1-\pi_{g[i]} \mu_i]) & \xi > 0 \\
+  \text{Binomial}(w_i, \pi_{g[i]} \mu_i) & \xi \equiv 0  
+  \end{cases} \\
   \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)})
 \end{align}
 
 
 ### Obtaining $y_i^{\text{true}}$
 
-
-Draw from distribution defined by
+When $\xi > 0$, draw from distribution defined by
 \begin{align}
 & p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \mu_i, \xi, w_i, \pi_{g[i]}) \\
 & \propto \frac{1}{(y_i^{\text{true}}-y_i^{\text{obs}})! (w_i-y_i^{\text{true}})!}\; (1-\pi_{g[i]})^{y_i^{\text{true}}}
   B(y_i^{\text{true}}+\xi^{-1}\mu_i, w_i-y_i^{\text{true}}+\xi^{-1}[1-\mu_i])
 \end{align}
+
+When $\xi \equiv 0$, draw
+\begin{equation}
+x_i = y_i^{\text{true}} - y_i^{\text{obs}} \sim \text{Binomial}\left(w_i - y_i^{\text{obs}},  \frac{[1 - \pi_{g[i]}] \mu_i}{1-\pi_{g[i]}\mu_i} \right),
+\end{equation}
+then set $y_i^{\text{true}} = y_i^{\text{obs}} + x_i$.
+
+
 
 Derivation in Appendix \@ref(app:datamod).
 
@@ -1306,7 +1337,7 @@ where values for $m_{g[i]}$ and $s_{h[i]}$ are supplied by the user.
 
 \begin{equation}
   y_i^{\text{true}} \sim \text{N}\left(\frac{\tau_1}{\tau_1 + \tau_2} \gamma_i + \frac{\tau_2}{\tau_1 + \tau_2} (y_i^{\text{obs}} - m_{g[i]}),\quad
-\left( \tau_1 + \tau_2 \right)^{-1} \right)
+\frac{1}{\tau_1 + \tau_2} \right)
 \end{equation}
 where $\tau_1 = w_i \sigma^{-2}$ and $\tau_2 = s_{h[i]}^{-2}$
 
@@ -1630,7 +1661,8 @@ The value of $u_i$ does not depend on $\gamma_i$, and hence does not depend on $
 
 
 ### Derivation of $y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi$ in undercount-overcount model Section \@ref(sec:datamod-pois-out)
- 
+
+When $\xi > 0$,
 \begin{align}
     & p(y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) \\
     & \propto p(u_i \mid y_i^{\text{true}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) p(y_i^{\text{true}} \mid \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) \\
@@ -1646,9 +1678,23 @@ which is the kernel for the distribution
   \text{NegBinom}\left( y_i^{\text{true}} - u_i \,\middle|\, u_i + \xi^{-1}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
 \end{equation}
 
+When $\xi \equiv 0$,
+\begin{align}
+    & p(y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i) \\
+    & \propto p(u_i \mid y_i^{\text{true}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i) p(y_i^{\text{true}} \mid \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i) \\
+    & = \text{Binomial}(u_i \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{Poisson}(y_i^{\text{true}} \mid \mu_i w_i) \\
+    & = \frac{y_i^{\text{true}}!}{u_i! (y_i^{\text{true}} - u_i)!}  \pi_{g[i]}^{u_i} (1-\pi_{g[i]})^{y_i^{\text{true}}-u_i} \times \frac{1}{y_i^{\text{true}}!} (\mu_i w_i)^{y_i^{\text{true}}} e^{-\mu_i w_i} \\
+    & \propto \frac{1}{(y_i^{\text{true}} - u_i)!} ([1-\pi_{g[i]}] \mu_i w_i)^{y_i^{\text{true}}},
+\end{align}
+which is the kernel for the distribution
+\begin{equation}
+  \text{Poisson}( y_i^{\text{true}} - u_i \mid (1-\pi_{h[i]}) \mu_i w_i)
+\end{equation}
+
 
 ### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i$ in undercount-only model in Section \@ref(sec:datamod-pois-out)
 
+When $\xi > 0$,
 \begin{align}
     & p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, w_i, \xi) \\
     & \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}, \mu_i, w_i, \xi) p(y_i^{\text{true}} \mid \pi_{g[i]}, \mu_i, w_i, \xi) \\
@@ -1661,7 +1707,20 @@ which is the kernel for the distribution
 \end{align}
 which is the kernel for the distribution
 \begin{equation}
-  \text{NegBinom}\left( y_i^{\text{true}} - y_i^{\text{obs}} \,\middle|\, y_i^{\text{obs}} + \xi^{-1}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+  \text{NegBinom}\left( y_i^{\text{true}} - y_i^{\text{obs}} \,\middle|\, y_i^{\text{obs}} + \xi^{-1}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right).
+\end{equation}
+
+When $\xi \equiv 0$,
+\begin{align}
+    & p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, w_i) \\
+    & \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}, \mu_i, w_i) p(y_i^{\text{true}} \mid \pi_{g[i]}, \mu_i, w_i) \\
+    & = \text{Binomial}(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{Poisson}(y_i^{\text{true}} \mid \mu_i w_i) \\
+    & = \frac{y_i^{\text{true}}!}{y_i^{\text{obs}}! (y_i^{\text{true}} - y_i^{\text{obs}})!}  \pi_{g[i]}^{y_i^{\text{obs}}} (1-\pi_{g[i]})^{y_i^{\text{true}}-y_i^{\text{obs}}} \times \frac{1}{y_i^{\text{true}}!} (\mu_i w_i)^{y_i^{\text{true}}} e^{-\mu_i w_i} \\
+    & \propto \frac{1}{(y_i^{\text{true}} - y_i^{\text{obs}})!} ([1-\pi_{g[i]}] \mu_i w_i)^{y_i^{\text{true}}},
+\end{align}
+which is the kernel for the distribution
+\begin{equation}
+  \text{Poisson}( y_i^{\text{true}} - y_i^{\text{obs}} \mid [1 - \pi_{g[i]}] \mu_i w_i).
 \end{equation}
 
 
@@ -1703,8 +1762,9 @@ as required.
 
 ### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i$ in binomial undercount model in Section \@ref(sec:datamod-binom)
 
+When $\xi > 0$,
 \begin{align}
-  & p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i) \\
+  & p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, w_i, \xi) \\
   & \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times p(y_i^{\text{true}} \mid \mu_i, \xi) \\
   & = \text{Binomial}(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{BetaBinomial}(y_i^{\text{true}} \mid w_i, \xi^{-1}\mu_i, \xi^{-1}[1 - \mu_i]) \\
   & = \binom{y_i^{\text{true}}}{y_i^{\text{obs}}} \pi_{g[i]}^{y_i^{\text{obs}}} (1-\pi_{g[i]})^{y_i^{\text{true}} - y_i^{\text{obs}}} \times \binom{w_i}{y_i^{\text{true}}}
@@ -1712,6 +1772,19 @@ as required.
   & \propto \frac{1}{(y_i^{\text{true}}-y_i^{\text{obs}})! (w_i-y_i^{\text{true}})!}\; (1-\pi_{g[i]})^{y_i^{\text{true}}}
   B(y_i^{\text{true}}+\xi^{-1}\mu_i, w_i-y_i^{\text{true}}+\xi^{-1}[1-\mu_i])
 \end{align}
+
+When $\xi \equiv 0$,
+\begin{align}
+  & p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, w_i, \xi) \\
+  & \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times p(y_i^{\text{true}} \mid \mu_i, w_i) \\
+  & = \text{Binomial}(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{Binomial}(y_i^{\text{true}} \mid w_i, \mu_i) \\
+  & = \binom{y_i^{\text{true}}}{y_i^{\text{obs}}} \pi_{g[i]}^{y_i^{\text{obs}}} (1-\pi_{g[i]})^{y_i^{\text{true}} - y_i^{\text{obs}}} \times \binom{w_i}{y_i^{\text{true}}} \mu_i^{y_i^{\text{true}}} (1 - \mu_i)^{w_i-y_i^{\text{true}}} \\
+  & \propto \frac{1}{(y_i^{\text{true}}-y_i^{\text{obs}})! (w_i-y_i^{\text{true}})!}\; \left(\frac{[1-\pi_{g[i]}]\mu_i}{1-\mu_i}\right)^{y_i^{\text{true}}},
+\end{align}
+which is the kernel for the distribution
+\begin{equation}
+  \text{Binomial}\left(y_i^{\text{true}} - y_i^{\text{obs}}  \,\middle|\, w_i - y_i^{\text{obs}}, \frac{[1 - \pi_{g[i]}] \mu_i}{1-\pi_{g[i]} \mu_i}\right).
+\end{equation}
 
 
 # References

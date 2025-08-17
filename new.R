@@ -360,123 +360,6 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
 
 
 
-## 'make_expected_obs' --------------------------------------------------------
-
-#' Make Expected Values Used in Model for Observed Outcome
-#'
-#' Make expected value for rate/probability/mean in
-#' model of observed outcome that takes
-#' account of measurement errors
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param components Data frame with components
-#' @param expected Expected value for rate/prob/mean that does
-#' not account for measurement errors. An rvec.
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_expected_obs <- function(mod, components, expected) {
-  UseMethod("make_expected_obs")
-}
-
-
-make_expected_obs.bage_mod_pois <- function(mod, components, exposure) {
-  datamod <- mod$datamod
-  if (is.null(datamod)) {
-    ans <- exposure
-  }
-  else {
-    if (inherits(datamod, "bage_datamod_exposure")) {
-      ans <- make_expected_obs_exposure(datamod = datamod,
-                                        expected = expected)
-    }
-    else if (inherits(datamod, "bage_datamod_miscount")) {
-      ans <- make_expected_obs_miscount(datamod = datamod,
-                                        components = components,
-                                        expected = expected)
-    }
-    else if (inherits(datamod, "bage_datamod_overcount")) {
-      ans <- make_expected_obs_overcount(datamod = datamod,
-                                         components = components,
-                                         expected = expected)
-    }
-    else if (inherits(datamod, "bage_datamod_undercount")) {
-      ans <- make_expected_obs_undercount(datamod = datamod,
-                                          components = components,
-                                          expected = expected)
-    }
-    else {
-      cli::cli_abort(paste("Internal error: Can't handle data model",
-                           "with class {.cls {class(datamod)}}"))
-    }
-  }
-  ans
-}
-
-
-make_expected_obs.bage_mod_binom <- function(mod, exposure) {
-  datamod <- mod$datamod
-  if (is.null(datamod)) {
-    exposure
-  }
-  else if (inherits(datamod, "bage_datamod_undercount")) {
-    components <- components(mod)
-    make_expected_obs_undercount(datamod = datamod,
-                                 components = components,
-                                 expected = expected)
-  }
-  else {
-    cli::cli_abort(paste("Internal error: Can't handle data model",
-                         "with class {.cls {class(datamod)}}"))
-  }
-}
-
-## not needed for bage_mod_norm
-
-
-
-
-
-## 'make_disp_obs' ------------------------------------------------------------
-
-#' Make Dispersion Used in Model for Observed Outcome
-#'
-#' Make dispersion in
-#' model of observed outcome that takes
-#' account of measurement errors
-#'
-#' @param datamod Object of class 'bage_datamod'
-#' @param disp Dispersion (for system or data model). An rvec.
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_disp_obs <- function(mod, components, disp) {
-  UseMethod("make_disp_obs")
-}
-
-make_disp_obs.bage_mod_pois <- function(mod, components, disp) {
-  outcome <- mod$outcome
-  datamod <- mod$datamod
-  if (inherits(datamod, "bage_datamod_exposure")) {
-    disp <- get_datamod_disp(datamod = datamod,
-                             components = components)
-    ans <- disp / (3 * disp + 1)
-  }
-  else {
-    n_outcome <- length(outcome)
-    ans <- rep(disp, times = n_outcome)
-  }
-  ans
-}
-
-make_disp_obs.bage_mod_binom <- function(mod, components, disp) {
-  outcome <- mod$outcome
-  n_outcome <- length(outcome)
-  ans <- rep(disp, times = n_outcome)
-  ans
-}
 
 
 
@@ -484,96 +367,13 @@ make_disp_obs.bage_mod_binom <- function(mod, components, disp) {
 
 
 
-## 'draw_fitted_given_outcome' ------------------------------------------------
 
-#' Draw Values for '.fitted' when 'outcome' (and 'offset')
-#' Known, and when 'disp' non-NULL
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param expected Backtransformed linear predictor. An rvec.
-#' @param disp Dispersion. An rvec.
-#' @param outcome Values for outcome. A vector or NULL.
-#' @param offset Values for offset. NULL iff 'outcome' is NULL;
-#' otherwise a vector.
-#'
-#' @returns An rvec.
-#'
-#' @noRd
-draw_fitted_given_outcome <- function(mod,
-                                      outcome,
-                                      offset,
-                                      expected,
-                                      disp) {
-  UseMethod("draw_fitted_given_outcome")
-}
 
-## HAS_TESTS
-#' @export
-draw_fitted_given_outcome.bage_mod_pois <- function(mod,
-                                                    expected,
-                                                    disp,
-                                                    outcome,
-                                                    offset) {
-  ## reformat everything to numeric vectors of
-  ## same length to deal with NAs
-  ## in 'outcome' and 'offset'
-  n_val <- length(expected)
-  n_draw <- rvec::n_draw(expected)
-  expected <- as.numeric(expected)
-  disp <- as.numeric(disp)
-  disp <- rep(disp, each = n_val)
-  if (rvec::is_rvec(outcome))
-    outcome <- as.numeric(outcome)
-  else
-    outcome <- rep(outcome, times = n_draw)
-  if (rvec::is_rvec(offset))
-    offset <- as.numeric(offset)
-  else
-    offset <- rep(offset, times = n_draw)
-  is_na <- is.na(outcome) | is.na(offset)
-  outcome[is_na] <- 0
-  offset[is_na] <- 0
-  ans <- stats::rgamma(n = length(expected),
-                       shape = outcome + 1 / disp,
-                       rate = offset + 1 / (disp * expected))
-  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
-  ans <- rvec::rvec_dbl(ans)
-  ans
-}
 
-## HAS_TESTS
-#' @export
-draw_fitted_given_outcome.bage_mod_binom <- function(mod,
-                                                     expected,
-                                                     disp,
-                                                     outcome,
-                                                     offset) {
-  ## reformat everything to numeric vectors of
-  ## same length to deal with NAs
-  ## in 'outcome' and 'offset'
-  n_val <- length(expected)
-  n_draw <- rvec::n_draw(expected)
-  expected <- as.numeric(expected)
-  disp <- as.numeric(disp)
-  disp <- rep(disp, each = n_val)
-  if (rvec::is_rvec(outcome))
-    outcome <- as.numeric(outcome)
-  else
-    outcome <- rep(outcome, times = n_draw)
-  if (rvec::is_rvec(offset))
-    offset <- as.numeric(offset)
-  else
-    offset <- rep(offset, times = n_draw)
-  is_na <- is.na(outcome) | is.na(offset)
-  outcome[is_na] <- 0
-  offset[is_na] <- 0
-  ans <- stats::rbeta(n = length(expected),
-                      shape1 = outcome + expected / disp,
-                      shape2 = offset - outcome + (1 - expected) / disp)
-  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
-  ans <- rvec::rvec_dbl(ans)
-  ans
-}
+
+
+
+
 
 
 
@@ -797,16 +597,6 @@ forecast_augment.bage_mod_norm <- function(mod,
 }
 
     
-  
 
 
 
-
-
-
-
-
-
-
-  
-  

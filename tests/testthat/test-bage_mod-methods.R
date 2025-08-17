@@ -561,6 +561,71 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
 })
 
 
+## 'draw_fitted_given_outcome' ---------------------------------------------------------
+
+test_that("'draw_fitted_given_outcome' works with 'bage_mod_pois'", {
+  set.seed(0)
+  n_sim <- 10
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$popn[1] <- NA
+  data$deaths[2] <- NA
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expected <- exp(rvec::rnorm_rvec(n = nrow(data), n_draw = 10))
+  disp <- rvec::runif_rvec(n = 1, n_draw = 10)
+  set.seed(1)
+  ans_obtained <- draw_fitted_given_outcome(mod,
+                                            outcome = data$deaths,
+                                            offset = data$popn,
+                                            expected = expected,
+                                            disp = disp)
+  set.seed(1)
+  d <- data$deaths
+  p <- data$popn
+  d[1:2] <- 0
+  p[1:2] <- 0
+  ans_expected <- rvec::rgamma_rvec(n = nrow(data),
+                                    shape = d + 1 / disp,
+                                    rate = p  + 1 / (disp * expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_fitted_given_outcome' works with 'bage_mod_binom'", {
+  set.seed(0)
+  n_sim <- 10
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$popn[1] <- NA
+  data$deaths[2] <- NA
+  formula <- deaths ~ age + sex + time
+  mod <- mod_binom(formula = formula,
+                  data = data,
+                  size = popn)
+  expected <- rvec::runif_rvec(n = nrow(data), n_draw = 10)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 10)
+  set.seed(1)
+  ans_obtained <- draw_fitted_given_outcome(mod,
+                                            outcome = data$deaths,
+                                            offset = data$popn,
+                                            expected = expected,
+                                            disp = disp)
+  set.seed(1)
+  d <- data$deaths
+  p <- data$popn
+  d[1:2] <- 0
+  p[1:2] <- 0
+  ans_expected <- rvec::rbeta_rvec(n = nrow(data),
+                                   shape1 = d + expected / disp,
+                                   shape2 = p - d  + (1 - expected) / disp)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'draw_vals_fitted' ---------------------------------------------------------
 
 test_that("'draw_vals_fitted' works with 'bage_mod_pois' - no outcome", {
@@ -2158,6 +2223,316 @@ test_that("'is_fitted' works with valid inputs", {
   mod <- fit(mod)
   expect_true(is_fitted(mod))
 })
+
+
+## 'make_disp_obs' ------------------------------------------------------------
+
+test_that("'make_disp_obs' works with Poisson, exposure data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  ratio <- data.frame(sex = c("F", "M"), ratio = c(1.1, 1.2))
+  disp <- data.frame(time = 2000:2006, mean = 2)
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_exposure(ratio = ratio, disp = disp)
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
+                           component = c("(Intercept)", rep("disp", 6)),
+                           level = c("(Intercept)", 2000:2005),
+                           .fitted = rvec::runif_rvec(7, n_draw = 10))
+  ans_obtained <- make_disp_obs(mod = mod,
+                                components = components,
+                                disp = NULL)
+  d <- get_datamod_disp(mod$datamod, components)
+  ans_expected <- 1 / (3 + d^{-1})
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_disp_obs' works with Poisson, overcount data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  rate <- data.frame(sex = c("F", "M"), mean = c(1.1, 1.2), disp = c(0.5, 0.3))
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_overcount(rate = rate)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 10)
+  ans_obtained <- make_disp_obs(mod = mod,
+                                components = NULL,
+                                disp = disp)
+  ans_expected <- rep(disp, times = nrow(data))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_disp_obs' works with binomial, undercount data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  prob <- data.frame(sex = c("F", "M"), mean = c(0.1, 0.2), disp = c(0.5, 0.3))
+  mod <- mod_binom(formula = formula,
+                  data = data,
+                  size = popn) |>
+    set_datamod_undercount(prob = prob)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 10)
+  ans_obtained <- make_disp_obs(mod = mod,
+                                components = NULL,
+                                disp = disp)
+  ans_expected <- rep(disp, times = nrow(data))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_expected_obs' --------------------------------------------------------
+
+test_that("'make_expected_obs' works with Poisson, no data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
+                           component = c("(Intercept)", rep("disp", 6)),
+                           level = c("(Intercept)", 2000:2005),
+                           .fitted = rvec::runif_rvec(7, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  ans_obtained <- make_expected_obs(mod = mod,
+                                    components = components,
+                                    expected = expected)
+  ans_expected <- expected
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_expected_obs' works with Poisson, exposure data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  ratio <- data.frame(sex = c("F", "M"), ratio = c(1.1, 1.2))
+  disp <- data.frame(time = 2000:2006, mean = 2)
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_exposure(ratio = ratio, disp = disp)
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
+                           component = c("(Intercept)", rep("disp", 6)),
+                           level = c("(Intercept)", 2000:2005),
+                           .fitted = rvec::runif_rvec(7, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  ans_obtained <- make_expected_obs(mod = mod,
+                                    components = components,
+                                    expected = expected)
+  d <- get_datamod_disp(mod$datamod, components)
+  r <- get_datamod_ratio(mod$datamod)
+  ans_expected <- ((3 + d^{-1})/(1 + d^{-1})) * expected / r
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_expected_obs' works with Poisson, miscount data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  prob <- data.frame(sex = c("F", "M"), mean = c(0.1, 0.2), disp = c(1, 3))
+  rate <- data.frame(time = 2000:2006, mean = 2, disp = c(0.5, 0.2, 0.3, 0.4, 0.2, 0.1, 0.1))
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_miscount(prob = prob, rate = rate)
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 8)),
+                           component = c("(Intercept)", rep(c("prob", "rate"), times = c(2, 6))),
+                           level = c("(Intercept)", c("F", "M", 2000:2005)),
+                           .fitted = rvec::runif_rvec(9, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  ans_obtained <- make_expected_obs(mod = mod,
+                                    components = components,
+                                    expected = expected)
+  p <- get_datamod_prob(mod$datamod, components)
+  r <- get_datamod_rate(mod$datamod, components)
+  ans_expected <- (p + r) * expected
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_expected_obs' works with Poisson, overcount data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  rate <- data.frame(time = 2000:2006, mean = 2, disp = c(0.5, 0.2, 0.3, 0.4, 0.2, 0.1, 0.1))
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_overcount(rate = rate)
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
+                           component = c("(Intercept)", rep("rate", times = 6)),
+                           level = c("(Intercept)", 2000:2005),
+                           .fitted = rvec::runif_rvec(7, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  ans_obtained <- make_expected_obs(mod = mod,
+                                    components = components,
+                                    expected = expected)
+  r <- get_datamod_rate(mod$datamod, components)
+  ans_expected <- (1 + r) * expected
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_expected_obs' works with Poisson, undercount data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  prob <- data.frame(sex = c("F", "M"), mean = c(0.1, 0.2), disp = c(1, 3))
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_undercount(prob = prob)
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 2)),
+                           component = c("(Intercept)", rep("prob", times = 2)),
+                           level = c("(Intercept)", c("F", "M")),
+                           .fitted = rvec::runif_rvec(3, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  ans_obtained <- make_expected_obs(mod = mod,
+                                    components = components,
+                                    expected = expected)
+  p <- get_datamod_prob(mod$datamod, components)
+  ans_expected <- p * expected
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_expected_obs'  with Poisson throws expected error with invalid data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  mean <- data.frame(sex = c("F", "M"), mean = c(0.1, 0.2))
+  sd <- data.frame(sex = c("F", "M"), sd = c(0.1, 0.2))
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  datamod <- new_bage_datamod_noise(mean_mean = 0.1,
+                                    mean_levels = "mean",
+                                    mean_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
+                                                                               i = seq_len(120),
+                                                                               j = rep(1, 120)),
+                                    sd_sd = 0.3,
+                                    sd_levels = "sd",
+                                    sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
+                                                                               i = seq_len(120),
+                                                                               j = rep(1, 120)))
+  mod$datamod <- datamod
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 2)),
+                           component = c("(Intercept)", rep("prob", times = 2)),
+                           level = c("(Intercept)", c("F", "M")),
+                           .fitted = rvec::runif_rvec(3, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  expect_error(make_expected_obs(mod = mod,
+                                 components = components,
+                                 expected = expected),
+               "Internal error: Can't handle data model")
+})
+
+test_that("'make_expected_obs' works with binomial, no data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
+                           component = c("(Intercept)", rep("disp", 6)),
+                           level = c("(Intercept)", 2000:2005),
+                           .fitted = rvec::runif_rvec(7, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  ans_obtained <- make_expected_obs(mod = mod,
+                                    components = components,
+                                    expected = expected)
+  ans_expected <- expected
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_expected_obs' works with Binomial, undercount data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  prob <- data.frame(sex = c("F", "M"), mean = c(0.1, 0.2), disp = c(1, 3))
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn) |>
+    set_datamod_undercount(prob = prob)
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 2)),
+                           component = c("(Intercept)", rep("prob", times = 2)),
+                           level = c("(Intercept)", c("F", "M")),
+                           .fitted = rvec::runif_rvec(3, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  ans_obtained <- make_expected_obs(mod = mod,
+                                    components = components,
+                                    expected = expected)
+  p <- get_datamod_prob(mod$datamod, components)
+  ans_expected <- p * expected
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_expected_obs' with binomial throws expected error with invalid data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  mean <- data.frame(sex = c("F", "M"), mean = c(0.1, 0.2))
+  sd <- data.frame(sex = c("F", "M"), sd = c(0.1, 0.2))
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  datamod <- new_bage_datamod_noise(mean_mean = 0.1,
+                                    mean_levels = "mean",
+                                    mean_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
+                                                                               i = seq_len(120),
+                                                                               j = rep(1, 120)),
+                                    sd_sd = 0.3,
+                                    sd_levels = "sd",
+                                    sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
+                                                                             i = seq_len(120),
+                                                                             j = rep(1, 120)))
+  mod$datamod <- datamod
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 2)),
+                           component = c("(Intercept)", rep("prob", times = 2)),
+                           level = c("(Intercept)", c("F", "M")),
+                           .fitted = rvec::runif_rvec(3, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  expect_error(make_expected_obs(mod = mod,
+                                 components = components,
+                                 expected = expected),
+               "Internal error: Can't handle data model")
+})
+
+
+
+
+
+
+
+
+
+
 
 
 ## 'make_i_lik_mod' -----------------------------------------------------------
