@@ -392,42 +392,29 @@ make_expected_obs_undercount <- function(datamod,
 
 
 
+## 'make_i_lik_part' ----------------------------------------------------------
 
-## OLD ########################################################################
-
-
-
-## 'make_i_lik' ---------------------------------------------------------------
-
-#' Make 'i_lik' Index used by TMB
-#'
-#' Create when 'fit' is called, since index
-#' can be changed after 'mod' object is
-#' constructed.
-#'
-#' @param mod Object of class 'bage_datamod' 
-#' @param nm_distn Name of distribution: "pois", "binom", or "norm"
-#' @param has_disp Whether the model uses dispersion
-#'
-#' @returns An integer scalar
-#'
-#' @noRd
-make_i_lik <- function(mod, nm_distn, has_disp) {
-  UseMethod("make_i_lik")
-}
-
-## HAS_TESTS
 #' @export
-make_i_lik.bage_datamod_outcome_rr3 <- function(mod, nm_distn, has_disp) {
-  if ((nm_distn == "binom") && has_disp)
-    104L
-  else if ((nm_distn == "binom") && !has_disp)
-    102L
-  else if ((nm_distn == "pois") && has_disp)
-    304L
-  else if ((nm_distn == "pois") && !has_disp)
-    302L
-  else
-    cli::cli_abort("Internal error: Invalid inputs.")
+make_i_lik_part.bage_datamod_exposure <- function(x) {
+  1000L
 }
 
+#' @export
+make_i_lik_part.bage_datamod_miscount <- function(x) {
+  2000L
+}
+
+#' @export
+make_i_lik_part.bage_datamod_noise <- function(x) {
+  3000L
+}
+
+#' @export
+make_i_lik_part.bage_datamod_overcount <- function(x) {
+  4000L
+}
+
+#' @export
+make_i_lik_part.bage_datamod_undercount <- function(x) {
+  5000L
+}

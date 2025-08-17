@@ -146,7 +146,7 @@ draw_outcome_obs_given_conf.bage_confidential_rr3 <- function(confidential,
 #' constructed.
 #'
 #' @param x Object of class 'bage_confidential',
-#' 'bage_datamod_outcome', or 'bag_datamod_offset'
+#' or 'bag_datamod'
 #'
 #' @returns An integer scalar
 #'
@@ -158,7 +158,7 @@ make_i_lik_part <- function(x) {
 ## HAS_TESTS
 #' @export
 make_i_lik_part.bage_confidential_rr3 <- function(x) {
-  1L
+  10L
 }
 
 

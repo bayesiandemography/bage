@@ -229,7 +229,7 @@ test_that("'draw_outcome_obs_given_conf' throws appropriate error with invalid n
 
 test_that("'make_i_lik_part' works with bage_confidential_rr3", {
   x <- new_bage_confidential_rr3()
-  expect_identical(make_i_lik_part(x), 1L)
+  expect_identical(make_i_lik_part(x), 10L)
 })
 
 

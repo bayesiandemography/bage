@@ -2525,19 +2525,9 @@ test_that("'make_expected_obs' with binomial throws expected error with invalid 
 })
 
 
+## 'make_i_lik' ---------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-## 'make_i_lik_mod' -----------------------------------------------------------
-
-test_that("'make_i_lik_mod' works with bage_mod_pois", {
+test_that("'make_i_lik' works with bage_mod_pois", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -2546,57 +2536,13 @@ test_that("'make_i_lik_mod' works with bage_mod_pois", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  expect_identical(make_i_lik_mod(mod), 303L)
-  mod0 <- set_disp(mod, mean = 0)
-  expect_identical(make_i_lik_mod(mod0), 301L)
-  expect_identical(make_i_lik_mod(set_datamod_outcome_rr3(mod)), 304L)
-  expect_identical(make_i_lik_mod(set_datamod_outcome_rr3(mod0)), 302L)
-})
-
-test_that("'make_i_lik_mod' works with bage_mod_binom", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 1000)
-  data$deaths <- 3 * rbinom(n = nrow(data), size = data$popn, prob = 0.02)
-  formula <- deaths ~ age + time + sex
-  mod <- mod_binom(formula = formula,
-                  data = data,
-                  size = popn)
-  expect_identical(make_i_lik_mod(mod), 103L)
-  mod0 <- set_disp(mod, mean = 0)
-  expect_identical(make_i_lik_mod(mod0), 101L)
-  expect_identical(make_i_lik_mod(set_datamod_outcome_rr3(mod)), 104L)
-  expect_identical(make_i_lik_mod(set_datamod_outcome_rr3(mod0)), 102L)
-})
-
-test_that("'make_i_lik_mod' works with bage_mod_norm", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$wt <- rpois(n = nrow(data), lambda = 1000)
-  data$income <- rnorm(n = nrow(data), sd = 10)
-  formula <- income ~ age + time + sex
-  mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = wt)
-  expect_identical(make_i_lik_mod(mod), 201L)
-  mod$datamod_outcome <- "wrong"
-  expect_error(make_i_lik_mod(mod),
-               "Internal error: Invalid inputs.")
-})
-
-
-## 'make_i_lik_tmp' ----------------------------------------------------------
-
-test_that("'make_i_lik_tmp' works with bage_mod_pois", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- 3 * rpois(n = nrow(data), lambda = 5)
-  formula <- deaths ~ age + time + sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  expect_identical(make_i_lik_tmp(mod), 1000000L)
+  expect_identical(make_i_lik(mod), 100000L)
+  mod <- mod |>
+    set_datamod_overcount(rate = data.frame(mean = 0.2, disp = 3))
+  expect_identical(make_i_lik(mod), 104000L)
+  mod <- mod |>
+    set_confidential_rr3()
+  expect_identical(make_i_lik(mod), 104010L)
 })
 
 
@@ -2606,28 +2552,28 @@ test_that("'make_i_lik_part' works with bage_mod_pois", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- 3 * rpois(n = nrow(data), lambda = 5)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
   formula <- deaths ~ age + time + sex
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  expect_identical(make_i_lik_part(mod), 1000000L)
+  expect_identical(make_i_lik_part(mod), 100000L)
   mod0 <- set_disp(mod, mean = 0)
-  expect_identical(make_i_lik_part(mod0), 2000000L)
+  expect_identical(make_i_lik_part(mod0), 200000L)
 })
 
 test_that("'make_i_lik_part' works with bage_mod_binom", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 1000)
-  data$deaths <- 3 * rbinom(n = nrow(data), size = data$popn, prob = 0.02)
+  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.02)
   formula <- deaths ~ age + time + sex
   mod <- mod_binom(formula = formula,
                   data = data,
                   size = popn)
-  expect_identical(make_i_lik_part(mod), 3000000L)
+  expect_identical(make_i_lik_part(mod), 300000L)
   mod0 <- set_disp(mod, mean = 0)
-  expect_identical(make_i_lik_part(mod0), 4000000L)
+  expect_identical(make_i_lik_part(mod0), 400000L)
 })
 
 test_that("'make_i_lik_part' works with bage_mod_norm", {
@@ -2639,7 +2585,7 @@ test_that("'make_i_lik_part' works with bage_mod_norm", {
   mod <- mod_norm(formula = formula,
                   data = data,
                   weights = wt)
-  expect_identical(make_i_lik_part(mod), 5000000L)
+  expect_identical(make_i_lik_part(mod), 500000L)
 })
 
 
