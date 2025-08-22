@@ -1,5 +1,24 @@
 
 ## HAS_TESTS
+#' Alert User that Replacing Data Model
+#'
+#' @param datamod_new The new data model. Object of class bage_datamod.
+#' @param datamod_old The old data model. Object of class bage_datamod.
+#'
+#' @returns NULL, invisibly
+#'
+#' @noRd
+alert_replacing_existing_datamod <- function(datamod_new,
+                                             datamod_old) {
+  descr_new <- datamod_descr(datamod_new)
+  descr_old <- datamod_descr(datamod_old)
+  cli::cli_alert(paste("Replacing existing {.val {descr_old}} data model",
+                       "with new {.val {descr_new}} data model"))
+  invisible(NULL)
+}
+
+
+## HAS_TESTS
 #' Derive default prior from name and length of term
 #'
 #' @param nm_term Name of model term

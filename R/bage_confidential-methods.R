@@ -85,9 +85,9 @@ draw_outcome_obs_given_conf.bage_confidential_rr3 <- function(confidential,
     if (nm_distn == "pois") {
       size <- 1 / disp_obs
       prob <- 1 / (1 + expected_obs * offset * disp_obs)
-      prob_prior <- dnbinom(x = outcome_true,
-                            size = size,
-                            prob = prob)
+      prob_prior <- stats::dnbinom(x = outcome_true,
+                                   size = size,
+                                   prob = prob)
     }
     else if (nm_distn == "binom") {
       shape1 <- expected_obs / disp_obs
@@ -103,13 +103,13 @@ draw_outcome_obs_given_conf.bage_confidential_rr3 <- function(confidential,
   else {
     if (nm_distn == "pois") {
       lambda <- expected_obs * offset
-      prob_prior <- dpois(x = outcome_true,
-                          lambda = lambda)
+      prob_prior <- stats::dpois(x = outcome_true,
+                                 lambda = lambda)
     }
     else if (nm_distn == "binom") {
-      prob_prior <- dbinom(x = outcome_true,
-                           size = offset,
-                           prob = expected_obs)
+      prob_prior <- stats::dbinom(x = outcome_true,
+                                  size = offset,
+                                  prob = expected_obs)
     }
     else
       cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")

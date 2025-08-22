@@ -28,7 +28,7 @@ dbetabinom <- function(x, size, shape1, shape2, log = FALSE) {
               (shape2 > 0) &
               (size == floor(size)) &
               (size >= 0))
-  log_dens <- rep(NaN, n)
+  log_dens <- rep.int(NA_real_, times = n)
   log_dens[is_ok] <- (lchoose(n = size[is_ok], k = x[is_ok])
     + lbeta(a = x[is_ok] + shape1[is_ok],
             b = size[is_ok] - x[is_ok] + shape2[is_ok])

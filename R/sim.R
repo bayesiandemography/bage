@@ -118,10 +118,6 @@ draw_outcome_true <- function(nm_distn,
 }
 
 
-  
-
-
-
 ## HAS_TESTS
 #' Generate AR Values to Use in a Prior with an AR Component
 #'
@@ -1319,7 +1315,7 @@ report_sim <- function(mod_est,
     mod_est <- set_seeds(mod_est)
     mod_est <- fit(mod_est, method = method, vars_inner = vars_inner)
     comp_est <- components(mod_est)
-    aug_est <- augment(mod_est)
+    aug_est <- augment(mod_est, quiet = TRUE)
     results_comp <- perform_comp(est = comp_est,
                                  sim = comp_sim,
                                  prior_class_est = prior_class_est,

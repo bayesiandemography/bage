@@ -35,16 +35,19 @@ function \code{\link[=fit]{fit()}} may need to be called again.
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
                 exposure = popn)
-mod
+mod # value for 'n_draw' displayed in object
+n_draw(mod) # or use 'n_draw()' to query
 
-mod |>
+mod <- mod |>
   set_n_draw(n_draw = 5000)
+mod
 }
 \seealso{
 \itemize{
+\item \code{\link[=n_draw.bage_mod]{n_draw.bage_mod()}} query the value of \code{n_draw}
 \item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}} functions for
 drawing from prior or posterior distribution - the output
-of which is affected by the value of \code{n_draw}.
+of which is affected by the value of \code{n_draw}
 \item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
 model
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for a term

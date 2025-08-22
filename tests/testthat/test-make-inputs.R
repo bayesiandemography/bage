@@ -1,4 +1,24 @@
 
+## 'alert_replacing_existing_datamod' -----------------------------------------
+
+test_that("'alert_replacing_existing_datamod' works with valid inputs", {
+  datamod_new <- new_bage_datamod_undercount(prob_mean = 0.5,
+                                             prob_disp = 0.1,
+                                             prob_levels = "prob",
+                                             prob_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5), i = 1:5, j = rep(1, 5)),
+                                             nms_by = character())
+  datamod_old <- new_bage_datamod_overcount(rate_mean = 0.5,
+                                             rate_disp = 0.1,
+                                             rate_levels = "rate",
+                                             rate_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5), i = 1:5, j = rep(1, 5)),
+                                            nms_by = character())
+  expect_message(alert_replacing_existing_datamod(datamod_new = datamod_new,
+                                                  datamod_old = datamod_old),
+                 "Replacing existing \"overcount\" data model with new \"undercount\" data model.")
+})
+
+
+
 ## 'default_prior' ------------------------------------------------------------
 
 test_that("'default_prior' works with ordinary term", {

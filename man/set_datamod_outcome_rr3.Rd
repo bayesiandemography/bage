@@ -28,7 +28,7 @@ instead.
 ## has been randomly rounded to base 3
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
-                exposure = popn)
+                exposure = popn) |>
   set_confidential_rr3() |> ## rather than set_datamod_outcome_rr3
   fit()
 }

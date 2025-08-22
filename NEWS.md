@@ -1,6 +1,12 @@
 
 # bage 0.9.5
 
+## Interface
+
+* Added method `n_draw()` for querying the `n_draw` value of a model
+  object.
+  
+
 ## Documentation 
 
 * Extended documentation of `Lin()` prior in Mathematical Details
