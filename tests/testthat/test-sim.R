@@ -1022,7 +1022,6 @@ test_that("'length_interval' works", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-
 ## 'make_report_aug' ----------------------------------------------------------
 
 test_that("'make_report_aug' works with valid inputs - Poisson", {
@@ -1086,7 +1085,6 @@ test_that("'make_report_aug' works with valid inputs - normal", {
                     ".length_60", ".length_80"))
   expect_identical(nrow(ans_obtained), nrow(aug_sim))
 })
-
 
 
 ## 'make_report_comp' ---------------------------------------------------------
@@ -1374,7 +1372,7 @@ test_that("'report_sim' works with rr3 model", {
                         data = data,
                         exposure = popn) |>
                         set_prior(age ~ SVD(HMD)) |>
-                        set_datamod_outcome_rr3()
+                        set_confidential_rr3()
     set.seed(0)
     ans_obtained <- report_sim(mod_est, n_sim = 2)
     expect_setequal(names(ans_obtained), c("components", "augment"))
@@ -1412,7 +1410,6 @@ test_that("'report_sim' works with fitted model", {
   ans2 <- suppressMessages(report_sim(mod_est = mod, mod_sim = mod, n_sim = 1))
   expect_identical(ans1, ans2)
 })
-
 
 
 ## 'vals_covariates_to_dataframe' ---------------------------------------------

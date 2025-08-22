@@ -36,9 +36,9 @@ test_that("log = TRUE is consistent with log(prob)", {
   expect_equal(log_p, log(p), tolerance = 1e-10)
 })
 
-test_that("invalid values return NaN", {
+test_that("invalid values return NA", {
   res <- dbetabinom(c(-1, 11, 1.5, NA), size = 10, shape1 = 2, shape2 = 2)
-  expect_true(all(is.nan(res)))
+  expect_true(all(is.na(res)))
 })
 
 test_that("accepts vector inputs of mixed length (recycling)", {

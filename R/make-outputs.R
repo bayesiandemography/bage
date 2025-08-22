@@ -537,15 +537,19 @@ get_datamod_sd <- function(datamod) {
 #'
 #' @noRd
 get_disp <- function(mod) {
-  if (is_fitted(mod)) {
-    ans <- mod$draws_disp
-    ans <- matrix(ans, nrow = 1L)
-    ans <- rvec::rvec_dbl(ans)
+  if (has_disp(mod)) {
+    if (is_fitted(mod)) {
+      ans <- mod$draws_disp
+      ans <- matrix(ans, nrow = 1L)
+      ans <- rvec::rvec_dbl(ans)
+    }
+    else {
+      n_draw <- mod$n_draw
+      ans <- draw_vals_disp(mod, n_sim = n_draw)
+    }
   }
-  else {
-    n_draw <- mod$n_draw
-    ans <- draw_vals_disp(mod, n_sim = n_draw)
-  }
+  else
+    ans <- NULL
   ans
 }
 

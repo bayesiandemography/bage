@@ -112,7 +112,8 @@ forecast_components <- function(mod,
   var_time <- mod$var_time
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
-  is_time_varying <- vapply(dimnames_terms, function(x) var_time %in% names(x), TRUE)
+  is_time_varying <- vapply(dimnames_terms,
+                            function(x) var_time %in% names(x), TRUE)
   ans <- .mapply(forecast_term,
                  dots = list(prior = priors[is_time_varying],
                              dimnames_term = dimnames_terms[is_time_varying]),
@@ -466,7 +467,7 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
 
 
 ## HAS_TESTS
-#' Cbind Covariate Values to 'data_forecast' Made From Labels
+#' Column-Bind Covariate Values to 'data_forecast' Made From Labels
 #'
 #' Used with 'make_data_forecast_labels()'
 #'

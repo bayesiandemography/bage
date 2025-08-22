@@ -232,13 +232,21 @@ set_datamod_exposure <- function(mod, ratio, disp)  {
                                      nm_component = "levels")
   disp_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_disp)
+  ## construct 'nms_by'
+  nms_by <- union(nms_by_ratio, nms_by_disp)
   ## construct datamod and add to 'mod'
   datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
                                        ratio_levels = ratio_levels,
                                        ratio_matrix_outcome = ratio_matrix_outcome,
                                        disp_mean = disp_mean,
                                        disp_levels = disp_levels,
-                                       disp_matrix_outcome = disp_matrix_outcome)
+                                       disp_matrix_outcome = disp_matrix_outcome,
+                                       nms_by = nms_by)
+  if (has_datamod(mod)) {
+    datamod_old <- mod$datamod
+    alert_replacing_existing_datamod(datamod_new = datamod,
+                                     datamod_old = datamod_old)
+  }
   mod$datamod <- datamod
   mod <- unfit(mod)
   mod
@@ -328,6 +336,8 @@ set_datamod_miscount <- function(mod, prob, rate) {
                                      nm_component = "rate")
   rate_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_rate)
+  ## construct 'nms_by'
+  nms_by <- union(nms_by_prob, nms_by_rate)
   ## construct datamod and add to 'mod'
   datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
                                        prob_disp = prob_disp,
@@ -336,7 +346,13 @@ set_datamod_miscount <- function(mod, prob, rate) {
                                        rate_mean = rate_mean,
                                        rate_disp = rate_disp,
                                        rate_levels = rate_levels,
-                                       rate_matrix_outcome = rate_matrix_outcome)
+                                       rate_matrix_outcome = rate_matrix_outcome,
+                                       nms_by = nms_by)
+  if (has_datamod(mod)) {
+    datamod_old <- mod$datamod
+    alert_replacing_existing_datamod(datamod_new = datamod,
+                                     datamod_old = datamod_old)
+  }
   mod$datamod <- datamod
   mod <- unfit(mod)
   mod
@@ -371,6 +387,8 @@ set_datamod_noise <- function(mod, mean, sd) {
                      i = "{.arg mod} is a {model_descr} model."))
   }
   data <- mod$data
+  outcome_mean <- mod$outcome_mean
+  outcome_sd <- mod$outcome_sd
   ## process 'mean'
   check_datamod_val(x = mean,
                     nm_x = "mean",
@@ -380,9 +398,10 @@ set_datamod_noise <- function(mod, mean, sd) {
   check_datamod_by_val(by_val = by_val_mean,
                        data = data,
                        nm_val = "mean")
+  mean_mean <- mean$mean
   mean_mean <- make_datamod_measure(data = data,
                                     by_val = by_val_mean,
-                                    measure = mean$mean)
+                                    measure = mean_mean)
   mean_levels <- make_datamod_levels(data = data,
                                      by_val = by_val_mean,
                                      nm_component = "mean")
@@ -400,21 +419,30 @@ set_datamod_noise <- function(mod, mean, sd) {
   check_positive(x = sd$sd,
                  nm_x = "sd",
                  nm_df = "sd")
+  sd_sd <- sd$sd
   sd_sd <- make_datamod_measure(data = data,
                                 by_val = by_val_sd,
-                                measure = sd$sd)
+                                measure = sd_sd)
   sd_levels <- make_datamod_levels(data = data,
                                    by_val = by_val_sd,
                                    nm_component = "sd")
   sd_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                by_val = by_val_sd)
+  ## construct 'nms_by'
+  nms_by <- union(nms_by_mean, nms_by_sd)
   ## construct datamod and add to 'mod'
   datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
                                     mean_levels = levels,
                                     mean_matrix_outcome = mean_matrix_outcome,
                                     sd_sd = sd_sd,
                                     sd_levels = sd_levels,
-                                    sd_matrix_outcome = sd_matrix_outcome)
+                                    sd_matrix_outcome = sd_matrix_outcome,
+                                    nms_by = nms_by)
+  if (has_datamod(mod)) {
+    datamod_old <- mod$datamod
+    alert_replacing_existing_datamod(datamod_new = datamod,
+                                     datamod_old = datamod_old)
+  }
   mod$datamod <- datamod
   mod <- unfit(mod)
   mod
@@ -468,11 +496,19 @@ set_datamod_overcount <- function(mod, rate) {
                                      nm_component = "rate")
   rate_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_rate)
+  ## construct 'nms_by'
+  nms_by <- nms_by_rate
   ## construct datamod and add to object
   datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
                                         rate_disp = rate_disp,
                                         rate_levels = rate_levels,
-                                        rate_matrix_outcome = rate_matrix_outcome)
+                                        rate_matrix_outcome = rate_matrix_outcome,
+                                        nms_by = nms_by)
+  if (has_datamod(mod)) {
+    datamod_old <- mod$datamod
+    alert_replacing_existing_datamod(datamod_new = datamod,
+                                     datamod_old = datamod_old)
+  }
   mod$datamod <- datamod
   mod <- unfit(mod)
   mod
@@ -529,11 +565,19 @@ set_datamod_undercount <- function(mod, prob) {
                                      nm_component = "prob")
   prob_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_prob)
+  ## construct 'nms_by'
+  nms_by <- nms_by_prob
   ## construct datamod and add to object
   datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
                                          prob_disp = prob_disp,
                                          prob_levels = prob_levels,
-                                         prob_matrix_outcome = prob_matrix_outcome)
+                                         prob_matrix_outcome = prob_matrix_outcome,
+                                         nms_by = nms_by)
+  if (has_datamod(mod)) {
+    datamod_old <- mod$datamod
+    alert_replacing_existing_datamod(datamod_new = datamod,
+                                     datamod_old = datamod_old)
+  }
   mod$datamod <- datamod
   mod <- unfit(mod)
   mod
@@ -563,7 +607,7 @@ set_datamod_undercount <- function(mod, prob) {
 #' ## has been randomly rounded to base 3
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 #'                 data = nzl_injuries,
-#'                 exposure = popn)
+#'                 exposure = popn) |>
 #'   set_confidential_rr3() |> ## rather than set_datamod_outcome_rr3
 #'   fit()
 #' @export
@@ -658,11 +702,12 @@ set_disp <- function(mod, mean = 1) {
 #' @returns A `bage_mod` object
 #'
 #' @seealso
+#' - [bage::n_draw.bage_mod()] query the value of `n_draw`
 #' - [bage::augment()], [bage::components()] functions for
 #'   drawing from prior or posterior distribution - the output
-#'   of which is affected by the value of `n_draw`.
+#'   of which is affected by the value of `n_draw`
 #' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
-#' model
+#'   model
 #' - [set_prior()] Specify prior for a term
 #' - [set_disp()] Specify prior for dispersion
 #' - [fit()] Fit a model
@@ -672,10 +717,12 @@ set_disp <- function(mod, mean = 1) {
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 #'                 data = nzl_injuries,
 #'                 exposure = popn)
-#' mod
+#' mod # value for 'n_draw' displayed in object
+#' n_draw(mod) # or use 'n_draw()' to query
 #'
-#' mod |>
+#' mod <- mod |>
 #'   set_n_draw(n_draw = 5000)
+#' mod
 #' @export
 set_n_draw <- function(mod, n_draw = 1000L) {
   check_bage_mod(x = mod, nm_x = "mod")

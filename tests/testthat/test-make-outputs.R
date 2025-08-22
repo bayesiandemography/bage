@@ -261,7 +261,8 @@ test_that("'get_datamod_disp' works", {
                                        ratio_matrix_outcome = ratio_matrix_outcome,
                                        disp_mean = disp_mean,
                                        disp_levels = disp_levels,
-                                       disp_matrix_outcome = disp_matrix_outcome)
+                                       disp_matrix_outcome = disp_matrix_outcome,
+                                       nms_by = c("age", "sex"))
   components <- tibble::tibble(
     term = c("(Intercept)", rep("datamod", 4)),
     component = c("(Intercept)", rep("disp", 4)),
@@ -289,7 +290,8 @@ test_that("'get_datamod_mean_mean' works", {
                                     mean_matrix_outcome = mean_matrix_outcome,
                                     sd_sd = sd_sd,
                                     sd_levels = sd_levels,
-                                    sd_matrix_outcome = sd_matrix_outcome)
+                                    sd_matrix_outcome = sd_matrix_outcome,
+                                    nms_by = c("age", "sex"))
   ans_obtained <- get_datamod_mean(datamod)
   ans_expected <- as.numeric(mean_matrix_outcome %*% mean_mean)
   expect_identical(ans_obtained, ans_expected)
@@ -306,7 +308,8 @@ test_that("'get_datamod_prob' works", {
   datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
                                          prob_disp = prob_disp,
                                          prob_levels = prob_levels,
-                                         prob_matrix_outcome = prob_matrix_outcome)
+                                         prob_matrix_outcome = prob_matrix_outcome,
+                                         nms_by = c("age", "sex"))
   components <- tibble::tibble(
     term = c("(Intercept)", rep("datamod", 4)),
     component = c("(Intercept)", rep("prob", 4)),
@@ -330,7 +333,8 @@ test_that("'get_datamod_rate' works", {
   datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
                                         rate_disp = rate_disp,
                                         rate_levels = rate_levels,
-                                        rate_matrix_outcome = rate_matrix_outcome)
+                                        rate_matrix_outcome = rate_matrix_outcome,
+                                        nms_by = c("age", "sex"))
   components <- tibble::tibble(
     term = c("(Intercept)", rep("datamod", 4)),
     component = c("(Intercept)", rep("rate", 4)),
@@ -352,13 +356,14 @@ test_that("'get_datamod_ratio' works", {
   ratio_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
   disp_mean <- c(0.5, 0.2, 0.3, 0.4)
   disp_levels <- 1:4
-  matrix_disp_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
                                        ratio_levels = ratio_levels,
                                        ratio_matrix_outcome = ratio_matrix_outcome,
                                        disp_mean = disp_mean,
                                        disp_levels = disp_levels,
-                                       disp_matrix_outcome = disp_matrix_outcome)
+                                       disp_matrix_outcome = disp_matrix_outcome,
+                                       nms_by = c("age", "sex"))
   ans_obtained <- get_datamod_ratio(datamod)
   ans_expected <- as.numeric(ratio_matrix_outcome %*% ratio_ratio)
   expect_identical(ans_obtained, ans_expected)
@@ -379,7 +384,8 @@ test_that("'get_datamod_sd' works", {
                                     mean_matrix_outcome = mean_matrix_outcome,
                                     sd_sd = sd_sd,
                                     sd_levels = sd_levels,
-                                    sd_matrix_outcome = sd_matrix_outcome)
+                                    sd_matrix_outcome = sd_matrix_outcome,
+                                    nms_by = c("age", "sex"))
   ans_obtained <- get_datamod_sd(datamod)
   ans_expected <- as.numeric(sd_matrix_outcome %*% sd_sd)
   expect_identical(ans_obtained, ans_expected)
@@ -403,6 +409,8 @@ test_that("'get_disp' works - unfitted", {
   set.seed(1)
   ans_expected <- draw_vals_disp(mod, n_sim = 5)
   expect_identical(ans_obtained, ans_expected)
+  mod <- set_disp(mod, mean = 0)
+  expect_identical(get_disp(mod), NULL)  
 })
 
 test_that("'get_disp' works - fitted", {
@@ -421,6 +429,8 @@ test_that("'get_disp' works - fitted", {
   set.seed(1)
   ans_expected <- rvec::rvec(matrix(mod$draws_disp, nr = 1))
   expect_identical(ans_obtained, ans_expected)
+  mod <- set_disp(mod, mean = 0)
+  expect_identical(get_disp(mod), NULL)  
 })  
 
 

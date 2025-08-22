@@ -134,6 +134,12 @@ test_that("'set_datamod_exposure' works with 2 by variables", {
                   exposure = popn)
   mod <- set_datamod_exposure(mod, ratio = ratio, disp = disp)
   expect_s3_class(mod$datamod, "bage_datamod_exposure")
+  expect_identical(mod$datamod$nms_by, c("age", "sex"))
+  expect_message(set_datamod_exposure(mod,
+                                      ratio = ratio,
+                                      disp = disp),
+                 paste("Replacing existing \"exposure\" data model",
+                       "with new \"exposure\" data model."))
 })
 
 test_that("'set_datamod_exposure' works with 1 by variable", {
@@ -149,6 +155,7 @@ test_that("'set_datamod_exposure' works with 1 by variable", {
                   exposure = popn)
   mod <- set_datamod_exposure(mod, ratio = ratio, disp = disp)
   expect_s3_class(mod$datamod, "bage_datamod_exposure")
+  expect_identical(mod$datamod$nms_by, "age")
 })
 
 test_that("'set_datamod_exposure' throws correct error with non-Poisson", {
@@ -183,6 +190,12 @@ test_that("'set_datamod_miscount' works with 2 by variables", {
                   exposure = popn)
   mod <- set_datamod_miscount(mod, prob = prob, rate = rate)
   expect_s3_class(mod$datamod, "bage_datamod_miscount")
+  expect_identical(mod$datamod$nms_by, c("age", "sex"))
+  expect_message(set_datamod_miscount(mod,
+                                      prob = prob,
+                                      rate = rate),
+                 paste("Replacing existing \"miscount\" data model",
+                       "with new \"miscount\" data model."))
 })
 
 test_that("'set_datamod_miscount' works with 1 by variable", {
@@ -234,6 +247,14 @@ test_that("'set_datamod_noise' works with 2 by variables", {
                   weight = wt)
   mod <- set_datamod_noise(mod, mean = mean, sd = sd)
   expect_s3_class(mod$datamod, "bage_datamod_noise")
+  expect_equal(mod$datamod$mean_mean, 0.9)
+  expect_equal(mod$datamod$sd_sd, rep(0.6, times = 6))
+  expect_identical(mod$datamod$nms_by, c("age", "sex"))
+  expect_message(set_datamod_noise(mod,
+                                   mean = mean,
+                                   sd = sd),
+                 paste("Replacing existing \"noise\" data model",
+                       "with new \"noise\" data model."))
 })
 
 test_that("'set_datamod_noise' works with 1 by variable", {
@@ -250,6 +271,8 @@ test_that("'set_datamod_noise' works with 1 by variable", {
                   weights = wt)
   mod <- set_datamod_noise(mod, mean = mean, sd = sd)
   expect_s3_class(mod$datamod, "bage_datamod_noise")
+  expect_equal(mod$datamod$mean_mean, 0.9)
+  expect_equal(mod$datamod$sd_sd, rep(1, times = 3))
 })
 
 test_that("'set_datamod_noise' throws correct error with non-Poisson", {
@@ -268,7 +291,6 @@ test_that("'set_datamod_noise' throws correct error with non-Poisson", {
 })
 
 
-
 ## 'set_datamod_overcount' -----------------------------------------------------
 
 test_that("'set_datamod_overcount' works with 2 by variables", {
@@ -284,6 +306,11 @@ test_that("'set_datamod_overcount' works with 2 by variables", {
                   exposure = popn)
   mod <- set_datamod_overcount(mod, rate = rate)
   expect_s3_class(mod$datamod, "bage_datamod_overcount")
+  expect_identical(mod$datamod$nms_by, c("age", "sex"))
+  expect_message(set_datamod_overcount(mod,
+                                       rate = rate),
+                 paste("Replacing existing \"overcount\" data model",
+                       "with new \"overcount\" data model."))
 })
 
 test_that("'set_datamod_overcount' works with 1 by variable", {
@@ -330,6 +357,11 @@ test_that("'set_datamod_undercount' works with 2 by variables - Poisson", {
                   exposure = popn)
   mod <- set_datamod_undercount(mod, prob = prob)
   expect_s3_class(mod$datamod, "bage_datamod_undercount")
+  expect_identical(mod$datamod$nms_by, c("age", "sex"))
+  expect_message(set_datamod_undercount(mod,
+                                        prob = prob),
+                 paste("Replacing existing \"undercount\" data model",
+                       "with new \"undercount\" data model."))
 })
 
 test_that("'set_datamod_undercount' works with 2 by variables - binomial", {
