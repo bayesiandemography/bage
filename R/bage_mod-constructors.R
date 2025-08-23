@@ -19,8 +19,11 @@
 #'   quote marks, eg `"population"` or `population`;
 #' - the number `1`, in which case a pure "counts" model
 #'   with no exposure, is produced; or
-#' - a formula, which is evaluated with `data` as its
-#'   environment (see below for example).
+#' - `r lifecycle::badge("deprecated")`
+#'   a formula, which is evaluated with `data` as its
+#'   environment (see below for example). This option
+#'   has been deprecated, because it makes forecasting
+#'   and measurement error models more complicated.
 #' 
 #' @section Mathematical details:
 #'
@@ -112,6 +115,13 @@
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 #'                 data = nzl_injuries,
 #'                 exposure = ~ pmax(popn, 1))
+#' ## but formulas are now deprecrated, and the
+#' ## recommended approach is to transform
+#' ## the input data outside the model:
+#' nzl_injuries$popn1 <- pmax(nzl_injuries$popn, 1)
+#' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
+#'                 data = nzl_injuries,
+#'                 exposure = popn1)
 #' @export
 mod_pois <- function(formula,
                      data,
@@ -130,6 +140,7 @@ mod_pois <- function(formula,
   is_offset_specified <- !identical(exposure, "1")
   nm_offset_data <- if (is_offset_specified) exposure else NULL
   if (is_offset_specified) {
+    check_offset_formula_not_used(nm_offset_data)
     check_offset_in_data(nm_offset_data = nm_offset_data,
                          nm_offset_mod = "exposure",
                          data = data)
@@ -182,8 +193,11 @@ mod_pois <- function(formula,
 #'
 #' - the name of a variable in `data`, with or without
 #'   quote marks, eg `"population"` or `population`; or
-#' - a formula, which is evaluated with `data` as its
-#'   environment (see below for example).
+#' - `r lifecycle::badge("deprecated")`
+#'   a formula, which is evaluated with `data` as its
+#'   environment (see below for example). This option
+#'   has been deprecated, because it makes forecasting
+#'   and measurement error models more complicated.
 #' 
 #' @section Mathematical details:
 #'
@@ -265,6 +279,13 @@ mod_pois <- function(formula,
 #' mod <- mod_binom(ncases ~ agegp + tobgp + alcgp,
 #'                  data = esoph,
 #'                  size = ~ ncases + ncontrols)
+#' ## but formulas are now deprecrated, and the
+#' ## recommended approach is to transform
+#' ## the input data outside the model:
+#' esoph$total <- esoph$ncases + esoph$ncontrols
+#' mod <- mod_binom(ncases ~ agegp + tobgp + alcgp,
+#'                  data = esoph,
+#'                  size = total)
 #' @export
 mod_binom <- function(formula, data, size) {
   ## processing common to all models
@@ -279,6 +300,7 @@ mod_binom <- function(formula, data, size) {
   size <- deparse1(substitute(size))
   size <- gsub("^\\\"|\\\"$", "", size)
   nm_offset_data <- size
+  check_offset_formula_not_used(nm_offset_data)
   check_offset_in_data(nm_offset_data = nm_offset_data,
                        nm_offset_mod = "size",
                        data = data)
@@ -343,9 +365,11 @@ mod_binom <- function(formula, data, size) {
 #' - the name of a variable in `data`, with or without
 #'   quote marks, eg `"wt"` or `wt`;
 #' - the number `1`, in which no weights are used; or
-#' - a formula, which is evaluated with `data` as its
-#'   environment (see below for example).
-#'
+#' - `r lifecycle::badge("deprecated")`
+#'   a formula, which is evaluated with `data` as its
+#'   environment (see below for example). This option
+#'   has been deprecated, because it makes forecasting
+#'   and measurement error models more complicated.
 #'
 #' @section Mathematical details:
 #'
@@ -428,6 +452,13 @@ mod_binom <- function(formula, data, size) {
 #' mod <- mod_norm(value ~ diag:age + year,
 #'                 data = nld_expenditure,
 #'                 weights = ~sqrt(value))
+#' ## but formulas are now deprecrated, and the
+#' ## recommended approach is to transform
+#' ## the input data outside the model:
+#' nld_expenditure$wt <- sqrt(nld_expenditure$value)
+#' mod <- mod_norm(value ~ diag:age + year,
+#'                 data = nld_expenditure,
+#'                 weights = wt)
 #' @export
 mod_norm <- function(formula, data, weights) {
   ## processing common to all models
@@ -440,6 +471,7 @@ mod_norm <- function(formula, data, weights) {
   is_offset_specified <- !identical(weights, "1")
   nm_offset_data <- if (is_offset_specified) weights else NULL
   if (is_offset_specified) {
+    check_offset_formula_not_used(nm_offset_data)
     check_offset_in_data(nm_offset_data = nm_offset_data,
                          nm_offset_mod = "weights",
                          data = data)

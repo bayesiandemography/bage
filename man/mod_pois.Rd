@@ -39,8 +39,11 @@ The \code{exposure} argument can take three forms:
 quote marks, eg \code{"population"} or \code{population};
 \item the number \code{1}, in which case a pure "counts" model
 with no exposure, is produced; or
-\item a formula, which is evaluated with \code{data} as its
-environment (see below for example).
+\item \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+a formula, which is evaluated with \code{data} as its
+environment (see below for example). This option
+has been deprecated, because it makes forecasting
+and measurement error models more complicated.
 }
 }
 
@@ -115,6 +118,13 @@ mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
                 exposure = ~ pmax(popn, 1))
+## but formulas are now deprecrated, and the
+## recommended approach is to transform
+## the input data outside the model:
+nzl_injuries$popn1 <- pmax(nzl_injuries$popn, 1)
+mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
+                data = nzl_injuries,
+                exposure = popn1)
 }
 \seealso{
 \itemize{

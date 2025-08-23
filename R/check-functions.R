@@ -704,7 +704,7 @@ check_mod_has_obs <- function(mod) {
     if (n_na_effects > 0L)
       msg <- c(msg, i = "Number of rows where predictor is {.val {NA}}: {.val {n_na_effects}}.")
     nm_offset_data <- get_nm_offset_data(mod)
-    has_offset <- !is.null(nm_offset_data)
+    has_offset <- has_offset(mod)
     if (has_offset) {
       nm_offset_mod <- get_nm_offset_mod(mod)
       n_na_offset <- sum(!is_in_lik_offset)
@@ -882,6 +882,24 @@ check_numeric <- function(x, nm_x) {
   invisible(TRUE)
 }
 
+
+## HAS_TESTS
+#' Check offset occurs in 'data'
+#'
+#' @param nm_offset_data The name of the variable being
+#' used as an offset, or a formula
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_offset_formula_not_used <- function(nm_offset_data) {
+  is_formula <- !is.null(nm_offset_data) && startsWith(nm_offset_data, "~")
+  if (is_formula)
+    lifecycle::deprecate_warn(when = "0.9.5",
+                              what = I("Using a formula to specify exposure, size, or weights"),
+                              with = I("the name of a variable in `data`, or `1`,"))
+  invisible(TRUE)
+}
 
 ## HAS_TESTS
 #' Check offset occurs in 'data'

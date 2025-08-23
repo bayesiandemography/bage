@@ -180,6 +180,11 @@ set_covariates <- function(mod, formula) {
 #'
 #' @noRd
 set_datamod_exposure <- function(mod, ratio, disp)  {
+  nm_offset_data <- mod$nm_offset_data
+  nm_offset_mod <- get_nm_offset_mod(mod)
+  error_offset_formula_used(nm_offset_data = nm_offset_data,
+                            nm_offset_mod = nm_offset_mod,
+                            nm_fun = "set_datamod_exposure")
   ## preliminaries
   measure_vars_ratio <- "ratio"
   measure_vars_disp <- "mean"

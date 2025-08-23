@@ -5,7 +5,9 @@
 
 * Added method `n_draw()` for querying the `n_draw` value of a model
   object.
-  
+* Deprecated the use of formulas for specifying exposure, size, or
+  weights. Formulas complicate measurement error models and forecasts.
+  Formulas will be completely removed in future.
 
 ## Documentation 
 

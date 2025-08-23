@@ -171,7 +171,22 @@ test_that("'set_datamod_exposure' throws correct error with non-Poisson", {
                   size = popn)
   expect_error(set_datamod_exposure(mod, ratio = ratio, disp = disp),
                "An exposure data model can only be used with a Poisson model.")
-}) 
+})
+
+test_that("'set_datamod_exposure' throws correct error with exposure specified through formula", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  ratio <- data.frame(ratio = 1)
+  disp <- expand.grid(age = 0:3)
+  disp$mean <- 1:4
+  formula <- deaths ~ age:sex + time
+  suppressWarnings(mod <- mod_pois(formula = formula,
+                                   data = data,
+                                   exposure = ~ popn + 1))
+  expect_error(set_datamod_exposure(mod, ratio = ratio, disp = disp),
+               "`set_datamod_exposure\\(\\)` cannot be used with models where exposure specified using formula.")
+})
 
 
 ## 'set_datamod_miscount' -----------------------------------------------------

@@ -1030,6 +1030,16 @@ test_that("'check_numeric' throws correct error with Inf", {
 })
 
 
+## 'check_offset_formula_not_used' --------------------------------------------
+
+test_that("'check_offset_formula_not_used' returns TRUE with valid offset", {
+  expect_true(check_offset_formula_not_used(nm_offset_data = "popn"))
+  rlang::local_options(lifecycle_verbosity = "warning")
+  expect_warning(check_offset_formula_not_used(nm_offset_data = "~popn + deaths"),
+                 "Using a formula to specify")
+})
+
+
 ## 'check_offset_in_data' -----------------------------------------------------
 
 test_that("'check_offset_in_data' returns TRUE with valid formula", {
