@@ -389,7 +389,7 @@ To deal with confidentialization, we describe the confidentialization process to
 
 ```{r}
 mod <- mod |>
-  set_confidentialization_rr3() |>
+  set_confidential_rr3() |>
   fit()
 ```
 
