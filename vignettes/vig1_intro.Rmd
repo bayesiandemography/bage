@@ -381,15 +381,15 @@ ggplot(data_plot_mis, aes(x = year)) +
 If the value for exposure, size, or weights is missing, then the associated row from `data` is omitted from the likelihood, and no imputations for that row are made. Missing values for classifying variables are skipped over in the same way.
 
 
-# Data models
+# Confidentialization
 
-So far we have ignored the possibility that the input data for our models might be subject to measurement errors. However, `injuries` variable in the `nzl_injuries` dataset is subject to a special sort of error: Statistics New Zealand has randomly-rounded the values to base 3 to protect confidentiality. 
+Data producers often confidentialize their data before they make it publicly available. The `nzl_injuries` dataset is one example. Statistics New Zealand has randomly-rounded the counts of injuries to multiples of 3. 
 
-To deal with measurement error, we add a 'data model' to our model.
+To deal with confidentialization, we describe the confidentialization process to our model.
 
 ```{r}
 mod <- mod |>
-  set_datamod_outcome_rr3() |>
+  set_confidentialization_rr3() |>
   fit()
 ```
 
