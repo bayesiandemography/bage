@@ -1413,7 +1413,7 @@ where $D$ is the number of times a particular combination is duplicated. With no
 \end{equation}
 and the aggregation formuala for weights is
 \begin{equation}
-  w^{\text{new}} = \frac{1}{\sum_{i=1}^D \frac{1}{w_i^{\text{old}}}}.
+  w^{\text{new}} = \frac{D^2}{\sum_{i=1}^D \frac{1}{w_i^{\text{old}}}}.
 \end{equation}
 
 
