@@ -1437,6 +1437,25 @@ test_that("'forecast' throws error when neither labels nor newdata supplied", {
                  "No value supplied for `newdata` or for `labels`.")
 })
 
+test_that("'forecast' throws error when exposure specified via formula", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  suppressWarnings(
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = ~popn + 1)
+  )
+  mod <- fit(mod)
+  newdata <- make_data_forecast_labels(mod, 2005:2006)
+  newdata$deaths <- rpois(n = nrow(newdata), lambda = 10)
+  expect_error(forecast(mod, newdata = newdata),
+               "`forecast\\(\\)` cannot be used with models where exposure specified using formula.")
+})
+
+
 
 ## 'forecast_augment' --------------------------------------------------------
 
@@ -2027,20 +2046,6 @@ test_that("'get_nm_offset_data' works with 'bage_mod_pois' - variable name", {
   expect_identical(get_nm_offset_data(mod), "popn")
 })
 
-test_that("'get_nm_offset_data' works with 'bage_mod_pois' - formula", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$deaths <- rpois(n = nrow(data), lambda = 20)
-  data$popn <- rpois(n = nrow(data), lambda = 30)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = ~popn + 1)
-  expect_identical(get_nm_offset_data(mod), "popn")
-})
-
-
 
 ## 'get_nm_offset_mod' --------------------------------------------------------
 
@@ -2197,6 +2202,80 @@ test_that("'has_disp' works with valid inputs", {
     expect_true(has_disp(mod))
     mod <- set_disp(mod, mean = 0)
     expect_false(has_disp(mod))
+})
+
+
+## 'has_offset' ---------------------------------------------------------------
+
+test_that("'has_offset' works with Poisson, valid inputs", {
+  data <- data.frame(deaths = 1:10,
+                     popn = 21:30,
+                     time = 2001:2010)
+  mod <- mod_pois(deaths ~ time,
+                  data = data,
+                  exposure = popn)
+  expect_true(has_offset(mod))
+  mod <- mod_pois(deaths ~ time,
+                  data = data,
+                  exposure = 1)
+  expect_false(has_offset(mod))
+})
+
+test_that("'has_offset' raises correct errors with Poisson", {
+  data <- data.frame(deaths = 1:10,
+                     popn = 21:30,
+                     time = 2001:2010)
+  mod <- mod_pois(deaths ~ time,
+                  data = data,
+                  exposure = popn)
+  mod_wrong <- mod
+  mod_wrong$offset <- NULL
+  expect_error(has_offset(mod_wrong),
+               "Internal error: offset is NULL")
+  mod_wrong <- mod
+  mod_wrong$offset <- rep(NA, 10)
+  expect_error(has_offset(mod_wrong),
+               "Internal error: offset all NA")
+  mod_wrong <- mod
+  mod_wrong$nm_offset_data <- NULL
+  expect_error(has_offset(mod_wrong),
+               "Internal error: offset not all ones, but no nm_offset_data")
+  mod_wrong <- mod
+  mod_wrong$offset <- rep(1, 10)
+  mod_wrong$nm_offset_data <- "popn"
+  expect_error(has_offset(mod_wrong),
+               "Internal error: offset all ones, but has nm_offset_data")
+})
+
+test_that("'has_offset' works with binomial, valid inputs", {
+  data <- data.frame(deaths = 1:10,
+                     popn = 21:30,
+                     time = 2001:2010)
+  mod <- mod_binom(deaths ~ time,
+                  data = data,
+                  size = popn)
+  expect_true(has_offset(mod))
+})
+
+test_that("'has_offset' raises correct errors with Poisson", {
+  data <- data.frame(deaths = 1:10,
+                     popn = 21:30,
+                     time = 2001:2010)
+  mod <- mod_binom(deaths ~ time,
+                  data = data,
+                  size = popn)
+  mod_wrong <- mod
+  mod_wrong$offset <- NULL
+  expect_error(has_offset(mod_wrong),
+               "Internal error: offset is NULL")
+  mod_wrong <- mod
+  mod_wrong$offset <- rep(NA, 10)
+  expect_error(has_offset(mod_wrong),
+               "Internal error: offset all NA")
+  mod_wrong <- mod
+  mod_wrong$nm_offset_data <- NULL
+  expect_error(has_offset(mod_wrong),
+               "Internal error: nm_offset_data is NULL")
 })
 
 

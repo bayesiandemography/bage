@@ -105,7 +105,40 @@ dimnames_to_nm_split <- function(dimnames) {
   else
     "(Intercept)"
 }
-  
+
+
+## HAS_TESTS
+#' Raise an Error if Offset Specified Via Formula
+#'
+#' @param nm_offset_data Name of offset used in 'data', or formula
+#' @param nm_offset_mod Name of offset used in documentation
+#' @param nm_fun Name of function being called
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+error_offset_formula_used <- function(nm_offset_data, nm_offset_mod, nm_fun) {
+  is_formula <- !is.null(nm_offset_data) && startsWith(nm_offset_data, "~")
+  if (is_formula) {
+    if (nm_offset_mod == "exposure")
+      msg2 <- paste("In {.fun mod_pois}, please specify {nm_offset_mod} using",
+                    "the name of a variable in {.arg data}, or {.val {1}}.")
+    else if (nm_offset_mod == "size")
+      msg2 <- paste("In {.fun mod_binom}, please specify {nm_offset_mod} using",
+                    "the name of a variable in {.arg data}.")
+    else if (nm_offset_mod == "weights")
+      msg2 <- paste("In {.fun mod_norm}, please specify {nm_offset_mod} using",
+                    "the name of a variable in {.arg data}, or {.val {1}}.")
+    else
+      cli::cli_abort("Internal error: Invalid value for nm_offset_mod.")
+    cli::cli_abort(c(paste("{.fun {nm_fun}} cannot be used with models where",
+                           "{nm_offset_mod} specified using formula."),
+                     i = msg2,
+                     i = "Current specification of {nm_offset_mod}: {.code {nm_offset_data}}."))
+  }
+  invisible(TRUE)
+}
+
 
 ## HAS_TESTS
 #' Evaluate Formula to Create Offset
@@ -497,7 +530,7 @@ make_data_df <- function(mod) {
   ans <- mod$data
   nm_outcome_data <- get_nm_outcome_data(mod)
   nm_offset_data <- get_nm_offset_data(mod)
-  has_offset <- !is.null(nm_offset_data)
+  has_offset <- has_offset(mod)
   is_in_lik <- get_is_in_lik(mod)
   ans[[nm_outcome_data]] <- mod$outcome
   if (has_offset)
@@ -1199,7 +1232,7 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
   dimnames_terms <- mod$dimnames_terms
   nm_outcome_data <- get_nm_outcome_data(mod)
   nm_offset_data <- get_nm_offset_data(mod)
-  has_offset <- !is.null(nm_offset_data)
+  has_offset <- has_offset(mod)
   data_df <- make_data_df(mod)
   has_covariates <- has_covariates(mod)
   if (has_covariates)

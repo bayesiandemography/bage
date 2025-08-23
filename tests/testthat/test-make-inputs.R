@@ -176,6 +176,47 @@ test_that("'dimnames_to_nm_split' works with 2D dimnames", {
 })
 
 
+## 'error_offset_formula_used' ------------------------------------------------
+
+test_that("'error_offset_formula_used' returns TRUE with non-formula", {
+  expect_true(error_offset_formula_used(nm_offset_data = "popn",
+                                        nm_offset_mod = "exposure",
+                                        nm_fun = "forecast"))
+})
+
+test_that("'error_offset_formula_used' raises expected error with formula, Poisson", {
+  expect_error(error_offset_formula_used(nm_offset_data = "~popn",
+                                        nm_offset_mod = "exposure",
+                                        nm_fun = "forecast"),
+               "`forecast\\(\\)` cannot be used with models where exposure specified using formula.")
+})
+
+test_that("'error_offset_formula_used' raises expected error with formula, binomial", {
+  expect_error(error_offset_formula_used(nm_offset_data = "~popn",
+                                        nm_offset_mod = "size",
+                                        nm_fun = "forecast"),
+               "`forecast\\(\\)` cannot be used with models where size specified using formula.")
+})
+
+test_that("'error_offset_formula_used' raises expected error with formula, normal", {
+  expect_error(error_offset_formula_used(nm_offset_data = "~popn",
+                                        nm_offset_mod = "weights",
+                                        nm_fun = "forecast"),
+               "`forecast\\(\\)` cannot be used with models where weights specified using formula.")
+})
+
+test_that("'error_offset_formula_used' throws error with invalid nm_offset_mod", {
+  expect_error(error_offset_formula_used(nm_offset_data = "~popn",
+                                        nm_offset_mod = "wrong",
+                                        nm_fun = "forecast"),
+               "Internal error")
+})
+
+
+
+
+
+
 ## 'eval_offset_formula' ------------------------------------------------------
 
 test_that("'eval_offset_formula' works with valid inputs - simple formula", {
