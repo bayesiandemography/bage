@@ -120,6 +120,43 @@ test_that("'fit_default' gives error with 'start_oldpar' if model fitted", {
                "`start_oldpar` is TRUE but model has not been fitted.")
 })
 
+test_that("'fit_default' gives same answer with and without aggregation - norm", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4,
+                      time = 2000:2005,
+                      sex = c("F", "M"),
+                      replicate = 1:10)
+  mean <- with(data, -1995 + (sex == "F") - age + time)
+  data$income <- rnorm(n = nrow(data), mean = mean, sd = 0.1)
+  data$wt <- runif(n = nrow(data), min = 1, max = 2)
+  formula <- income ~ age + sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = 1)
+  mod_ag <- fit_default(mod,
+                        optimizer = "multi",
+                        quiet = TRUE,
+                        aggregate = TRUE,
+                        start_oldpar = FALSE)
+  mod_nonag <- fit_default(mod,
+                           optimizer = "multi",
+                           quiet = TRUE,
+                           aggregate = FALSE,
+                           start_oldpar = FALSE)
+  disp_ag <- mod_ag |>
+    components(original_scale = TRUE, quiet = TRUE) |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  disp_nonag <- mod_nonag |>
+    components(original_scale = TRUE, quiet = TRUE) |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  expect_equal(disp_ag, disp_nonag, tolerance = 0.1)
+})
+
+
 
 ## 'fit_inner_outer' ----------------------------------------------------------
 

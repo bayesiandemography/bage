@@ -1447,8 +1447,7 @@ test_that("'make_outcome_offset_matrices' works with model with offset", {
                   data = data,
                   exposure = popn)
   ans_obtained <- make_outcome_offset_matrices(mod, aggregate = TRUE)
-  data_ag <- aggregate(data[c("deaths", "popn")], data[c("age", "region", "sex")], sum)
-  data_ag <- data_ag[with(data_ag, order(age, sex, region)), ]
+  data_ag <- aggregate(data[c("deaths", "popn")], data[c("age", "sex", "region")], sum)
   ans_expected <- list(outcome = data_ag[["deaths"]],
                        offset = data_ag[["popn"]],
                        matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
@@ -1471,7 +1470,7 @@ test_that("'make_outcome_offset_matrices' works with model without offset", {
   ans_obtained <- make_outcome_offset_matrices(mod, aggregate = TRUE)
   data_ag <- aggregate(data["deaths"], data[c("age", "sex", "region")], sum)
   ans_expected <- list(outcome = data_ag[["deaths"]],
-                       offset = rep(1, times = nrow(data_ag)),
+                       offset = rep(2, times = nrow(data_ag)),
                        matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
                                                                               mod$dimnames_terms),
                        matrix_covariates = matrix(NA_real_, nrow = 0, ncol = 0))
@@ -1540,12 +1539,11 @@ test_that("'make_outcome_offset_matrices' works with model with numeric covariat
   data_ag <- make_data_df(mod)
   outcome_df <- aggregate(data_ag["deaths"], data_ag[c("age", "sex", "region", "income")], sum)
   offset_df <- aggregate(data_ag["popn"], data_ag[c("age", "sex", "region", "income")], sum)
-  data_ag <- merge(outcome_df, offset_df, by = c("age", "sex", "region", "income"))
-  ans_expected <- list(outcome = data_ag[["deaths"]],
-                       offset = data_ag[["popn"]],
-                       matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
+  ans_expected <- list(outcome = outcome_df[["deaths"]],
+                       offset = offset_df[["popn"]],
+                       matrices_effect_outcome = make_matrices_effect_outcome(offset_df,
                                                                               mod$dimnames_terms),
-                       matrix_covariates = matrix(scale(data_ag$income),
+                       matrix_covariates = matrix(scale(offset_df$income),
                                                   nrow = nrow(data),
                                                   dimnames = list(NULL, "income")))
   expect_equal(ans_obtained, ans_expected)
@@ -1570,12 +1568,12 @@ test_that("'make_outcome_offset_matrices' works with model with categorical cova
   outcome_df <- aggregate(data_ag["deaths"], data_ag[c("age", "sex", "region", "time")], sum)
   offset_df <- aggregate(data_ag["popn"], data_ag[c("age", "sex", "region", "time")], sum)
   data_ag <- merge(outcome_df, offset_df, by = c("age", "sex", "region", "time"))
-  ans_expected <- list(outcome = data_ag[["deaths"]],
-                       offset = data_ag[["popn"]],
-                       matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
+  ans_expected <- list(outcome = outcome_df[["deaths"]],
+                       offset = offset_df[["popn"]],
+                       matrices_effect_outcome = make_matrices_effect_outcome(outcome_df,
                                                                               mod$dimnames_terms),
-                       matrix_covariates = cbind(time2 = rep(c(0L, 1L, 0L), times = 40),
-                                                 time3 = rep(c(0L, 0L, 1L), times = 40)))
+                       matrix_covariates = cbind(time2 = rep(c(0L, 1L, 0L), each = 40),
+                                                 time3 = rep(c(0L, 0L, 1L), each = 40)))
   expect_equal(ans_obtained, ans_expected)
 })
 

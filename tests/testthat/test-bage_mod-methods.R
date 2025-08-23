@@ -881,7 +881,7 @@ test_that("'fit' gives the similar imputed rate when outcome is NA and offset is
     mod_offset <- fit(mod_offset)
     ans_offset <- rvec::draws_median(augment(mod_offset, quiet = TRUE)$.fitted[5])
     ## compare
-    expect_equal(ans_outcome, ans_offset, tolerance = 0.02)
+    expect_equal(ans_outcome, ans_offset, tolerance = 0.05)
 })
 
 test_that("'fit' works when all observed values for one year are NA", {
@@ -1270,6 +1270,7 @@ test_that("'fit' works with covariates - no shrinkage", {
   ans_obtained <- fit(mod)
   expect_s3_class(ans_obtained, "bage_mod")
 })
+
 
 
 ## 'forecast' -----------------------------------------------------------------

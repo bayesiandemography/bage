@@ -1235,10 +1235,12 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
   has_offset <- has_offset(mod)
   data_df <- make_data_df(mod)
   has_covariates <- has_covariates(mod)
+  has_offset <- has_offset(mod)
   if (has_covariates)
     formula_covariates <- mod$formula_covariates
   if (aggregate) {
     fun_ag_outcome <- get_fun_ag_outcome(mod)
+    fun_ag_offset <- get_fun_ag_offset(mod)
     formula <- mod$formula
     vars <- all.vars(formula[-2L])
     if (has_covariates) {
@@ -1246,20 +1248,25 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
       vars <- union(vars, vars_covariates)
     }
     outcome_df <- stats::aggregate(data_df[nm_outcome_data], data_df[vars], fun_ag_outcome)
+    outcome <- outcome_df[[nm_outcome_data]]
     if (has_offset) {
-      fun_ag_offset <- get_fun_ag_offset(mod)
       offset_df <- stats::aggregate(data_df[nm_offset_data], data_df[vars], fun_ag_offset)
-      data_df <- merge(outcome_df, offset_df, by = vars)
+      offset <- offset_df[[nm_offset_data]]
     }
     else {
-      data_df <- outcome_df
+      ones <- rep.int(1, times = nrow(data_df))
+      offset_df <- stats::aggregate(ones, data_df[vars], fun_ag_offset)
+      offset <- offset_df[[length(offset_df)]]
     }
+    data_df <- offset_df
   }
-  outcome <- data_df[[nm_outcome_data]]
-  if (has_offset)
-    offset <- data_df[[nm_offset_data]]
-  else
-    offset <- rep(1, times = nrow(data_df))
+  else {
+    outcome <- data_df[[nm_outcome_data]]
+    if (has_offset)
+      offset <- data_df[[nm_offset_data]]
+    else
+      offset <- rep.int(1, times = nrow(data_df))
+  }
   matrices_effect_outcome <- make_matrices_effect_outcome(data = data_df,
                                                           dimnames_terms = dimnames_terms)
   if (has_covariates)

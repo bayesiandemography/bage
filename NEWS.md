@@ -15,6 +15,14 @@
   vignette, and on online help, to describe case where `s = 0`. Also
   updated descriptio of prior in online help to match current
   implementation.
+  
+## Bug fixes
+
+* Fixed bug in RR3, where values for rates were being calculated from
+  confidentialized values of the outcome variable, rather than
+  (imputed) true values.
+* Fixed bug in aggregation of weights for normal model, when `weights =
+  1`.
 
 
 # bage 0.9.4
