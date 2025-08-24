@@ -8,9 +8,9 @@
 * Deprecated the use of formulas for specifying exposure, size, or
   weights. Formulas complicate measurement error models and forecasts.
   Formulas will be completely removed in future.
-  * In `replicate_data()`, changed the default for `condition_on` to
-    `"fitted"` in cases where dispersion is zero, since the
-    `"expected"` option is not permitted in these cases.
+* In `replicate_data()`, changed the default for `condition_on` to
+  `"fitted"` in cases where dispersion is zero, since the
+  `"expected"` option is not permitted in these cases.
 
 ## Documentation 
 
