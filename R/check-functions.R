@@ -704,8 +704,8 @@ check_mod_has_obs <- function(mod) {
     if (n_na_effects > 0L)
       msg <- c(msg, i = "Number of rows where predictor is {.val {NA}}: {.val {n_na_effects}}.")
     nm_offset_data <- get_nm_offset_data(mod)
-    has_offset <- has_offset(mod)
-    if (has_offset) {
+    has_varying_offset <- has_varying_offset(mod)
+    if (has_varying_offset) {
       nm_offset_mod <- get_nm_offset_mod(mod)
       n_na_offset <- sum(!is_in_lik_offset)
       if (n_na_offset > 0L)

@@ -118,7 +118,7 @@ test_that("'draw_fitted' throws expected error with invalid 'nm_distn'", {
 
 ## 'draw_outcome_true' ---------------------------------------------------
 
-test_that("'draw_outcome_true' works with pois", {
+test_that("'draw_outcome_true' works with pois - offset numeric, no NA", {
   set.seed(0)
   offset <- runif(n = 20, max = 100)
   fitted <- rvec::rpois_rvec(n = 20, lambda = 10, n_draw = 50)
@@ -129,6 +129,40 @@ test_that("'draw_outcome_true' works with pois", {
                                     disp = NULL)
   set.seed(1)
   ans_expected <- rvec::rpois_rvec(n = 20, lambda = offset * fitted)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_true' works with pois - offset rvec, has NA", {
+  set.seed(0)
+  offset <- rvec::runif_rvec(n = 20, max = 100, n_draw = 10)
+  offset[1] <- NA
+  fitted <- rvec::rpois_rvec(n = 20, lambda = 10, n_draw = 10)
+  set.seed(1)
+  ans_obtained <- draw_outcome_true(nm_distn = "pois",
+                                    fitted = fitted,
+                                    offset = offset,
+                                    disp = NULL)
+  set.seed(1)
+  ans_expected <- vctrs::vec_c(NA,
+                               rvec::rpois_rvec(n = 19,
+                                                lambda = offset[-1] * fitted[-1]))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_true' works with pois - no offset, fitted has NA", {
+  set.seed(0)
+  offset <- rep(1, 20)
+  fitted <- rvec::rpois_rvec(n = 20, lambda = 10, n_draw = 10)
+  fitted[1] <- NA
+  set.seed(1)
+  ans_obtained <- draw_outcome_true(nm_distn = "pois",
+                                    fitted = fitted,
+                                    offset = offset,
+                                    disp = NULL)
+  set.seed(1)
+  ans_expected <- vctrs::vec_c(NA,
+                               rvec::rpois_rvec(n = 19,
+                                                lambda = fitted[-1]))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -148,7 +182,7 @@ test_that("'draw_outcome_true' works with binom", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'draw_outcome_true' works with norm", {
+test_that("'draw_outcome_true' works with norm - has weights, no NA", {
   set.seed(0)
   offset <- runif(n = 20)
   fitted <- rvec::rnorm_rvec(n = 20, mean = 3, sd = 2, n_draw = 50)
@@ -162,6 +196,26 @@ test_that("'draw_outcome_true' works with norm", {
   ans_expected <- rvec::rnorm_rvec(n = 20,
                                    mean = fitted,
                                    sd = disp / sqrt(offset))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_true' works with norm - no weights, fitted has NA", {
+  set.seed(0)
+  offset <- rep(1, 20)
+  fitted <- rvec::rnorm_rvec(n = 20, mean = 3, sd = 2, n_draw = 50)
+  fitted[20] <- NA
+  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
+  set.seed(1)
+  ans_obtained <- draw_outcome_true(nm_distn = "norm",
+                                    fitted = fitted,
+                                    offset = offset,
+                                    disp = disp)
+  set.seed(1)
+  ans_expected <- vctrs::vec_c(
+    rvec::rnorm_rvec(n = 19,
+                     mean = fitted[-20],
+                     sd = disp / sqrt(offset[-20])),
+    NA)
   expect_equal(ans_obtained, ans_expected)
 })
 

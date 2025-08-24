@@ -60,7 +60,7 @@ test_that("'draw_offset_obs_given_true' works with bage_datamod_exposure", {
 
 ## 'draw_offset_true_given_obs' -----------------------------------------------
 
-test_that("'draw_offset_true_given_obs' works with bage_datamod_exposure, has NA", {
+test_that("'draw_offset_true_given_obs' works with bage_datamod_exposure, outcome_obs is numeric, has NA", {
   set.seed(0)
   ratio_ratio <- c(0.5, 0.2, 0.3, 0.4)
   ratio_levels <- 1:4
@@ -141,7 +141,7 @@ test_that("'draw_offset_true_given_obs' throws expectd error with non-Poisson", 
 
 ## 'draw_outcome_obs_given_true' ----------------------------------------------
 
-test_that("'draw_outcome_obs_given_true' works with bage_datamod_miscount", {
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_miscount - outcome_true is numeric", {
   set.seed(0)
   prob_mean <- c(0.5, 0.2, 0.3, 0.4)
   prob_disp <- rep(0.4, 4)
@@ -185,7 +185,51 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_miscount", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise", {
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_miscount - outcome_true is rvec", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       rate_mean = rate_mean,
+                                       rate_disp = rate_disp,
+                                       rate_levels = rate_levels,
+                                       rate_matrix_outcome = rate_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 7)),
+    component = c("(Intercept)", rep(c("prob", "rate"), times = c(4, 3))),
+    level = c("(Intercept)", 0:3, 1:3),
+    .fitted = rvec::runif_rvec(n = 8, n_draw = 10)
+  )
+  outcome_true <- rvec::rpois_rvec(12, lambda = 5, n_draw = 10)
+  offset <- runif(12, max = 10)
+  offset[1] <- NA
+  fitted <- rvec::rgamma_rvec(12, shape = 1, rate = 0.2, n_draw = 10)
+  set.seed(1)
+  ans_obtained <- draw_outcome_obs_given_true(datamod = datamod,
+                                              components = components,
+                                              outcome_true = outcome_true,
+                                              offset = offset,
+                                              fitted = fitted)
+  set.seed(1)
+  pi <- rep(components$.fitted[2:5], times = 3)
+  alpha <- rep(components$.fitted[6:8], each = 4)
+  u <- rvec::rbinom_rvec(n = 11, size = outcome_true[-1], prob = pi[-1])
+  v <- rvec::rpois_rvec(n = 11, lambda = alpha[-1] * fitted[-1] * offset[-1])
+  ans_expected <- vctrs::vec_c(NA, u + v)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is numeric", {
   set.seed(0)
   mean_mean <- c(0.5, 0.2, 0.3, -0.4)
   mean_levels <- 1:4
@@ -202,7 +246,7 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise", {
                                     nms_by = c("sex", "age"))
   outcome <- rnorm(12)
   outcome[12] <- NA
-  offset <- runif(12, max = 10)
+  offset <- runif(12, min = 1, max = 10)
   fitted <- rvec::rnorm_rvec(12, n_draw = 10)
   set.seed(1)
   ans_obtained <- draw_outcome_obs_given_true(datamod = datamod,
@@ -219,7 +263,41 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'draw_outcome_obs_given_true' works with bage_datamod_overcount", {
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is rvec", {
+  set.seed(0)
+  mean_mean <- c(0.5, 0.2, 0.3, -0.4)
+  mean_levels <- 1:4
+  mean_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  sd_sd <- c(0.3, 0.3, 0.2)
+  sd_levels <- 1:3
+  sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
+                                    mean_levels = mean_levels,
+                                    mean_matrix_outcome = mean_matrix_outcome,
+                                    sd = sd_sd,
+                                    sd_levels = sd_levels,
+                                    sd_matrix_outcome = sd_matrix_outcome,
+                                    nms_by = c("sex", "age"))
+  outcome <- rvec::rnorm_rvec(n = 12, n_draw = 10)
+  outcome[12] <- NA
+  offset <- runif(12, min = 1, max = 10)
+  fitted <- rvec::rnorm_rvec(12, n_draw = 10)
+  set.seed(1)
+  ans_obtained <- draw_outcome_obs_given_true(datamod = datamod,
+                                              components = NULL,
+                                              outcome_true = outcome,
+                                              offset = offset,
+                                              fitted = fitted)
+  set.seed(1)
+  noise <- rvec::rnorm_rvec(n = 11,
+                            mean = get_datamod_mean(datamod)[-12],
+                            sd = get_datamod_sd(datamod)[-12],
+                            n_draw = 10)
+  ans_expected <- vctrs::vec_c(outcome[-12] + noise, NA)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_overcount - oucome_obs is numeric", {
   set.seed(0)
   rate_mean <- c(0.3, 0.3, 0.2)
   rate_disp <- c(0.5, 0.2, 0.6)
@@ -254,7 +332,42 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_overcount", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'draw_outcome_obs_given_true' works with bage_datamod_undercount", {
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_overcount - outcome_true is rvec", {
+  set.seed(0)
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
+                                        rate_disp = rate_disp,
+                                        rate_levels = rate_levels,
+                                        rate_matrix_outcome = rate_matrix_outcome,
+                                        nms_by = c("sex", "age"))
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 3)),
+    component = c("(Intercept)", rep("rate", times = 3)),
+    level = c("(Intercept)", 1:3),
+    .fitted = rvec::runif_rvec(n = 4, n_draw = 10)
+  )
+  outcome_true <- rvec::rpois_rvec(12, lambda = 5, n_draw = 10)
+  offset <- runif(12, max = 10)
+  offset[1] <- NA
+  fitted <- rvec::rgamma_rvec(12, shape = 1, rate = 0.2, n_draw = 10)
+  set.seed(1)
+  ans_obtained <- draw_outcome_obs_given_true(datamod = datamod,
+                                              components = components,
+                                              outcome_true = outcome_true,
+                                              offset = offset,
+                                              fitted = fitted)
+  set.seed(1)
+  alpha <- rep(components$.fitted[2:4], each = 4)
+  v <- rvec::rpois_rvec(n = 11,
+                        lambda = alpha[-1] * fitted[-1] * offset[-1])
+  ans_expected <- vctrs::vec_c(NA, outcome_true[-1] + v)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_undercount - outcome_true is numeric", {
   set.seed(0)
   prob_mean <- c(0.5, 0.2, 0.3, 0.4)
   prob_disp <- rep(0.4, 4)
@@ -287,6 +400,41 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_undercount", {
   ans_expected <- vctrs::vec_c(NA, u)
   expect_equal(ans_obtained, ans_expected)
 })
+
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_undercount - outcome_true is rvec", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
+                                         prob_disp = prob_disp,
+                                         prob_levels = prob_levels,
+                                         prob_matrix_outcome = prob_matrix_outcome,
+                                         nms_by = c("sex", "age"))
+  components <- tibble::tibble(
+    term = c("(Intercept)", rep("datamod", 4)),
+    component = c("(Intercept)", rep("prob", times = 4)),
+    level = c("(Intercept)", 0:3),
+    .fitted = rvec::runif_rvec(n = 5, n_draw = 10)
+  )
+  outcome_true <- rvec::rpois_rvec(12, lambda = 5, n_draw = 10)
+  offset <- runif(12, max = 10)
+  offset[1] <- NA
+  fitted <- rvec::rgamma_rvec(12, shape = 1, rate = 0.2, n_draw = 10)
+  set.seed(1)
+  ans_obtained <- draw_outcome_obs_given_true(datamod = datamod,
+                                              components = components,
+                                              outcome_true = outcome_true,
+                                              offset = offset,
+                                              fitted = fitted)
+  set.seed(1)
+  pi <- rep(components$.fitted[2:5], times = 3)
+  u <- rvec::rbinom_rvec(n = 11, size = outcome_true[-1], prob = pi[-1])
+  ans_expected <- vctrs::vec_c(NA, u)
+  expect_equal(ans_obtained, ans_expected)
+})
+
 
 
 ## 'draw_outcome_true_given_obs' -----------------------------------------------
@@ -1031,9 +1179,26 @@ test_that("'make_expected_obs_exposure' works", {
 
 ## 'draw_outcome_true_binom_betabinom' ----------------------------------------
 
-test_that("'draw_outcome_true_binom_betabinom' works with valid inputs", {
+test_that("'draw_outcome_true_binom_betabinom' works with valid inputs - outcome is numeric", {
   set.seed(0)
   outcome <- rpois(12, lambda = 5)
+  offset <- rpois(12, lambda = 100) + 1
+  expected <- rvec::runif_rvec(12, n_draw = 10)
+  disp <- rvec::runif_rvec(1, n_draw = 10)
+  prob <- rvec::runif_rvec(n = 12, n_draw = 10)
+  set.seed(1)
+  ans <- draw_outcome_true_binom_betabinom(outcome = outcome,
+                                           offset = offset,
+                                           expected = expected,
+                                           disp = disp,
+                                           prob = prob)
+  expect_true(rvec::is_rvec(ans))
+  expect_true(all(draws_all(ans <= offset)))
+})
+
+test_that("'draw_outcome_true_binom_betabinom' works with valid inputs - outcome is rvec", {
+  set.seed(0)
+  outcome <- rvec::rpois_rvec(12, lambda = 5, n_draw = 10)
   offset <- rpois(12, lambda = 100) + 1
   expected <- rvec::runif_rvec(12, n_draw = 10)
   disp <- rvec::runif_rvec(1, n_draw = 10)

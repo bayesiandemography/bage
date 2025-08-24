@@ -100,20 +100,39 @@ draw_outcome_true <- function(nm_distn,
                               fitted,
                               offset,
                               disp) {
-  n <- length(offset)
+  n_draw <- rvec::n_draw(fitted)
+  n_val <- length(fitted)
+  has_disp <- !is.null(disp)
+  fitted <- as.numeric(fitted)
+  if (rvec::is_rvec(offset))
+    offset <- as.numeric(offset)
+  else
+    offset <- rep(offset, times = n_draw)
+  if (has_disp) {
+    disp <- as.numeric(disp)
+    disp <- rep(disp, each = n_val)
+  }
+  is_ok <- !is.na(offset) & !is.na(fitted)
+  n_ok <- sum(is_ok)
+  ans <- rep.int(NA_real_, times = n_val * n_draw)
   if (nm_distn == "pois") {
-    lambda <- fitted * offset
-    ans <- rvec::rpois_rvec(n = n, lambda = lambda)
+    lambda <- fitted[is_ok] * offset[is_ok]
+    ans[is_ok] <- rpois_guarded(lambda)
   }
   else if (nm_distn == "binom") {
-    ans <- rvec::rbinom_rvec(n = n, size = offset, prob = fitted)
+    size <- offset[is_ok]
+    prob <- fitted[is_ok]
+    ans[is_ok] <- rbinom_guarded(size = size, prob = prob)
   }
   else if (nm_distn == "norm") {
-    sd <- disp / sqrt(offset)
-    ans <- rvec::rnorm_rvec(n = n, mean = fitted, sd = sd)
+    mean <- fitted[is_ok]
+    sd <- disp[is_ok] / sqrt(offset[is_ok])
+    ans[is_ok] <- stats::rnorm(n = n_ok, mean = mean, sd = sd)
   }
   else
     cli::cli_abort("Internal error: Invalid value for {.var nm_distn}.")
+  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 

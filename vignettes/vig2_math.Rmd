@@ -1399,15 +1399,32 @@ The data that we supply to TMB is a a filtered and aggregated version of the dat
 
 In the filtering stage, we remove any rows where (i) the offset is 0 or NA, or (ii) the outcome variable is NA.
 
-In the aggregation stage, we identify any rows in the data that duplicated combinations of classification variables. For instance, if the classification variables are `age` and `sex`, and we have two rows where `age` is `"20-24"` and sex is `"Female"`, then these rows would count as duplicated combinations. We aggregate offset and outcome variables across these duplicates. With Poisson and binomial models, the aggregation formula for outcomes is
+In the aggregation stage, we identify any rows in the data where there are duplicated combinations of classification variables. For instance, if the classification variables are `age` and `sex`, and we have two rows where `age` is `"20-24"` and sex is `"Female"`, then these rows would count as duplicated combinations. We aggregate offset and outcome variables across these duplicates.
+
+Let $D$ be the number of times a particular combination is duplicated. 
+
+With Poisson models, the aggregation formula for outcomes is
 \begin{equation}
   y^{\text{new}} = \sum_{i=1}^D y_i^{\text{old}},
 \end{equation}
-and the aggregation formula for exposure/size is
+and the aggregation formula for exposure is
 \begin{equation}
-  w^{\text{new}} = \sum_{i=1}^D w_i^{\text{old}},
+  w^{\text{new}} = \begin{cases}
+    1 & \text{if } w_i^{\text{old}} \equiv 1 \\
+    \sum_{i=1}^D w_i^{\text{old}} & \text{otherwise}.
+  \end{cases}
 \end{equation}
-where $D$ is the number of times a particular combination is duplicated. With normal models, the aggregation formula for outcomes is
+
+With binomial models, the aggregation formula for outcomes is
+\begin{equation}
+  y^{\text{new}} = \sum_{i=1}^D y_i^{\text{old}},
+\end{equation}
+and the aggregation formula for size is
+\begin{equation}
+  w^{\text{new}} = \sum_{i=1}^D w_i^{\text{old}}.
+\end{equation}
+
+With normal models, the aggregation formula for outcomes is
 \begin{equation}
   y^{\text{new}} = \frac{\sum_{i=1}^D y_i^{\text{old}}}{D},
 \end{equation}

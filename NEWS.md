@@ -8,12 +8,15 @@
 * Deprecated the use of formulas for specifying exposure, size, or
   weights. Formulas complicate measurement error models and forecasts.
   Formulas will be completely removed in future.
+  * In `replicate_data()`, changed the default for `condition_on` to
+    `"fitted"` in cases where dispersion is zero, since the
+    `"expected"` option is not permitted in these cases.
 
 ## Documentation 
 
 * Extended documentation of `Lin()` prior in Mathematical Details
   vignette, and on online help, to describe case where `s = 0`. Also
-  updated descriptio of prior in online help to match current
+  updated description of prior in online help to match current
   implementation.
   
 ## Bug fixes
@@ -21,8 +24,9 @@
 * Fixed bug in RR3, where values for rates were being calculated from
   confidentialized values of the outcome variable, rather than
   (imputed) true values.
-* Fixed bug in aggregation of weights for normal model, when `weights =
-  1`.
+* Fixed bug in aggregation of exposure for Poisson where `exposure =
+  1`, and aggregation of weights in normal models where `weights = 1`.
+  
 
 
 # bage 0.9.4
