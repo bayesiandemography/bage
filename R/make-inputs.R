@@ -530,10 +530,10 @@ make_data_df <- function(mod) {
   ans <- mod$data
   nm_outcome_data <- get_nm_outcome_data(mod)
   nm_offset_data <- get_nm_offset_data(mod)
-  has_offset <- has_offset(mod)
+  has_varying_offset <- has_varying_offset(mod)
   is_in_lik <- get_is_in_lik(mod)
   ans[[nm_outcome_data]] <- mod$outcome
-  if (has_offset)
+  if (has_varying_offset)
     ans[[nm_offset_data]] <- mod$offset
   ans <- ans[is_in_lik, , drop = FALSE]
   ans <- tibble::tibble(ans)
@@ -1232,10 +1232,10 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
   dimnames_terms <- mod$dimnames_terms
   nm_outcome_data <- get_nm_outcome_data(mod)
   nm_offset_data <- get_nm_offset_data(mod)
-  has_offset <- has_offset(mod)
+  has_varying_offset <- has_varying_offset(mod)
   data_df <- make_data_df(mod)
   has_covariates <- has_covariates(mod)
-  has_offset <- has_offset(mod)
+  has_varying_offset <- has_varying_offset(mod)
   if (has_covariates)
     formula_covariates <- mod$formula_covariates
   if (aggregate) {
@@ -1249,7 +1249,7 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
     }
     outcome_df <- stats::aggregate(data_df[nm_outcome_data], data_df[vars], fun_ag_outcome)
     outcome <- outcome_df[[nm_outcome_data]]
-    if (has_offset) {
+    if (has_varying_offset) {
       offset_df <- stats::aggregate(data_df[nm_offset_data], data_df[vars], fun_ag_offset)
       offset <- offset_df[[nm_offset_data]]
     }
@@ -1262,7 +1262,7 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
   }
   else {
     outcome <- data_df[[nm_outcome_data]]
-    if (has_offset)
+    if (has_varying_offset)
       offset <- data_df[[nm_offset_data]]
     else
       offset <- rep.int(1, times = nrow(data_df))

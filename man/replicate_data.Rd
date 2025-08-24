@@ -63,21 +63,19 @@ then (ii) conditional on these hyper-parameters,
 drawing values for the rates or probabilities,
 and finally (iii) conditional on these
 rates or probabilities, drawing values for the
-outcome variable.
+outcome variable. The `"expected" option
+is only possible in Poisson and binomial models,
+and only when dispersion is non-zero.
 }
 
-The default for \code{condition_on} is \code{"expected"}.
+The default for \code{condition_on} is \code{"expected"},
+in cases where it is feasible.
 The \code{"expected"} option
 provides a more severe test for
 a model than the \code{"fitted"} option,
 since "fitted" values are weighted averages
 of the "expected" values and the original
 data.
-
-As described in \code{\link[=mod_norm]{mod_norm()}}, normal models
-have a different structure from Poisson
-and binomial models, and the distinction between
-\code{"fitted"} and \code{"expected"} does not apply.
 }
 
 \section{Data models for outcomes}{

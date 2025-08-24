@@ -120,7 +120,111 @@ test_that("'fit_default' gives error with 'start_oldpar' if model fitted", {
                "`start_oldpar` is TRUE but model has not been fitted.")
 })
 
-test_that("'fit_default' gives same answer with and without aggregation - norm", {
+test_that("'fit_default' gives same answer with and without aggregation - Poisson, has offset", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4,
+                      time = 2000:2005,
+                      sex = c("F", "M"),
+                      replicate = 1:10)
+  data$deaths <- with(data, -1995 + (sex == "F") - age + time)
+  data$popn <- runif(n = nrow(data), min = 1000, max = 1200)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod_ag <- fit_default(mod,
+                        optimizer = "multi",
+                        quiet = TRUE,
+                        aggregate = TRUE,
+                        start_oldpar = FALSE)
+  mod_nonag <- fit_default(mod,
+                           optimizer = "multi",
+                           quiet = TRUE,
+                           aggregate = FALSE,
+                           start_oldpar = FALSE)
+  disp_ag <- mod_ag |>
+    components() |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  disp_nonag <- mod_nonag |>
+    components() |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  expect_equal(disp_ag, disp_nonag, tolerance = 0.1)
+})
+
+test_that("'fit_default' gives same answer with and without aggregation - Poisson, no offset", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4,
+                      time = 2000:2005,
+                      sex = c("F", "M"),
+                      replicate = 1:10)
+  data$deaths <- with(data, -1995 + (sex == "F") - age + time)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1)
+  mod_ag <- fit_default(mod,
+                        optimizer = "multi",
+                        quiet = TRUE,
+                        aggregate = TRUE,
+                        start_oldpar = FALSE)
+  mod_nonag <- fit_default(mod,
+                           optimizer = "multi",
+                           quiet = TRUE,
+                           aggregate = FALSE,
+                           start_oldpar = FALSE)
+  disp_ag <- mod_ag |>
+    components() |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  disp_nonag <- mod_nonag |>
+    components() |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  expect_equal(disp_ag, disp_nonag, tolerance = 0.1)
+})
+
+test_that("'fit_default' gives same answer with and without aggregation - binomial", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4,
+                      time = 2000:2005,
+                      sex = c("F", "M"),
+                      replicate = 1:10)
+  data$deaths <- with(data, -1995 + (sex == "F") - age + time)
+  data$popn <- max(data$deaths) + rpois(n = nrow(data), lambda = 50)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  mod_ag <- fit_default(mod,
+                        optimizer = "multi",
+                        quiet = TRUE,
+                        aggregate = TRUE,
+                        start_oldpar = FALSE)
+  mod_nonag <- fit_default(mod,
+                           optimizer = "multi",
+                           quiet = TRUE,
+                           aggregate = FALSE,
+                           start_oldpar = FALSE)
+  disp_ag <- mod_ag |>
+    components() |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  disp_nonag <- mod_nonag |>
+    components() |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  expect_equal(disp_ag, disp_nonag, tolerance = 0.1)
+})
+
+test_that("'fit_default' gives same answer with and without aggregation - norm, offset = 1", {
   set.seed(10)
   data <- expand.grid(age = 0:4,
                       time = 2000:2005,
@@ -155,6 +259,43 @@ test_that("'fit_default' gives same answer with and without aggregation - norm",
     rvec::draws_median()
   expect_equal(disp_ag, disp_nonag, tolerance = 0.1)
 })
+
+test_that("'fit_default' gives same answer with and without aggregation - norm, offset varying", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4,
+                      time = 2000:2005,
+                      sex = c("F", "M"),
+                      replicate = 1:10)
+  mean <- with(data, -1995 + (sex == "F") - age + time)
+  data$income <- rnorm(n = nrow(data), mean = mean, sd = 0.1)
+  data$wt <- runif(n = nrow(data), min = 10, max = 20)
+  formula <- income ~ age + sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  mod_ag <- fit_default(mod,
+                        optimizer = "multi",
+                        quiet = TRUE,
+                        aggregate = TRUE,
+                        start_oldpar = FALSE)
+  mod_nonag <- fit_default(mod,
+                           optimizer = "multi",
+                           quiet = TRUE,
+                           aggregate = FALSE,
+                           start_oldpar = FALSE)
+  disp_ag <- mod_ag |>
+    components(original_scale = TRUE, quiet = TRUE) |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  disp_nonag <- mod_nonag |>
+    components(original_scale = TRUE, quiet = TRUE) |>
+    dplyr::filter(term == "disp") |>
+    dplyr::pull(.fitted) |>
+    rvec::draws_median()
+  expect_equal(disp_ag, disp_nonag, tolerance = 0.1)
+})
+
 
 
 

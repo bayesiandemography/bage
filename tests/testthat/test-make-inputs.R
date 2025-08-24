@@ -1470,7 +1470,7 @@ test_that("'make_outcome_offset_matrices' works with model without offset", {
   ans_obtained <- make_outcome_offset_matrices(mod, aggregate = TRUE)
   data_ag <- aggregate(data["deaths"], data[c("age", "sex", "region")], sum)
   ans_expected <- list(outcome = data_ag[["deaths"]],
-                       offset = rep(2, times = nrow(data_ag)),
+                       offset = rep(1, times = nrow(data_ag)),
                        matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
                                                                               mod$dimnames_terms),
                        matrix_covariates = matrix(NA_real_, nrow = 0, ncol = 0))

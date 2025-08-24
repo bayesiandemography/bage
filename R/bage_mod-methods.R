@@ -482,10 +482,10 @@ draw_vals_augment_fitted.bage_mod <- function(mod, quiet) {
   has_datamod_offset <- has_datamod && !has_datamod_outcome
   has_missing_outcome <- anyNA(outcome)
   has_disp <- has_disp(mod)
-  has_offset <- has_offset(mod)
+  has_varying_offset <- has_varying_offset(mod)
   ## create return object, possibly includin '.observed'
   ans <- mod$data
-  if (has_offset)
+  if (has_varying_offset)
     ans$.observed <- outcome / offset
   ## draw values for outcome and offset, where necessary
   if (has_confidential) {
@@ -538,7 +538,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod, quiet) {
     nm_outcome_data_true <- paste0(".", nm_outcome_data)
     if (!quiet) {
       cli::cli_alert_info(paste("Adding variable {.var {nm_outcome_data_true}}",
-                                "with true values for ",
+                                "with true values for",
                                 "{.var {nm_outcome_data}}."))
     }
     ans <- insert_after(df = ans,
@@ -620,7 +620,7 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod, quiet) {
     nm_outcome_data_true <- paste0(".", nm_outcome_data)
     if (!quiet) {
       cli::cli_alert_info(paste("Adding variable {.var {nm_outcome_data_true}}",
-                                "with true values for ",
+                                "with true values for",
                                 "{.var {nm_outcome_data}}."))
     }
     ans <- insert_after(df = ans,
@@ -755,8 +755,8 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, quiet) {
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ## add '.observed', '.fitted', and, in models
   ## with dispersion, '.expected', and return
-  has_offset <- has_offset(mod)
-  if (has_offset)
+  has_varying_offset <- has_varying_offset(mod)
+  if (has_varying_offset)
     ans$.observed <- ans[[nm_outcome_data]] / ans[[nm_offset_data]]
   ans$.fitted <- fitted
   if (has_disp)
@@ -1353,7 +1353,7 @@ forecast_augment.bage_mod <- function(mod,
   nm_outcome_data_true <- paste0(".", nm_outcome_data)
   nm_offset_data <- get_nm_offset_data(mod)
   nm_offset_data_true <- paste0(".", nm_offset_data)
-  has_offset_est <- has_offset(mod)
+  has_offset_est <- has_varying_offset(mod)
   has_disp <- has_disp(mod)
   inv_transform <- get_fun_inv_transform(mod)
   var_time <- mod$var_time
@@ -1483,7 +1483,7 @@ forecast_augment.bage_mod_norm <- function(mod,
   nm_outcome_data <- get_nm_outcome_data(mod)
   nm_outcome_data_true <- paste0(".", nm_outcome_data)
   nm_offset_data <- get_nm_offset_data(mod)
-  has_offset_est <- has_offset(mod)
+  has_offset_est <- has_varying_offset(mod)
   fun_orig_scale_linpred <- get_fun_orig_scale_linpred(mod)
   fun_orig_scale_disp <- get_fun_orig_scale_disp(mod)
   var_time <- mod$var_time
@@ -1584,7 +1584,20 @@ get_fun_ag_offset <- function(mod) {
 
 ## HAS_TESTS
 #' @export
-get_fun_ag_offset.bage_mod <- function(mod) sum
+get_fun_ag_offset.bage_mod_pois <- function(mod) {
+  has_varying_offset <- has_varying_offset(mod)
+  if (has_varying_offset)
+    return(sum)
+  else
+    return(function(x) 1)
+}
+
+## HAS_TESTS
+#' @export
+get_fun_ag_offset.bage_mod_binom <- function(mod) {
+  sum
+}
+
 
 ## HAS_TESTS
 #' @export
@@ -1935,7 +1948,7 @@ has_disp.bage_mod <- function(mod) {
 
 
 
-## 'has_offset' ---------------------------------------------------------------
+## 'has_varying_offset' ---------------------------------------------------------------
 
 #' Test Whether a Model Includes an Offset
 #'
@@ -1944,13 +1957,13 @@ has_disp.bage_mod <- function(mod) {
 #' @returns `TRUE` or `FALSE`
 #'
 #' @noRd
-has_offset <- function(mod) {
-    UseMethod("has_offset")
+has_varying_offset <- function(mod) {
+    UseMethod("has_varying_offset")
 }
 
 ## HAS_TESTS
 #' @export
-has_offset.bage_mod <- function(mod) {
+has_varying_offset.bage_mod <- function(mod) {
   offset <- mod$offset
   nm_offset_data <- mod$nm_offset_data
   if (is.null(offset))
@@ -1971,7 +1984,7 @@ has_offset.bage_mod <- function(mod) {
 
 ## HAS_TESTS
 #' @export
-has_offset.bage_mod_binom <- function(mod) {
+has_varying_offset.bage_mod_binom <- function(mod) {
   offset <- mod$offset
   nm_offset_data <- mod$nm_offset_data
   if (is.null(offset))
@@ -2561,8 +2574,8 @@ print.bage_mod <- function(x, ...) {
                           width = 65L,
                           indent = 3L,
                           exdent = nchar_response + 7L)
-  has_offset <- has_offset(x)
-  if (has_offset) {
+  has_varying_offset <- has_varying_offset(x)
+  if (has_varying_offset) {
     nm_offset_mod <- get_nm_offset_mod(x)
     nm_offset_mod <- sprintf("% *s", nchar_offset, nm_offset_mod)
     str_offset <- sprintf("%s = %s", nm_offset_mod, nm_offset_data)
@@ -2606,7 +2619,7 @@ print.bage_mod <- function(x, ...) {
   cat("\n\n")
   cat(paste(formula_text, collapse = "\n"))
   cat("\n\n")
-  if (has_offset) {
+  if (has_varying_offset) {
     cat(str_offset)
     cat("\n")
   }
@@ -2671,20 +2684,18 @@ print.bage_mod <- function(x, ...) {
 #' drawing values for the rates or probabilities,
 #' and finally (iii) conditional on these
 #' rates or probabilities, drawing values for the
-#' outcome variable.
+#' outcome variable. The `"expected" option
+#' is only possible in Poisson and binomial models,
+#' and only when dispersion is non-zero.
 #'
-#' The default for `condition_on` is `"expected"`.
+#' The default for `condition_on` is `"expected"`,
+#' in cases where it is feasible.
 #' The `"expected"` option
 #' provides a more severe test for
 #' a model than the `"fitted"` option,
 #' since "fitted" values are weighted averages
 #' of the "expected" values and the original
 #' data.
-#'
-#' As described in [mod_norm()], normal models
-#' have a different structure from Poisson
-#' and binomial models, and the distinction between
-#' `"fitted"` and `"expected"` does not apply.
 #'
 #' @section Data models for outcomes:
 #'
@@ -2761,12 +2772,18 @@ replicate_data <- function(x, condition_on = NULL, n = 19) {
 #' @export
 replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
   check_old_version(x = x, nm_x = "x")
-  if (is.null(condition_on))
-    condition_on <- "expected"
-  else
+  has_disp <- has_disp(x)
+  if (is.null(condition_on)) {
+    if (has_disp)
+      condition_on <- "expected"
+    else
+      condition_on <- "fitted"
+  }
+  else {
     condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
-  if (condition_on == "expected")
-    check_has_disp_if_condition_on_expected(x)
+    if (condition_on == "expected")
+      check_has_disp_if_condition_on_expected(x)
+  }
   poputils::check_n(n = n,
                     nm_n = "n",
                     min = 1L,
@@ -2779,7 +2796,6 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
   datamod <- x$datamod
   confidential <- x$confidential
   nm_distn <- nm_distn(x)
-  has_disp <- has_disp(x)
   has_datamod <- has_datamod(x)
   has_datamod_outcome <- has_datamod_outcome(x)
   has_datamod_offset <- has_datamod && !has_datamod_outcome
@@ -2839,12 +2855,18 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
 #' @export
 replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
   check_old_version(x = x, nm_x = "x")
-  if (is.null(condition_on))
-    condition_on <- "expected"
-  else
+  has_disp <- has_disp(x)
+  if (is.null(condition_on)) {
+    if (has_disp)
+      condition_on <- "expected"
+    else
+      condition_on <- "fitted"
+  }
+  else {
     condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
-  if (condition_on == "expected")
-    check_has_disp_if_condition_on_expected(x)
+    if (condition_on == "expected")
+      check_has_disp_if_condition_on_expected(x)
+  }
   poputils::check_n(n = n,
                     nm_n = "n",
                     min = 1L,

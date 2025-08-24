@@ -168,23 +168,33 @@ draw_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
                                                               fitted) {
   n_outcome <- length(outcome_true)
   n_draw <- rvec::n_draw(fitted)
-  ans <- rvec::new_rvec(length = n_outcome, n_draw = n_draw)
+  if (rvec::is_rvec(outcome_true))
+    outcome_true <- as.numeric(outcome_true)
+  else
+    outcome_true <- rep(outcome_true, times = n_draw)
+  offset <- rep(offset, times = n_draw)
+  fitted <- as.numeric(fitted)
   is_ok <- !is.na(outcome_true) & !is.na(offset)
   n_ok <- sum(is_ok)
+  ans <- rep.int(NA_real_, times = n_outcome * n_draw)
   prob <- get_datamod_prob(datamod = datamod,
                            components = components)
   rate <- get_datamod_rate(datamod = datamod,
                            components = components)
-  obs_true <- rvec::rbinom_rvec(n = n_ok,
-                                prob = prob[is_ok],
-                                size = outcome_true[is_ok])
-  obs_false <- rvec::rpois_rvec(n = n_ok,
-                                lambda = rate[is_ok] * fitted[is_ok] * offset[is_ok])
+  prob <- as.numeric(prob)
+  rate <- as.numeric(rate)
+  prob <- prob[is_ok]
+  size <- outcome_true[is_ok]
+  obs_true <- rbinom_guarded(prob = prob, size = size)
+  lambda <- rate[is_ok] * fitted[is_ok] * offset[is_ok]
+  obs_false <- rpois_guarded(lambda)
   ans[is_ok] <- obs_true + obs_false
+  ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 draw_outcome_obs_given_true.bage_datamod_noise <- function(datamod,
                                                            components,
@@ -193,16 +203,23 @@ draw_outcome_obs_given_true.bage_datamod_noise <- function(datamod,
                                                            fitted) {
   n_outcome <- length(outcome_true)
   n_draw <- rvec::n_draw(fitted)
-  ans <- rvec::new_rvec(length = n_outcome, n_draw = n_draw)
+  ans <- rep.int(NA_real_, times = n_outcome * n_draw)
+  if (rvec::is_rvec(outcome_true))
+    outcome_true <- as.numeric(outcome_true)
+  else
+    outcome_true <- rep(outcome_true, times = n_draw)
   is_ok <- !is.na(outcome_true)
   n_ok <- sum(is_ok)
   mean <- get_datamod_mean(datamod)
   sd <- get_datamod_sd(datamod)
-  noise <- rvec::rnorm_rvec(n = n_ok,
-                            mean = mean[is_ok],
-                            sd = sd[is_ok],
-                            n_draw = n_draw)
+  mean <- rep(mean, times = n_draw)
+  sd <- rep(sd, times = n_draw)
+  mean <- mean[is_ok]
+  sd <- sd[is_ok]
+  noise <- stats::rnorm(n = n_ok, mean = mean, sd = sd)
   ans[is_ok] <- outcome_true[is_ok] + noise
+  ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
@@ -215,14 +232,23 @@ draw_outcome_obs_given_true.bage_datamod_overcount <- function(datamod,
                                                                fitted) {
   n_outcome <- length(outcome_true)
   n_draw <- rvec::n_draw(fitted)
-  ans <- rvec::new_rvec(length = n_outcome, n_draw = n_draw)
+  ans <- rep.int(NA_real_, times = n_outcome * n_draw)
+  if (rvec::is_rvec(outcome_true))
+    outcome_true <- as.numeric(outcome_true)
+  else
+    outcome_true <- rep(outcome_true, times = n_draw)
+  offset <- rep(offset, times = n_draw)
+  fitted <- as.numeric(fitted)
   is_ok <- !is.na(outcome_true) & !is.na(offset)
   n_ok <- sum(is_ok)
   rate <- get_datamod_rate(datamod = datamod,
                            components = components)
+  rate <- as.numeric(rate)
   lambda <- rate[is_ok] * fitted[is_ok] * offset[is_ok]
-  obs_false <- rvec::rpois_rvec(n = n_ok, lambda = lambda)
+  obs_false <- rpois_guarded(lambda)
   ans[is_ok] <- outcome_true[is_ok] + obs_false
+  ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
@@ -235,14 +261,23 @@ draw_outcome_obs_given_true.bage_datamod_undercount <- function(datamod,
                                                                 fitted) {
   n_outcome <- length(outcome_true)
   n_draw <- rvec::n_draw(fitted)
-  ans <- rvec::new_rvec(length = n_outcome, n_draw = n_draw)
+  ans <- rep.int(NA_real_, times = n_outcome * n_draw)
+  if (rvec::is_rvec(outcome_true))
+    outcome_true <- as.numeric(outcome_true)
+  else
+    outcome_true <- rep(outcome_true, times = n_draw)
+  offset <- rep(offset, times = n_draw)
+  fitted <- as.numeric(fitted)
   is_ok <- !is.na(outcome_true) & !is.na(offset)
   n_ok <- sum(is_ok)
   prob <- get_datamod_prob(datamod = datamod,
                            components = components)
-  ans[is_ok] <- rvec::rbinom_rvec(n = n_ok,
-                                  prob = prob[is_ok],
-                                  size = outcome_true[is_ok])
+  prob <- as.numeric(prob)
+  size <- outcome_true[is_ok]
+  prob <- prob[is_ok]
+  ans[is_ok] <- rbinom_guarded(prob = prob, size = size)
+  ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
@@ -322,9 +357,8 @@ draw_outcome_true_given_obs.bage_datamod_miscount <- function(datamod,
     rate <- get_datamod_rate(datamod = datamod,
                              components = components)
     prob_obs <- prob[is_ok] / (prob[is_ok] + rate[is_ok])
-    outcome_true_obs <- rvec::rbinom_rvec(n = n_ok,
-                                          size = outcome[is_ok],
-                                          prob = prob_obs)
+    outcome_true_obs <- rbinom_guarded(size = outcome[is_ok],
+                                       prob = prob_obs)
     if (has_disp) {
       size_unobs <- outcome_true_obs + (1 / disp)
       prob_unobs <- ((1 + prob[is_ok] * expected[is_ok] * offset[is_ok] * disp)
@@ -335,8 +369,7 @@ draw_outcome_true_given_obs.bage_datamod_miscount <- function(datamod,
     }
     else {
       lambda <- (1 - prob[is_ok]) * expected[is_ok] * offset[is_ok]
-      outcome_true_unobs <- rvec::rpois_rvec(n = n_ok,
-                                             lambda = lambda)
+      outcome_true_unobs <- rpois_guarded(lambda)
     }
     ans[is_ok] <- outcome_true_obs + outcome_true_unobs
   }
@@ -404,9 +437,8 @@ draw_outcome_true_given_obs.bage_datamod_overcount <- function(datamod,
     prob_obs <- 1 / (1 + rate[is_ok])
     ans <- rvec::new_rvec(length = n_outcome,
                           n_draw = n_draw)
-    ans[is_ok] <- rvec::rbinom_rvec(n = n_ok,
-                                    size = outcome[is_ok],
-                                    prob = prob_obs)
+    ans[is_ok] <- rbinom_guarded(size = outcome[is_ok],
+                                 prob = prob_obs)
   }
   else {
     cli::cli_abort(paste("Internal error: {.var datamod} has class",
@@ -444,8 +476,7 @@ draw_outcome_true_given_obs.bage_datamod_undercount <- function(datamod,
     }
     else {
       lambda <- (1 - prob[is_ok]) * expected[is_ok] * offset[is_ok]
-      outcome_unobs <- rvec::rpois_rvec(n = n_ok,
-                                        lambda = lambda)
+      outcome_unobs <- rpois_guarded(lambda)
     }
     ans[is_ok] <- outcome[is_ok] + outcome_unobs
   }
@@ -462,9 +493,8 @@ draw_outcome_true_given_obs.bage_datamod_undercount <- function(datamod,
       size_unobs <- offset[is_ok] - outcome[is_ok]
       prob_unobs <- ((1 - prob[is_ok]) * expected[is_ok]
         / (1 - prob[is_ok] * expected[is_ok]))
-      outcome_unobs <- rvec::rbinom_rvec(n = n_ok,
-                                         size = size_unobs,
-                                         prob = prob_unobs)
+      outcome_unobs <- rbinom_guarded(size = size_unobs,
+                                      prob = prob_unobs)
       ans[is_ok] <- outcome[is_ok] + outcome_unobs
     }
   }

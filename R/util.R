@@ -281,6 +281,47 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
 }
 
 
+## HAS_TESTS
+#' Version of 'nbinom' With Upper Limit on Mean
+#'
+#' Negative binomial can have numerical problems
+#' and valgrind errors with very large lambda, so switch
+#' to just setting random variate to lambda, above a
+#' given threshold. Warn the user that this is happening.
+#'
+#' @param lambda Expected values. A numeric vector
+#' or an rvec.
+#'
+#' @returns A numeric vector or an rvec
+#'
+#' @noRd
+rpois_guarded <- function(lambda) {
+  threshold <- 1e8
+  is_rvec <- rvec::is_rvec(lambda)
+  if (is_rvec) {
+    n_val <- length(lambda)
+    n_draw <- rvec::n_draw(lambda)
+    lambda <- as.numeric(lambda)
+  }
+  is_gt <- !is.na(lambda) & (lambda > threshold)
+  n_gt <- sum(is_gt)
+  if (n_gt > 0L) {
+    pc <- 100 * mean(is_gt)
+    pc <- signif(pc, digits = 2)
+    cli::cli_warn(c("Large values for {.arg lambda} used to generate Poisson variates.",
+                    i = "{.val {pc}} percent of values for {.arg lambda} are above {.val {threshold}}.",
+                    i = "Using deterministic approximation to generate variates for these values."))
+  }
+  ans <- lambda
+  is_lt <- !is_gt
+  ans[is_lt] <- stats::rpois(n = sum(is_lt), lambda = lambda[is_lt])
+  if (is_rvec) {
+    ans <- matrix(ans, nrow = n_val, ncol = n_draw)
+    ans <- rvec::rvec_dbl(ans)
+  }
+  ans
+}
+
 
 ## HAS_TESTS
 #' Version of 'rpois' With Upper Limit on Lambda
