@@ -56,8 +56,20 @@ jobs:
         with:
           upload-snapshots: true
 
-      - name: Upload 00install.out
+      - name: Upload 00install.out (per-matrix, unique name)
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: install-log
-          path: /home/runner/work/bage/bage/check/bage.Rcheck/00install.out
+          name: install-log-${{ runner.os }}-r${{ matrix.config.r }}-${{ github.run_attempt }}
+          path: '**/Rcheck/00install.out'
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload check results (per-matrix, unique name)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: check-${{ runner.os }}-r${{ matrix.config.r }}-${{ github.run_attempt }}
+          path: '**/Rcheck/**'
+          if-no-files-found: ignore
+          retention-days: 14
