@@ -81,10 +81,10 @@
 <h2 id="introduction">
 <span class="header-section-number">1</span> Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p><strong>bage</strong> (= “Bayesian” + “age”) implements Bayesian hierarchical models for rates, probabilities, and means. The rates, probabilities, and means are cross-classified by variables such as age, sex, region, and time. Models in <strong>bage</strong> can be used for estimation and for forecasting.</p>
-<p><strong>bage</strong> models are built out of smaller submodels. A model for mortality rates, for instance, might contain submodels describing how rates vary over age, sex, and time.</p>
-<p>Internally, <strong>bage</strong> draws on package <a href="https://CRAN.R-project.org/package=TMB" class="external-link">TMB</a> for fitting. <strong>TMB</strong> is fast and can handle large datasets.</p>
-<p>This vignette introduces the main features of <strong>bage</strong>, using data on injuries as a case study.</p>
+<p><code>bage</code> (= “Bayesian” + “age”) implements Bayesian hierarchical models for rates, probabilities, and means. The rates, probabilities, and means are cross-classified by variables such as age, sex, region, and time. Models in <code>bage</code> can be used for estimation and for forecasting.</p>
+<p><code>bage</code> models are built out of smaller submodels. A model for mortality rates, for instance, might contain submodels describing how rates vary over age, sex, and time.</p>
+<p>Internally, <code>bage</code> draws on package <a href="https://CRAN.R-project.org/package=TMB" class="external-link">TMB</a> for fitting. <code>TMB</code> is fast and can handle large datasets.</p>
+<p>This vignette introduces the main features of <code>bage</code>, using data on injuries as a case study.</p>
 </div>
 <div class="section level2" number="2">
 <h2 id="preliminaries">
@@ -94,21 +94,19 @@
 <h3 id="packages">
 <span class="header-section-number">2.1</span> Packages<a class="anchor" aria-label="anchor" href="#packages"></a>
 </h3>
-<p>We begin by loading the packages that we will need for analysing the injuries data. Loading <strong>bage</strong> automatically loads package <strong>rvec</strong>, which contains functions for working with draws from probability distributions. Package <strong>poputils</strong> contains functions for working with demographic data. Packages <strong>dplyr</strong> and <strong>tidyr</strong> are core <a href="https://www.tidyverse.org" class="external-link">tidyverse</a> packages for manipulating data. We use <strong>ggplot2</strong> for graphics.</p>
+<p>We begin by loading the packages that we will need for analysing the injuries data. Loading <code>bage</code> automatically loads package <code>rvec</code>, which contains functions for working with draws from probability distributions. Package <code>poputils</code> contains functions for working with demographic data. Packages <code>dplyr</code> and <code>tidyr</code> are core <a href="https://www.tidyverse.org" class="external-link">tidyverse</a> packages for manipulating data. We use <code>ggplot2</code> for graphics.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/poputils/" class="external-link">poputils</a></span><span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/poputils/" class="external-link">poputils</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="2.2">
 <h3 id="data">
 <span class="header-section-number">2.2</span> Data<a class="anchor" aria-label="anchor" href="#data"></a>
 </h3>
-<p>We analyse a dataset called <code>nzl_injuries</code>. The dataset is included in <strong>bage</strong>. It contains counts of fatal injuries and population in New Zealand, classified by age, sex, ethnicity, and year.</p>
+<p>We analyse a dataset called <code>nzl_injuries</code>. The dataset is included in <code>bage</code>. It contains counts of fatal injuries and population in New Zealand, classified by age, sex, ethnicity, and year.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">nzl_injuries</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 6</span></span></span>
@@ -153,7 +151,7 @@
 </h3>
 <p>The resulting model has the following structure:</p>
 <p><img src="vig1_dag.png" width="90%"></p>
-<p>The number of injuries occurring within each combination of age, sex, ethnicity, and time reflects (i) the population at risk and (ii) an underlying rate that in <strong>bage</strong> is referred to as <code>.fitted</code>. The expected value for <code>.fitted</code> is obtained by summing up values for the intercept, age effect, sex effect, and so forth. The actual value of <code>.fitted</code> can diverge from <code>.expected</code>: the amount of divergence is governed by the <code>disp</code> (dispersion) parameter.</p>
+<p>The number of injuries occurring within each combination of age, sex, ethnicity, and time reflects (i) the population at risk and (ii) an underlying rate that in <code>bage</code> is referred to as <code>.fitted</code>. The expected value for <code>.fitted</code> is obtained by summing up values for the intercept, age effect, sex effect, and so forth. The actual value of <code>.fitted</code> can diverge from <code>.expected</code>: the amount of divergence is governed by the <code>disp</code> (dispersion) parameter.</p>
 <p>The model terms are all given “prior distributions”. A prior distribution is a submodel capturing features of the unknown quantity or quantities being estimated. Possible features include the range within which the quantity is likely to fall, or the amount of smoothness expected in series of values. Priors distributions are a distinctive feature of Bayesian methods.</p>
 </div>
 <div class="section level3" number="3.3">
@@ -184,7 +182,7 @@
 <span><span class="co">#&gt;  n_draw var_time var_age var_sexgender</span></span>
 <span><span class="co">#&gt;    1000     year     age           sex</span></span></code></pre></div>
 <p>The table in the the middle of the printout above shows the default prior distribution assigned to each term. We return to priors in Section <a href="#sec:priors">6</a>.</p>
-<p>The bottom row of the printed object shows various model settings. <code>n_draw</code> is the number of random draws produced by extractor functions, which we discuss in Section <a href="#sec:outputs">5</a>. <code>var_time</code>, <code>var_age</code>, and <code>var_sexgender</code> are the names of the variables in <code>nzl_injuries</code> that represent time, age, and sex or gender. If <strong>bage</strong> fails to correctly identify these variables, they can be identified using functions such as <code><a href="../reference/set_var_time.html">set_var_time()</a></code>.</p>
+<p>The bottom row of the printed object shows various model settings. <code>n_draw</code> is the number of random draws produced by extractor functions, which we discuss in Section <a href="#sec:outputs">5</a>. <code>var_time</code>, <code>var_age</code>, and <code>var_sexgender</code> are the names of the variables in <code>nzl_injuries</code> that represent time, age, and sex or gender. If <code>bage</code> fails to correctly identify these variables, they can be identified using functions such as <code><a href="../reference/set_var_time.html">set_var_time()</a></code>.</p>
 </div>
 </div>
 <div class="section level2" number="4">
@@ -198,10 +196,7 @@
 <p>Function <code><a href="../reference/mod_pois.html">mod_pois()</a></code> specifies a model, but does not actually estimate any of the unknown quantities in the model. For that, we need function <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="4.2">
 <h3 id="reprinting-the-model-object">
@@ -234,7 +229,7 @@
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
 <span><span class="co">#&gt;        0.76     0.32      0.33   13      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Among other things, a new row appears at the bottom of the printout, providing information about the fitting process. The most important value piece of information is whether the calculations have converged.</p>
-<p>One thing the printout does not include is estimates for the model parameters. The reason for excluding them is that there are too many. Statistical models in other R packages often focus on one or two key parameters, such a parameter measuring a treatment effect. In contrast, models in <strong>bage</strong> often estimate values for thousands, or tens of thousands, of parameters.</p>
+<p>One thing the printout does not include is estimates for the model parameters. The reason for excluding them is that there are too many. Statistical models in other R packages often focus on one or two key parameters, such a parameter measuring a treatment effect. In contrast, models in <code>bage</code> often estimate values for thousands, or tens of thousands, of parameters.</p>
 <p>To obtain the estimates from a fitted model, we need specialised extractor functions, which we discuss next.</p>
 </div>
 </div>
@@ -246,7 +241,7 @@
 <h3 id="extractor-functions">
 <span class="header-section-number">5.1</span> Extractor functions<a class="anchor" aria-label="anchor" href="#extractor-functions"></a>
 </h3>
-<p>The two most important extractor functions in <strong>bage</strong> are <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> and <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>. Both of these are generic functions that work on many sorts of R objects (see <a href="https://generics.r-lib.org/index.html" class="external-link">here</a> and <a href="https://www.tidymodels.org/learn/develop/broom/#glossary" class="external-link">here</a>).</p>
+<p>The two most important extractor functions in <code>bage</code> are <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> and <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>. Both of these are generic functions that work on many sorts of R objects (see <a href="https://generics.r-lib.org/index.html" class="external-link">here</a> and <a href="https://www.tidymodels.org/learn/develop/broom/#glossary" class="external-link">here</a>).</p>
 </div>
 <div class="section level3" number="5.2">
 <h3 id="augment">
@@ -256,8 +251,6 @@
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">aug</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 912 × 9</span></span></span>
 <span><span class="co">#&gt;    age   sex    ethnicity  year injuries  popn .observed</span></span>
@@ -282,13 +275,13 @@
 <span><span class="co">#&gt;    .observed                    .fitted                  .expected</span></span>
 <span><span class="co">#&gt;        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0.000<span style="text-decoration: underline;">335</span>    3e-04 (0.00023, 0.00039) 0.00029 (0.00026, 0.00034)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 0.000<span style="text-decoration: underline;">171</span>  7.8e-05 (5.6e-05, 0.00011)   7.5e-05 (6.1e-05, 9e-05)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 0.000<span style="text-decoration: underline;">091</span>4   1e-04 (7.4e-05, 0.00014)   1e-04 (8.6e-05, 0.00012)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 0.000<span style="text-decoration: underline;">221</span>  0.00041 (0.00031, 0.00052)   0.00045 (4e-04, 0.00051)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 0.000<span style="text-decoration: underline;">246</span>    0.00038 (3e-04, 0.00049)   4e-04 (0.00036, 0.00046)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 0.000<span style="text-decoration: underline;">248</span>  0.00035 (0.00027, 0.00045) 0.00037 (0.00033, 0.00041)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 0.000<span style="text-decoration: underline;">532</span>  0.00038 (0.00029, 0.00049) 0.00036 (0.00032, 0.00041)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 0.000<span style="text-decoration: underline;">135</span>  0.00032 (0.00024, 0.00041) 0.00034 (0.00029, 0.00038)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 0.000<span style="text-decoration: underline;">171</span>  7.8e-05 (5.9e-05, 0.00011) 7.5e-05 (6.1e-05, 9.1e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 0.000<span style="text-decoration: underline;">091</span>4   1e-04 (7.5e-05, 0.00014)   1e-04 (8.6e-05, 0.00012)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 0.000<span style="text-decoration: underline;">221</span>  0.00041 (0.00031, 0.00053)   0.00045 (4e-04, 0.00051)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 0.000<span style="text-decoration: underline;">246</span>  0.00038 (0.00029, 0.00048)   4e-04 (0.00036, 0.00046)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 0.000<span style="text-decoration: underline;">248</span>  0.00035 (0.00026, 0.00045) 0.00037 (0.00032, 0.00042)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 0.000<span style="text-decoration: underline;">532</span>    0.00038 (0.00029, 5e-04) 0.00036 (0.00032, 0.00041)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 0.000<span style="text-decoration: underline;">135</span>  0.00032 (0.00024, 0.00042)   0.00034 (3e-04, 0.00038)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 0.000<span style="text-decoration: underline;">331</span>  0.00033 (0.00025, 0.00043) 0.00033 (0.00029, 0.00038)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0.000<span style="text-decoration: underline;">436</span>    0.00031 (0.00024, 4e-04) 0.00031 (0.00027, 0.00035)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 902 more rows</span></span></span></code></pre></div>
@@ -314,16 +307,16 @@
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 89 × 4</span></span></span>
 <span><span class="co">#&gt;    term        component level                  .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)  -1.8 (-3.5, 0.11)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> age         effect    0-4         -1.7 (-3.5, 0.062)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> age         effect    5-9          -2.9 (-4.7, -1.1)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> age         effect    10-14       -2.5 (-4.3, -0.73)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> age         effect    15-19        -0.87 (-2.7, 0.9)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> age         effect    20-24        -0.78 (-2.6, 1.1)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> age         effect    25-29       -0.92 (-2.8, 0.98)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> age         effect    30-34       -0.99 (-2.8, 0.98)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> age         effect    35-39          -1 (-2.8, 0.98)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> age         effect    40-44          -1 (-2.8, 0.98)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)   -1.8 (-3.4, 0.1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> age         effect    0-4         -1.7 (-3.5, 0.028)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> age         effect    5-9          -2.9 (-4.8, -1.1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> age         effect    10-14       -2.5 (-4.3, -0.74)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> age         effect    15-19        -0.87 (-2.6, 0.9)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> age         effect    20-24          -0.78 (-2.6, 1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> age         effect    25-29       -0.91 (-2.8, 0.97)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> age         effect    30-34       -0.98 (-2.8, 0.94)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> age         effect    35-39       -0.99 (-2.9, 0.97)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> age         effect    40-44         -0.99 (-3, 0.92)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 79 more rows</span></span></span></code></pre></div>
 <p>The output from <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> may require a bit of tidying,</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -335,18 +328,18 @@
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 12 × 2</span></span></span>
 <span><span class="co">#&gt;    age              .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4   -1.7 (-3.5, 0.062)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9    -2.9 (-4.7, -1.1)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 -2.5 (-4.3, -0.73)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19  -0.87 (-2.7, 0.9)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20-24  -0.78 (-2.6, 1.1)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29 -0.92 (-2.8, 0.98)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 -0.99 (-2.8, 0.98)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39    -1 (-2.8, 0.98)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 40-44    -1 (-2.8, 0.98)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4   -1.7 (-3.5, 0.028)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9    -2.9 (-4.8, -1.1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 -2.5 (-4.3, -0.74)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19  -0.87 (-2.6, 0.9)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20-24    -0.78 (-2.6, 1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29 -0.91 (-2.8, 0.97)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 -0.98 (-2.8, 0.94)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39 -0.99 (-2.9, 0.97)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 40-44   -0.99 (-3, 0.92)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 45-49  -1.1 (-2.9, 0.94)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> 50-54    -1 (-2.9, 0.96)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> 55-59    -1 (-2.9, 0.96)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> 50-54    -0.99 (-2.9, 1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> 55-59    -1 (-2.9, 0.98)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="5.4">
 <h3 id="posterior-samples">
@@ -358,13 +351,13 @@
 <h3 id="rvecs">
 <span class="header-section-number">5.5</span> Rvecs<a class="anchor" aria-label="anchor" href="#rvecs"></a>
 </h3>
-<p>Draws from probability distributions can be awkward to work with, so <strong>bage</strong> uses a special type of vector called an “rvec”, implemented by package <strong>rvec</strong>. An rvec contains multiple draws, but tries to behave as much as possible like a standard vector. The printout of <code>.fitted</code> and <code>.expected</code> in the <code>aug</code> object above shows medians and 95% credible intervals.</p>
+<p>Draws from probability distributions can be awkward to work with, so <code>bage</code> uses a special type of vector called an “rvec”, implemented by package <code>rvec</code>. An rvec contains multiple draws, but tries to behave as much as possible like a standard vector. The printout of <code>.fitted</code> and <code>.expected</code> in the <code>aug</code> object above shows medians and 95% credible intervals.</p>
 </div>
 <div class="section level3" number="5.6">
 <h3 id="graphing-outputs">
 <span class="header-section-number">5.6</span> Graphing outputs<a class="anchor" aria-label="anchor" href="#graphing-outputs"></a>
 </h3>
-<p>The best way to understand output from a fitted model it to graph it. We first need to prepare data for the graph. We select values for 2018 and use the <code><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci()</a></code> function from <strong>rvec</strong> to create 95% credible intervals.</p>
+<p>The best way to understand output from a fitted model it to graph it. We first need to prepare data for the graph. We select values for 2018 and use the <code><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci()</a></code> function from <code>rvec</code> to create 95% credible intervals.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_plot</span> <span class="op">&lt;-</span> <span class="va">aug</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">year</span> <span class="op">==</span> <span class="fl">2018</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -374,18 +367,18 @@
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 48 × 4</span></span></span>
 <span><span class="co">#&gt;                       .fitted .fitted.lower .fitted.mid .fitted.upper</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0.00023 (0.00017, 0.00029)     0.000<span style="text-decoration: underline;">172</span>    0.000<span style="text-decoration: underline;">227</span>      0.000<span style="text-decoration: underline;">291</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5.8e-05 (4.2e-05, 7.8e-05)     0.000<span style="text-decoration: underline;">041</span>7   0.000<span style="text-decoration: underline;">057</span>5     0.000<span style="text-decoration: underline;">077</span>6</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 8.6e-05 (6.4e-05, 0.00011)     0.000<span style="text-decoration: underline;">064</span>0   0.000<span style="text-decoration: underline;">086</span>4     0.000<span style="text-decoration: underline;">114</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 0.00036 (0.00028, 0.00046)     0.000<span style="text-decoration: underline;">279</span>    0.000<span style="text-decoration: underline;">361</span>      0.000<span style="text-decoration: underline;">456</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 0.00034 (0.00027, 0.00044)     0.000<span style="text-decoration: underline;">269</span>    0.000<span style="text-decoration: underline;">345</span>      0.000<span style="text-decoration: underline;">442</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>   0.00032 (0.00025, 4e-04)     0.000<span style="text-decoration: underline;">247</span>    0.000<span style="text-decoration: underline;">319</span>      0.000<span style="text-decoration: underline;">404</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 0.00034 (0.00026, 0.00043)     0.000<span style="text-decoration: underline;">265</span>    0.000<span style="text-decoration: underline;">337</span>      0.000<span style="text-decoration: underline;">427</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 0.00027 (0.00021, 0.00035)     0.000<span style="text-decoration: underline;">209</span>    0.000<span style="text-decoration: underline;">272</span>      0.000<span style="text-decoration: underline;">349</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 0.00028 (0.00022, 0.00036)     0.000<span style="text-decoration: underline;">219</span>    0.000<span style="text-decoration: underline;">281</span>      0.000<span style="text-decoration: underline;">359</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>   0.00024 (0.00018, 3e-04)     0.000<span style="text-decoration: underline;">177</span>    0.000<span style="text-decoration: underline;">238</span>      0.000<span style="text-decoration: underline;">305</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0.00023 (0.00017, 0.00029)     0.000<span style="text-decoration: underline;">173</span>    0.000<span style="text-decoration: underline;">225</span>      0.000<span style="text-decoration: underline;">295</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5.8e-05 (4.2e-05, 7.9e-05)     0.000<span style="text-decoration: underline;">041</span>6   0.000<span style="text-decoration: underline;">057</span>8     0.000<span style="text-decoration: underline;">079</span>0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 8.7e-05 (6.5e-05, 0.00011)     0.000<span style="text-decoration: underline;">064</span>7   0.000<span style="text-decoration: underline;">087</span>1     0.000<span style="text-decoration: underline;">114</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 0.00036 (0.00028, 0.00045)     0.000<span style="text-decoration: underline;">280</span>    0.000<span style="text-decoration: underline;">361</span>      0.000<span style="text-decoration: underline;">451</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 0.00035 (0.00027, 0.00044)     0.000<span style="text-decoration: underline;">266</span>    0.000<span style="text-decoration: underline;">346</span>      0.000<span style="text-decoration: underline;">441</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 0.00032 (0.00024, 0.00041)     0.000<span style="text-decoration: underline;">243</span>    0.000<span style="text-decoration: underline;">320</span>      0.000<span style="text-decoration: underline;">407</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 0.00034 (0.00026, 0.00043)     0.000<span style="text-decoration: underline;">262</span>    0.000<span style="text-decoration: underline;">338</span>      0.000<span style="text-decoration: underline;">431</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 0.00027 (0.00021, 0.00035)     0.000<span style="text-decoration: underline;">211</span>    0.000<span style="text-decoration: underline;">272</span>      0.000<span style="text-decoration: underline;">349</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 0.00028 (0.00022, 0.00036)     0.000<span style="text-decoration: underline;">216</span>    0.000<span style="text-decoration: underline;">281</span>      0.000<span style="text-decoration: underline;">363</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0.00024 (0.00018, 0.00031)     0.000<span style="text-decoration: underline;">177</span>    0.000<span style="text-decoration: underline;">237</span>      0.000<span style="text-decoration: underline;">309</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 38 more rows</span></span></span></code></pre></div>
-<p>We then use <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot()</a></code> to visualise the outputs. A good way to display <strong>bage</strong> output is to use <code><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon()</a></code> to plot credible intervals, <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> to plot model-based point estimates, and <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> to plot direct estimates.</p>
+<p>We then use <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot()</a></code> to visualise the outputs. A good way to display <code>bage</code> output is to use <code><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon()</a></code> to plot credible intervals, <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> to plot model-based point estimates, and <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> to plot direct estimates.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data_plot</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/age_lower.html" class="external-link">age_mid</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -414,7 +407,7 @@
 <h3 id="current-priors-in-bage">
 <span class="header-section-number">6.2</span> Current priors in bage<a class="anchor" aria-label="anchor" href="#current-priors-in-bage"></a>
 </h3>
-<p><code><a href="../reference/priors.html">help(priors)</a></code> produces a list of priors that have been implemented in <strong>bage</strong>.</p>
+<p><code><a href="../reference/priors.html">help(priors)</a></code> produces a list of priors that have been implemented in <code>bage</code>.</p>
 <p>Some examples:</p>
 <ul>
 <li>
@@ -431,7 +424,7 @@
 <h3 id="defaults">
 <span class="header-section-number">6.3</span> Defaults<a class="anchor" aria-label="anchor" href="#defaults"></a>
 </h3>
-<p><strong>bage</strong> uses the following rules to assign default priors to a model term:</p>
+<p><code>bage</code> uses the following rules to assign default priors to a model term:</p>
 <ul>
 <li>if the term has less than 3 elements, use <code><a href="../reference/NFix.html">NFix()</a></code>;</li>
 <li>otherwise, if the term involves time, use <code><a href="../reference/RW.html">RW()</a></code>, with time as the `along’ dimension;</li>
@@ -449,16 +442,13 @@
 <p>So we re-fit the model.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="6.4">
 <h3 id="svd-based-priors">
 <span class="header-section-number">6.4</span> SVD-based priors<a class="anchor" aria-label="anchor" href="#svd-based-priors"></a>
 </h3>
-<p><strong>bage</strong> implements a special type of prior based on applying a singular value decomposition (SVD) to data from an international database. These SVD-based priors represent the age-sex patterns in demographic processes such as fertility, mortality, and labor force participation in a parsimonious way. The model below, for instance, uses SVD-based priors for age effects and age-time interactions in a model of regional fertility rates in Korea. Note that the number of free parameters (denoted <code>n_par_free</code>) for <code>age</code> and <code>age:time</code> in the printout below is much less than the total number of parameters (denoted <code>n_par</code>) for <code>age</code> and <code>age:time</code>.</p>
+<p><code>bage</code> implements a special type of prior based on applying a singular value decomposition (SVD) to data from an international database. These SVD-based priors represent the age-sex patterns in demographic processes such as fertility, mortality, and labor force participation in a parsimonious way. The model below, for instance, uses SVD-based priors for age effects and age-time interactions in a model of regional fertility rates in Korea. Note that the number of free parameters (denoted <code>n_par_free</code>) for <code>age</code> and <code>age:time</code> in the printout below is much less than the total number of parameters (denoted <code>n_par</code>) for <code>age</code> and <code>age:time</code>.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_births</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">births</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">region</span> <span class="op">+</span> <span class="va">age</span> <span class="op">*</span> <span class="va">time</span>,</span>
 <span>                       data <span class="op">=</span> <span class="va">kor_births</span>,</span>
@@ -466,9 +456,6 @@
 <span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">HFD</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span><span class="op">:</span><span class="va">time</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD_AR.html">SVD_RW</a></span><span class="op">(</span><span class="va">HFD</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
 <span><span class="va">mod_births</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
@@ -491,14 +478,14 @@
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.09     1.11      0.81   18      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.07     1.10      0.82   18      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2" number="7">
 <h2 id="covariates">
 <span class="header-section-number">7</span> Covariates<a class="anchor" aria-label="anchor" href="#covariates"></a>
 </h2>
-<p>The main predictors in a <strong>bage</strong> model are the variables, such as age and sex, that are used to classify the outcome. However, <strong>bage</strong> does allow additional variables in <code>data</code> to be used as predictors. We refer to these additional variables as covariates, and we add them to a model using function <code><a href="../reference/set_covariates.html">set_covariates()</a></code>:</p>
+<p>The main predictors in a <code>bage</code> model are the variables, such as age and sex, that are used to classify the outcome. However, <code>bage</code> does allow additional variables in <code>data</code> to be used as predictors. We refer to these additional variables as covariates, and we add them to a model using function <code><a href="../reference/set_covariates.html">set_covariates()</a></code>:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">births</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">region</span> <span class="op">+</span> <span class="va">age</span> <span class="op">*</span> <span class="va">time</span>,</span>
 <span>         data <span class="op">=</span> <span class="va">kor_births</span>,</span>
@@ -534,9 +521,6 @@
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_forecast</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2019</span><span class="op">:</span><span class="fl">2028</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `components()` for past values...</span></span>
-<span><span class="co">#&gt; `components()` for future values...</span></span>
-<span><span class="co">#&gt; `augment()` for future values...</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">aug_forecast</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "age"       "sex"       "ethnicity" "year"      "injuries"  "popn"     </span></span>
 <span><span class="co">#&gt; [7] ".observed" ".fitted"   ".expected"</span></span></code></pre></div>
@@ -545,22 +529,20 @@
 <code class="sourceCode R"><span><span class="va">comp_forecast</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2019</span><span class="op">:</span><span class="fl">2028</span>,</span>
 <span>           output <span class="op">=</span> <span class="st">"components"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `components()` for past values...</span></span>
-<span><span class="co">#&gt; `components()` for future values...</span></span>
 <span><span class="va">comp_forecast</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 4</span></span></span>
 <span><span class="co">#&gt;    term  component level              .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> year  effect    2019  -0.089 (-0.35, 0.21)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> year  effect    2020  -0.087 (-0.42, 0.27)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> year  effect    2021  -0.075 (-0.45, 0.29)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> year  effect    2022  -0.065 (-0.47, 0.35)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> year  effect    2023     -0.06 (-0.5, 0.4)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> year  effect    2024  -0.054 (-0.54, 0.41)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> year  effect    2025  -0.049 (-0.56, 0.44)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> year  effect    2026  -0.054 (-0.56, 0.42)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> year  effect    2027   -0.04 (-0.57, 0.46)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> year  effect    2028  -0.032 (-0.55, 0.52)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> year  effect    2019  -0.087 (-0.38, 0.18)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> year  effect    2020  -0.079 (-0.44, 0.25)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> year  effect    2021  -0.063 (-0.46, 0.31)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> year  effect    2022  -0.067 (-0.48, 0.36)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> year  effect    2023   -0.057 (-0.51, 0.4)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> year  effect    2024  -0.053 (-0.53, 0.41)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> year  effect    2025  -0.049 (-0.55, 0.45)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> year  effect    2026  -0.045 (-0.56, 0.42)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> year  effect    2027  -0.043 (-0.58, 0.49)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> year  effect    2028  -0.037 (-0.57, 0.51)</span></span></code></pre></div>
 <p>When the argument <code>include_estimates</code> is <code>TRUE</code>, the return value includes historical estimates. This is useful for plotting.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_forecast</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
@@ -570,16 +552,6 @@
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sex</span> <span class="op">==</span> <span class="st">"Female"</span>,</span>
 <span>         <span class="va">age</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10-14"</span>, <span class="st">"25-29"</span>, <span class="st">"40-44"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci</a></span><span class="op">(</span><span class="va">.fitted</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; `components()` for past values...</span></span>
-<span><span class="co">#&gt; `components()` for future values...</span></span>
-<span><span class="co">#&gt; `augment()` for future values...</span></span>
-<span><span class="co">#&gt; `augment()` for past values...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; `augment()` for past values...Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; `augment()` for past values...</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data_forecast</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">year</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -598,7 +570,7 @@
 <h2 id="imputation">
 <span class="header-section-number">9</span> Imputation<a class="anchor" aria-label="anchor" href="#imputation"></a>
 </h2>
-<p><strong>bage</strong> automatically accommodates missing values in the outcome variables. We illustrate with a version of the injuries dataset where values for 2010–2014 are set to <code>NA</code>.</p>
+<p><code>bage</code> automatically accommodates missing values in the outcome variables. We illustrate with a version of the injuries dataset where values for 2010–2014 are set to <code>NA</code>.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">years_mis</span> <span class="op">&lt;-</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2014</span></span>
 <span></span>
@@ -609,29 +581,23 @@
 <code class="sourceCode R"><span><span class="va">mod_mis</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">age</span> <span class="op">*</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span>
 <span>                    data <span class="op">=</span> <span class="va">injuries_mis</span>,</span>
 <span>                    exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span></code></pre></div>
-<p><strong>bage</strong> creates a new variable, called <code>.injuries</code> containing imputed values for the missing outcomes.</p>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><code>bage</code> creates a new variable, called <code>.injuries</code> containing imputed values for the missing outcomes.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_mis</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">year</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">years_mis</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Drawing `.injuries`...</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 240 × 10</span></span></span>
 <span><span class="co">#&gt;    age   sex    ethnicity  year injuries    .injuries  popn .observed</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>   12 (5, 20) <span style="text-decoration: underline;">43</span>440        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>   12 (5, 21) <span style="text-decoration: underline;">43</span>440        <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>     3 (0, 7) <span style="text-decoration: underline;">36</span>340        <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>     3 (0, 8) <span style="text-decoration: underline;">35</span>520        <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>   14 (6, 23) <span style="text-decoration: underline;">34</span>960        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>     3 (1, 7) <span style="text-decoration: underline;">35</span>520        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>   14 (7, 23) <span style="text-decoration: underline;">34</span>960        <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>   12 (5, 20) <span style="text-decoration: underline;">31</span>060        <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    8 (3, 14) <span style="text-decoration: underline;">24</span>000        <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    8 (3, 15) <span style="text-decoration: underline;">23</span>180        <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>  7.5 (3, 14) <span style="text-decoration: underline;">24</span>260        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    8 (3, 15) <span style="text-decoration: underline;">24</span>000        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    8 (3, 14) <span style="text-decoration: underline;">23</span>180        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    8 (3, 14) <span style="text-decoration: underline;">24</span>260        <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 40-44 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    7 (2, 13) <span style="text-decoration: underline;">22</span>660        <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    6 (2, 12) <span style="text-decoration: underline;">21</span>730        <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 230 more rows</span></span></span>
@@ -642,9 +608,6 @@
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">age</span> <span class="op">==</span> <span class="st">"20-24"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci</a></span><span class="op">(</span><span class="va">.fitted</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Drawing `.injuries`...</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data_plot_mis</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">year</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -662,35 +625,29 @@
 <p>If the value for exposure, size, or weights is missing, then the associated row from <code>data</code> is omitted from the likelihood, and no imputations for that row are made. Missing values for classifying variables are skipped over in the same way.</p>
 </div>
 <div class="section level2" number="10">
-<h2 id="data-models">
-<span class="header-section-number">10</span> Data models<a class="anchor" aria-label="anchor" href="#data-models"></a>
+<h2 id="confidentialization">
+<span class="header-section-number">10</span> Confidentialization<a class="anchor" aria-label="anchor" href="#confidentialization"></a>
 </h2>
-<p>So far we have ignored the possibility that the input data for our models might be subject to measurement errors. However, <code>injuries</code> variable in the <code>nzl_injuries</code> dataset is subject to a special sort of error: Statistics New Zealand has randomly-rounded the values to base 3 to protect confidentiality.</p>
-<p>To deal with measurement error, we add a ‘data model’ to our model.</p>
+<p>Data producers often confidentialize their data before they make it publicly available. The <code>nzl_injuries</code> dataset is one example. Statistics New Zealand has randomly-rounded the counts of injuries to multiples of 3.</p>
+<p>To deal with confidentialization, we describe the confidentialization process to our model.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/set_datamod_outcome_rr3.html">set_datamod_outcome_rr3</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/set_confidential_rr3.html">set_confidential_rr3</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The results from calling <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> now include a variable called <code>.injuries</code> with estimated values for the true, unrounded injury counts.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Drawing `.injuries`...</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 912 × 10</span></span></span>
 <span><span class="co">#&gt;    age   sex    ethnicity  year injuries    .injuries  popn .observed</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>000       12  12 (10, 14) <span style="text-decoration: underline;">35</span>830 0.000<span style="text-decoration: underline;">335</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>000        6     5 (4, 8) <span style="text-decoration: underline;">35</span>120 0.000<span style="text-decoration: underline;">171</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>000        6     5 (4, 7) <span style="text-decoration: underline;">35</span>120 0.000<span style="text-decoration: underline;">171</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>000        3     3 (1, 5) <span style="text-decoration: underline;">32</span>830 0.000<span style="text-decoration: underline;">091</span>4</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>000        6     7 (5, 8) <span style="text-decoration: underline;">27</span>130 0.000<span style="text-decoration: underline;">221</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>000        6     6 (4, 8) <span style="text-decoration: underline;">24</span>380 0.000<span style="text-decoration: underline;">246</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>000        6     6 (4, 8) <span style="text-decoration: underline;">24</span>160 0.000<span style="text-decoration: underline;">248</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>000       12  12 (10, 14) <span style="text-decoration: underline;">22</span>560 0.000<span style="text-decoration: underline;">532</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>000       12  11 (10, 14) <span style="text-decoration: underline;">22</span>560 0.000<span style="text-decoration: underline;">532</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>000        3     4 (2, 5) <span style="text-decoration: underline;">22</span>230 0.000<span style="text-decoration: underline;">135</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 40-44 Female Maori      <span style="text-decoration: underline;">2</span>000        6     6 (4, 8) <span style="text-decoration: underline;">18</span>130 0.000<span style="text-decoration: underline;">331</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>000        6     6 (4, 8) <span style="text-decoration: underline;">13</span>770 0.000<span style="text-decoration: underline;">436</span> </span></span>
@@ -709,9 +666,6 @@
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rep_data</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Drawing `.injuries`...</span></span>
 <span><span class="va">rep_data</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 18,240 × 7</span></span></span>
 <span><span class="co">#&gt;    .replicate age   sex    ethnicity  year injuries  popn</span></span>
@@ -782,531 +736,30 @@
 <span></span>
 <span><span class="co">## Run the simulation</span></span>
 <span><span class="fu"><a href="../reference/report_sim.html">report_sim</a></span><span class="op">(</span>mod_est <span class="op">=</span> <span class="va">mod_rw2</span>, mod_sim <span class="op">=</span> <span class="va">mod_rw</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="co">#&gt; $components</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 7</span></span></span>
 <span><span class="co">#&gt;   term        component  .error .cover_50 .cover_95 .length_50 .length_95</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) effect    -<span style="color: #BB0000;">0.067</span><span style="color: #BB0000; text-decoration: underline;">2</span>     0.92       1          1.11       3.22</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> year        effect    -<span style="color: #BB0000;">0.218</span>      0.754      1          1.56       4.50</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> disp        disp      -<span style="color: #BB0000;">0.130</span>      0.41       0.91       1.09       4.60</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) effect    -<span style="color: #BB0000;">0.067</span><span style="color: #BB0000; text-decoration: underline;">4</span>     0.97       1          1.11       3.21</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> year        effect    -<span style="color: #BB0000;">0.287</span>      0.759      1          1.62       4.67</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> disp        disp      -<span style="color: #BB0000;">0.120</span>      0.44       0.87       1.11       4.72</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $augment</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 7</span></span></span>
-<span><span class="co">#&gt;   .var      .observed  .error .cover_50 .cover_95 .length_50 .length_95</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> .fitted        1.03 -<span style="color: #BB0000;">0.171</span>      0.487     0.961      0.865       2.92</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> .expected      1.03 -<span style="color: #BB0000;">0.031</span><span style="color: #BB0000; text-decoration: underline;">1</span>     0.581     0.984      1.01       29.5</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 6</span></span></span>
+<span><span class="co">#&gt;   .var       .error .cover_50 .cover_95 .length_50 .length_95</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> .fitted   -<span style="color: #BB0000;">0.151</span>      0.476     0.963      0.845       2.87</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> .expected -<span style="color: #BB0000;">0.051</span><span style="color: #BB0000; text-decoration: underline;">5</span>     0.516     0.992      0.991    <span style="text-decoration: underline;">4</span>461.</span></span></code></pre></div>
 </div>
 <div class="section level3" number="11.3">
 <h3 id="prior-predictive-checks">
 <span class="header-section-number">11.3</span> Prior predictive checks<a class="anchor" aria-label="anchor" href="#prior-predictive-checks"></a>
 </h3>
-<p>Another way of gaining insights about a model is to look at estimates based purely on the priors, without using data on the outcome variable. In <strong>bage</strong>, this can be done by calling <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>, <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> or <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> on an unfitted version of the model.</p>
+<p>Another way of gaining insights about a model is to look at estimates based purely on the priors, without using data on the outcome variable. In <code>bage</code>, this can be done by calling <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>, <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> or <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> on an unfitted version of the model.</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/unfit.html">unfit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Model not fitted, so values drawn straight from prior distribution.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 90 × 4</span></span></span>
 <span><span class="co">#&gt;    term        component level                  .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
@@ -1331,7 +784,7 @@
 <h3 id="future-features">
 <span class="header-section-number">12.1</span> Future features<a class="anchor" aria-label="anchor" href="#future-features"></a>
 </h3>
-<p><strong>bage</strong> is a new package, and still under very active development. Some features that are next on the list are:</p>
+<p><code>bage</code> is a new package, and still under very active development. Some features that are next on the list are:</p>
 <ul>
 <li>
 <strong>Data models</strong> Additional data models, eg models that allow for under-reporting of events, or errors in the exposure variable.</li>
@@ -1349,7 +802,7 @@
 <h3 id="experimental-status">
 <span class="header-section-number">12.2</span> Experimental status<a class="anchor" aria-label="anchor" href="#experimental-status"></a>
 </h3>
-<p><strong>bage</strong> currently has an <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> life cycle badge, to warn users that some features of the <strong>bage</strong> interface, such as function arguments, are still evolving. We hope to graduate from experimental status during 2025.</p>
+<p><code>bage</code> currently has an <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> life cycle badge, to warn users that some features of the <code>bage</code> interface, such as function arguments, are still evolving. We hope to graduate from experimental status during 2025.</p>
 </div>
 <div class="section level3" number="12.3">
 <h3 id="bug-reports-and-feature-requests">

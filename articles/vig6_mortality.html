@@ -187,19 +187,22 @@
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 104   Male    <span style="text-decoration: underline;">2</span>012      1     0</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 104   Female  <span style="text-decoration: underline;">2</span>019      2     0</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 105+  Male    <span style="text-decoration: underline;">2</span>020      1     0</span></span></code></pre></div>
-<p>We could edit the data directly, removing or modify these cases. However, dealing with these cases is a modelling decision, which we would like to include in the model itself. We make use of the fact that exposure can be specified via a formula to modify cases where we have deaths but no population. Our model is then</p>
-<p>Our model is then</p>
+<p>Population counts for the very old are sometimes unreliable. We modify the problematic zeros under the assumption that each person lives 0.5 person years before dying.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dth</span> <span class="op">&lt;-</span> <span class="va">dth</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>popn <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">popn</span> <span class="op">==</span> <span class="fl">0</span>, <span class="fl">0.5</span>, <span class="va">popn</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Our model is then</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">time</span>,</span>
 <span>                 data <span class="op">=</span> <span class="va">dth</span>,</span>
-<span>                 exposure <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">popn</span> <span class="op">==</span> <span class="fl">0</span>, <span class="fl">0.5</span>, <span class="va">popn</span><span class="op">)</span><span class="op">)</span></span>
+<span>                 exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span></span>
 <span><span class="va">mod_base</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Unfitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age * sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   exposure = ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
+<span><span class="co">#&gt;   exposure = popn</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;         term  prior along n_par n_par_free</span></span>
 <span><span class="co">#&gt;  (Intercept) NFix()     -     1          1</span></span>
@@ -284,7 +287,7 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <span class="header-section-number">3.3</span> Fitting the model<a class="anchor" aria-label="anchor" href="#fitting-the-model"></a>
 </h3>
 <p>We fit the model by calling function <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod_base</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Building log-posterior function...</span></span>
 <span><span class="co">#&gt; Finding maximum...</span></span>
@@ -295,7 +298,7 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age * sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   exposure = ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
+<span><span class="co">#&gt;   exposure = popn</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;         term  prior along n_par n_par_free std_dev</span></span>
 <span><span class="co">#&gt;  (Intercept) NFix()     -     1          1       -</span></span>
@@ -310,17 +313,15 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <span><span class="co">#&gt;    1000     time     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.65     1.31      1.08   16      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.65     1.31      1.10   16      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="3.4">
 <h3 id="extracting-rates">
 <span class="header-section-number">3.4</span> Extracting rates<a class="anchor" aria-label="anchor" href="#extracting-rates"></a>
 </h3>
 <p>To extract estimated rates from the fitted model object, we use function <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod_base</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">aug_base</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5,300 × 8</span></span></span>
 <span><span class="co">#&gt;    age   sex     time deaths  popn .observed                    .fitted</span></span>
@@ -345,7 +346,7 @@ A random walk prior embodies the idea that we expect changes from one age group 
 </ul>
 <p>The <code>.fitted</code> and <code>.expected</code> columns both consist of <a href="https://bayesiandemography.github.io/rvec/reference/rvec.html" class="external-link">rvecs</a>. An rvec is a vector-like object that holds multiple draws, in this case draws from posterior distributions.</p>
 <p>Next we extract rates estimates for selected years, and summarize the posterior distributions.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rates_base</span> <span class="op">&lt;-</span> <span class="va">aug_base</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1998</span>, <span class="fl">2010</span>, <span class="fl">2022</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">sex</span>, <span class="va">time</span>, <span class="va">.observed</span>, <span class="va">.fitted</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -367,7 +368,7 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 626 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: .fitted.mid &lt;dbl&gt;, .fitted.upper &lt;dbl&gt;</span></span></span></code></pre></div>
 <p>We plot point estimates and 95% credible intervals for the modelled estimates, together with the original direct estimates,</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">rates_base</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/age_lower.html" class="external-link">age_mid</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, </span>
 <span>             ymin <span class="op">=</span> <span class="va">.fitted.lower</span>,</span>
 <span>             y <span class="op">=</span> <span class="va">.fitted.mid</span>,</span>
@@ -383,7 +384,7 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <span><span class="co">#&gt; infinite values.</span></span>
 <span><span class="co">#&gt; Warning: Removed 6 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-12-1.png"><!-- --></p>
+<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-13-1.png"><!-- --></p>
 </div>
 <div class="section level3" number="3.5">
 <h3 id="extracting-higher-level-terms">
@@ -391,7 +392,7 @@ A random walk prior embodies the idea that we expect changes from one age group 
 </h3>
 <p>We can gain insights into the model by extracting and graphing estimates of the main effects and interactions, the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>.</p>
 <p>Estimates of the main effects and interactions, and of other higher-level parameters, can be obtained with function <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">comp_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="va">mod_base</span><span class="op">)</span></span>
 <span><span class="va">comp_base</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 350 × 4</span></span></span>
@@ -409,13 +410,13 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> age         effect    8           -4.7 (-6.4, -2.9)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 340 more rows</span></span></span></code></pre></div>
 <p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> returns a tibble contain estimates of all the higher-level parameters. To extract the age effect, and prepare it for graphing, we use</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">age_effect</span> <span class="op">&lt;-</span> <span class="va">comp_base</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">component</span> <span class="op">==</span> <span class="st">"effect"</span>,</span>
 <span>         <span class="va">term</span> <span class="op">==</span> <span class="st">"age"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci</a></span><span class="op">(</span><span class="va">.fitted</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>A graph of the age effect reveals a typical profile for mortality rates,</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">age_effect</span>,</span>
 <span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/age_lower.html" class="external-link">age_mid</a></span><span class="op">(</span><span class="va">level</span><span class="op">)</span>,</span>
 <span>           y <span class="op">=</span> <span class="va">.fitted.mid</span>,</span>
@@ -424,7 +425,7 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"lightblue"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Age effect"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-15-1.png"><!-- --></p>
+<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-16-1.png"><!-- --></p>
 </div>
 </div>
 <div class="section level2" number="4">
@@ -451,10 +452,10 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <h3 id="specifying-the-new-model">
 <span class="header-section-number">4.2</span> Specifying the new model<a class="anchor" aria-label="anchor" href="#specifying-the-new-model"></a>
 </h3>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">time</span>,</span>
 <span>                    data <span class="op">=</span> <span class="va">dth</span>,</span>
-<span>                    exposure <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">popn</span> <span class="op">==</span> <span class="fl">0</span>, <span class="fl">0.5</span>, <span class="va">popn</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>                    exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">HMD</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mod_hmd</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -462,7 +463,7 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age:sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   exposure = ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
+<span><span class="co">#&gt;   exposure = popn</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;         term    prior along n_par n_par_free</span></span>
 <span><span class="co">#&gt;  (Intercept)   NFix()     -     1          1</span></span>
@@ -473,7 +474,7 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  n_draw var_time var_age var_sexgender</span></span>
 <span><span class="co">#&gt;    1000     time     age           sex</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Building log-posterior function...</span></span>
 <span><span class="co">#&gt; Finding maximum...</span></span>
@@ -484,7 +485,7 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age:sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   exposure = ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
+<span><span class="co">#&gt;   exposure = popn</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;         term    prior along n_par n_par_free std_dev</span></span>
 <span><span class="co">#&gt;  (Intercept)   NFix()     -     1          1       -</span></span>
@@ -497,11 +498,9 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span><span class="co">#&gt;    1000     time     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.36     1.17      0.99   10      TRUE   relative convergence (4)</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt;        2.35     1.17      0.98   10      TRUE   relative convergence (4)</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span></span>
 <span><span class="va">rates_hmd</span> <span class="op">&lt;-</span> <span class="va">aug_hmd</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1998</span>, <span class="fl">2010</span>, <span class="fl">2022</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -523,8 +522,8 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span><span class="co">#&gt; infinite values.</span></span>
 <span><span class="co">#&gt; Warning: Removed 6 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-18-1.png"><!-- --></p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-19-1.png"><!-- --></p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">comp_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">age_sex_interact</span> <span class="op">&lt;-</span> <span class="va">comp_hmd</span> <span class="op">|&gt;</span></span>
@@ -542,55 +541,49 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span>              alpha <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>col <span class="op">=</span> <span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Age-sex interaction"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-19-1.png"><!-- --></p>
+<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-20-1.png"><!-- --></p>
 </div>
 </div>
 <div class="section level2" number="5">
 <h2 id="model-testing">
 <span class="header-section-number">5</span> Model testing<a class="anchor" aria-label="anchor" href="#model-testing"></a>
 </h2>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rep_data_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="va">mod_base</span>, condition_on <span class="op">=</span> <span class="st">"expected"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">rep_data_base</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op">==</span> <span class="fl">2022</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">sex</span>, values_from <span class="op">=</span> <span class="va">deaths</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>diff <span class="op">=</span> <span class="va">Female</span> <span class="op">-</span> <span class="va">Male</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/age_lower.html" class="external-link">age_mid</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">diff</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">.replicate</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-21-1.png"><!-- --></p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-22-1.png"><!-- --></p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rep_data_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="va">mod_hmd</span>, condition_on <span class="op">=</span> <span class="st">"expected"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">rep_data_hmd</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op">==</span> <span class="fl">2022</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">sex</span>, values_from <span class="op">=</span> <span class="va">deaths</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>diff <span class="op">=</span> <span class="va">Female</span> <span class="op">-</span> <span class="va">Male</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/age_lower.html" class="external-link">age_mid</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">diff</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">.replicate</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-23-1.png"><!-- --></p>
+<p><img src="vig6_mortality_files/figure-html/unnamed-chunk-24-1.png"><!-- --></p>
 </div>
 <div class="section level2" number="6">
 <h2 id="life-expectancy-and-life-tables">
 <span class="header-section-number">6</span> Life expectancy and life tables<a class="anchor" aria-label="anchor" href="#life-expectancy-and-life-tables"></a>
 </h2>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lifeexp_hmd</span> <span class="op">&lt;-</span> <span class="va">mod_hmd</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/lifetab.html" class="external-link">lifeexp</a></span><span class="op">(</span>mx <span class="op">=</span> <span class="va">.fitted</span>,</span>
 <span>          by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">sex</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">lifeexp_hmd</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 50 × 3</span></span></span>
 <span><span class="co">#&gt;     time sex              ex</span></span>
@@ -606,13 +599,11 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  <span style="text-decoration: underline;">2</span>002 Female  82 (82, 83)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  <span style="text-decoration: underline;">2</span>002 Male    79 (78, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 40 more rows</span></span></span></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lifeexp_hmd</span> <span class="op">&lt;-</span> <span class="va">mod_hmd</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/lifetab.html" class="external-link">lifeexp</a></span><span class="op">(</span>mx <span class="op">=</span> <span class="va">.fitted</span>,</span>
 <span>          by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">sex</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">lifeexp_hmd</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 50 × 3</span></span></span>
 <span><span class="co">#&gt;     time sex              ex</span></span>

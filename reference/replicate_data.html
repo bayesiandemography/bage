@@ -119,18 +119,17 @@ then (ii) conditional on these hyper-parameters,
 drawing values for the rates or probabilities,
 and finally (iii) conditional on these
 rates or probabilities, drawing values for the
-outcome variable.</p></li>
-</ul><p>The default for <code>condition_on</code> is <code>"expected"</code>.
+outcome variable. The `"expected" option
+is only possible in Poisson and binomial models,
+and only when dispersion is non-zero.</p></li>
+</ul><p>The default for <code>condition_on</code> is <code>"expected"</code>,
+in cases where it is feasible.
 The <code>"expected"</code> option
 provides a more severe test for
 a model than the <code>"fitted"</code> option,
 since "fitted" values are weighted averages
 of the "expected" values and the original
 data.</p>
-<p>As described in <code><a href="mod_norm.html">mod_norm()</a></code>, normal models
-have a different structure from Poisson
-and binomial models, and the distinction between
-<code>"fitted"</code> and <code>"expected"</code> does not apply.</p>
     </div>
     <div class="section level2">
     <h2 id="data-models-for-outcomes">Data models for outcomes<a class="anchor" aria-label="anchor" href="#data-models-for-outcomes"></a></h2>
@@ -174,8 +173,6 @@ vignette</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">rep_data</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">replicate_data</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.expected`...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.fitted`...</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">rep_data</span> <span class="op">|&gt;</span></span></span>
@@ -186,25 +183,25 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    .replicate       n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> Original     <span style="text-decoration: underline;">21</span>588</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> Replicate 1  <span style="text-decoration: underline;">21</span>780</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> Replicate 2  <span style="text-decoration: underline;">20</span>943</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> Replicate 3  <span style="text-decoration: underline;">21</span>292</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> Replicate 4  <span style="text-decoration: underline;">20</span>879</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> Replicate 5  <span style="text-decoration: underline;">21</span>275</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> Replicate 6  <span style="text-decoration: underline;">22</span>639</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> Replicate 7  <span style="text-decoration: underline;">21</span>125</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> Replicate 8  <span style="text-decoration: underline;">21</span>521</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Replicate 9  <span style="text-decoration: underline;">21</span>185</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> Replicate 10 <span style="text-decoration: underline;">20</span>950</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> Replicate 11 <span style="text-decoration: underline;">21</span>565</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> Replicate 12 <span style="text-decoration: underline;">21</span>722</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> Replicate 13 <span style="text-decoration: underline;">21</span>050</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> Replicate 14 <span style="text-decoration: underline;">21</span>202</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> Replicate 15 <span style="text-decoration: underline;">21</span>560</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> Replicate 16 <span style="text-decoration: underline;">20</span>659</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">18</span> Replicate 17 <span style="text-decoration: underline;">20</span>952</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">19</span> Replicate 18 <span style="text-decoration: underline;">21</span>364</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">20</span> Replicate 19 <span style="text-decoration: underline;">21</span>656</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> Replicate 1  <span style="text-decoration: underline;">21</span>362</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> Replicate 2  <span style="text-decoration: underline;">21</span>318</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> Replicate 3  <span style="text-decoration: underline;">20</span>825</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> Replicate 4  <span style="text-decoration: underline;">20</span>662</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> Replicate 5  <span style="text-decoration: underline;">21</span>579</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> Replicate 6  <span style="text-decoration: underline;">20</span>579</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> Replicate 7  <span style="text-decoration: underline;">21</span>394</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> Replicate 8  <span style="text-decoration: underline;">20</span>779</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Replicate 9  <span style="text-decoration: underline;">21</span>610</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> Replicate 10 <span style="text-decoration: underline;">21</span>635</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> Replicate 11 <span style="text-decoration: underline;">21</span>483</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> Replicate 12 <span style="text-decoration: underline;">21</span>145</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> Replicate 13 <span style="text-decoration: underline;">21</span>760</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> Replicate 14 <span style="text-decoration: underline;">21</span>643</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> Replicate 15 <span style="text-decoration: underline;">21</span>612</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> Replicate 16 <span style="text-decoration: underline;">20</span>965</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">18</span> Replicate 17 <span style="text-decoration: underline;">21</span>189</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">19</span> Replicate 18 <span style="text-decoration: underline;">20</span>994</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">20</span> Replicate 19 <span style="text-decoration: underline;">20</span>687</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## when the overall model includes an rr3 data model,</span></span></span>
 <span class="r-in"><span><span class="co">## replicate data are rounded to base 3</span></span></span>
@@ -217,9 +214,6 @@ vignette</p></li>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Building log-posterior function...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Finding maximum...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing values for hyper-parameters...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.expected`...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.fitted`...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing `.injuries`...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 18,240 × 7</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    .replicate age   sex    ethnicity  year injuries  popn</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>

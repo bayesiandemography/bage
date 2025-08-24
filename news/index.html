@@ -51,7 +51,25 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.9.4" id="bage-094">bage 0.9.4<a class="anchor" aria-label="anchor" href="#bage-094"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.9.5" id="bage-095">bage 0.9.5<a class="anchor" aria-label="anchor" href="#bage-095"></a></h2>
+<div class="section level3">
+<h3 id="interface-0-9-5">Interface<a class="anchor" aria-label="anchor" href="#interface-0-9-5"></a></h3>
+<ul><li>Added method <code><a href="https://bayesiandemography.github.io/rvec/reference/n_draw.html" class="external-link">n_draw()</a></code> for querying the <code>n_draw</code> value of a model object.</li>
+<li>Deprecated the use of formulas for specifying exposure, size, or weights. Formulas complicate measurement error models and forecasts. Formulas will be completely removed in future.</li>
+<li>In <code><a href="../reference/replicate_data.html">replicate_data()</a></code>, changed the default for <code>condition_on</code> to <code>"fitted"</code> in cases where dispersion is zero, since the <code>"expected"</code> option is not permitted in these cases.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-9-5">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-9-5"></a></h3>
+<ul><li>Extended documentation of <code><a href="../reference/Lin.html">Lin()</a></code> prior in Mathematical Details vignette, and on online help, to describe case where <code>s = 0</code>. Also updated description of prior in online help to match current implementation.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-9-5">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-9-5"></a></h3>
+<ul><li>Fixed bug in RR3, where values for rates were being calculated from confidentialized values of the outcome variable, rather than (imputed) true values.</li>
+<li>Fixed bug in aggregation of exposure for Poisson where <code>exposure =   1</code>, and aggregation of weights in normal models where <code>weights = 1</code>.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.9.4" id="bage-094">bage 0.9.4<a class="anchor" aria-label="anchor" href="#bage-094"></a></h2><p class="text-muted">CRAN release: 2025-07-20</p>
 <div class="section level3">
 <h3 id="interface-0-9-4">Interface<a class="anchor" aria-label="anchor" href="#interface-0-9-4"></a></h3>
 <ul><li>Modified help for <code><a href="../reference/mod_pois.html">mod_pois()</a></code>, <code><a href="../reference/mod_binom.html">mod_binom()</a></code>, <code><a href="../reference/mod_norm.html">mod_norm()</a></code> to clarify prior for dispersion. Added default value (of 1) to <code><a href="../reference/set_disp.html">set_disp()</a></code>. This does not affect behaviour, but is a bit clearer for users. (<a href="https://github.com/bayesiandemography/bage/issues/94" class="external-link">#94</a>)</li>

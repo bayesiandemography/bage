@@ -108,8 +108,12 @@ then separate lines are constructed along
 the 'along' variable, within each combination
 of the 'by' variables.</p>
 <p>Argument <code>s</code> controls the size of the errors.
-Smaller values tend to give smoother estimates.
-<code>s</code> can be zero.</p>
+Smaller values give smoother estimates.
+<code>s</code> can be zero, in which case errors are zero,
+and all values lie exactly on straight lines.
+This is clearly a simplification, but it allows
+the prior to be used with very large
+interactions.</p>
 <p>Argument <code>sd_slope</code> controls the size of the slopes of
 the lines. Larger values can give more steeply
 sloped lines.</p>
@@ -120,23 +124,25 @@ sloped lines.</p>
 
 
 <p>When <code>Lin()</code> is used with a main effect,</p>
-<p>$$\beta_j = \alpha + j \eta + \epsilon_j$$
-$$\alpha \sim \text{N}(0, 1)$$
+<p>$$\beta_j = (j - (J+1)/2) \eta + \epsilon_j$$
+$$\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)$$
 $$\epsilon_j \sim \text{N}(0, \tau^2),$$</p>
 <p>and when it is used with an interaction,</p>
-<p>$$\beta_{u,v} \sim  \alpha_u + v \eta_u + \epsilon_{u,v}$$
-$$\alpha_u \sim \text{N}(0, 1)$$
+<p>$$\beta_{u,v} = (v - (V + 1)/2) \eta_u + \epsilon_{u,v}$$
+$$\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)$$
 $$\epsilon_{u,v} \sim \text{N}(0, \tau^2),$$</p>
 <p>where</p><ul><li><p>\(\pmb{\beta}\) is the main effect or interaction;</p></li>
 <li><p>\(j\) denotes position within the main effect;</p></li>
 <li><p>\(v\) denotes position within the 'along' variable of the interaction; and</p></li>
 <li><p>\(u\) denotes position within the 'by' variable(s) of the interaction.</p></li>
-</ul><p>The slopes have priors
-$$\eta \sim \text{N}(\mathtt{mean_slope}, \mathtt{sd_slope}^2)$$
-and
-$$\eta_u \sim \text{N}(\mathtt{mean_slope}, \mathtt{sd_slope}^2).$$</p>
-<p>Parameter \(\tau\) has a half-normal prior
+</ul><p>Parameter \(\tau\) has a half-normal prior
 $$\tau \sim \text{N}^+(0, \mathtt{s}^2).$$</p>
+<p>When \(\mathtt{s} = 0\), the model reduces to</p>
+<p>$$\beta_j = (j - (J+1)/2) \eta$$
+$$\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)$$</p>
+<p>or</p>
+<p>$$\beta_{u,v} = (v = (V + 1)/2) \eta_u$$
+$$\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)$$.</p>
     </div>
     <div class="section level2">
     <h2 id="constraints">Constraints<a class="anchor" aria-label="anchor" href="#constraints"></a></h2>

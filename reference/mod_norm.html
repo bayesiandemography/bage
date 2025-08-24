@@ -120,8 +120,11 @@ original scale. See <code><a href="https://generics.r-lib.org/reference/componen
 <p>The <code>weights</code> argument can take three forms:</p><ul><li><p>the name of a variable in <code>data</code>, with or without
 quote marks, eg <code>"wt"</code> or <code>wt</code>;</p></li>
 <li><p>the number <code>1</code>, in which no weights are used; or</p></li>
-<li><p>a formula, which is evaluated with <code>data</code> as its
-environment (see below for example).</p></li>
+<li><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a>
+a formula, which is evaluated with <code>data</code> as its
+environment (see below for example). This option
+has been deprecated, because it makes forecasting
+and measurement error models more complicated.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="mathematical-details">Mathematical details<a class="anchor" aria-label="anchor" href="#mathematical-details"></a></h2>
@@ -190,6 +193,13 @@ Detailed description of models</p></li>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">mod_norm</span><span class="op">(</span><span class="va">value</span> <span class="op">~</span> <span class="va">diag</span><span class="op">:</span><span class="va">age</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
 <span class="r-in"><span>                data <span class="op">=</span> <span class="va">nld_expenditure</span>,</span></span>
 <span class="r-in"><span>                weights <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">## but formulas are now deprecrated, and the</span></span></span>
+<span class="r-in"><span><span class="co">## recommended approach is to transform</span></span></span>
+<span class="r-in"><span><span class="co">## the input data outside the model:</span></span></span>
+<span class="r-in"><span><span class="va">nld_expenditure</span><span class="op">$</span><span class="va">wt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">nld_expenditure</span><span class="op">$</span><span class="va">value</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">mod_norm</span><span class="op">(</span><span class="va">value</span> <span class="op">~</span> <span class="va">diag</span><span class="op">:</span><span class="va">age</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
+<span class="r-in"><span>                data <span class="op">=</span> <span class="va">nld_expenditure</span>,</span></span>
+<span class="r-in"><span>                weights <span class="op">=</span> <span class="va">wt</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

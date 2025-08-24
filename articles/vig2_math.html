@@ -122,7 +122,7 @@ We allow <span class="math inline">\(\xi\)</span> to equal 0, in which case the 
 \end{equation}\]</span></p>
 <p>For <span class="math inline">\(\xi &gt; 0\)</span>, Equations <a href="#eq:lik-pois-1">(3.1)</a> and <a href="#eq:lik-pois-2">(3.2)</a> are equivalent to
 <span class="math display">\[\begin{equation}
-  y_i \sim \text{NegBinom}\left(\xi^{-1}, (1 + \mu_i w_i \xi)^{-1}\right)
+  y_i \sim \text{NegBinom}\left(\xi^{-1}, [1 + \mu_i w_i \xi]^{-1}\right)
 \end{equation}\]</span>
 <span class="citation">(Norton, Christen, and Fox 2018; Simpson 2022)</span>.
 This is the format we use internally for estimation. When values for <span class="math inline">\(\gamma_i\)</span> are needed, we generate them on the fly, using the fact that
@@ -797,13 +797,22 @@ This is adapted from the specification used for AR1 densities in <a href="http:/
   \tau_m &amp; \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}\]</span></p>
 <p>Note that <span class="math inline">\(\sum_{v=1}^{V_m} \alpha_{u,v}^{(m)} = 0\)</span>.</p>
+<p>Scale parameter <span class="math inline">\(A_{\tau}^{(m)}\)</span> is allowed to equal 0, in which case the model reduces to
+<span class="math display">\[\begin{align}
+  \beta_{u,v}^{(m)} &amp; = \left(v - \frac{V_m + 1}{2}\right) \eta_u^{(m)} \\
+  \eta_u^{(m)} &amp; \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right)
+\end{align}\]</span></p>
 </div>
 <div class="section level4" number="5.11.2">
 <h4 id="contribution-to-posterior-density-9">
 <span class="header-section-number">5.11.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-9"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B_{\eta}^{(m)}, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid v - \frac{V_m + 1}{2}, \tau_m^2 \right)
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B_{\eta}^{(m)}, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \,\middle|\, v - \frac{V_m + 1}{2}, \tau_m^2 \right)
+\end{equation}\]</span></p>
+<p>When <span class="math inline">\(A_{\tau}^{(m)} = 0\)</span>, this reduces to
+<span class="math display">\[\begin{equation}
+  \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B_{\eta}^{(m)}, A_{\eta}^{(m)2})
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.11.3">
@@ -812,6 +821,10 @@ This is adapted from the specification used for AR1 densities in <a href="http:/
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)}, \tau_m^2\right)
+\end{equation}\]</span></p>
+<p>When <span class="math inline">\(A_{\tau}^{(m)} = 0\)</span>, this reduces to
+<span class="math display">\[\begin{equation}
+  \beta_{u,V_m + h}^{(m)} = \left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)}
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.11.4">
@@ -1056,7 +1069,7 @@ where <span class="math inline">\(\pmb{\beta}_u^{(m)}\)</span> is the subvector 
 <span class="math display">\[\begin{equation}
   \pmb{\beta}_u^{(m)} = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m
 \end{equation}\]</span>
-where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix, and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is a vector with <span class="math inline">\(V_m\)</span> elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for all sexes/genders combined. The construction of <span class="math inline">\(\pmb{F}^{(m)}\)</span> and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is described in Appendix <a href="#app:svd">13.2</a>. The centering and scaling used in the construction allow use of the simple prior
+where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix, and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is a vector with <span class="math inline">\(V_m\)</span> elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for all sexes/genders combined. The construction of <span class="math inline">\(\pmb{F}^{(m)}\)</span> and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is described in Appendix <a href="#app:svd">14.2</a>. The centering and scaling used in the construction allow use of the simple prior
 <span class="math display">\[\begin{equation}
   \alpha_{u,k}^{(m)} \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m.
 \end{equation}\]</span></p>
@@ -1297,79 +1310,439 @@ or are supplied by the user.</li>
 <span class="header-section-number">8</span> Data models<a class="anchor" aria-label="anchor" href="#data-models"></a>
 </h2>
 <div class="section level3" number="8.1">
-<h3 id="data-models-for-outcome">
-<span class="header-section-number">8.1</span> Data models for outcome<a class="anchor" aria-label="anchor" href="#data-models-for-outcome"></a>
+<h3 id="overview">
+<span class="header-section-number">8.1</span> Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h3>
-<div class="section level4" number="8.1.1">
-<h4 id="random-rounding-to-base-3">
-<span class="header-section-number">8.1.1</span> Random Rounding to Base 3<a class="anchor" aria-label="anchor" href="#random-rounding-to-base-3"></a>
-</h4>
-<p>Random rounding to base 3 (RR3) is a confidentialization method used by some statistical agencies. It is applied to counts data. Each count <span class="math inline">\(x\)</span> is rounded randomly as follows:</p>
+<p>Principles:</p>
 <ul>
-<li>If <span class="math inline">\(x \mod 3 = 0\)</span>, then <span class="math inline">\(x\)</span> is left unchanged;</li>
-<li>if <span class="math inline">\(x \mod 3 = 1\)</span> then <span class="math inline">\(x\)</span> is changed to <span class="math inline">\(x-1\)</span> with probability 2/3, and is changed to <span class="math inline">\(x + 2\)</span> with probability 1/3; and</li>
-<li>if <span class="math inline">\(x \mod 3 = 2\)</span> then <span class="math inline">\(x\)</span> is changed to <span class="math inline">\(x-2\)</span> with probability 1/3, and is changed to <span class="math inline">\(x + 1\)</span> with probability 2/3.</li>
+<li>Can have data model for outcome, or for exposure, but not both</li>
+<li>But <em>can</em> have data model and confidentialization (eg model of undercount, combined with RR3)</li>
+<li>Models must scale well – cannot use direct approach of treating true outcome, or true exposure, as parameter to be estimated directly</li>
 </ul>
-<p>RR3 data models can be used with Poisson or binomial likelihoods. Let <span class="math inline">\(y_i\)</span> denote the observed value for the outcome, and <span class="math inline">\(y_i^*\)</span> the true value. The likelihood with a RR3 data model is then</p>
-<p><span class="math display">\[\begin{align}
-  p(y_i | \gamma_i, w_i) &amp; = \sum_{y_i^*} p(y_i | y_i^*) p(y_i^* | \gamma_i, w_i) \\
-   &amp; =  \sum_{k = -2, -1, 0, 1, 2} p(y_i | y_i + k) p(y_i + k | \gamma_i, w_i) \\
-   &amp; = \tfrac{1}{3} p(y_i - 2 | \gamma_i, w_i) + \tfrac{2}{3} p(y_i - 1 | \gamma_i, w_i) + p(y_i | \gamma_i, w_i) + \tfrac{2}{3} p(y_i + 1 | \gamma_i, w_i) + \tfrac{1}{3} p(y_i + 2 | \gamma_i, w_i)
-\end{align}\]</span></p>
-</div>
+<p>Notation:</p>
+<ul>
+<li>When modelling errors in outcome, distinguish between <span class="math inline">\(y^{\text{true}}\)</span> and <span class="math inline">\(y^{\text{obs}}\)</span>. When modelling errors in exposure, distinguish between <span class="math inline">\(w^{\text{true}}\)</span> and <span class="math inline">\(w^{\text{obs}}\)</span>.</li>
+</ul>
+<table class="table">
+<caption>
+<span id="tab:unnamed-chunk-2">Table 8.1: </span>System models and data models</caption>
+<colgroup>
+<col width="3%">
+<col width="44%">
+<col width="52%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Model</th>
+<th align="center">System model</th>
+<th align="center">Data model</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Poisson</td>
+<td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1}) \]</span></td>
+<td align="center"><span class="math display">\[ y_i^{\text{obs}} = u_i + v_i \\ u_i \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\ v_i \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i) \]</span></td>
+</tr>
+<tr class="even">
+<td align="left">Poisson</td>
+<td align="center"><span class="math display">\[ y_i \sim \text{Poisson}(\mu_i w_i^{\text{true}}) \]</span></td>
+<td align="center"><span class="math display">\[ w_i^{\text{obs}} \sim \text{InvGamma}(2 + \delta_{g[i]}^{-1}, (1 + \delta_{g[i]}^{-1}) r_{h[i]} w_i^{\text{true}}) \]</span></td>
+</tr>
+<tr class="odd">
+<td align="left">Binomial</td>
+<td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{Binomial}(w_i, \gamma_i) \\ \gamma_i \sim \text{Beta}(\xi^{-1} \mu_i, \xi^{-1}(1 - \mu_i)) \]</span></td>
+<td align="center"><span class="math display">\[ y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \]</span></td>
+</tr>
+<tr class="even">
+<td align="left">Normal</td>
+<td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{N}(\mu_i, w_i^{-1} \xi^2) \]</span></td>
+<td align="center"><span class="math display">\[ y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{N}(m_{g[i]}, s_{h[i]}^2) \]</span></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3" number="8.2">
-<h3 id="data-models-for-exposure-or-size">
-<span class="header-section-number">8.2</span> Data models for exposure or size<a class="anchor" aria-label="anchor" href="#data-models-for-exposure-or-size"></a>
+<h3 id="sec:datamod-pois-out">
+<span class="header-section-number">8.2</span> Poisson, measurement errors in outcome variable<a class="anchor" aria-label="anchor" href="#sec:datamod-pois-out"></a>
 </h3>
+<div class="section level4" number="8.2.1">
+<h4 id="system-model">
+<span class="header-section-number">8.2.1</span> System model<a class="anchor" aria-label="anchor" href="#system-model"></a>
+</h4>
+<p>Same as original model, but be explicit that modelling actual outcome:
+<span class="math display" id="eq:lik-pois-outcome-2">\[\begin{align}
+  y_i^{\text{true}} &amp; \sim \text{Poisson}(\gamma_i w_i) \tag{8.1} \\
+  \gamma_i &amp; \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  \tag{8.2}
+\end{align}\]</span>
+with option that <span class="math inline">\(\xi \equiv 0\)</span> so that
+<span class="math display" id="eq:like-pois-outcome-3">\[\begin{equation}
+  y_i^{\text{true}} \sim \text{Poisson}(\mu_i w_i). \tag{8.3}
+\end{equation}\]</span></p>
+</div>
+<div class="section level4" number="8.2.2">
+<h4 id="data-model">
+<span class="header-section-number">8.2.2</span> Data model<a class="anchor" aria-label="anchor" href="#data-model"></a>
+</h4>
+<p><span class="math display" id="eq:datamod-v-i">\[\begin{align}
+  y_i^{\text{obs}} &amp; = u_i + v_i \\
+  u_i &amp; \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \tag{8.4} \\
+  v_i &amp; \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i) \tag{8.5} \\
+  \pi_g &amp; \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\
+  \kappa_h &amp; \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)}),
+\end{align}\]</span>
+where values for <span class="math inline">\(A_g^{(\pi)}\)</span>, <span class="math inline">\(B_g^{(\pi)}\)</span>, <span class="math inline">\(A_h^{(\kappa)}\)</span>, and <span class="math inline">\(B_h^{(\kappa)}\)</span> are supplied by the user.</p>
+<p>Note
+<span class="math display" id="eq:datamod-u-i-cond">\[\begin{align}
+  u_i &amp; \mid \pi_{g[i]}, \gamma_i, w_i \sim \text{Poisson}(\pi_{g[i]} \gamma_i w_i), \tag{8.6} \\
+  y_i^{\text{obs}} &amp; \mid \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Poisson}((\pi_{g[i]} + \kappa_{h[i]}) \gamma_i w_i)
+\end{align}\]</span></p>
+<p>We allow for the possibility that <span class="math inline">\(p_i \equiv 1\)</span>, <span class="math inline">\(m_i &gt; 0\)</span>, which yields a pure overcount model, and for <span class="math inline">\(m_i \equiv 0\)</span>, <span class="math inline">\(0 &lt; p_i &lt; 1\)</span>, which yields a pure undercount model.</p>
+</div>
+<div class="section level4" number="8.2.3">
+<h4 id="combined-model-seen-by-tmb">
+<span class="header-section-number">8.2.3</span> Combined model seen by TMB<a class="anchor" aria-label="anchor" href="#combined-model-seen-by-tmb"></a>
+</h4>
+<p><span class="math display">\[\begin{align}
+  y_i^{\text{obs}} &amp; \sim \begin{cases}
+    \text{NegBinom}\left(\xi^{-1}, [1 + (\pi_{g[i]} + \kappa_{h[i]})\mu_i w_i \xi]^{-1}\right) &amp; \xi &gt; 0 \\
+    \text{Poisson}([\pi_{g[i]} + \kappa_{h[i]}]\mu_i w_i) &amp; \xi \equiv 0
+  \end{cases} \\
+  \pi_g &amp; \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\
+  \kappa_h &amp; \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)})
+\end{align}\]</span></p>
+</div>
+<div class="section level4" number="8.2.4">
+<h4 id="obtaining-y_itexttrue">
+<span class="header-section-number">8.2.4</span> Obtaining <span class="math inline">\(y_i^{\text{true}}\)</span><a class="anchor" aria-label="anchor" href="#obtaining-y_itexttrue"></a>
+</h4>
+<div class="section level5" number="8.2.4.1">
+<h5 id="undercount-and-overcount">
+<span class="header-section-number">8.2.4.1</span> Undercount and overcount<a class="anchor" aria-label="anchor" href="#undercount-and-overcount"></a>
+</h5>
+<p>As shown in Appendix <a href="#app:datamod">14.3</a>, equations <a href="#eq:datamod-v-i">(8.5)</a> and <a href="#eq:datamod-u-i-cond">(8.6)</a> imply that
+<span class="math display">\[\begin{equation}
+  u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i \sim  \text{Binomial}\left(y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}}\right)
+\end{equation}\]</span></p>
+<p>As also shown in Appendix <a href="#app:datamod">14.3</a>, equations <a href="#eq:lik-pois-outcome-1">(8.1)</a>, <a href="#eq:lik-pois-outcome-2">(8.2)</a>, and <a href="#eq:datamod-u-i">(8.4)</a> imply that
+<span class="math display">\[\begin{equation}
+  y_i^{\text{true}} - u_i | u_i, y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i \sim
+  \begin{cases}
+  \text{NegBinom}\left(u_i + \xi^{-1}, \frac{1 + \pi_{g[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right) &amp; \xi &gt; 0 \\
+  \text{Poisson}([1-\pi_{g[i]}]\mu_i w_i) &amp; \xi \equiv 0
+  \end{cases}
+\end{equation}\]</span></p>
+<p>We can obtain a value for <span class="math inline">\(y_i^{\text{true}}\)</span> by drawing a value for <span class="math inline">\(u_i\)</span>, then drawing a value for <span class="math inline">\(x_i = y_i^{\text{true}} - u_i\)</span>, then setting <span class="math inline">\(y_i^{\text{true}} = x_i + u_i\)</span>.</p>
+</div>
+<div class="section level5" number="8.2.4.2">
+<h5 id="undercount-only">
+<span class="header-section-number">8.2.4.2</span> Undercount only<a class="anchor" aria-label="anchor" href="#undercount-only"></a>
+</h5>
+<p>Draw
+<span class="math display">\[\begin{equation}
+x_i = y_i^{\text{true}} - y_i^{\text{obs}} \sim
+\begin{cases}
+   \text{NegBinom}\left(y_i^{\text{obs}} + \xi^{-1}, \frac{1 + \pi_{g[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi}  \right) &amp; \xi &gt; 0 \\
+   \text{Poisson}([1-\pi_{g[i]}] \mu_i w_i) &amp; \xi \equiv 0
+  \end{cases}   
+\end{equation}\]</span>
+then set <span class="math inline">\(y_i^{\text{true}} = y_i^{\text{obs}} + x_i\)</span>.</p>
+<p>Appendix <a href="#app:datamod">14.3</a> has the derivation.</p>
+</div>
+<div class="section level5" number="8.2.4.3">
+<h5 id="overcount-only">
+<span class="header-section-number">8.2.4.3</span> Overcount only<a class="anchor" aria-label="anchor" href="#overcount-only"></a>
+</h5>
+<p><span class="math display">\[\begin{equation}
+  y_i^{\text{true}} \mid y_i^{\text{obs}}, \kappa_{h[i]}, \mu_i, \xi, w_i \sim \text{Binomial}\left(y_i^{\text{obs}}, \frac{1}{1 + \kappa_{h[i]}}\right)
+\end{equation}\]</span></p>
+<p>Appendix <a href="#app:datamod">14.3</a> has the derivation.</p>
+</div>
+</div>
+</div>
+<div class="section level3" number="8.3">
+<h3 id="sec:datamod-pois-off">
+<span class="header-section-number">8.3</span> Poisson, measurement errors in exposure<a class="anchor" aria-label="anchor" href="#sec:datamod-pois-off"></a>
+</h3>
+<div class="section level4" number="8.3.1">
+<h4 id="system-model-1">
+<span class="header-section-number">8.3.1</span> System model<a class="anchor" aria-label="anchor" href="#system-model-1"></a>
+</h4>
+<p>Drop gamma errors for rates, and be explicit that outcome depends on actual exposure:
+<span class="math display" id="eq:lik-pois-offset">\[\begin{equation}
+  y_i \sim \text{Poisson}(\mu_i w_i^{\text{true}}) \tag{8.7}
+\end{equation}\]</span></p>
+</div>
+<div class="section level4" number="8.3.2">
+<h4 id="data-model-1">
+<span class="header-section-number">8.3.2</span> Data model<a class="anchor" aria-label="anchor" href="#data-model-1"></a>
+</h4>
+<p><span class="math display">\[\begin{align}
+  w_i^{\text{obs}} &amp; \sim \text{InvGamma}(2 + \delta_{g[i]}^{-1}, (1 + \delta_{g[i]}^{-1}) r_{h[i]} w_i^{\text{true}}) \\
+  \delta_g &amp; \sim \text{Exp}(A_g^{(\delta)})
+\end{align}\]</span>
+where values for <span class="math inline">\(r_h\)</span> and <span class="math inline">\(A_g^{(\delta)}\)</span> are supplied by the user.</p>
+<p>Note that
+<span class="math display" id="eq:w-true">\[\begin{align}
+  E[w_i^{\text{obs}} \mid w_i^{\text{true}}] &amp; = r_{h[i]} w_i^{\text{true}} \\
+  \text{var}[w_i^{\text{obs}} \mid w_i^{\text{true}}] &amp; = \delta_{g[i]} (r_{h[i]} w_i^{\text{true}})^2 \\
+  w_i^{\text{true}} \mid w_i^{\text{obs}}  &amp; \sim \text{Gamma}(3 + \delta_{g[i]}^{-1}, [1 + \delta_{g[i]}^{-1}] r_{h[i]} [w_i^{\text{obs}}]^{-1}) \tag{8.8} \\
+  E[w_i^{\text{true}} \mid w_i^{\text{obs}}] &amp; = \frac{3\delta_{g[i]} + 1}{\delta_{g[i]} + 1} \frac{w_i^{\text{obs}}}{r_{h[i]}}
+\end{align}\]</span></p>
+<p><a href="#eq:w-true">(8.8)</a>) is derived in Appendix <a href="#app:datamod">14.3</a></p>
+</div>
+<div class="section level4" number="8.3.3">
+<h4 id="combined-model-seen-by-tmb-1">
+<span class="header-section-number">8.3.3</span> Combined model seen by TMB<a class="anchor" aria-label="anchor" href="#combined-model-seen-by-tmb-1"></a>
+</h4>
+<p><span class="math display">\[\begin{align}
+  y_i^{\text{obs}} &amp; \sim \text{NegBinom}(3 + \delta_{g[i]}^{-1}, [1 + (1 + \delta_{g[i]}^{-1})^{-1}r_{h[i]}^{-1} \mu_i w_i^{\text{obs}}]^{-1} )  \\
+  \delta_g &amp; \sim \text{Exp}(A_g^{(\delta)})
+\end{align}\]</span></p>
+<p>Note that
+<span class="math display">\[\begin{equation}
+E[y_i^{\text{obs}}] = \left( \frac{3 + \delta_{g[i]}^{-1}}{1 + \delta_{g[i]}^{-1}} \right) \frac{w_i^{\text{obs}}}{r_{h[i]}} \mu_i
+\end{equation}\]</span></p>
+</div>
+<div class="section level4" number="8.3.4">
+<h4 id="obtaining-w_itexttrue">
+<span class="header-section-number">8.3.4</span> Obtaining <span class="math inline">\(w_i^{\text{true}}\)</span><a class="anchor" aria-label="anchor" href="#obtaining-w_itexttrue"></a>
+</h4>
+<p>Equations <a href="#eq:lik-pois-offset">(8.7)</a> and <a href="#eq:w-true">(8.8)</a> imply
+<span class="math display">\[\begin{equation}
+  w_i^{\text{true}} \sim \text{Gamma}(3 + \delta_{g[i]}^{-1} + y_i, [1 + \delta_{g[i]}^{-1}] r_{h[i]} [w_i^{\text{obs}}]^{-1} + \mu_i)
+\end{equation}\]</span></p>
+</div>
+</div>
+<div class="section level3" number="8.4">
+<h3 id="sec:datamod-binom">
+<span class="header-section-number">8.4</span> Binomial, measurement errors in outcome variable<a class="anchor" aria-label="anchor" href="#sec:datamod-binom"></a>
+</h3>
+<div class="section level4" number="8.4.1">
+<h4 id="system-model-2">
+<span class="header-section-number">8.4.1</span> System model<a class="anchor" aria-label="anchor" href="#system-model-2"></a>
+</h4>
+<p>Same as original model, but be explicit that modelling actual outcome:
+<span class="math display" id="eq:lik-binom-outcome-2">\[\begin{align}
+  y_i^{\text{true}} &amp; \sim \text{Binom}(w_i, \gamma_i) \tag{8.9} \\
+  \gamma_i &amp; \sim \text{Beta}\left(\xi^{-1}\mu_i, \xi^{-1} (1-\mu_i) \right),  \tag{8.10}
+\end{align}\]</span>
+with option that <span class="math inline">\(\xi \equiv 0\)</span> so that
+<span class="math display" id="eq:like-binom-outcome-3">\[\begin{equation}
+  y_i^{\text{true}} \sim \text{Binomial}(w_i, \mu_i). \tag{8.11}
+\end{equation}\]</span></p>
+</div>
+<div class="section level4" number="8.4.2">
+<h4 id="data-model-2">
+<span class="header-section-number">8.4.2</span> Data model<a class="anchor" aria-label="anchor" href="#data-model-2"></a>
+</h4>
+<p><span class="math display" id="eq:datamod-y-i">\[\begin{align}
+  y_i^{\text{obs}} &amp; \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \tag{8.12} \\
+  \pi_g &amp; \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)})
+\end{align}\]</span>
+where values for <span class="math inline">\(A_g^{(\pi)}\)</span> and <span class="math inline">\(B_g^{(\pi)}\)</span> are supplied by the user.</p>
+</div>
+<div class="section level4" number="8.4.3">
+<h4 id="combined-model-seen-by-tmb-2">
+<span class="header-section-number">8.4.3</span> Combined model seen by TMB<a class="anchor" aria-label="anchor" href="#combined-model-seen-by-tmb-2"></a>
+</h4>
+<p><span class="math display">\[\begin{align}
+  y_i^{\text{obs}} &amp; \sim
+  \begin{cases}
+  \text{BetaBinom}(w_i, \xi^{-1} \pi_{g[i]} \mu_i, \xi^{-1} [1-\pi_{g[i]} \mu_i]) &amp; \xi &gt; 0 \\
+  \text{Binomial}(w_i, \pi_{g[i]} \mu_i) &amp; \xi \equiv 0  
+  \end{cases} \\
+  \pi_g &amp; \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)})
+\end{align}\]</span></p>
+</div>
+<div class="section level4" number="8.4.4">
+<h4 id="obtaining-y_itexttrue-1">
+<span class="header-section-number">8.4.4</span> Obtaining <span class="math inline">\(y_i^{\text{true}}\)</span><a class="anchor" aria-label="anchor" href="#obtaining-y_itexttrue-1"></a>
+</h4>
+<p>When <span class="math inline">\(\xi &gt; 0\)</span>, draw from distribution defined by
+<span class="math display">\[\begin{align}
+&amp; p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \mu_i, \xi, w_i, \pi_{g[i]}) \\
+&amp; \propto \frac{1}{(y_i^{\text{true}}-y_i^{\text{obs}})! (w_i-y_i^{\text{true}})!}\; (1-\pi_{g[i]})^{y_i^{\text{true}}}
+  B(y_i^{\text{true}}+\xi^{-1}\mu_i, w_i-y_i^{\text{true}}+\xi^{-1}[1-\mu_i])
+\end{align}\]</span></p>
+<p>When <span class="math inline">\(\xi \equiv 0\)</span>, draw
+<span class="math display">\[\begin{equation}
+x_i = y_i^{\text{true}} - y_i^{\text{obs}} \sim \text{Binomial}\left(w_i - y_i^{\text{obs}},  \frac{[1 - \pi_{g[i]}] \mu_i}{1-\pi_{g[i]}\mu_i} \right),
+\end{equation}\]</span>
+then set <span class="math inline">\(y_i^{\text{true}} = y_i^{\text{obs}} + x_i\)</span>.</p>
+<p>Derivation in Appendix <a href="#app:datamod">14.3</a>.</p>
+</div>
+</div>
+<div class="section level3" number="8.5">
+<h3 id="normal-measurement-errors-in-outcome-variable">
+<span class="header-section-number">8.5</span> Normal, measurement errors in outcome variable<a class="anchor" aria-label="anchor" href="#normal-measurement-errors-in-outcome-variable"></a>
+</h3>
+<div class="section level4" number="8.5.1">
+<h4 id="system-model-3">
+<span class="header-section-number">8.5.1</span> System model<a class="anchor" aria-label="anchor" href="#system-model-3"></a>
+</h4>
+<p>Same as original model, but be explicit that modelling actual outcome, and scale <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\xi\)</span> by values calculated from reported rather than actual <span class="math inline">\(y_i\)</span>:
+<span class="math display">\[\begin{align}
+  y_i^{\text{true}} &amp; \sim \text{N}(\gamma_i, w_i^{-1} \sigma^2) \\
+  \gamma_i &amp; = \bar{y} + s \mu_i \\
+  \sigma^2 &amp; = \bar{w} s^2 \xi^2
+\end{align}\]</span>
+where
+<span class="math display">\[\begin{align}
+  \bar{y} &amp; = \frac{\sum_{i=1}^n y_i^{\text{obs}}}{n} \\
+  s &amp; = \sqrt{\frac{\sum_{i=1}^n (y_i^{\text{obs}} - \bar{y})^2}{n-1}} \\
+  \bar{w} &amp; = \frac{\sum_{i=1}^n w_i}{n}.
+\end{align}\]</span></p>
+</div>
+<div class="section level4" number="8.5.2">
+<h4 id="data-model-3">
+<span class="header-section-number">8.5.2</span> Data model<a class="anchor" aria-label="anchor" href="#data-model-3"></a>
+</h4>
+<p><span class="math display">\[\begin{align}
+  y_i^{\text{obs}} &amp; = y_i^{\text{true}} + \epsilon_i \\
+  \epsilon_i &amp; \sim \text{N}(m_{g[i]}, s_{h[i]}^2)
+\end{align}\]</span>
+where values for <span class="math inline">\(m_{g[i]}\)</span> and <span class="math inline">\(s_{h[i]}\)</span> are supplied by the user.</p>
+</div>
+<div class="section level4" number="8.5.3">
+<h4 id="combined-model-seen-by-tmb-3">
+<span class="header-section-number">8.5.3</span> Combined model seen by TMB<a class="anchor" aria-label="anchor" href="#combined-model-seen-by-tmb-3"></a>
+</h4>
+<p><span class="math display">\[\begin{equation}
+  y_i^{\text{obs}} \sim \text{N}(\gamma_i + m_{g[i]}, w_i^{-1}\sigma^2 + s_{h[i]}^2)
+\end{equation}\]</span></p>
+</div>
+<div class="section level4" number="8.5.4">
+<h4 id="obtaining-y_itexttrue-2">
+<span class="header-section-number">8.5.4</span> Obtaining <span class="math inline">\(y_i^{\text{true}}\)</span><a class="anchor" aria-label="anchor" href="#obtaining-y_itexttrue-2"></a>
+</h4>
+<p><span class="math display">\[\begin{equation}
+  y_i^{\text{true}} \sim \text{N}\left(\frac{\tau_1}{\tau_1 + \tau_2} \gamma_i + \frac{\tau_2}{\tau_1 + \tau_2} (y_i^{\text{obs}} - m_{g[i]}),\quad
+\frac{1}{\tau_1 + \tau_2} \right)
+\end{equation}\]</span>
+where <span class="math inline">\(\tau_1 = w_i \sigma^{-2}\)</span> and <span class="math inline">\(\tau_2 = s_{h[i]}^{-2}\)</span></p>
+</div>
 </div>
 </div>
 <div class="section level2" number="9">
-<h2 id="estimation">
-<span class="header-section-number">9</span> Estimation<a class="anchor" aria-label="anchor" href="#estimation"></a>
+<h2 id="confidentialization">
+<span class="header-section-number">9</span> Confidentialization<a class="anchor" aria-label="anchor" href="#confidentialization"></a>
 </h2>
 <div class="section level3" number="9.1">
+<h3 id="random-rounding-to-multiples-of-3">
+<span class="header-section-number">9.1</span> Random Rounding to Multiples of 3<a class="anchor" aria-label="anchor" href="#random-rounding-to-multiples-of-3"></a>
+</h3>
+<div class="section level4" number="9.1.1">
+<h4 id="procedure">
+<span class="header-section-number">9.1.1</span> Procedure<a class="anchor" aria-label="anchor" href="#procedure"></a>
+</h4>
+<p>Random rounding to multiples of 3 (RR3) is applied to counts data. Let <span class="math inline">\(y_i^{\text{un}}\)</span> denote the original unconfidentialized count, and <span class="math inline">\(y_i^{\text{con}}\)</span> the confidentialised version. Then, under RR3,</p>
+<ul>
+<li>If <span class="math inline">\(y_i^{\text{un}} \bmod 3 = 0\)</span>, then <span class="math inline">\(y_i^{\text{con}} = y_i^{\text{un}}\)</span>.</li>
+<li>if <span class="math inline">\(y_i^{\text{un}} \bmod 3 = 1\)</span> then <span class="math inline">\(y_i^{\text{con}} = y_i^{\text{un}}-1\)</span> with probability 2/3, and <span class="math inline">\(y_i^{\text{con}} = y_i^{\text{un}} + 2\)</span> with probability 1/3;</li>
+<li>if <span class="math inline">\(y_i^{\text{un}} \bmod 3 = 2\)</span> then <span class="math inline">\(y_i^{\text{con}} = y_i^{\text{un}}-2\)</span> with probability 1/3, and <span class="math inline">\(y_i^{\text{con}} = y_i^{\text{un}} + 1\)</span> with probability 2/3.</li>
+</ul>
+</div>
+<div class="section level4" number="9.1.2">
+<h4 id="sec:confid-tmb">
+<span class="header-section-number">9.1.2</span> Model seen by TMB<a class="anchor" aria-label="anchor" href="#sec:confid-tmb"></a>
+</h4>
+<p><span class="math display">\[\begin{align}
+  p_{\text{con}}(y_i^{\text{con}}) &amp; = \sum_{y_i^{\text{un}}} p_{\text{con}|\text{un}}(y_i^{\text{con}} | y_i^{\text{un}}) p_{\text{un}}(y_i^{\text{un}}) \\
+   &amp; =  \sum_{k = -2}^2 p_{\text{con}|\text{un}}(y_i^{\text{con}} | y_i^{\text{con}} + k) p_{\text{un}}(y_i^{\text{con}} + k)
+\end{align}\]</span>
+where</p>
+<ul>
+<li><span class="math inline">\(p_{\text{con}|\text{un}}(\cdot) =
+\begin{cases}
+1 &amp; \text{ if   } | y_i^{\text{con}} - y_i^{\text{un}} | = 0 \\
+\frac{2}{3} &amp; \text{ if   } | y_i^{\text{con}} - y_i^{\text{un}} | = 1 \\
+\frac{1}{3} &amp; \text{ if   } | y_i^{\text{con}} - y_i^{\text{un}} | = 2
+\end{cases}\)</span></li>
+</ul>
+<p>and</p>
+<ul>
+<li>
+<span class="math inline">\(p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid \xi^{-1}, [1 + \mu_i w_i \xi]^{-1}\right)\)</span> in Poisson model with no measurement errors;</li>
+<li>
+<span class="math inline">\(p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid \xi^{-1}, [1 + (\pi_{g[i]} + \kappa_{h[i]}) \mu_i w_i \xi]^{-1}\right)\)</span> in Poisson model with measurement error in outcome;</li>
+<li>
+<span class="math inline">\(p_{\text{un}}(\cdot) = \text{NegBinom}\left(\cdot \mid 3 + \delta_{g[i]}^{-1}, [1 + (1 + \delta_{g[i]}^{-1})^{-1}r_{h[i]}^{-1} \mu_i w_i^{\text{obs}}]^{-1} \right)\)</span> in Poisson model with measurement error in exposure;</li>
+<li>
+<span class="math inline">\(p_{\text{un}}(\cdot) = \text{BetaBinomial}(\cdot \mid w_i, \xi^{-1} \mu_i, \xi^{-1} [1-\mu_i])\)</span> in Binomial model with no measurement error; and</li>
+<li>
+<span class="math inline">\(p_{\text{un}}(\cdot) = \text{BetaBinomial}(\cdot \mid w_i, \xi^{-1} \pi_{g[i]} \mu_i, \xi^{-1} [1-\pi_{g[i]} \mu_i])\)</span> in Binomial model with measurement error in outcome.</li>
+</ul>
+</div>
+<div class="section level4" number="9.1.3">
+<h4 id="deriving-y_itextun">
+<span class="header-section-number">9.1.3</span> Deriving <span class="math inline">\(y_i^{\text{un}}\)</span><a class="anchor" aria-label="anchor" href="#deriving-y_itextun"></a>
+</h4>
+<p>Draw from
+<span class="math display">\[\begin{equation}
+  p_{\text{un}|\text{con}}(y_i^{\text{un}} \mid y_i^{\text{con}}) \propto  p_{\text{con}|\text{un}}(y_i^{\text{con}} \mid y_i^{\text{un}}) p_{\text{un}}(y_i^{\text{un}})
+\end{equation}\]</span>
+where <span class="math inline">\(p_{\text{con}|\text{un}}(\cdot)\)</span> and <span class="math inline">\(p_{\text{un}}(\cdot)\)</span> are defined as in Section <a href="#sec:confid-tmb">9.1.2</a>.</p>
+</div>
+</div>
+</div>
+<div class="section level2" number="10">
+<h2 id="estimation">
+<span class="header-section-number">10</span> Estimation<a class="anchor" aria-label="anchor" href="#estimation"></a>
+</h2>
+<div class="section level3" number="10.1">
 <h3 id="sec:filter-ag">
-<span class="header-section-number">9.1</span> Filtering and Aggregation<a class="anchor" aria-label="anchor" href="#sec:filter-ag"></a>
+<span class="header-section-number">10.1</span> Filtering and Aggregation<a class="anchor" aria-label="anchor" href="#sec:filter-ag"></a>
 </h3>
 <p>The data that we supply to TMB is a a filtered and aggregated version of the data that the user provides through the <code>data</code> argument.</p>
 <p>In the filtering stage, we remove any rows where (i) the offset is 0 or NA, or (ii) the outcome variable is NA.</p>
-<p>In the aggregation stage, we identify any rows in the data that duplicated combinations of classification variables. For instance, if the classification variables are <code>age</code> and <code>sex</code>, and we have two rows where <code>age</code> is <code>"20-24"</code> and sex is <code>"Female"</code>, then these rows would count as duplicated combinations. We aggregate offset and outcome variables across these duplicates. With Poisson and binomial models, the aggregation formula for outcomes is
+<p>In the aggregation stage, we identify any rows in the data where there are duplicated combinations of classification variables. For instance, if the classification variables are <code>age</code> and <code>sex</code>, and we have two rows where <code>age</code> is <code>"20-24"</code> and sex is <code>"Female"</code>, then these rows would count as duplicated combinations. We aggregate offset and outcome variables across these duplicates.</p>
+<p>Let <span class="math inline">\(D\)</span> be the number of times a particular combination is duplicated.</p>
+<p>With Poisson models, the aggregation formula for outcomes is
 <span class="math display">\[\begin{equation}
   y^{\text{new}} = \sum_{i=1}^D y_i^{\text{old}},
 \end{equation}\]</span>
-and the aggregation formula for exposure/size is
+and the aggregation formula for exposure is
 <span class="math display">\[\begin{equation}
-  w^{\text{new}} = \sum_{i=1}^D w_i^{\text{old}},
+  w^{\text{new}} = \begin{cases}
+    1 &amp; \text{if } w_i^{\text{old}} \equiv 1 \\
+    \sum_{i=1}^D w_i^{\text{old}} &amp; \text{otherwise}.
+  \end{cases}
+\end{equation}\]</span></p>
+<p>With binomial models, the aggregation formula for outcomes is
+<span class="math display">\[\begin{equation}
+  y^{\text{new}} = \sum_{i=1}^D y_i^{\text{old}},
 \end{equation}\]</span>
-where <span class="math inline">\(D\)</span> is the number of times a particular combination is duplicated. With normal models, the aggregation formula for outcomes is
+and the aggregation formula for size is
+<span class="math display">\[\begin{equation}
+  w^{\text{new}} = \sum_{i=1}^D w_i^{\text{old}}.
+\end{equation}\]</span></p>
+<p>With normal models, the aggregation formula for outcomes is
 <span class="math display">\[\begin{equation}
   y^{\text{new}} = \frac{\sum_{i=1}^D y_i^{\text{old}}}{D},
 \end{equation}\]</span>
 and the aggregation formuala for weights is
 <span class="math display">\[\begin{equation}
-  w^{\text{new}} = \frac{1}{\sum_{i=1}^D \frac{1}{w_i^{\text{old}}}}.
+  w^{\text{new}} = \frac{D^2}{\sum_{i=1}^D \frac{1}{w_i^{\text{old}}}}.
 \end{equation}\]</span></p>
 </div>
-<div class="section level3" number="9.2">
+<div class="section level3" number="10.2">
 <h3 id="inner-outer-approximation">
-<span class="header-section-number">9.2</span> Inner-Outer Approximation<a class="anchor" aria-label="anchor" href="#inner-outer-approximation"></a>
+<span class="header-section-number">10.2</span> Inner-Outer Approximation<a class="anchor" aria-label="anchor" href="#inner-outer-approximation"></a>
 </h3>
-<div class="section level4" number="9.2.1">
+<div class="section level4" number="10.2.1">
 <h4 id="step-0-select-inner-and-outer-variables">
-<span class="header-section-number">9.2.1</span> Step 0: Select ‘inner’ and ‘outer’ variables<a class="anchor" aria-label="anchor" href="#step-0-select-inner-and-outer-variables"></a>
+<span class="header-section-number">10.2.1</span> Step 0: Select ‘inner’ and ‘outer’ variables<a class="anchor" aria-label="anchor" href="#step-0-select-inner-and-outer-variables"></a>
 </h4>
 <p>Select variables to be used in inner model. By default, these are the age, sex, and time variables in the model. All remaining variables are ‘outer’ variables.</p>
 </div>
-<div class="section level4" number="9.2.2">
+<div class="section level4" number="10.2.2">
 <h4 id="step-1-fit-inner-model">
-<span class="header-section-number">9.2.2</span> Step 1: Fit inner model<a class="anchor" aria-label="anchor" href="#step-1-fit-inner-model"></a>
+<span class="header-section-number">10.2.2</span> Step 1: Fit inner model<a class="anchor" aria-label="anchor" href="#step-1-fit-inner-model"></a>
 </h4>
-<p>Aggregate the data using the classification formed by the inner variables. (See Section <a href="#sec:filter-ag">9.1</a> on aggregation procedures.) Remove all terms not involving ‘inner’ variables, other than the intercept term, from the model. Set dispersion to 0. Fit the resulting model.</p>
+<p>Aggregate the data using the classification formed by the inner variables. (See Section <a href="#sec:filter-ag">10.1</a> on aggregation procedures.) Remove all terms not involving ‘inner’ variables, other than the intercept term, from the model. Set dispersion to 0. Fit the resulting model.</p>
 </div>
-<div class="section level4" number="9.2.3">
+<div class="section level4" number="10.2.3">
 <h4 id="step-2-fit-outer-model">
-<span class="header-section-number">9.2.3</span> Step 2: Fit outer model<a class="anchor" aria-label="anchor" href="#step-2-fit-outer-model"></a>
+<span class="header-section-number">10.2.3</span> Step 2: Fit outer model<a class="anchor" aria-label="anchor" href="#step-2-fit-outer-model"></a>
 </h4>
 <p>Let <span class="math inline">\(\hat{\mu}_i^{\text{in}}\)</span> be point estimates for the linear predictor <span class="math inline">\(\mu_i\)</span> obtained from the inner model.</p>
 <p><strong>Poisson model</strong></p>
@@ -1379,15 +1752,15 @@ and the aggregation formuala for weights is
 <p><strong>Normal model</strong></p>
 <p>Aggregate the data using the classification formed by the outer variables. Remove all terms involving the ‘inner’ variables, plus the intercept, from the model. Set the outcome variable to to $y_i^{} = y_i - ^{}. Fit the model.</p>
 </div>
-<div class="section level4" number="9.2.4">
+<div class="section level4" number="10.2.4">
 <h4 id="step-4-concatenate-estimates">
-<span class="header-section-number">9.2.4</span> Step 4: Concatenate estimates<a class="anchor" aria-label="anchor" href="#step-4-concatenate-estimates"></a>
+<span class="header-section-number">10.2.4</span> Step 4: Concatenate estimates<a class="anchor" aria-label="anchor" href="#step-4-concatenate-estimates"></a>
 </h4>
 <p>Concatenate posterior distributions for the inner terms from the inner model to posterior distributions for the outer terms from the outer model.</p>
 </div>
-<div class="section level4" number="9.2.5">
+<div class="section level4" number="10.2.5">
 <h4 id="step-5-calculate-dispersion">
-<span class="header-section-number">9.2.5</span> Step 5: Calculate dispersion<a class="anchor" aria-label="anchor" href="#step-5-calculate-dispersion"></a>
+<span class="header-section-number">10.2.5</span> Step 5: Calculate dispersion<a class="anchor" aria-label="anchor" href="#step-5-calculate-dispersion"></a>
 </h4>
 <p>If the original model includes a dispersion term, then estimate dispersion. Let <span class="math inline">\(\hat{\mu}_i^{\text{comb}}\)</span> be point estimates for the linear predictor obtained from the concatenated estimates.</p>
 <p><strong>Poisson model</strong></p>
@@ -1399,9 +1772,9 @@ and the aggregation formuala for weights is
 </div>
 </div>
 </div>
-<div class="section level2" number="10">
+<div class="section level2" number="11">
 <h2 id="deriving-outputs">
-<span class="header-section-number">10</span> Deriving outputs<a class="anchor" aria-label="anchor" href="#deriving-outputs"></a>
+<span class="header-section-number">11</span> Deriving outputs<a class="anchor" aria-label="anchor" href="#deriving-outputs"></a>
 </h2>
 <p>Running TMB yields a set of means <span class="math inline">\(\pmb{m}\)</span>, and a precision matrix <span class="math inline">\(\pmb{Q}^{-1}\)</span>, which together define the approximate joint posterior distribution of</p>
 <ul>
@@ -1419,9 +1792,9 @@ and the aggregation formuala for weights is
   \mu_i &amp; = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)} + (\pmb{Z} \pmb{\zeta})_i
 \end{align}\]</span></p>
 </div>
-<div class="section level2" number="11">
+<div class="section level2" number="12">
 <h2 id="simulation">
-<span class="header-section-number">11</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
+<span class="header-section-number">12</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
 </h2>
 <p>To generate one set of simulated values, we start with values for exposure, trials, or weights, <span class="math inline">\(\pmb{w}\)</span>, and possibly covariates <span class="math inline">\(\pmb{Z}\)</span>, then go through the following steps:</p>
 <ol style="list-style-type: decimal">
@@ -1436,29 +1809,29 @@ and the aggregation formuala for weights is
 <li>In Poisson and binomial models, use <span class="math inline">\(\pmb{\gamma}\)</span> and <span class="math inline">\(\pmb{w}\)</span> to draw <span class="math inline">\(\pmb{y}\)</span>; in normal models, use <span class="math inline">\(\pmb{\mu}\)</span>, <span class="math inline">\(\xi\)</span>, and <span class="math inline">\(\pmb{w}\)</span> to draw <span class="math inline">\(\pmb{y}\)</span>.</li>
 </ol>
 </div>
-<div class="section level2" number="12">
+<div class="section level2" number="13">
 <h2 id="replicate-data">
-<span class="header-section-number">12</span> Replicate data<a class="anchor" aria-label="anchor" href="#replicate-data"></a>
+<span class="header-section-number">13</span> Replicate data<a class="anchor" aria-label="anchor" href="#replicate-data"></a>
 </h2>
-<div class="section level3" number="12.1">
+<div class="section level3" number="13.1">
 <h3 id="model-18">
-<span class="header-section-number">12.1</span> Model<a class="anchor" aria-label="anchor" href="#model-18"></a>
+<span class="header-section-number">13.1</span> Model<a class="anchor" aria-label="anchor" href="#model-18"></a>
 </h3>
-<div class="section level4" number="12.1.1">
+<div class="section level4" number="13.1.1">
 <h4 id="poisson-likelihood">
-<span class="header-section-number">12.1.1</span> Poisson likelihood<a class="anchor" aria-label="anchor" href="#poisson-likelihood"></a>
+<span class="header-section-number">13.1.1</span> Poisson likelihood<a class="anchor" aria-label="anchor" href="#poisson-likelihood"></a>
 </h4>
-<div class="section level5" number="12.1.1.1">
+<div class="section level5" number="13.1.1.1">
 <h5 id="condition-on-pmbgamma">
-<span class="header-section-number">12.1.1.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma"></a>
+<span class="header-section-number">13.1.1.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma"></a>
 </h5>
 <p><span class="math display">\[\begin{equation}
   y_i^{\text{rep}} \sim \text{Poisson}(\gamma_i w_i)
 \end{equation}\]</span></p>
 </div>
-<div class="section level5" number="12.1.1.2">
+<div class="section level5" number="13.1.1.2">
 <h5 id="condition-on-pmbmu-xi">
-<span class="header-section-number">12.1.1.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi"></a>
+<span class="header-section-number">13.1.1.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi"></a>
 </h5>
 <p><span class="math display">\[\begin{align}
   y_i^{\text{rep}} &amp; \sim \text{Poisson}(\gamma_i^{\text{rep}} w_i) \\
@@ -1470,21 +1843,21 @@ which is equivalent to
 \end{equation}\]</span></p>
 </div>
 </div>
-<div class="section level4" number="12.1.2">
+<div class="section level4" number="13.1.2">
 <h4 id="binomial-likelihood">
-<span class="header-section-number">12.1.2</span> Binomial likelihood<a class="anchor" aria-label="anchor" href="#binomial-likelihood"></a>
+<span class="header-section-number">13.1.2</span> Binomial likelihood<a class="anchor" aria-label="anchor" href="#binomial-likelihood"></a>
 </h4>
-<div class="section level5" number="12.1.2.1">
+<div class="section level5" number="13.1.2.1">
 <h5 id="condition-on-pmbgamma-1">
-<span class="header-section-number">12.1.2.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma-1"></a>
+<span class="header-section-number">13.1.2.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma-1"></a>
 </h5>
 <p><span class="math display">\[\begin{equation}
   y_i^{\text{rep}} \sim \text{Binomial}(w_i, \gamma_i)
 \end{equation}\]</span></p>
 </div>
-<div class="section level5" number="12.1.2.2">
+<div class="section level5" number="13.1.2.2">
 <h5 id="condition-on-pmbmu-xi-1">
-<span class="header-section-number">12.1.2.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi-1"></a>
+<span class="header-section-number">13.1.2.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi-1"></a>
 </h5>
 <p><span class="math display">\[\begin{align}
   y_i^{\text{rep}} &amp; \sim \text{Binomial}(w_im \gamma_i^{\text{rep}}) \\
@@ -1492,36 +1865,37 @@ which is equivalent to
 \end{align}\]</span></p>
 </div>
 </div>
-<div class="section level4" number="12.1.3">
+<div class="section level4" number="13.1.3">
 <h4 id="normal-likelihood">
-<span class="header-section-number">12.1.3</span> Normal likelihood<a class="anchor" aria-label="anchor" href="#normal-likelihood"></a>
+<span class="header-section-number">13.1.3</span> Normal likelihood<a class="anchor" aria-label="anchor" href="#normal-likelihood"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   y_i^{\text{rep}} \sim \text{N}(\gamma_i, \xi^2 / w_i)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="12.1.4">
+<div class="section level4" number="13.1.4">
 <h4 id="data-models-for-outcomes">
-<span class="header-section-number">12.1.4</span> Data models for outcomes<a class="anchor" aria-label="anchor" href="#data-models-for-outcomes"></a>
+<span class="header-section-number">13.1.4</span> Data models for outcomes<a class="anchor" aria-label="anchor" href="#data-models-for-outcomes"></a>
 </h4>
 <p>If the overall model includes a data model for the outcome, then a further set of draws is made, deriving values for the observed outcomes, given values for the true outcomes.</p>
 </div>
 </div>
-<div class="section level3" number="12.2">
+<div class="section level3" number="13.2">
 <h3 id="code-18">
-<span class="header-section-number">12.2</span> Code<a class="anchor" aria-label="anchor" href="#code-18"></a>
+<span class="header-section-number">13.2</span> Code<a class="anchor" aria-label="anchor" href="#code-18"></a>
 </h3>
 <pre><code><span><span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="va">x</span>, condition_on <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fitted"</span>, <span class="st">"expected"</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre>
 </div>
 </div>
-<div class="section level2" number="13">
+<div class="section level2" number="14">
 <h2 id="appendices">
-<span class="header-section-number">13</span> Appendices<a class="anchor" aria-label="anchor" href="#appendices"></a>
+<span class="header-section-number">14</span> Appendices<a class="anchor" aria-label="anchor" href="#appendices"></a>
 </h2>
-<div class="section level3" number="13.1">
+<div class="section level3" number="14.1">
 <h3 id="app:defn">
-<span class="header-section-number">13.1</span> Definitions<a class="anchor" aria-label="anchor" href="#app:defn"></a>
+<span class="header-section-number">14.1</span> Definitions<a class="anchor" aria-label="anchor" href="#app:defn"></a>
 </h3>
+<p>TODO - UPDATE THIS</p>
 <table class="table">
 <colgroup>
 <col width="15%">
@@ -1713,24 +2087,24 @@ which is equivalent to
 </tbody>
 </table>
 </div>
-<div class="section level3" number="13.2">
+<div class="section level3" number="14.2">
 <h3 id="app:svd">
-<span class="header-section-number">13.2</span> SVD prior for age<a class="anchor" aria-label="anchor" href="#app:svd"></a>
+<span class="header-section-number">14.2</span> SVD prior for age<a class="anchor" aria-label="anchor" href="#app:svd"></a>
 </h3>
 <p>Let <span class="math inline">\(\pmb{A}\)</span> be a matrix of age-specific estimates from an international database, transformed to take values in the range <span class="math inline">\((-\infty, \infty)\)</span>. Each column of <span class="math inline">\(\pmb{A}\)</span> represents one set of age-specific estimates, such as log mortality rates in Japan in 2010, or logit labour participation rates in Germany in 1980.</p>
 <p>Let <span class="math inline">\(\pmb{U}\)</span>, <span class="math inline">\(\pmb{D}\)</span>, <span class="math inline">\(\pmb{V}\)</span> be the matrices from a singular value decomposition of <span class="math inline">\(\pmb{A}\)</span>, where we have retained the first <span class="math inline">\(K\)</span> components. Then
 <span class="math display" id="eq:svd1">\[\begin{equation}
-  \pmb{A} \approx \pmb{U} \pmb{D} \pmb{V}. \tag{13.1}
+  \pmb{A} \approx \pmb{U} \pmb{D} \pmb{V}. \tag{14.1}
 \end{equation}\]</span></p>
 <p>Let <span class="math inline">\(m_k\)</span> and <span class="math inline">\(s_k\)</span> be the mean and sample standard deviation of the elements of the <span class="math inline">\(k\)</span>th row of <span class="math inline">\(\pmb{V}\)</span>, with <span class="math inline">\(\pmb{m} = (m_1, \cdots, m_k)^{\top}\)</span> and <span class="math inline">\(\pmb{s} = (s_1, \cdots, s_k)^{\top}\)</span>. Then
 <span class="math display">\[\begin{equation}
   \tilde{\pmb{V}} = (\text{diag}(\pmb{s}))^{-1} (\pmb{V} - \pmb{m} \pmb{1}^{\top})
 \end{equation}\]</span>
 is a standardized version of <span class="math inline">\(\pmb{V}\)</span>.</p>
-<p>We can rewrite <a href="#eq:svd1">(13.1)</a> as
+<p>We can rewrite <a href="#eq:svd1">(14.1)</a> as
 <span class="math display" id="eq:svd2">\[\begin{align}
   \pmb{A} &amp; \approx \pmb{U} \pmb{D} (\text{diag}(\pmb{s}) \tilde{\pmb{V}} + \pmb{m} \pmb{1}^{\top}) \\
-  &amp; = \pmb{F} \tilde{\pmb{V}} + \pmb{g} \pmb{1}^{\top}, \tag{13.2}
+  &amp; = \pmb{F} \tilde{\pmb{V}} + \pmb{g} \pmb{1}^{\top}, \tag{14.2}
 \end{align}\]</span>
 where <span class="math inline">\(\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{s})\)</span> and <span class="math inline">\(\pmb{g} = \pmb{U} \pmb{D} \pmb{m}\)</span>.</p>
 <p>Let <span class="math inline">\(\tilde{\pmb{v}}_l\)</span> be a randomly-selected column from <span class="math inline">\(\tilde{\pmb{V}}\)</span>. From the construction of <span class="math inline">\(\tilde{\pmb{V}}\)</span> we have <span class="math inline">\(\text{E}[\tilde{v}_{kl}] = 0\)</span> and <span class="math inline">\(\text{var}[\tilde{v}_{kl}] = 1\)</span>. If <span class="math inline">\(\pmb{z}\)</span> is a vector of standard normal variables, then
@@ -1738,6 +2112,157 @@ where <span class="math inline">\(\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{s})
   \pmb{F} \pmb{z} + \pmb{g}
 \end{equation}\]</span>
 should look approximately like a randomly-selected column from the original data matrix <span class="math inline">\(\pmb{A}\)</span>.</p>
+</div>
+<div class="section level3" number="14.3">
+<h3 id="app:datamod">
+<span class="header-section-number">14.3</span> Derivation of quantities used in data models<a class="anchor" aria-label="anchor" href="#app:datamod"></a>
+</h3>
+<div class="section level4" number="14.3.1">
+<h4 id="derivation-of-u_i-mid-y_itextobs-pi_gi-kappa_hi-mu_i-xi-w_i-in-undercount-overcount-model-in-section-refsecdatamod-pois-out">
+<span class="header-section-number">14.3.1</span> Derivation of <span class="math inline">\(u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i\)</span> in undercount-overcount model in Section <a href="#sec:datamod-pois-out">8.2</a><a class="anchor" aria-label="anchor" href="#derivation-of-u_i-mid-y_itextobs-pi_gi-kappa_hi-mu_i-xi-w_i-in-undercount-overcount-model-in-section-refsecdatamod-pois-out"></a>
+</h4>
+<p>Conditional on <span class="math inline">\(\gamma_i, \pi_{g[i]}, \kappa_{h[i]}, w_i\)</span>, the quantities <span class="math inline">\(u_i\)</span> and <span class="math inline">\(v_i\)</span> are independent Poisson variates,
+<span class="math display">\[\begin{align}
+  u_i &amp; \sim \text{Poisson}(\pi_{g[i]} \gamma_i w_i) \\
+  v_i &amp; \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i),
+\end{align}\]</span>
+with <span class="math inline">\(u_i + v_i = y_i^{\text{obs}}\)</span>, implying that,
+<span class="math display">\[\begin{align}
+  p(u_i \mid y_i^{\text{obs}}, \gamma_i, \pi_{g[i]}, \kappa_{h[i]}, w_i) &amp; = \text{Binomial}\left(u_i \,\middle|\,  y_i^{\text{obs}}, \frac{\pi_{g[i]} \gamma_i w_i}{\pi_{g[i]} \gamma_i w_i + \kappa_{h[i]} \gamma_i w_i}\right) \\
+  &amp; = \text{Binomial}\left(u_i \,\middle|\,  y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right).
+\end{align}\]</span>
+The value of <span class="math inline">\(u_i\)</span> does not depend on <span class="math inline">\(\gamma_i\)</span>, and hence does not depend on <span class="math inline">\(\mu_i\)</span> and <span class="math inline">\(\xi\)</span>, the determinants of <span class="math inline">\(\gamma_i\)</span>. We therefore have
+<span class="math display">\[\begin{align}
+  p(u_i \mid y_i^{\text{obs}}, \mu_i, \xi, \pi_{g[i]}, \kappa_{h[i]}, w_i) &amp; = \text{Binomial}\left(u_i \,\middle|\, y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}} \right)
+\end{align}\]</span></p>
+</div>
+<div class="section level4" number="14.3.2">
+<h4 id="derivation-of-y_itexttrue-mid-u_i-pi_gi-kappa_hi-mu_i-w_i-xi-in-undercount-overcount-model-section-refsecdatamod-pois-out">
+<span class="header-section-number">14.3.2</span> Derivation of <span class="math inline">\(y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi\)</span> in undercount-overcount model Section <a href="#sec:datamod-pois-out">8.2</a><a class="anchor" aria-label="anchor" href="#derivation-of-y_itexttrue-mid-u_i-pi_gi-kappa_hi-mu_i-w_i-xi-in-undercount-overcount-model-section-refsecdatamod-pois-out"></a>
+</h4>
+<p>When <span class="math inline">\(\xi &gt; 0\)</span>,
+<span class="math display">\[\begin{align}
+    &amp; p(y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) \\
+    &amp; \propto p(u_i \mid y_i^{\text{true}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) p(y_i^{\text{true}} \mid \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi) \\
+    &amp; = \text{Binomial}(u_i \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{NegBinom}(y_i^{\text{true}} \mid \xi^{-1}, [1 + \mu_i w_i \xi_i]^{-1}) \\
+    &amp; = \frac{y_i^{\text{true}}!}{u_i! (y_i^{\text{true}} - u_i)!}  \pi_{g[i]}^{u_i} (1-\pi_{g[i]})^{y_i^{\text{true}}-u_i} \\
+    &amp; \quad \times \frac{\Gamma(y_i^{\text{true}} + \xi^{-1})}{y_i^{\text{true}}! \Gamma(\xi^{-1})}
+\left( \frac{1}{ 1 + \mu_i w_i \xi} \right)^{\xi^{-1}}
+\left( \frac{\mu_i w_i \xi}{1 + \mu_i w_i\ \xi} \right)^{y_i^{\text{true}}} \\
+    &amp; \propto \frac{\Gamma(y_i^{\text{true}} + \xi^{-1})}{(y_i^{\text{true}} - u_i)!} \left( \frac{ (1-\pi_{g[i]}) \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)^{y_i^{\text{true}}},
+\end{align}\]</span>
+which is the kernel for the distribution
+<span class="math display">\[\begin{equation}
+  \text{NegBinom}\left( y_i^{\text{true}} - u_i \,\middle|\, u_i + \xi^{-1}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)
+\end{equation}\]</span></p>
+<p>When <span class="math inline">\(\xi \equiv 0\)</span>,
+<span class="math display">\[\begin{align}
+    &amp; p(y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i) \\
+    &amp; \propto p(u_i \mid y_i^{\text{true}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i) p(y_i^{\text{true}} \mid \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i) \\
+    &amp; = \text{Binomial}(u_i \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{Poisson}(y_i^{\text{true}} \mid \mu_i w_i) \\
+    &amp; = \frac{y_i^{\text{true}}!}{u_i! (y_i^{\text{true}} - u_i)!}  \pi_{g[i]}^{u_i} (1-\pi_{g[i]})^{y_i^{\text{true}}-u_i} \times \frac{1}{y_i^{\text{true}}!} (\mu_i w_i)^{y_i^{\text{true}}} e^{-\mu_i w_i} \\
+    &amp; \propto \frac{1}{(y_i^{\text{true}} - u_i)!} ([1-\pi_{g[i]}] \mu_i w_i)^{y_i^{\text{true}}},
+\end{align}\]</span>
+which is the kernel for the distribution
+<span class="math display">\[\begin{equation}
+  \text{Poisson}( y_i^{\text{true}} - u_i \mid (1-\pi_{h[i]}) \mu_i w_i)
+\end{equation}\]</span></p>
+</div>
+<div class="section level4" number="14.3.3">
+<h4 id="derivation-of-y_itexttrue-mid-y_itextobs-pi_gi-mu_i-xi-w_i-in-undercount-only-model-in-section-refsecdatamod-pois-out">
+<span class="header-section-number">14.3.3</span> Derivation of <span class="math inline">\(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i\)</span> in undercount-only model in Section <a href="#sec:datamod-pois-out">8.2</a><a class="anchor" aria-label="anchor" href="#derivation-of-y_itexttrue-mid-y_itextobs-pi_gi-mu_i-xi-w_i-in-undercount-only-model-in-section-refsecdatamod-pois-out"></a>
+</h4>
+<p>When <span class="math inline">\(\xi &gt; 0\)</span>,
+<span class="math display">\[\begin{align}
+    &amp; p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, w_i, \xi) \\
+    &amp; \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}, \mu_i, w_i, \xi) p(y_i^{\text{true}} \mid \pi_{g[i]}, \mu_i, w_i, \xi) \\
+    &amp; = \text{Binomial}(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{NegBinom}(y_i^{\text{true}} \mid \xi^{-1}, [1 + \mu_i w_i \xi_i]^{-1}) \\
+    &amp; = \frac{y_i^{\text{true}}!}{y_i^{\text{obs}}! (y_i^{\text{true}} - y_i^{\text{obs}})!}  \pi_{g[i]}^{y_i^{\text{obs}}} (1-\pi_{g[i]})^{y_i^{\text{true}}-y_i^{\text{obs}}} \\
+    &amp; \quad \times \frac{\Gamma(y_i^{\text{true}} + \xi^{-1})}{y_i^{\text{true}}! \Gamma(\xi^{-1})}
+\left( \frac{1}{ 1 + \mu_i w_i \xi} \right)^{\xi^{-1}}
+\left( \frac{\mu_i w_i \xi}{1 + \mu_i w_i\ \xi} \right)^{y_i^{\text{true}}} \\
+    &amp; \propto \frac{\Gamma(y_i^{\text{true}} + \xi^{-1})}{(y_i^{\text{true}} - y_i^{\text{obs}})!} \left( \frac{ (1-\pi_{g[i]}) \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right)^{y_i^{\text{true}}},
+\end{align}\]</span>
+which is the kernel for the distribution
+<span class="math display">\[\begin{equation}
+  \text{NegBinom}\left( y_i^{\text{true}} - y_i^{\text{obs}} \,\middle|\, y_i^{\text{obs}} + \xi^{-1}, \frac{1 + \pi_{h[i]} \mu_i w_i \xi}{1 + \mu_i w_i \xi} \right).
+\end{equation}\]</span></p>
+<p>When <span class="math inline">\(\xi \equiv 0\)</span>,
+<span class="math display">\[\begin{align}
+    &amp; p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, w_i) \\
+    &amp; \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}, \mu_i, w_i) p(y_i^{\text{true}} \mid \pi_{g[i]}, \mu_i, w_i) \\
+    &amp; = \text{Binomial}(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{Poisson}(y_i^{\text{true}} \mid \mu_i w_i) \\
+    &amp; = \frac{y_i^{\text{true}}!}{y_i^{\text{obs}}! (y_i^{\text{true}} - y_i^{\text{obs}})!}  \pi_{g[i]}^{y_i^{\text{obs}}} (1-\pi_{g[i]})^{y_i^{\text{true}}-y_i^{\text{obs}}} \times \frac{1}{y_i^{\text{true}}!} (\mu_i w_i)^{y_i^{\text{true}}} e^{-\mu_i w_i} \\
+    &amp; \propto \frac{1}{(y_i^{\text{true}} - y_i^{\text{obs}})!} ([1-\pi_{g[i]}] \mu_i w_i)^{y_i^{\text{true}}},
+\end{align}\]</span>
+which is the kernel for the distribution
+<span class="math display">\[\begin{equation}
+  \text{Poisson}( y_i^{\text{true}} - y_i^{\text{obs}} \mid [1 - \pi_{g[i]}] \mu_i w_i).
+\end{equation}\]</span></p>
+</div>
+<div class="section level4" number="14.3.4">
+<h4 id="derivation-of-y_itexttrue-mid-y_itextobs-kappa_hi-mu_i-xi-w_i-in-overcount-only-model-in-section-refsecdatamod-pois-out">
+<span class="header-section-number">14.3.4</span> Derivation of <span class="math inline">\(y_i^{\text{true}} \mid y_i^{\text{obs}}, \kappa_{h[i]}, \mu_i, \xi, w_i\)</span> in overcount-only model in Section <a href="#sec:datamod-pois-out">8.2</a><a class="anchor" aria-label="anchor" href="#derivation-of-y_itexttrue-mid-y_itextobs-kappa_hi-mu_i-xi-w_i-in-overcount-only-model-in-section-refsecdatamod-pois-out"></a>
+</h4>
+<p>Conditional on <span class="math inline">\(\gamma_i, \kappa_{h[i]}, w_i\)</span>, the quantities <span class="math inline">\(y_i^{\text{true}}\)</span> and <span class="math inline">\(v_i\)</span> are independent Poisson variates,
+<span class="math display">\[\begin{align}
+  y_i^{\text{true}} &amp; \sim \text{Poisson}(\gamma_i w_i) \\
+  v_i &amp; \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i),
+\end{align}\]</span>
+with <span class="math inline">\(y_i^{\text{true}} + v_i = y_i^{\text{obs}}\)</span>, implying that,
+<span class="math display">\[\begin{align}
+  p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \gamma_i, \kappa_{h[i]}, w_i) &amp; = \text{Binomial}\left(y_i^{\text{true}} \,\middle|\,  y_i^{\text{obs}}, \frac{ \gamma_i w_i}{\gamma_i w_i + \kappa_{h[i]} \gamma_i w_i}\right) \\
+  &amp; = \text{Binomial}\left(y_i^{\text{true}} \,\middle|\,  y_i^{\text{obs}}, \frac{1}{1 + \kappa_{h[i]}} \right).
+\end{align}\]</span>
+The value of <span class="math inline">\(y_i^{\text{true}}\)</span> does not depend on <span class="math inline">\(\gamma_i\)</span>, and hence does not depend on the determinants of <span class="math inline">\(\gamma_i\)</span>, that is, on <span class="math inline">\(\mu_i\)</span> and <span class="math inline">\(\xi\)</span>.
+We therefore have
+<span class="math display">\[\begin{align}
+  p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \mu_i, \xi, \kappa_{h[i]}, w_i) &amp; = \text{Binomial}\left(y_i^{\text{true}} \,\middle|\, y_i^{\text{obs}}, \frac{1}{1 + \kappa_{h[i]}} \right).
+\end{align}\]</span></p>
+</div>
+<div class="section level4" number="14.3.5">
+<h4 id="derivation-of-pw_itexttrue-mid-w_itextobs-in-section-refsecdatamod-pois-off">
+<span class="header-section-number">14.3.5</span> Derivation of <span class="math inline">\(p(w_i^{\text{true}} \mid w_i^{\text{obs}})\)</span> in Section <a href="#sec:datamod-pois-off">8.3</a><a class="anchor" aria-label="anchor" href="#derivation-of-pw_itexttrue-mid-w_itextobs-in-section-refsecdatamod-pois-off"></a>
+</h4>
+<p>Assume have no prior information on <span class="math inline">\(w_i^{\text{true}}\)</span>, so that <span class="math inline">\(w_i^{\text{true}} \sim \text{Unif}(0, \infty)\)</span>. Let <span class="math inline">\(A = 2 + \delta_{g[i]}^{-1}\)</span> and <span class="math inline">\(B = (1 + \delta_{g[i]}^{-1}) r_{h[i]}\)</span>.</p>
+<p><span class="math display">\[\begin{align}
+  p(w_i^{\text{true}} \mid w_i^{\text{obs}}) &amp; \propto p(w_i^{\text{obs}} \mid w_i^{\text{true}})  p(w_i^{\text{true}}) \\
+  &amp; \propto p(w_i^{\text{obs}} \mid w_i^{\text{true}}) \\
+  &amp; = \text{InvGamma}(A, B w_i^{\text{true}}) \\
+  &amp; = \frac{(B w_i^{\text{true}})^A}{\Gamma(A)} (w_i^{\text{obs}})^{-A-1} \exp \left(-\frac{B w_i^{\text{true}}}{w_i^{\text{obs}}} \right) \\
+  &amp; \propto (w_i^{\text{true}})^A \exp \left(-\frac{B}{w_i^{\text{obs}}} w_i^{\text{true}} \right) \\
+  &amp; \propto \text{Gamma}(w_i^{\text{true}} \mid A + 1, B [w_i^{\text{obs}}]^{-1} ) \\
+  &amp; = \text{Gamma}(w_i^{\text{true}} \mid 3 + \delta_{g[i]}^{-1}, (1 + \delta_{g[i]}^{-1}) r_{h[i]} [w_i^{\text{obs}}]^{-1})
+\end{align}\]</span>
+as required.</p>
+</div>
+<div class="section level4" number="14.3.6">
+<h4 id="derivation-of-y_itexttrue-mid-y_itextobs-pi_gi-mu_i-xi-w_i-in-binomial-undercount-model-in-section-refsecdatamod-binom">
+<span class="header-section-number">14.3.6</span> Derivation of <span class="math inline">\(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i\)</span> in binomial undercount model in Section <a href="#sec:datamod-binom">8.4</a><a class="anchor" aria-label="anchor" href="#derivation-of-y_itexttrue-mid-y_itextobs-pi_gi-mu_i-xi-w_i-in-binomial-undercount-model-in-section-refsecdatamod-binom"></a>
+</h4>
+<p>When <span class="math inline">\(\xi &gt; 0\)</span>,
+<span class="math display">\[\begin{align}
+  &amp; p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, w_i, \xi) \\
+  &amp; \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times p(y_i^{\text{true}} \mid \mu_i, \xi) \\
+  &amp; = \text{Binomial}(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{BetaBinomial}(y_i^{\text{true}} \mid w_i, \xi^{-1}\mu_i, \xi^{-1}[1 - \mu_i]) \\
+  &amp; = \binom{y_i^{\text{true}}}{y_i^{\text{obs}}} \pi_{g[i]}^{y_i^{\text{obs}}} (1-\pi_{g[i]})^{y_i^{\text{true}} - y_i^{\text{obs}}} \times \binom{w_i}{y_i^{\text{true}}}
+  \frac{B(y_i^{\text{true}}+\xi^{-1}\mu_i, w_i-y_i^{\text{true}}+\xi^{-1}[1-\mu_i])}{B(\xi^{-1}\mu_i, \xi^{-1}[1-\mu_i])} \\
+  &amp; \propto \frac{1}{(y_i^{\text{true}}-y_i^{\text{obs}})! (w_i-y_i^{\text{true}})!}\; (1-\pi_{g[i]})^{y_i^{\text{true}}}
+  B(y_i^{\text{true}}+\xi^{-1}\mu_i, w_i-y_i^{\text{true}}+\xi^{-1}[1-\mu_i])
+\end{align}\]</span></p>
+<p>When <span class="math inline">\(\xi \equiv 0\)</span>,
+<span class="math display">\[\begin{align}
+  &amp; p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, w_i, \xi) \\
+  &amp; \propto p(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times p(y_i^{\text{true}} \mid \mu_i, w_i) \\
+  &amp; = \text{Binomial}(y_i^{\text{obs}} \mid y_i^{\text{true}}, \pi_{g[i]}) \times \text{Binomial}(y_i^{\text{true}} \mid w_i, \mu_i) \\
+  &amp; = \binom{y_i^{\text{true}}}{y_i^{\text{obs}}} \pi_{g[i]}^{y_i^{\text{obs}}} (1-\pi_{g[i]})^{y_i^{\text{true}} - y_i^{\text{obs}}} \times \binom{w_i}{y_i^{\text{true}}} \mu_i^{y_i^{\text{true}}} (1 - \mu_i)^{w_i-y_i^{\text{true}}} \\
+  &amp; \propto \frac{1}{(y_i^{\text{true}}-y_i^{\text{obs}})! (w_i-y_i^{\text{true}})!}\; \left(\frac{[1-\pi_{g[i]}]\mu_i}{1-\mu_i}\right)^{y_i^{\text{true}}},
+\end{align}\]</span>
+which is the kernel for the distribution
+<span class="math display">\[\begin{equation}
+  \text{Binomial}\left(y_i^{\text{true}} - y_i^{\text{obs}}  \,\middle|\, w_i - y_i^{\text{obs}}, \frac{[1 - \pi_{g[i]}] \mu_i}{1-\pi_{g[i]} \mu_i}\right).
+\end{equation}\]</span></p>
+</div>
 </div>
 </div>
 <div class="section level2">

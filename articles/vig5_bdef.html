@@ -81,22 +81,18 @@
 <h2 id="introduction">
 <span class="header-section-number">1</span> Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>This vignette uses <strong>bage</strong> to replicate (with a few differences) case studies in the book <a href="https://www.bdef-book.com" class="external-link">Bayesian Demographic Estimation and Forecasting</a> (BDEF). BDEF uses our R package <a href="https://github.com/statisticsnz/demest" class="external-link">demest</a>. However, we strongly recommend using <strong>bage</strong> instead. <strong>bage</strong> is faster, more stable, and has a nicer interface. We are no longer developing <strong>demest</strong>, and are focusing on <strong>bage</strong>.</p>
-<p>In addition to <strong>bage</strong>, the vignette uses the tidyverse packages <strong>dplyr</strong>, <strong>tidyr</strong>, and <strong>ggplot2</strong>.</p>
+<p>This vignette uses <code>bage</code> to replicate, with a few differences, case studies in the book <a href="https://www.bdef-book.com" class="external-link">Bayesian Demographic Estimation and Forecasting</a> (BDEF). BDEF uses our R package <a href="https://github.com/statisticsnz/demest" class="external-link">demest</a>. However, we strongly recommend using <code>bage</code> instead. <code>bage</code> is faster, more stable, and has a nicer interface. We are no longer developing <code>demest</code>, and are focusing on <code>bage</code>.</p>
+<p>In addition to <code>bage</code>, the vignette uses the tidyverse packages <code>dplyr</code>, <code>tidyr</code>, and <code>ggplot2</code>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: rvec</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'rvec'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     sd, var</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     rank</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
+<p>The vignette includes notes aimed at readers of BDEF, pointing out differences between the models in <code>bage</code> and the models in BDEF, and explaning why we made the changes.</p>
+<blockquote>
+<p><strong>BDEF Note</strong></p>
+<p>BDEF notes look like this.</p>
+</blockquote>
 </div>
 <div class="section level2" number="2">
 <h2 id="infant-mortality-in-sweden">
@@ -107,7 +103,7 @@
 <span class="header-section-number">2.1</span> Aims and data<a class="anchor" aria-label="anchor" href="#aims-and-data"></a>
 </h3>
 <p>We estimate and forecast infant mortality in Swedish counties. Following standard demographic practice we define the infant mortality rate as the probability of dying during the first year of life, calculated using this year’s infant deaths and this year’s births. (See Chapter 11 of BDEF on why this definition is slightly odd.)</p>
-<p>Data for the analysis is in the <code>swe_infant</code> dataset in <strong>bage</strong>:</p>
+<p>Data for the analysis is in the <code>swe_infant</code> dataset in <code>bage</code>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">swe_infant</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 441 × 4</span></span></span>
@@ -124,7 +120,7 @@
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Stockholm  <span style="text-decoration: underline;">2</span>003  <span style="text-decoration: underline;">25</span>028     67</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 431 more rows</span></span></span></code></pre></div>
-<p>The figure below shows direct estimates of infant mortality rates. The panels are ordered by the size of the county, as measured by the number of births.</p>
+<p>The figure below shows direct estimates of infant mortality rates. Each panel depicts one county. The panels are ordered from top left to bottom right by the number of births in each county.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">swe_infant</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">deaths</span> <span class="op">/</span> <span class="va">births</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">county</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -157,8 +153,41 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  n_draw var_time</span></span>
 <span><span class="co">#&gt;    1000     time</span></span></code></pre></div>
-<p>This model is slightly different from the infant mortality model in BDEF. The intercept here has a <span class="math inline">\(\text{N}(0,1)\)</span> prior rather than <span class="math inline">\(\text{N}(0,10^2)\)</span>, and the time effect has a random walk prior rather than a local level prior. (Local level priors have not yet been implemented in <strong>bage</strong>.)</p>
-<p>We fit the model. Fitting in <strong>bage</strong> is a lot faster than fitting in <strong>demest</strong>.</p>
+<p>In this model, deaths in county <span class="math inline">\(c\)</span> during year <span class="math inline">\(t\)</span>, denoted <span class="math inline">\(y_{ct}\)</span>, are drawn from a binomial distribution with probability <span class="math inline">\(\pi_{ct}\)</span> and trials <span class="math inline">\(w_{ct}\)</span>,
+<span class="math display">\[\begin{equation}
+  y_{ct} \sim \text{binomial}(\pi_{ct}, w_{ct}).
+\end{equation}\]</span>
+The probability <span class="math inline">\(\pi_{ct}\)</span> is in turn drawn from a beta distribution, with expected value <span class="math inline">\(\mu_{ct}\)</span> and dispersion parameter <span class="math inline">\(\xi\)</span>,
+<span class="math display">\[\begin{equation}
+  \pi_{ct} \sim \text{Beta}(\xi^{-1} \mu_{ct}, \xi^{-1}[1 - \mu_{ct}])
+\end{equation}\]</span>
+Expected value <span class="math inline">\(\mu_{ct}\)</span>, transformed on to a logit scale, depends on three terms: an intercept, a ‘county’ main effect, and a ‘time’ main effect,
+<span class="math display">\[\begin{equation}
+  \text{logit} \mu_{ct} = \beta^0 + \beta_c^{\mathcal{C}} + \beta_t^{\mathcal{T}}
+\end{equation}\]</span>
+Each of these terms has a prior. The intercept has a ‘normal-fixed’ prior,
+<span class="math display">\[\begin{equation}
+  \beta^0 \sim \text{N}(0, 1).
+\end{equation}\]</span>
+The county main effect has a ‘normal’ prior,
+<span class="math display">\[\begin{align}
+  \beta_c^{\mathcal{C}} &amp; \sim \text{N}(0, \tau_{\mathcal{C}}^2) \\
+  \tau_{\mathcal{C}} &amp; \sim \text{N}^+(0, 1).
+\end{align}\]</span>
+The time main effect has a random walk prior,
+<span class="math display">\[\begin{align}
+  \beta_t^{\mathcal{T}} &amp; \sim \text{N}(\beta_{t-1}^{\mathcal{T}}, \tau_{\mathcal{C}}^2) \\
+  \tau_{\mathcal{C}} &amp; \sim \text{N}^+(0, 1).
+\end{align}\]</span>
+Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has an expontial prior
+<span class="math display">\[\begin{equation}
+  \xi \sim \text{Exp}(1).
+\end{equation}\]</span></p>
+<blockquote>
+<p><strong>BDEF Note</strong></p>
+<p>This model is slightly different from the infant mortality model in BDEF. The intercept here has a <span class="math inline">\(\text{N}(0,1)\)</span> prior rather than <span class="math inline">\(\text{N}(0,10^2)\)</span>, and the time effect has a random walk prior rather than a local level prior. (Local level priors have not yet been implemented in <code>bage</code>.)</p>
+</blockquote>
+<p>We fit the model. Fitting in <code>bage</code> is a lot faster than fitting in <code>demest</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -184,7 +213,7 @@
 <span><span class="co">#&gt;    1000     time    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        0.62     0.34      0.20   15      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.59     0.32      0.20   15      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="2.3">
 <h3 id="extracting-parameter-estimates">
@@ -194,22 +223,20 @@
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_init</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">aug_init</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 441 × 7</span></span></span>
 <span><span class="co">#&gt;    county     time births deaths .observed                 .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Stockholm  <span style="text-decoration: underline;">1</span>995  <span style="text-decoration: underline;">22</span>626     96   0.004<span style="text-decoration: underline;">24</span> 0.0038 (0.0033, 0.0044)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Stockholm  <span style="text-decoration: underline;">1</span>996  <span style="text-decoration: underline;">21</span>354     74   0.003<span style="text-decoration: underline;">47</span>   0.0035 (0.003, 0.004)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0027, 0.0037)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span> 0.0034 (0.0029, 0.0039)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0028, 0.0037)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span>  0.0034 (0.0029, 0.004)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Stockholm  <span style="text-decoration: underline;">1</span>999  <span style="text-decoration: underline;">20</span>863     68   0.003<span style="text-decoration: underline;">26</span> 0.0032 (0.0027, 0.0036)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Stockholm  <span style="text-decoration: underline;">2</span>000  <span style="text-decoration: underline;">21</span>837     75   0.003<span style="text-decoration: underline;">43</span> 0.0032 (0.0028, 0.0037)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Stockholm  <span style="text-decoration: underline;">2</span>001  <span style="text-decoration: underline;">22</span>622     68   0.003<span style="text-decoration: underline;">01</span> 0.0031 (0.0026, 0.0036)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stockholm  <span style="text-decoration: underline;">2</span>002  <span style="text-decoration: underline;">24</span>084     70   0.002<span style="text-decoration: underline;">91</span> 0.0029 (0.0025, 0.0034)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Stockholm  <span style="text-decoration: underline;">2</span>003  <span style="text-decoration: underline;">25</span>028     67   0.002<span style="text-decoration: underline;">68</span> 0.0028 (0.0024, 0.0032)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64   0.002<span style="text-decoration: underline;">48</span>  0.0026 (0.0022, 0.003)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64   0.002<span style="text-decoration: underline;">48</span> 0.0026 (0.0022, 0.0031)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 431 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
 <p>We use function <code><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci()</a></code> from package <strong>rvec</strong> to calculate 95% credible intervals.</p>
@@ -222,14 +249,14 @@
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Stockholm  <span style="text-decoration: underline;">1</span>995  <span style="text-decoration: underline;">22</span>626     96   0.004<span style="text-decoration: underline;">24</span> 0.0038 (0.0033, 0.0044)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Stockholm  <span style="text-decoration: underline;">1</span>996  <span style="text-decoration: underline;">21</span>354     74   0.003<span style="text-decoration: underline;">47</span>   0.0035 (0.003, 0.004)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0027, 0.0037)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span> 0.0034 (0.0029, 0.0039)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0028, 0.0037)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span>  0.0034 (0.0029, 0.004)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Stockholm  <span style="text-decoration: underline;">1</span>999  <span style="text-decoration: underline;">20</span>863     68   0.003<span style="text-decoration: underline;">26</span> 0.0032 (0.0027, 0.0036)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Stockholm  <span style="text-decoration: underline;">2</span>000  <span style="text-decoration: underline;">21</span>837     75   0.003<span style="text-decoration: underline;">43</span> 0.0032 (0.0028, 0.0037)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Stockholm  <span style="text-decoration: underline;">2</span>001  <span style="text-decoration: underline;">22</span>622     68   0.003<span style="text-decoration: underline;">01</span> 0.0031 (0.0026, 0.0036)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stockholm  <span style="text-decoration: underline;">2</span>002  <span style="text-decoration: underline;">24</span>084     70   0.002<span style="text-decoration: underline;">91</span> 0.0029 (0.0025, 0.0034)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Stockholm  <span style="text-decoration: underline;">2</span>003  <span style="text-decoration: underline;">25</span>028     67   0.002<span style="text-decoration: underline;">68</span> 0.0028 (0.0024, 0.0032)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64   0.002<span style="text-decoration: underline;">48</span>  0.0026 (0.0022, 0.003)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64   0.002<span style="text-decoration: underline;">48</span> 0.0026 (0.0022, 0.0031)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 431 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 4 more variables: .expected &lt;rdbl&lt;1000&gt;&gt;, .fitted.lower &lt;dbl&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   .fitted.mid &lt;dbl&gt;, .fitted.upper &lt;dbl&gt;</span></span></span></code></pre></div>
@@ -257,14 +284,14 @@
 <span><span class="co">#&gt;    term        component level                          .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                     <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)          -2.7 (-4.1, -1.3)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> county      effect    Stockholm        -0.16 (-0.25, -0.072)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> county      effect    Vastra Gotaland -0.095 (-0.19, 0.0016)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> county      effect    Skane            -0.1 (-0.19, -0.0025)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> county      effect    Ostergotland      -0.0098 (-0.13, 0.1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> county      effect    Stockholm        -0.16 (-0.25, -0.073)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> county      effect    Vastra Gotaland -0.095 (-0.19, 0.0011)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> county      effect    Skane            -0.1 (-0.19, -0.0023)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> county      effect    Ostergotland      -0.0095 (-0.13, 0.1)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> county      effect    Jonkoping           0.01 (-0.12, 0.14)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> county      effect    Uppsala           0.0031 (-0.13, 0.14)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> county      effect    Uppsala           0.0026 (-0.13, 0.14)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> county      effect    Orebro            0.071 (-0.064, 0.22)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> county      effect    Dalarna            0.04 (-0.098, 0.18)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> county      effect    Dalarna           0.041 (-0.096, 0.18)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> county      effect    Norrbotten           0.17 (0.044, 0.3)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 36 more rows</span></span></span></code></pre></div>
 <p>With help from some tidyverse functions we can extract and graph the intercept,</p>
@@ -322,7 +349,7 @@
 <span class="header-section-number">2.4</span> An aside on weakly-identified effects<a class="anchor" aria-label="anchor" href="#an-aside-on-weakly-identified-effects"></a>
 </h3>
 <p>The intercept and time effects from our model both have wide credible intervals. This reflects the fact that they are only weakly identified by the model and data. Adding a small quantity to each element of the time effect, and subtracting the same quantity from the intercept, would make no difference at all to the predictions of the model, and make only a tiny difference to the posterior probabilities.</p>
-<p>In <strong>demest</strong> we deal with the weak identification by standardizing the estimates. Standardization can, however, introduce new complications, and we have not implemented it in <strong>bage</strong>.</p>
+<p>In <code>demest</code> we deal with the weak identification by standardizing the estimates. Standardization can, however, introduce new complications, and we have not implemented it in <code>bage</code>.</p>
 <p>When an analysis is focused only on lowest-level rates, probabilities, or means, and higher-level parameters such as time effects are just a means to an end, weak identification rarely causes any problems. If, however, the higher-level parameters are of interest, it may be helpful to experiment with non-default values for parameters. In the model here, for instance, setting the <code>sd</code> parameter for the <code><a href="../reference/RW.html">RW()</a></code> prior to 0 fixes the first value of the time effect to 0, leading to a more strongly-identified time effect.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_ident</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_binom.html">mod_binom</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">~</span> <span class="va">county</span> <span class="op">+</span> <span class="va">time</span>,</span>
@@ -358,8 +385,6 @@
 <p>Function <code><a href="../reference/replicate_data.html">replicate_data()</a></code> generates replicate datasets.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rep_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; Drawing `.fitted`...</span></span>
 <span><span class="va">rep_data</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8,820 × 5</span></span></span>
 <span><span class="co">#&gt;    .replicate county     time births deaths</span></span>
@@ -418,23 +443,20 @@
 <span><span class="co">#&gt; `components()` for future values...</span></span>
 <span><span class="co">#&gt; `augment()` for future values...</span></span>
 <span><span class="co">#&gt; `augment()` for past values...</span></span>
-<span><span class="co">#&gt; Drawing `.expected`...</span></span>
-<span><span class="co">#&gt; `augment()` for past values...Drawing `.fitted`...</span></span>
-<span><span class="co">#&gt; `augment()` for past values...</span></span>
 <span><span class="va">vals_forecast</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 651 × 7</span></span></span>
 <span><span class="co">#&gt;    county     time births deaths .observed                 .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Stockholm  <span style="text-decoration: underline;">1</span>995  <span style="text-decoration: underline;">22</span>626     96   0.004<span style="text-decoration: underline;">24</span> 0.0038 (0.0033, 0.0044)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Stockholm  <span style="text-decoration: underline;">1</span>996  <span style="text-decoration: underline;">21</span>354     74   0.003<span style="text-decoration: underline;">47</span>   0.0035 (0.003, 0.004)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0027, 0.0037)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span> 0.0034 (0.0029, 0.0039)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0028, 0.0037)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span>  0.0034 (0.0029, 0.004)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Stockholm  <span style="text-decoration: underline;">1</span>999  <span style="text-decoration: underline;">20</span>863     68   0.003<span style="text-decoration: underline;">26</span> 0.0032 (0.0027, 0.0036)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Stockholm  <span style="text-decoration: underline;">2</span>000  <span style="text-decoration: underline;">21</span>837     75   0.003<span style="text-decoration: underline;">43</span> 0.0032 (0.0028, 0.0037)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Stockholm  <span style="text-decoration: underline;">2</span>001  <span style="text-decoration: underline;">22</span>622     68   0.003<span style="text-decoration: underline;">01</span> 0.0031 (0.0026, 0.0036)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stockholm  <span style="text-decoration: underline;">2</span>002  <span style="text-decoration: underline;">24</span>084     70   0.002<span style="text-decoration: underline;">91</span> 0.0029 (0.0025, 0.0034)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Stockholm  <span style="text-decoration: underline;">2</span>003  <span style="text-decoration: underline;">25</span>028     67   0.002<span style="text-decoration: underline;">68</span> 0.0028 (0.0024, 0.0032)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64   0.002<span style="text-decoration: underline;">48</span>  0.0026 (0.0022, 0.003)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64   0.002<span style="text-decoration: underline;">48</span> 0.0026 (0.0022, 0.0031)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 641 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
 <p>In contrast to the all-defaults model in Chapter 11 of BDEF, the all-defaults model here does not yield exploding prediction intervals.</p>
