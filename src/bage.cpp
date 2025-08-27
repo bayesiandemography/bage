@@ -173,6 +173,98 @@ vector<Type> alpha_zeroseasvary(vector<Type> effectfree,
 }
 
 template <class Type>
+Type log_dbetabinom(Type x,
+		    Type size,
+		    Type logit_p,
+		    Type disp) {
+  Type mu = 1 / (1 + exp(-logit_p));
+  Type alpha = mu / disp;
+  Type beta = (1 - mu) / disp;
+  Type log_num = lgamma(x + alpha) + lgamma(size - x + beta) - lgamma(size + alpha + beta);
+  Type log_den = lgamma(alpha) + lgamma(beta) - lgamma(alpha + beta);
+  return log_num - log_den;
+}
+
+template <class Type>
+Type log_dbetabinom_rr3(Type x,
+			Type size,
+			Type logit_p,
+			Type disp) {
+  const Type log_one_third = -log(3);
+  const Type log_two_thirds = log(2) - log(3);
+  Type ans = 0;
+  if (outcome >= 2)
+    ans += log_one_third + log_dbetabinom(outcome - 2, size, logit_p, disp);
+  if (outcome >= 1)
+    ans = logspace_add(ans, log_two_thirds + log_dbetabinom(outcome - 1, size, logit_p, disp));
+  ans = logspace_add(ans, log_dbetabinom(outcome, size, logit_p, disp));
+  ans = logspace_add(ans, log_two_thirds + log_dbetabinom(outcome + 1, size, logit_p, disp));
+  ans = logspace_add(ans, log_one_third + log_dbetabinom(outcome + 2, size, logit_p, disp));
+  return ans;
+}
+
+template <class Type>
+Type log_dbinom_rr3(Type outcome, Type size, Type prob) {
+  const Type log_one_third = -log(3);
+  const Type log_two_thirds = log(2) - log(3);
+  Type ans = 0;
+  if (outcome >= 2)
+    ans += log_one_third + dbinom(outcome - 2, size, prob, true);
+  if (outcome >= 1)
+    ans = logspace_add(ans, log_two_thirds + dbinom(outcome - 1, size, prob, true));
+  ans = logspace_add(ans, dbinom(outcome, size, prob, true));
+  ans = logspace_add(ans, log_two_thirds + dbinom(outcome + 1, size, prob, true));
+  ans = logspace_add(ans, log_one_third + dbinom(outcome + 2, size, prob, true));
+  return ans;
+}
+
+
+template <class Type>
+Type log_dbinom_robust_rr3(Type outcome, Type size, Type logit_p) {
+  const Type log_one_third = -log(3);
+  const Type log_two_thirds = log(2) - log(3);
+  Type ans = 0;
+  if (outcome >= 2)
+    ans += log_one_third + dbinom_robust(outcome - 2, size, logit_p, true);
+  if (outcome >= 1)
+    ans = logspace_add(ans, log_two_thirds + dbinom_robust(outcome - 1, size, logit_p, true));
+  ans = logspace_add(ans, dbinom_robust(outcome, size, logit_p, true));
+  ans = logspace_add(ans, log_two_thirds + dbinom_robust(outcome + 1, size, logit_p, true));
+  ans = logspace_add(ans, log_one_third + dbinom_robust(outcome + 2, size, logit_p, true));
+  return ans;
+}
+
+template <class Type>
+Type log_dnbinom_rr3(Type outcome, Type size, Type prob) {
+  const Type log_one_third = -log(3);
+  const Type log_two_thirds = log(2) - log(3);
+  Type ans = 0;
+  if (outcome >= 2)
+    ans += log_one_third + dnbinom(outcome - 2, size, prob, true);
+  if (outcome >= 1)
+    ans = logspace_add(ans, log_two_thirds + dnbinom(outcome - 1, size, prob, true));
+  ans = logspace_add(ans, dnbinom(outcome, size, prob, true));
+  ans = logspace_add(ans, log_two_thirds + dnbinom(outcome + 1, size, prob, true));
+  ans = logspace_add(ans, log_one_third + dnbinom(outcome + 2, size, prob, true));
+  return ans;
+}
+
+template <class Type>
+Type log_dpois_rr3(Type outcome, Type rate) {
+  const Type log_one_third = -log(3);
+  const Type log_two_thirds = log(2) - log(3);
+  Type ans = 0;
+  if (outcome >= 2)
+    ans += log_one_third + dpois(outcome - 2, rate, true);
+  if (outcome >= 1)
+    ans = logspace_add(ans, log_two_thirds + dpois(outcome - 1, rate, true));
+  ans = logspace_add(ans, dpois(outcome, rate, true));
+  ans = logspace_add(ans, log_two_thirds + dpois(outcome + 1, rate, true));
+  ans = logspace_add(ans, log_one_third + dpois(outcome + 2, rate, true));
+  return ans;
+}
+
+template <class Type>
 Type logpost_ar_inner(vector<Type> effectfree,
 		      vector<Type> hyper,
 		      vector<Type> consts,
@@ -204,19 +296,6 @@ Type logpost_ar_inner(vector<Type> effectfree,
     ans -= SCALE(ARk(coef), sd)(effect_along); // ARk returns neg log-lik
   }
   return ans;
-}
-
-template <class Type>
-Type logpost_betabinom(Type x,
-		       Type n,
-		       Type logit_mu,
-		       Type disp) {
-  Type mu = 1 / (1 + exp(-logit_mu));
-  Type alpha = mu / disp;
-  Type beta = (1 - mu) / disp;
-  Type log_num = lgamma(x + alpha) + lgamma(n - x + beta) - lgamma(n + alpha + beta);
-  Type log_den = lgamma(alpha) + lgamma(beta) - lgamma(alpha + beta);
-  return log_num - log_den;
 }
 
 template <class Type>
@@ -269,7 +348,7 @@ Type logpost_slope(vector<Type> slope,
 }
 
 
-// "Methods" for 'logpost' function  ------------------------------------------
+// "Methods" for 'logpost' functions for priors  ------------------------------
 
 // Assume inputs all valid (checking done in R).
 // Note that the 'Known' prior does not have
@@ -721,10 +800,10 @@ Type logpost_svd_rw2zero(vector<Type> effectfree,
 }
 
 
-// Equivalent of method dispatch for logpost ----------------------------------
+// Equivalent of method dispatch for logpost functions for priors -------------
 
 template <class Type>
-Type logpost_not_uses_hyper(vector<Type> effectfree,
+Type logpost_no_hyper(vector<Type> effectfree,
 			    vector<Type> consts,
 			    matrix<int> matrix_along_by_effectfree,
 			    int i_prior) {
@@ -740,13 +819,13 @@ Type logpost_not_uses_hyper(vector<Type> effectfree,
     ans = logpost_linex(effectfree, consts, matrix_along_by_effectfree);
     break;
   default:                                                                                          // # nocov
-    error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
+    error("Internal error: function 'logpost_no_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
 }
 
 template <class Type>
-Type logpost_uses_hyper(vector<Type> effectfree,
+Type logpost_has_hyper(vector<Type> effectfree,
 			vector<Type> hyper,
 			vector<Type> consts,
 			matrix<int> matrix_along_by_effectfree,
@@ -793,13 +872,13 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     ans = logpost_svd_rw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   default:                                                                                      // # nocov
-    error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
+    error("Internal error: function 'logpost_has_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
 }
 
 template <class Type>
-Type logpost_uses_hyperrandfree(vector<Type> effectfree,
+Type logpost_has_hyperrandfree(vector<Type> effectfree,
 				vector<Type> hyper,
 				vector<Type> hyperrandfree,
 				vector<Type> consts,
@@ -843,106 +922,240 @@ Type logpost_uses_hyperrandfree(vector<Type> effectfree,
 				    matrix_along_by_effectfree);
     break;
   default:                                                                                          // # nocov
-    error("Internal error: function 'logpost_uses_hyperrandfree' cannot handle i_prior = %d", i_prior); // # nocov
+    error("Internal error: function 'logpost_has_hyperrandfree' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
 }
 
 
-// 'Methods' for loglik -------------------------------------------------------
+// 'Methods' for logpost function for data models -----------------------------
 
 template <class Type>
-Type loglik_binom_not_uses_disp(Type outcome,
-				Type linpred,
-				Type offset) {
+Type logpost_datamod_exposure(vector<Type> datamod_param,
+			      vector<Type> datamod_consts) {
+  int n = datamods_param.size();
+  vector<Type> disp_mean = datamod_consts.tail(n);
+  vector<Type> disp_rate = 1 / disp_mean;
+  Type ans = dexp(datamod_param, disp_rate, true).sum();
+  return ans;
+}
+
+template <class Type>
+Type logpost_datamod_miscount(vector<Type> datamod_param,
+			      vector<Type> datamod_consts) {
+  int n = datamods_param.size() / 2;
+  vector<Type> prob = datamod_param.head(n);
+  vector<Type> rate = datamod_param.tail(n);
+  vector<Type> prob_mean = datamod_consts.segment(0, n);
+  vector<Type> prob_disp = datamod_consts.segment(n, n);
+  vector<Type> rate_mean = datamod_consts.segment(2 * n, n);
+  vector<Type> rate_disp = datamod_consts.segment(3 * n, n);
+  Type ans = 0;
+  ans += dbeta(prob,
+	       prob_mean / rate_disp,
+	       (1 - prob_mean) / rate_disp,
+	       true);
+  ans += 0; // JACOBIAN!!!
+  ans += dgamma(rate,
+		1 / rate_disp,
+		1 / (rate_mean * rate_disp),
+		true);
+  ans += 0 // JACOBIAN
+  return ans;
+}
+
+template <class Type>
+Type logpost_datamod_overcount(vector<Type> datamod_param,
+			       vector<Type> datamod_) {
+  return 0;
+}
+
+
+template <class Type>
+Type logpost_datamod_undercount(vector<Type> datamod_param,
+				vector<Type> datamod_consts) {
+  return  0;
+}
+
+
+template <class Type>
+matrix<Type> make_datamod_vals_exposure(vector<Type> datamod_param,
+					vector<Type> datamod_consts,
+					LIST_SM_t datamod_matrices) {
+  int n = datamods_param.size();
+  vector<Type> ratio_ratio = datamod_consts.head(n);
+  SparseMatrix<Type> ratio_matrix = datamod_matrices[0];
+  SparseMatrix<Type> disp_matrix = datamod_matrices[1];
+  int n_outcome = ratio_matrix.rows();
+  matrix<Type, n_outcome, 2> ans;
+  ans.col(0) = ratio_matrix * ratio_ratio;
+  ans.col(1) = disp_matrix * datamod_param;
+  return ans;
+}
+
+
+template <class Type>
+matrix<Type> make_datamod_vals_miscount(vector<Type> datamod_param,
+					LIST_SM_t datamod_matrices) {
+  int n = datamods_param.size() / 2;
+  vector<Type> prob = datamod_param.head(n);
+  vector<Type> rate = datamod_param.tail(n);
+  SparseMatrix<Type> prob_matrix = datamod_matrices[0];
+  SparseMatrix<Type> rate_matrix = datamod_matrices[1];
+  int n_outcome = prob_matrix.rows();
+  matrix<Type, n_outcome, 2> ans;
+  ans.col(0) = prob_matrix * prob;
+  ans.col(1) = rate_matrix * rate;
+  return ans;
+}
+
+template <class Type>
+matrix<Type> make_datamod_vals_noise(vector<Type> datamod_consts,
+				     LIST_SM_t datamod_matrices) {
+  int n = datamod_consts.size() / 2;
+  vector<Type> mean = datamod_consts.head(n);
+  vector<Type> sd = datamod_consts.tail(n);
+  SparseMatrix<Type> mean_matrix = datamod_matrices[0];
+  SparseMatrix<Type> sd_matrix = datamod_matrices[1];
+  int n_outcome = mean_matrix.rows();
+  matrix<Type, n_outcome, 2> ans;
+  ans.col(0) = mean_matrix * mean;
+  ans.col(1) = sd_matrix * sd;
+  return ans;
+}
+
+
+template <class Type>
+matrix<Type> make_datamod_vals_overcount(vector<Type> datamod_param,
+					 LIST_SM_t datamod_matrices) {
+  int n = datamods_param.size();
+  SparseMatrix<Type> matrix = datamod_matrices[0];
+  int n_outcome = matrix.rows();
+  matrix<Type, n_outcome, 1> ans;
+  ans.col(0) = matrix * datamod_param;
+  return ans;
+}
+
+template <class Type>
+matrix<Type> make_datamod_vals_undercount(vector<Type> datamod_param,
+					  LIST_SM_t datamod_matrices) {
+  int n = datamods_param.size();
+  SparseMatrix<Type> matrix = datamod_matrices[0];
+  int n_outcome = matrix.rows();
+  matrix<Type, n_outcome, 1> ans;
+  ans.col(0) = matrix * datamod_param;
+  return ans;
+}
+
+
+// Equivalent of method dispatch for logpost function for data models ---------
+
+template <class Type>
+Type logpost_datamod(vector<Type> datamod_param,
+		     vector<Type> datamod_consts,
+		     int i_datamod) {
+  Type ans = 0;
+  switch(i_datamod) {
+  case 1000:
+    ans = logpost_datamod_exposure(datamod_param, datamod_consts);
+    break;
+  case 2000:
+    ans = logpost_datamod_miscount(datamod_param, datamod_consts);
+    break;
+  case 4000:
+    ans = logpost_datamod_overcount(datamod_param, datamod_consts);
+    break;
+  case 5000:
+    ans = logpost_datamod_undercount(datamod_param, datamod_consts);
+    break;
+  default:                                                                                          // # nocov
+    error("Internal error: 'logpost_datamod' cannot handle i_datmod = %d", // # nocov
+	  i_datamod); // # nocov
+  }
+  return ans;
+}
+
+
+template <class Type>
+Type make_datamod_vals(vector<Type> datamod_param,
+		       vector<Type> datamod_consts,
+		       LIST_SM_t datamod_matrices,
+		       int i_datamod) {
+  Type ans = 0;
+  switch(i_datamod) {
+  case 1000:
+    ans = make_datamod_vals_exposure(datamod_param,
+				     datamod_consts,
+				     datamod_matrices);
+    break;
+  case 2000:
+    ans = logpost_datamod_miscount(datamod_param,
+				   datamod_matrices);
+    break;
+  case 3000:
+    ans = logpost_datamod_miscount(datamod_consts,
+				   datamod_matrices);
+    break;
+  case 4000:
+    ans = logpost_datamod_overcount(datamod_param,
+				    datamod_matrices);
+    break;
+  case 5000:
+    ans = logpost_datamod_undercount(datamod_param,
+				     datamod_matrices);
+    break;
+  default:                                                                                          // # nocov
+    error("Internal error: 'make_datamod_vals' cannot handle i_datmod = %d",
+	  i_datamod); // # nocov
+  }
+  return ans;
+}
+
+
+
+// 'Methods' for loglik -------------------------------------------------------
+
+
+// No disp, no data models
+
+template <class Type>
+Type loglik_pois_no_disp(Type outcome,
+			       Type linpred,
+			       Type offset) {
+  Type rate = exp(linpred) * offset;
+  return dpois(outcome, rate, true);
+}
+
+template <class Type>
+Type loglik_pois_no_disp_rr3(Type outcome,
+			     Type linpred,
+			     Type offset) {
+  Type rate = exp(linpred) * offset;
+  return log_dpois_rr3(outcome, rate);
+}
+
+template <class Type>
+Type loglik_binom_no_disp(Type outcome,
+			  Type linpred,
+			  Type offset) {
   return dbinom_robust(outcome, offset, linpred, true);
 }
 
 template <class Type>
-Type loglik_binom_not_uses_disp_rr3(Type outcome,
-				    Type linpred,
-				    Type offset) {
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
-  Type ans = 0;
-  if (outcome >= 2)
-    ans += log_one_third + dbinom_robust(outcome - 2, offset, linpred, true);
-  if (outcome >= 1)
-    ans = logspace_add(ans, log_two_thirds + dbinom_robust(outcome - 1, offset, linpred, true));
-  ans = logspace_add(ans, dbinom_robust(outcome, offset, linpred, true));
-  ans = logspace_add(ans, log_two_thirds + dbinom_robust(outcome + 1, offset, linpred, true));
-  ans = logspace_add(ans, log_one_third + dbinom_robust(outcome + 2, offset, linpred, true));
-  return ans;
+Type loglik_binom_no_disp_rr3(Type outcome,
+			      Type linpred,
+			      Type offset) {
+  return log_dbinom_robust_rr3(outcome, offset, linpred);
 }
 
-template <class Type>
-Type loglik_binom_uses_disp(Type outcome,
-			    Type linpred,
-			    Type offset,
-			    Type disp) {
-  return logpost_betabinom(outcome, offset, linpred, disp);
-}
+
+// Has disp, no data models
 
 template <class Type>
-Type loglik_binom_uses_disp_rr3(Type outcome,
-				Type linpred,
-				Type offset,
-				Type disp) {
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
-  Type ans = 0;
-  if (outcome >= 2)
-    ans += log_one_third + logpost_betabinom(outcome - 2, offset, linpred, disp);
-  if (outcome >= 1)
-    ans = logspace_add(ans, log_two_thirds + logpost_betabinom(outcome - 1, offset, linpred, disp));
-  ans = logspace_add(ans, logpost_betabinom(outcome, offset, linpred, disp));
-  ans = logspace_add(ans, log_two_thirds + logpost_betabinom(outcome + 1, offset, linpred, disp));
-  ans = logspace_add(ans, log_one_third + logpost_betabinom(outcome + 2, offset, linpred, disp));
-  return ans;
-}
-
-template <class Type>
-Type loglik_norm(Type outcome,
-		 Type linpred,
-		 Type offset,
-		 Type disp) {
-  Type sd = disp / sqrt(offset);
-  Type ans = dnorm(outcome, linpred, sd, true);
-  return ans;
-}
-
-template <class Type>
-Type loglik_pois_not_uses_disp(Type outcome,
-			       Type linpred,
-			       Type offset) {
-  Type rate = exp(linpred) * offset;
-  Type ans = dpois(outcome, rate, true);
-  return ans;
-}
-
-template <class Type>
-Type loglik_pois_not_uses_disp_rr3(Type outcome,
-				   Type linpred,
-				   Type offset) {
-  Type rate = exp(linpred) * offset;
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
-  Type ans = 0;
-  if (outcome >= 2)
-    ans += log_one_third + dpois(outcome - 2, rate, true);
-  if (outcome >= 1)
-    ans = logspace_add(ans, log_two_thirds + dpois(outcome - 1, rate, true));
-  ans = logspace_add(ans, dpois(outcome, rate, true));
-  ans = logspace_add(ans, log_two_thirds + dpois(outcome + 1, rate, true));
-  ans = logspace_add(ans, log_one_third + dpois(outcome + 2, rate, true));
-  return ans;
-}
-
-template <class Type>
-Type loglik_pois_uses_disp(Type outcome,
-			   Type linpred,
-			   Type offset,
-			   Type disp) {
+Type loglik_pois_has_disp(Type outcome,
+			  Type linpred,
+			  Type offset,
+			  Type disp) {
   Type rate = exp(linpred) * offset;
   Type size = 1 / disp;
   Type prob = size / (rate + size);
@@ -951,84 +1164,491 @@ Type loglik_pois_uses_disp(Type outcome,
 }
 
 template <class Type>
-Type loglik_pois_uses_disp_rr3(Type outcome,
-			       Type linpred,
-			       Type offset,
-			       Type disp) {
+Type loglik_pois_has_disp_rr3(Type outcome,
+			      Type linpred,
+			      Type offset,
+			      Type disp) {
   Type rate = exp(linpred) * offset;
   Type size = 1 / disp;
   Type prob = size / (rate + size);
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
-  Type ans = 0;
-  if (outcome >= 2)
-    ans += log_one_third + dnbinom(outcome - 2, size, prob, true);
-  if (outcome >= 1)
-    ans = logspace_add(ans, log_two_thirds + dnbinom(outcome - 1, size, prob, true));
-  ans = logspace_add(ans, dnbinom(outcome, size, prob, true));
-  ans = logspace_add(ans, log_two_thirds + dnbinom(outcome + 1, size, prob, true));
-  ans = logspace_add(ans, log_one_third + dnbinom(outcome + 2, size, prob, true));
-  return ans;
+  return log_dnbinom_rr3(outcome, size, prob);
 }
+
+template <class Type>
+Type loglik_binom_has_disp(Type outcome,
+			   Type linpred,
+			   Type offset,
+			   Type disp) {
+  return log_dbetabinom(outcome, offset, linpred, disp);
+}
+
+template <class Type>
+Type loglik_binom_has_disp_rr3(Type outcome,
+			       Type linpred,
+			       Type offset,
+			       Type disp) {
+  return log_dbetabinom_rr3(outcome, offset, linpred, disp);
+}
+
+template <class Type>
+Type loglik_norm(Type outcome,
+		 Type linpred,
+		 Type offset,
+		 Type disp) {
+  Type sd = disp / sqrt(offset);
+  return dnorm(outcome, linpred, sd, true);
+}
+
+
+// No disp, has data models
+
+template <class Type>
+Type loglik_pois_no_disp_exposure(Type outcome,
+				  vector<Type> datamod_vals,
+				  Type linpred,
+				  Type offset) {
+  Type r = datamod_vals[0];
+  Type d = datamod_vals[1];
+  Type rate = exp(linpred) * offset / ((1 + (1 / d)) * r);
+  Type size = 3 + 1 / d;
+  Type prob = size / (rate + size);
+  return dnbinom(outcome, size, prob, true);
+}
+
+
+template <class Type>
+Type loglik_pois_no_disp_exposure_rr3(Type outcome,
+				      vector<Type> datamod_vals,
+				      Type linpred,
+				      Type offset) {
+  Type r = datamod_vals[0];
+  Type d = datamod_vals[1];
+  Type rate = exp(linpred) * offset / ((1 + (1 / d)) * r);
+  Type size = 3 + 1 / d;
+  Type prob = size / (rate + size);
+  return log_dnbinom_rr3(outcome, size, prob);
+}
+
+template <class Type>
+Type loglik_pois_no_disp_miscount(Type outcome,
+				  vector<Type> datamod_vals,
+				  Type linpred,
+				  Type offset) {
+  Type p = datamod_vals[0];
+  Type r = datamod_vals[1];
+  Type lambda = (p + r) * exp(linpred) * offset;
+  return dpois(outcome, lambda, true);
+}
+
+template <class Type>
+Type loglik_pois_no_disp_miscount_rr3(Type outcome,
+				      vector<Type> datamod_vals,
+				      Type linpred,
+				      Type offset) {
+  Type p = datamod_vals[0];
+  Type r = datamod_vals[1];
+  Type lambda = (p + r) * exp(linpred) * offset;
+  return log_dpois_rr3(outcome, lambda);
+}
+
+template <class Type>
+Type loglik_pois_no_disp_overcount(Type outcome,
+				  vector<Type> datamod_vals,
+				  Type linpred,
+				  Type offset) {
+  Type r = datamod_vals[0];
+  Type lambda = (1 + r) * exp(linpred) * offset;
+  return dpois(outcome, lambda, true);
+}
+
+template <class Type>
+Type loglik_pois_no_disp_overcount_rr3(Type outcome,
+				       vector<Type> datamod_vals,
+				       Type linpred,
+				       Type offset) {
+  Type r = datamod_vals[0];
+  Type lambda = (1 + r) * exp(linpred) * offset;
+  return log_dpois_rr3(outcome, lambda);
+}
+
+template <class Type>
+Type loglik_pois_no_disp_undercount(Type outcome,
+				    vector<Type> datamod_vals,
+				    Type linpred,
+				    Type offset) {
+  Type p = datamod_vals[0];
+  Type lambda = p * exp(linpred) * offset;
+  return dpois(outcome, lambda, true);
+}
+
+template <class Type>
+Type loglik_pois_no_disp_undercount_rr3(Type outcome,
+					vector<Type> datamod_vals,
+					Type linpred,
+					Type offset) {
+  Type r = datamod_vals[0];
+  Type lambda = p * exp(linpred) * offset;
+  return log_dpois_rr3(outcome, lambda);
+}
+
+template <class Type>
+Type loglik_binom_no_disp_undercount(Type outcome,
+				    vector<Type> datamod_vals,
+				    Type linpred,
+				    Type offset) {
+  Type p = datamod_vals[0];
+  Type prob = p * exp(linpred);
+  return dbinom(outcome, offset, prob, true);
+}
+
+template <class Type>
+Type loglik_binom_no_disp_undercount_rr3(Type outcome,
+					 vector<Type> datamod_vals,
+					 Type linpred,
+					 Type offset) {
+  Type p = datamod_vals[0];
+  Type mu = 1 / (1 + exp(-1 * linpred));
+  Type prob = p * mu
+  return log_dbinom_rr3(outcome, offset, prob);
+}
+
+
+// Has disp, has data models
+
+template <class Type>
+Type loglik_pois_has_disp_miscount(Type outcome,
+				   vector<Type> datamod_vals,
+				   Type linpred,
+				   Type offset,
+				   Type disp) {
+  Type p = datamod_vals[0];
+  Type r = datamod_vals[1];
+  Type rate = (p + r) * exp(linpred) * offset;
+  Type size = 1 / disp;
+  Type prob = size / (rate + size);
+  return dnbinom(outcome, size, prob, true);
+}
+
+template <class Type>
+Type loglik_pois_has_disp_miscount_rr3(Type outcome,
+				       vector<Type> datamod_vals,
+				       Type linpred,
+				       Type offset,
+				       Type disp) {
+  Type p = datamod_vals[0];
+  Type r = datamod_vals[1];
+  Type rate = (p + r) * exp(linpred) * offset;
+  Type size = 1 / disp;
+  Type prob = size / (rate + size);
+  return log_dnbinom_rr3(outcome, size, prob, true);
+}
+
+template <class Type>
+Type loglik_pois_has_disp_overcount(Type outcome,
+				    vector<Type> datamod_vals,
+				    Type linpred,
+				    Type offset,
+				    Type disp) {
+  Type r = datamod_vals[0];
+  Type rate = (1 + r) * exp(linpred) * offset;
+  Type size = 1 / disp;
+  Type prob = size / (rate + size);
+  return dnbinom(outcome, size, prob, true);
+}
+
+template <class Type>
+Type loglik_pois_has_disp_overcount(Type outcome,
+				    vector<Type> datamod_vals,
+				    Type linpred,
+				    Type offset,
+				    Type disp) {
+  Type r = datamod_vals[0];
+  Type rate = (1 + r) * exp(linpred) * offset;
+  Type size = 1 / disp;
+  Type prob = size / (rate + size);
+  return log_dnbinom_rr3(outcome, size, prob);
+}
+
+template <class Type>
+Type loglik_pois_has_disp_undercount(Type outcome,
+				     vector<Type> datamod_vals,
+				     Type linpred,
+				     Type offset,
+				     Type disp) {
+  Type p = datamod_vals[0];
+  Type rate = p * exp(linpred) * offset;
+  Type size = 1 / disp;
+  Type prob = size / (rate + size);
+  return dnbinom(outcome, size, prob, true);
+}
+
+template <class Type>
+Type loglik_pois_has_disp_undercount_rr3(Type outcome,
+					 vector<Type> datamod_vals,
+					 Type linpred,
+					 Type offset,
+					 Type disp) {
+  Type p = datamod_vals[0];
+  Type rate = p * exp(linpred) * offset;
+  Type size = 1 / disp;
+  Type prob = size / (rate + size);
+  return log_dnbinom_rr3(outcome, size, prob);
+}
+
+template <class Type>
+Type loglik_binom_has_disp_undercount(Type outcome,
+				      vector<Type> datamod_vals,
+				      Type linpred,
+				      Type offset,
+				      Type disp) {
+  Type p = datamod_vals[0];
+  Type rate = p * exp(linpred) * offset;
+  Type size = 1 / disp;
+  Type prob = size / (rate + size);
+  return dnbinom(outcome, size, prob, true);
+}
+
+template <class Type>
+Type loglik_binom_has_disp_undercount_rr3(Type outcome,
+					  vector<Type> datamod_vals,
+					  Type linpred,
+					  Type offset,
+					  Type disp) {
+  Type p = datamod_vals[0];
+  Type rate = p * exp(linpred) * offset;
+  Type size = 1 / disp;
+  Type prob = size / (rate + size);
+  return log_dnbinom_rr3(outcome, size, prob);
+}
+
+template <class Type>
+Type loglik_norm_noise(Type outcome,
+		       vector<Type> datamod_vals,
+		       Type linpred,
+		       Type offset,
+		       Type disp) {
+  Type m = datamod_vals[0];
+  Type s = datamod_vals[1];
+  Type mean = linpred + m;
+  Type sd = disp / sqrt(offset) + s;
+  return dnorm(outcome, mean, sd, true);
+}
+
+
 
 
 // Equivalent of method dispatch for loglik -----------------------------------
 
 template <class Type>
-Type loglik_not_uses_disp(Type outcome,
+Type loglik_no_disp_no_dm(Type outcome,
 			  Type linpred,
 			  Type offset,
 			  int i_lik) {
   Type ans = 0;
   switch(i_lik) {
   case 200000:
-    ans = loglik_pois_not_uses_disp(outcome, linpred, offset);
+    ans = loglik_pois_no_disp(outcome, linpred, offset); // done
     break;
   case 200010:
-    ans = loglik_pois_not_uses_disp_rr3(outcome, linpred, offset);
+    ans = loglik_pois_no_disp_rr3(outcome, linpred, offset); // done
     break;
   case 400000:
-    ans = loglik_binom_not_uses_disp(outcome, linpred, offset);
+    ans = loglik_binom_no_disp(outcome, linpred, offset); // done
     break;
   case 400010:
-    ans = loglik_binom_not_uses_disp_rr3(outcome, linpred, offset);
+    ans = loglik_binom_no_disp_rr3(outcome, linpred, offset); // done
     break;
   default:                                                                             // # nocov
-    error("Internal error: function 'loglik_not_uses_disp' cannot handle i_lik = %d",  // # nocov
-	  i_lik);                                                                      // # nocov
+    error("Internal error: 'loglik_no_disp_no_dm' cannot handle i_lik = %d",  // # nocov
+	  i_lik); // # nocov
   }
   return ans;
 }
 
 template <class Type>
-Type loglik_uses_disp(Type outcome,
-		      Type linpred,
-		      Type offset,
-		      Type disp,
-		      int i_lik) {
+Type loglik_has_disp_no_dm(Type outcome,
+			   Type linpred,
+			   Type offset,
+			   Type disp,
+			   int i_lik) {
   Type ans = 0;
   switch(i_lik) {
   case 100000:
-    ans = loglik_pois_uses_disp(outcome, linpred, offset, disp);
+    ans = loglik_pois_has_disp(outcome, linpred, offset, disp); // done
     break;
   case 100010:
-    ans = loglik_pois_uses_disp_rr3(outcome, linpred, offset, disp);
+    ans = loglik_pois_has_disp_rr3(outcome, linpred, offset, disp); // done
     break;
   case 300000:
-    ans = loglik_binom_uses_disp(outcome, linpred, offset, disp);
+    ans = loglik_binom_has_disp(outcome, linpred, offset, disp); // done
     break;
   case 300010:
-    ans = loglik_binom_uses_disp_rr3(outcome, linpred, offset, disp);
+    ans = loglik_binom_has_disp_rr3(outcome, linpred, offset, disp); // done
     break;
   case 500000:
-    ans = loglik_norm(outcome, linpred, offset, disp);
+    ans = loglik_norm(outcome, linpred, offset, disp); // done
     break;
   default:                                                                         // # nocov
-    error("Internal error: function 'loglik_uses_disp' cannot handle i_lik = %d",  // # nocov
+    error("Internal error: function 'loglik_has_disp_no_dm' cannot handle i_lik = %d",  // # nocov
 	  i_lik);                                                                  // # nocov
   }
   return ans;
 }
+
+template <class Type>
+Type loglik_no_disp_has_dm(Type outcome,
+			   vector<Type> datamod_vals,
+			   Type linpred,
+			   Type offset,
+			   int i_lik) {
+  Type ans = 0;
+  switch(i_lik) {
+  case 201000:
+    ans = loglik_pois_no_disp_exposure(outcome,
+				       datamod_vals,
+				       linpred,
+				       offset);
+    break;
+  case 201010:
+    ans = loglik_pois_no_disp_exposure_rr3(outcome,
+					   datamod_vals,
+					   linpred,
+					   offset);
+    break;
+  case 202000:
+    ans = loglik_pois_no_disp_miscount(outcome,
+				       datamod_vals,
+				       linpred,
+				       offset);
+    break;
+  case 202010:
+    ans = loglik_pois_no_disp_miscount_rr3(outcome,
+					   datamod_vals,
+					   linpred,
+					   offset);
+    break;
+  case 204000:
+    ans = loglik_pois_no_disp_overcount(outcome,
+					datamod_vals,
+					linpred,
+					offset);
+    break;
+  case 204010:
+    ans = loglik_pois_no_disp_overcount_rr3(outcome,
+					    datamod_vals,
+					    linpred,
+					    offset);
+    break;
+  case 205000:
+    ans = loglik_pois_no_disp_undercount(outcome,
+					 datamod_vals,
+					 linpred,
+					 offset);
+    break;
+  case 205010:
+    ans = loglik_pois_no_disp_undercount_rr3(outcome,
+					     datamod_vals,
+					     linpred,
+					     offset);
+    break;
+  case 405000:
+    ans = loglik_binom_no_disp_undercount(outcome,
+					  datamod_vals,
+					  linpred,
+					  offset);
+    break;
+  case 405010:
+    ans = loglik_binom_no_disp_undercount_rr3(outcome,
+					      datamod_vals,
+					      linpred,
+					      offset);
+    break;
+default:                                                                         // # nocov
+    error("Internal error: 'loglik_has_disp_no_dm' cannot handle i_lik = %d",  // # nocov
+	  i_lik); // # nocov
+  }
+  return ans;
+}
+
+
+template <class Type>
+Type loglik_has_disp_has_dm(Type outcome,
+			    vector<Type> datamod_vals,
+			    Type linpred,
+			    Type offset,
+			    Type disp,
+			    int i_lik) {
+  Type ans = 0;
+  switch(i_lik) {
+  case 102000:
+    ans = loglik_pois_has_disp_miscount(outcome,
+					datamod_vals,
+					linpred,
+					offset,
+					disp);
+    break;
+  case 102010:
+    ans = loglik_pois_has_disp_miscount_rr3(outcome,
+					    datamod_vals,
+					    linpred,
+					    offset,
+					    disp);
+    break;
+  case 104000:
+    ans = loglik_pois_has_disp_overcount(outcome,
+					 datamod_vals,
+					 linpred,
+					 offset,
+					 disp);
+    break;
+  case 104010:
+    ans = loglik_pois_has_disp_overcount_rr3(outcome,
+					     datamod_vals,
+					     linpred,
+					     offset);
+    break;
+  case 105000:
+    ans = loglik_pois_has_disp_undercount(outcome,
+					  datamod_vals,
+					  linpred,
+					  offset,
+					  disp);
+    break;
+  case 105010:
+    ans = loglik_pois_has_disp_undercount_rr3(outcome,
+					      datamod_vals,
+					      linpred,
+					      offset,
+					      disp);
+    break;
+  case 305000:
+    ans = loglik_binom_has_disp_undercount(outcome,
+					   datamod_vals,
+					   linpred,
+					   offset,
+					   disp);
+    break;
+  case 305010:
+    ans = loglik_binom_has_disp_undercount_rr3(outcome,
+					       datamod_vals,
+					       linpred,
+					       offset,
+					       disp);    
+    break;
+  case 503000:
+    ans = loglik_norm_noise(outcome,
+			    datamod_vals,
+			    linpred,
+			    offset);
+    break;
+  default:                                                                     // # nocov
+    error("Internal error: 'loglik_has_disp_hs_dm' cannot handle i_lik = %d",  // # nocov
+	  i_lik); // # nocov
+  }
+  return ans;
+}
+
+
 
 
 // List objects to hold matrices ----------------------------------------------
@@ -1098,12 +1718,15 @@ Type objective_function<Type>::operator() ()
   DATA_STRUCT(matrices_along_by_effectfree, LIST_M_t);
   DATA_SCALAR(mean_disp);
   DATA_MATRIX(matrix_covariates);
+  DATA_VECTOR(datamod_consts);
+  DATA_STRUCT(datamod_matrices, LIST_SM_t);
 
   PARAMETER_VECTOR(effectfree); 
   PARAMETER_VECTOR(hyper);
   PARAMETER_VECTOR(hyperrandfree);
   PARAMETER(log_disp);
   PARAMETER_VECTOR(coef_covariates);
+  PARAMETER_VECTOR(datamod_param);
   
 
   // intermediate quantities
@@ -1144,6 +1767,14 @@ Type objective_function<Type>::operator() ()
     linpred = linpred + matrix_covariates * coef_covariates;
   }
 
+  // data model values
+
+  if (has_datamod) {
+    matrix<Type> datamod_vals = make_datamod_vals(datamod_param,
+						  datamod_consts,
+						  datamod_matrices);
+  }
+  
   // negative log posterior
   
   Type ans = 0;
@@ -1159,26 +1790,26 @@ Type objective_function<Type>::operator() ()
 	vector<Type> hyper_term = hyper_split[i_term];
 	if (uses_hyperrandfree[i_term]) { // if a prior uses hyperrandfree, then it uses hyper
 	  vector<Type> hyperrandfree_term = hyperrandfree_split[i_term];
-	  ans -= logpost_uses_hyperrandfree(effectfree_term,
-					    hyper_term,
-					    hyperrandfree_term,
-					    consts_term,
-					    matrix_along_by_effectfree,
-					    i_prior_term);
+	  ans -= logpost_has_hyperrandfree(effectfree_term,
+					   hyper_term,
+					   hyperrandfree_term,
+					   consts_term,
+					   matrix_along_by_effectfree,
+					   i_prior_term);
 	}
 	else {
-	  ans -= logpost_uses_hyper(effectfree_term,
-				    hyper_term,
-				    consts_term,
-				    matrix_along_by_effectfree,
-				    i_prior_term);
+	  ans -= logpost_has_hyper(effectfree_term,
+				   hyper_term,
+				   consts_term,
+				   matrix_along_by_effectfree,
+				   i_prior_term);
 	}
       } 
       else { // not uses hyper
-	ans -= logpost_not_uses_hyper(effectfree_term,
-				      consts_term,
-				      matrix_along_by_effectfree,
-				      i_prior_term);
+	ans -= logpost_no_hyper(effectfree_term,
+				consts_term,
+				matrix_along_by_effectfree,
+				i_prior_term);
       }
     }
   }
@@ -1194,16 +1825,32 @@ Type objective_function<Type>::operator() ()
     ans -= dexp(disp, rate_disp, true);
     ans -= log_disp; // Jacobian
   }
+
+  // contribution to log posterior from data model
+  if (has_datamod_hyper) {
+    ans -= logpost_datamod_hyper(datamod_hyper,
+				 i_datamod);
+  }
   
   // contribution to log posterior from data
   for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
     Type out = outcome[i_outcome];
+    Type dp = datamod_param[i_outcome];
     Type lin = linpred[i_outcome];
     Type off = offset[i_outcome];
-    if (has_disp)
-      ans -= loglik_uses_disp(out, lin, off, disp, i_lik);
-    else
-      ans -= loglik_not_uses_disp(out, lin, off, i_lik);
+    if (has_datamod) {
+      vector<Type> dv = datamod_vals.row(i);
+      if (has_disp)
+	ans -= loglik_has_disp_has_dm(out, dv, lin, off, disp, i_lik);
+      else
+	ans -= loglik_no_disp_has_dm(out, dv, lin, off, i_lik);
+    }
+    else {
+      if (has_disp)
+	ans -= loglik_has_disp_no_dm(out, lin, off, disp, i_lik);
+      else
+	ans -= loglik_no_disp_no_dm(out, lin, off, i_lik);
+    }
   }
   return ans;
 }
