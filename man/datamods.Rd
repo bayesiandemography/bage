@@ -8,17 +8,21 @@ The models for rates, probabilities, or means
 created with functions \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
 and \code{\link[=mod_norm]{mod_norm()}} can be extended by adding data models,
 also referred to as measurement error models.
-Data models can be applied to the outcome variable,
-or (in Poisson models only) the exposure variable.the
+Data models can only be use with the outcome variable,
+with one exception: in Poisson models where dispersion
+is set to 0 (via \code{\link[=set_disp]{set_disp()}}), a data model
+can be used with exposure.
 }
 \details{
-\strong{Data models for outcome variable}\tabular{lllll}{
-   \strong{Function} \tab \strong{Assumptions about data} \tab \strong{pois} \tab \strong{binom} \tab \strong{norm} \cr
-   \code{\link[=set_datamod_outcome_rr3]{set_datamod_outcome_rr3()}} \tab Outcome randomly rounded to base 3 \tab Yes \tab Yes \tab No \cr
+\tabular{lllll}{
+   \strong{Function} \tab \strong{Assumptions about measurement error} \tab \strong{pois} \tab \strong{binom} \tab \strong{norm} \cr
+   \code{\link[=set_datamod_exposure]{set_datamod_exposure()}} \tab Exposure has positive and negative errors \tab Yes* \tab No \tab No \cr
+   \code{\link[=set_datamod_miscount]{set_datamod_miscount()}} \tab Outcome has positive and negative errors \tab Yes \tab No \tab No \cr
+   \code{\link[=set_datamod_noise]{set_datamod_noise()}} \tab Outcome has positive and negative errors \tab No \tab No \tab Yes \cr
+   \code{\link[=set_datamod_overcount]{set_datamod_overcount()}} \tab Outcome has positive errors \tab Yes \tab No \tab No \cr
+   \code{\link[=set_datamod_undercount]{set_datamod_undercount()}} \tab Outcome has negative errors \tab Yes \tab No \tab No \cr
 }
 
 
-\strong{Data models for exposure or size variable}
-
-\emph{None implemented yet}
+*Only models with no dispersion.
 }
