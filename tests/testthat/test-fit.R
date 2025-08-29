@@ -470,7 +470,6 @@ test_that("'make_f_new' works", {
 })
 
 
-
 ## 'make_fit_data' ------------------------------------------------------------
 
 test_that("'make_fit_data' works - no covariates", {
@@ -507,7 +506,66 @@ test_that("'make_fit_data' works - with covariates", {
 })
 
 
-## 'make_fit_map' -----------------------------------------------------------------
+## 'make_fit_datamod_consts' --------------------------------------------------
+
+test_that("'make_fit_datamod_consts' works with valid inputs", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(make_fit_datamod_consts(mod), double())
+  mod <- mod |>
+    set_datamod_undercount(prob = data.frame(mean = 0.5, disp = 0.2))
+  expect_identical(make_fit_datamod_consts(mod),
+                   c(0.5, 0.2))
+})
+
+
+## 'make_fit_datamod_matrices' ------------------------------------------------
+
+test_that("'make_fit_datamod_matrices' works with valid inputs", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(make_fit_datamod_matrices(mod), list())
+  mod <- mod |>
+    set_datamod_undercount(prob = data.frame(mean = 0.5, disp = 0.2))
+  expect_identical(make_fit_datamod_matrices(mod),
+                   list(mod$datamod$prob_matrix_outcome))
+})
+
+
+## 'make_fit_i_datamod' -------------------------------------------------------
+
+test_that("'make_fit_i_datamod' with valid inputs", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(make_fit_i_datamod(mod), 0L)
+  mod <- mod |>
+    set_datamod_undercount(prob = data.frame(mean = 0.5, disp = 0.2))
+  expect_identical(make_fit_i_datamod(mod), 5000L)
+})
+
+
+## 'make_fit_map' -------------------------------------------------------------
 
 test_that("'make_fit_map' works with no parameters fixed", {
     set.seed(0)
@@ -706,8 +764,7 @@ test_that("'make_fit_times' works", {
                        time_max = 25,
                        time_draw = 10)
   expect_identical(ans_obtained, ans_expected)
-})  
-
+})
 
 
 ## 'optimize_adfun' -----------------------------------------------------------

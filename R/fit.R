@@ -247,13 +247,13 @@ make_fit_data <- function(mod, aggregate) {
   dimnames_terms <- mod$dimnames_terms
   terms_effect <- make_terms_effects(dimnames_terms)
   has_covariates <- has_covariates(mod)
-  i_lik <- make_i_lik(mod) ## index of function to use for calculating likelihood in TMB
+  i_lik <- make_i_lik(mod)
   terms_effectfree <- make_terms_effectfree(mod)
   uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(mod)
   matrices_effectfree_effect <- make_matrices_effectfree_effect(mod)
   uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(mod)
   offsets_effectfree_effect <- make_offsets_effectfree_effect(mod)
-  i_prior <- make_i_prior(mod) ## index of function to use for calculating prior density in TMB
+  i_prior <- make_i_prior(mod)
   uses_hyper <- make_uses_hyper(mod)
   terms_hyper <- make_terms_hyper(mod)
   uses_hyperrandfree <- make_uses_hyperrandfree(mod)
@@ -262,6 +262,9 @@ make_fit_data <- function(mod, aggregate) {
   terms_const <- make_terms_const(mod)
   matrices_along_by_effectfree <- make_matrices_along_by_effectfree(mod)
   mean_disp <- mod$mean_disp
+  i_datamod <- make_fit_i_datamod(mod)
+  datamod_consts <- make_fit_datamod_consts(mod)
+  datamod_matrices <- make_fit_datamod_matrices(mod)
   list(i_lik = i_lik,
        outcome = outcome,
        offset = offset,
@@ -281,10 +284,78 @@ make_fit_data <- function(mod, aggregate) {
        terms_consts = terms_const,
        matrices_along_by_effectfree = matrices_along_by_effectfree,
        mean_disp = mean_disp,
-       matrix_covariates = matrix_covariates)
+       matrix_covariates = matrix_covariates,
+       i_datamod = i_datamod,
+       datamod_consts = datamod_consts,
+       datamod_matrices = datamod_matrices)
 }
 
 
+## HAS_TESTS
+#' Make Vector Holding Constants for Data Model
+#'
+#' Return vector of length 0 if no data model
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A double vector
+#'
+#' @noRd
+make_fit_datamod_consts <- function(mod) {
+  has_datamod <- has_datamod(mod)
+  if (has_datamod) {
+    datamod <- mod$datamod
+    ans <- make_datamod_consts(datamod)
+  }
+  else
+    ans <- double()
+  ans
+}
+
+
+## HAS_TESTS
+#' Make List Holding Matrices for Data Model
+#'
+#' Return list of length 0 if no data model
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A list
+#'
+#' @noRd
+make_fit_datamod_matrices <- function(mod) {
+  has_datamod <- has_datamod(mod)
+  if (has_datamod) {
+    datamod <- mod$datamod
+    ans <- make_datamod_matrices(datamod)
+  }
+  else
+    ans <- list()
+  ans
+}
+
+
+## HAS_TESTS
+#' Make 'i_datamod', Index for Data Models
+#'
+#' Value is 0 if no data model
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer scalar
+#'
+#' @noRd
+make_fit_i_datamod <- function(mod) {
+  has_datamod <- has_datamod(mod)
+  if (has_datamod) {
+    datamod <- mod$datamod
+    ans <- make_i_lik_part(datamod)
+  }
+  else
+    ans <- 0L
+  ans
+}
+      
 
 ## HAS_TESTS
 #' Make mapping used by MakeADFun

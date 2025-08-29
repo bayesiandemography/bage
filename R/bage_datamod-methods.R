@@ -507,6 +507,126 @@ draw_outcome_true_given_obs.bage_datamod_undercount <- function(datamod,
 }
 
 
+## 'make_datamod_consts' ------------------------------------------------------
+
+#' Make Vector to Hold Constants for Data Model
+#'
+#' @param datamod Object of class 'bage_datamod'
+#'
+#' @returns Double vector
+#'
+#' @noRd
+make_datamod_consts <- function(datamod) {
+  UseMethod("make_datamod_consts")
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_consts.bage_datamod_exposure <- function(datamod) {
+  ratio <- datamod$ratio_ratio
+  disp_mean <- datamod$disp_mean
+  c(ratio, disp_mean)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_consts.bage_datamod_miscount <- function(datamod) {
+  prob_mean <- datamod$prob_mean
+  prob_disp <- datamod$prob_disp
+  rate_mean <- datamod$rate_mean
+  rate_disp <- datamod$rate_disp
+  c(prob_mean,
+    prob_disp,
+    rate_mean,
+    rate_disp)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_consts.bage_datamod_noise <- function(datamod) {
+  mean <- datamod$mean_mean
+  sd <- datamod$sd_sd
+  c(mean, sd)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_consts.bage_datamod_overcount <- function(datamod) {
+  rate_mean <- datamod$rate_mean
+  rate_disp <- datamod$rate_disp
+  c(rate_mean,
+    rate_disp)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_consts.bage_datamod_undercount <- function(datamod) {
+  prob_mean <- datamod$prob_mean
+  prob_disp <- datamod$prob_disp
+  c(prob_mean,
+    prob_disp)
+}
+
+
+## 'make_datamod_matrices' ----------------------------------------------------
+
+#' Make List of Matrices for Data Model
+#'
+#' @param datamod Object of class 'bage_datamod'
+#'
+#' @returns Double vector
+#'
+#' @noRd
+make_datamod_matrices <- function(datamod) {
+  UseMethod("make_datamod_matrices")
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_matrices.bage_datamod_exposure <- function(datamod) {
+  ratio <- datamod$ratio_matrix_outcome
+  disp <- datamod$disp_matrix_outcome
+  list(ratio, disp)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_matrices.bage_datamod_miscount <- function(datamod) {
+  prob <- datamod$prob_matrix_outcome
+  rate <- datamod$rate_matrix_outcome
+  list(prob, rate)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_matrices.bage_datamod_noise <- function(datamod) {
+  mean <- datamod$mean_matrix_outcome
+  sd <- datamod$sd_matrix_outcome
+  list(mean, sd)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_matrices.bage_datamod_overcount <- function(datamod) {
+  rate <- datamod$rate_matrix_outcome
+  list(rate)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_matrices.bage_datamod_undercount <- function(datamod) {
+  prob <- datamod$prob_matrix_outcome
+  list(prob)
+}
+
+
+
+
+
+
+
+
+
 ## Helper function for 'draw_outcome_true_given_obs' --------------------------
 
 ## HAS_TESTS
