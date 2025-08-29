@@ -8,6 +8,52 @@ using namespace Eigen;
 using namespace tmbutils;
 
 
+// Alias for dynamic matrix ---------------------------------------------------
+
+template<class Type>
+using MatrixD = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
+
+
+// List objects to hold matrices ----------------------------------------------
+
+// Modified from code at https://github.com/kaskr/adcomp/issues/96
+
+template<class Type>
+struct LIST_SM_t : vector<SparseMatrix<Type> > {
+  LIST_SM_t(SEXP x){
+    (*this).resize(LENGTH(x));
+    for (int i = 0; i < LENGTH(x); i++){
+      SEXP sm = VECTOR_ELT(x, i);
+      if(!isValidSparseMatrix(sm))
+        error("Internal error: not a sparse matrix"); // # nocov
+      (*this)(i) = asSparseMatrix<Type>(sm);
+    }
+  }
+};
+
+template<class Type>
+struct LIST_M_t : vector<matrix<int> > {
+  LIST_M_t(SEXP x){
+    (*this).resize(LENGTH(x));
+    for (int i = 0; i < LENGTH(x); i++){
+      SEXP m = VECTOR_ELT(x, i);
+      (*this)(i) = asMatrix<int>(m);
+    }
+  }
+};
+
+template<class Type>
+struct LIST_Type_t : vector<vector<Type> > {
+  LIST_Type_t(SEXP x){
+    (*this).resize(LENGTH(x));
+    for (int i = 0; i < LENGTH(x); i++){
+      SEXP v = VECTOR_ELT(x, i);
+      (*this)(i) = asVector<Type>(v);
+    }
+  }
+};
+
+
 // Helper functions -----------------------------------------------------------
 
 // Calculate alpha, given slope
@@ -177,9 +223,9 @@ Type log_dbetabinom(Type x,
 		    Type size,
 		    Type logit_p,
 		    Type disp) {
-  Type mu = 1 / (1 + exp(-logit_p));
+  Type mu = invlogit(logit_p);
   Type alpha = mu / disp;
-  Type beta = (1 - mu) / disp;
+  Type beta = (Type(1) - mu) / disp;
   Type log_num = lgamma(x + alpha) + lgamma(size - x + beta) - lgamma(size + alpha + beta);
   Type log_den = lgamma(alpha) + lgamma(beta) - lgamma(alpha + beta);
   return log_num - log_den;
@@ -192,75 +238,78 @@ Type log_dbetabinom_rr3(Type x,
 			Type disp) {
   const Type log_one_third = -log(3);
   const Type log_two_thirds = log(2) - log(3);
-  Type ans = 0;
-  if (outcome >= 2)
-    ans += log_one_third + log_dbetabinom(outcome - 2, size, logit_p, disp);
-  if (outcome >= 1)
-    ans = logspace_add(ans, log_two_thirds + log_dbetabinom(outcome - 1, size, logit_p, disp));
-  ans = logspace_add(ans, log_dbetabinom(outcome, size, logit_p, disp));
-  ans = logspace_add(ans, log_two_thirds + log_dbetabinom(outcome + 1, size, logit_p, disp));
-  ans = logspace_add(ans, log_one_third + log_dbetabinom(outcome + 2, size, logit_p, disp));
+  Type ans = Type(0);
+  if (x >= 2)
+    ans += log_one_third + log_dbetabinom(x - 2, size, logit_p, disp);
+  if (x >= 1)
+    ans = logspace_add(ans,
+		       log_two_thirds + log_dbetabinom(x - 1, size, logit_p, disp));
+  ans = logspace_add(ans,
+		     log_dbetabinom(x, size, logit_p, disp));
+  ans = logspace_add(ans,
+		     log_two_thirds + log_dbetabinom(x + 1, size, logit_p, disp));
+  ans = logspace_add(ans,
+		     log_one_third + log_dbetabinom(x + 2, size, logit_p, disp));
   return ans;
 }
 
 template <class Type>
-Type log_dbinom_rr3(Type outcome, Type size, Type prob) {
+Type log_dbinom_rr3(Type x, Type size, Type prob) {
   const Type log_one_third = -log(3);
   const Type log_two_thirds = log(2) - log(3);
-  Type ans = 0;
-  if (outcome >= 2)
-    ans += log_one_third + dbinom(outcome - 2, size, prob, true);
-  if (outcome >= 1)
-    ans = logspace_add(ans, log_two_thirds + dbinom(outcome - 1, size, prob, true));
-  ans = logspace_add(ans, dbinom(outcome, size, prob, true));
-  ans = logspace_add(ans, log_two_thirds + dbinom(outcome + 1, size, prob, true));
-  ans = logspace_add(ans, log_one_third + dbinom(outcome + 2, size, prob, true));
-  return ans;
-}
-
-
-template <class Type>
-Type log_dbinom_robust_rr3(Type outcome, Type size, Type logit_p) {
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
-  Type ans = 0;
-  if (outcome >= 2)
-    ans += log_one_third + dbinom_robust(outcome - 2, size, logit_p, true);
-  if (outcome >= 1)
-    ans = logspace_add(ans, log_two_thirds + dbinom_robust(outcome - 1, size, logit_p, true));
-  ans = logspace_add(ans, dbinom_robust(outcome, size, logit_p, true));
-  ans = logspace_add(ans, log_two_thirds + dbinom_robust(outcome + 1, size, logit_p, true));
-  ans = logspace_add(ans, log_one_third + dbinom_robust(outcome + 2, size, logit_p, true));
+  Type ans = Type(0);
+  if (x >= 2)
+    ans += log_one_third + dbinom(x - 2, size, prob, true);
+  if (x >= 1)
+    ans = logspace_add(ans, log_two_thirds + dbinom(x - 1, size, prob, true));
+  ans = logspace_add(ans, dbinom(x, size, prob, true));
+  ans = logspace_add(ans, log_two_thirds + dbinom(x + 1, size, prob, true));
+  ans = logspace_add(ans, log_one_third + dbinom(x + 2, size, prob, true));
   return ans;
 }
 
 template <class Type>
-Type log_dnbinom_rr3(Type outcome, Type size, Type prob) {
+Type log_dbinom_robust_rr3(Type x, Type size, Type logit_p) {
   const Type log_one_third = -log(3);
   const Type log_two_thirds = log(2) - log(3);
-  Type ans = 0;
-  if (outcome >= 2)
-    ans += log_one_third + dnbinom(outcome - 2, size, prob, true);
-  if (outcome >= 1)
-    ans = logspace_add(ans, log_two_thirds + dnbinom(outcome - 1, size, prob, true));
-  ans = logspace_add(ans, dnbinom(outcome, size, prob, true));
-  ans = logspace_add(ans, log_two_thirds + dnbinom(outcome + 1, size, prob, true));
-  ans = logspace_add(ans, log_one_third + dnbinom(outcome + 2, size, prob, true));
+  Type ans = Type(0);
+  if (x >= 2)
+    ans += log_one_third + dbinom_robust(x - 2, size, logit_p, true);
+  if (x >= 1)
+    ans = logspace_add(ans, log_two_thirds + dbinom_robust(x - 1, size, logit_p, true));
+  ans = logspace_add(ans, dbinom_robust(x, size, logit_p, true));
+  ans = logspace_add(ans, log_two_thirds + dbinom_robust(x + 1, size, logit_p, true));
+  ans = logspace_add(ans, log_one_third + dbinom_robust(x + 2, size, logit_p, true));
   return ans;
 }
 
 template <class Type>
-Type log_dpois_rr3(Type outcome, Type rate) {
+Type log_dnbinom_rr3(Type x, Type size, Type prob) {
   const Type log_one_third = -log(3);
   const Type log_two_thirds = log(2) - log(3);
-  Type ans = 0;
-  if (outcome >= 2)
-    ans += log_one_third + dpois(outcome - 2, rate, true);
-  if (outcome >= 1)
-    ans = logspace_add(ans, log_two_thirds + dpois(outcome - 1, rate, true));
-  ans = logspace_add(ans, dpois(outcome, rate, true));
-  ans = logspace_add(ans, log_two_thirds + dpois(outcome + 1, rate, true));
-  ans = logspace_add(ans, log_one_third + dpois(outcome + 2, rate, true));
+  Type ans = Type(0);
+  if (x >= 2)
+    ans += log_one_third + dnbinom(x - 2, size, prob, true);
+  if (x >= 1)
+    ans = logspace_add(ans, log_two_thirds + dnbinom(x - 1, size, prob, true));
+  ans = logspace_add(ans, dnbinom(x, size, prob, true));
+  ans = logspace_add(ans, log_two_thirds + dnbinom(x + 1, size, prob, true));
+  ans = logspace_add(ans, log_one_third + dnbinom(x + 2, size, prob, true));
+  return ans;
+}
+
+template <class Type>
+Type log_dpois_rr3(Type x, Type rate) {
+  const Type log_one_third = -log(3);
+  const Type log_two_thirds = log(2) - log(3);
+  Type ans = Type(0);
+  if (x >= 2)
+    ans += log_one_third + dpois(x - 2, rate, true);
+  if (x >= 1)
+    ans = logspace_add(ans, log_two_thirds + dpois(x - 1, rate, true));
+  ans = logspace_add(ans, dpois(x, rate, true));
+  ans = logspace_add(ans, log_two_thirds + dpois(x + 1, rate, true));
+  ans = logspace_add(ans, log_one_third + dpois(x + 2, rate, true));
   return ans;
 }
 
@@ -279,13 +328,12 @@ Type logpost_ar_inner(vector<Type> effectfree,
   int n_coef = hyper.size() - 1;
   vector<Type> logit_coef = hyper.head(n_coef);
   Type log_sd = hyper[n_coef];
-  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
+  vector<Type> coef_raw = invlogit(logit_coef);
   vector<Type> coef = (max - min) * coef_raw + min;
   Type sd = exp(log_sd);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dbeta(coef_raw, shape1, shape2, true).sum() +
-    log(coef_raw).sum() +
-    log(1 - coef_raw).sum();
+    (log(coef_raw) + log1p(-coef_raw)).sum();
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   for (int i_by = 0; i_by < n_by; i_by++) {
     vector<Type> effect_along(n_along);
@@ -317,7 +365,7 @@ Type logpost_seasvary(vector<Type> seas,
   Type sd_innov = exp(log_sd_innov);
   int n_by = matrix_along_by_effectfree.cols();
   int n_along_seas = seas.size() / n_by;
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
   for (int i_by = 0; i_by < n_by; i_by++) {
     for (int i_along_seas = 0; i_along_seas < n_along_seas; i_along_seas++) {
@@ -376,7 +424,7 @@ Type logpost_lin(vector<Type> effectfree,
   Type log_sd = hyper[0];
   vector<Type> intercept = -0.5 * (n_along + 1.0) * hyperrandfree;
   Type sd = exp(log_sd);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   ans += dnorm(hyperrandfree, mean_slope, sd_slope, true).sum();
   for (int i_by = 0; i_by < n_by; i_by++) {
@@ -397,7 +445,7 @@ Type logpost_linar(vector<Type> effectfree,
   vector<Type> consts_slope = consts.head(2);
   vector<Type> consts_ar = consts.tail(5);
   vector<Type> ar = alpha_lin(effectfree, hyperrandfree, matrix_along_by_effectfree);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += logpost_slope(hyperrandfree, consts_slope);
   ans += logpost_ar_inner(ar, hyper, consts_ar, matrix_along_by_effectfree);
   return ans;
@@ -420,7 +468,7 @@ Type logpost_norm(vector<Type> effectfree,
   Type scale = consts[0];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   ans += dnorm(effectfree, Type(0), sd, true).sum();
   return ans;
@@ -431,7 +479,7 @@ Type logpost_normfixed(vector<Type> effectfree,
 		       vector<Type> consts,
 		       matrix<int> matrix_along_by_effectfree) {
   Type sd = consts[0];
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dnorm(effectfree, Type(0), sd, true).sum();
   return ans;
 }
@@ -447,7 +495,7 @@ Type logpost_rwrandom(vector<Type> rw,
   Type sd_innov = exp(log_sd_innov);
   int n_along = matrix_along_by.rows();
   int n_by = matrix_along_by.cols();
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
   for (int i_by = 0; i_by < n_by; i_by++) {
     int i = matrix_along_by(0, i_by);
@@ -475,7 +523,7 @@ Type logpost_rwrandomseasfix(vector<Type> effectfree,
 					hyperrandfree,
 					consts_seas,
 					matrix_along_by_effectfree);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += logpost_seasfix(hyperrandfree, consts_seas);
   ans += logpost_rwrandom(rw, hyper, consts_rw, matrix_along_by_effectfree);
   return ans;
@@ -497,7 +545,7 @@ Type logpost_rwrandomseasvary(vector<Type> effectfree,
 					 hyperrandfree,
 					 consts_seas,
 					 matrix_along_by_effectfree);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
   ans += logpost_rwrandom(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
   return ans;
@@ -513,7 +561,7 @@ Type logpost_rwzero(vector<Type> rw,
   Type sd_innov = exp(log_sd_innov);
   int n_along = matrix_along_by.rows();
   int n_by = matrix_along_by.cols();
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
   for (int i_by = 0; i_by < n_by; i_by++) {
     int i = matrix_along_by(0, i_by);
@@ -541,7 +589,7 @@ Type logpost_rwzeroseasfix(vector<Type> effectfree,
 				      hyperrandfree,
 				      consts_seas,
 				      matrix_along_by_effectfree);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += logpost_seasfix(hyperrandfree, consts_seas);
   ans += logpost_rwrandom(rw, hyper, consts_rw, matrix_along_by_effectfree);
   return ans;
@@ -563,7 +611,7 @@ Type logpost_rwzeroseasvary(vector<Type> effectfree,
 				       hyperrandfree,
 				       consts_seas,
 				       matrix_along_by_effectfree);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
   ans += logpost_rwrandom(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
   return ans;
@@ -580,7 +628,7 @@ Type logpost_rw2infant(vector<Type> effectfree,
   Type sd_innov = exp(log_sd_innov);
   int n_along = matrix_along_by_effectfree.rows();
   int n_by = matrix_along_by_effectfree.cols();
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
   for (int i_by = 0; i_by < n_by; i_by++) {
     int i_0 = matrix_along_by_effectfree(0, i_by);
@@ -613,7 +661,7 @@ Type logpost_rw2random(vector<Type> rw,
   Type sd_innov = exp(log_sd_innov);
   int n_along = matrix_along_by.rows();
   int n_by = matrix_along_by.cols();
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
   for (int i_by = 0; i_by < n_by; i_by++) {
     int i_0 = matrix_along_by(0, i_by);
@@ -644,7 +692,7 @@ Type logpost_rw2randomseasfix(vector<Type> effectfree,
 					hyperrandfree,
 					consts_seas,
 					matrix_along_by_effectfree);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += logpost_seasfix(hyperrandfree, consts_seas);
   ans += logpost_rw2random(rw, hyper, consts_rw, matrix_along_by_effectfree);
   return ans;
@@ -664,7 +712,7 @@ Type logpost_rw2randomseasvary(vector<Type> effectfree,
 					 hyperrandfree,
 					 consts_seas,
 					 matrix_along_by_effectfree);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
   ans += logpost_rw2random(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
   return ans;
@@ -681,7 +729,7 @@ Type logpost_rw2zero(vector<Type> rw,
   Type sd_innov = exp(log_sd_innov);
   int n_along = matrix_along_by.rows();
   int n_by = matrix_along_by.cols();
-  Type ans = 0;
+  Type ans = Type(0);
   ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
   for (int i_by = 0; i_by < n_by; i_by++) {
     int i_0 = matrix_along_by(0, i_by);
@@ -715,7 +763,7 @@ Type logpost_rw2zeroseasfix(vector<Type> effectfree,
 				      hyperrandfree,
 				      consts_seas,
 				      matrix_along_by_effectfree);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += logpost_seasfix(hyperrandfree, consts_seas);
   ans += logpost_rw2random(rw, hyper, consts_rw, matrix_along_by_effectfree);
   return ans;
@@ -738,7 +786,7 @@ Type logpost_rw2zeroseasvary(vector<Type> effectfree,
 				       hyperrandfree,
 				       consts_seas,
 				       matrix_along_by_effectfree);
-  Type ans = 0;
+  Type ans = Type(0);
   ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
   ans += logpost_rw2random(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
   return ans;
@@ -807,7 +855,7 @@ Type logpost_no_hyper(vector<Type> effectfree,
 			    vector<Type> consts,
 			    matrix<int> matrix_along_by_effectfree,
 			    int i_prior) {
-  Type ans = 0;
+  Type ans = Type(0);
   switch(i_prior) {
   case 5:
     ans = logpost_normfixed(effectfree, consts, matrix_along_by_effectfree);
@@ -830,7 +878,7 @@ Type logpost_has_hyper(vector<Type> effectfree,
 			vector<Type> consts,
 			matrix<int> matrix_along_by_effectfree,
 			int i_prior) {
-  Type ans = 0;
+  Type ans = Type(0);
   switch(i_prior) {
   case 1:
     ans = logpost_ar(effectfree, hyper, consts, matrix_along_by_effectfree);
@@ -884,7 +932,7 @@ Type logpost_has_hyperrandfree(vector<Type> effectfree,
 				vector<Type> consts,
 				matrix<int> matrix_along_by_effectfree,
 				int i_prior) {
-  Type ans = 0;
+  Type ans = Type(0);
   switch(i_prior) {
   case 2:
     ans = logpost_lin(effectfree, hyper, hyperrandfree, consts, matrix_along_by_effectfree);
@@ -933,117 +981,71 @@ Type logpost_has_hyperrandfree(vector<Type> effectfree,
 template <class Type>
 Type logpost_datamod_exposure(vector<Type> datamod_param,
 			      vector<Type> datamod_consts) {
-  int n = datamods_param.size();
+  int n = datamod_param.size();
+  vector<Type> log_disp = datamod_param;
   vector<Type> disp_mean = datamod_consts.tail(n);
-  vector<Type> disp_rate = 1 / disp_mean;
-  Type ans = dexp(datamod_param, disp_rate, true).sum();
+  vector<Type> disp = exp(log_disp);
+  Type ans = Type(0);
+  vector<Type> rate = Type(1) / disp_mean;
+  ans += dexp(disp, rate, true).sum();
+  ans += log_disp.sum(); // Jacobian
   return ans;
 }
 
 template <class Type>
 Type logpost_datamod_miscount(vector<Type> datamod_param,
 			      vector<Type> datamod_consts) {
-  int n = datamods_param.size() / 2;
-  vector<Type> prob = datamod_param.head(n);
-  vector<Type> rate = datamod_param.tail(n);
+  int n = datamod_param.size() / 2;
+  vector<Type> logit_prob = datamod_param.head(n);
+  vector<Type> log_rate = datamod_param.tail(n);
   vector<Type> prob_mean = datamod_consts.segment(0, n);
   vector<Type> prob_disp = datamod_consts.segment(n, n);
   vector<Type> rate_mean = datamod_consts.segment(2 * n, n);
   vector<Type> rate_disp = datamod_consts.segment(3 * n, n);
-  Type ans = 0;
-  ans += dbeta(prob,
-	       prob_mean / rate_disp,
-	       (1 - prob_mean) / rate_disp,
-	       true);
-  ans += 0; // JACOBIAN!!!
-  ans += dgamma(rate,
-		1 / rate_disp,
-		1 / (rate_mean * rate_disp),
-		true);
-  ans += 0 // JACOBIAN
+  vector<Type> prob = invlogit(logit_prob);
+  vector<Type> rate = exp(log_rate);
+  Type ans = Type(0);
+  vector<Type> shape1 = prob_mean / prob_disp;
+  vector<Type> shape2 = log1p(-prob_mean) / prob_disp;
+  ans += dbeta(prob, shape1, shape2, true).sum();
+  ans += (log(prob) + log1p(-prob)).sum(); // Jacobian
+  vector<Type> shape = Type(1) / rate_disp;
+  vector<Type> scale = rate_mean * rate_disp;
+  ans += dgamma(rate, shape, scale, true).sum();
+  ans += log_rate.sum(); // Jacobian
   return ans;
 }
 
 template <class Type>
 Type logpost_datamod_overcount(vector<Type> datamod_param,
-			       vector<Type> datamod_) {
-  return 0;
+			       vector<Type> datamod_consts) {
+  int n = datamod_param.size() / 2;
+  vector<Type> log_rate = datamod_param;
+  vector<Type> rate_mean = datamod_consts.head(n);
+  vector<Type> rate_disp = datamod_consts.tail(n);
+  vector<Type> rate = exp(log_rate);
+  Type ans = Type(0);
+  vector<Type> shape = Type(1) / rate_disp;
+  vector<Type> scale = rate_mean * rate_disp;
+  ans += dgamma(rate, shape, scale, true).sum();
+  ans += log_rate.sum(); // Jacobian
+  return ans;
 }
 
 
 template <class Type>
 Type logpost_datamod_undercount(vector<Type> datamod_param,
 				vector<Type> datamod_consts) {
-  return  0;
-}
-
-
-template <class Type>
-matrix<Type> make_datamod_vals_exposure(vector<Type> datamod_param,
-					vector<Type> datamod_consts,
-					LIST_SM_t datamod_matrices) {
-  int n = datamods_param.size();
-  vector<Type> ratio_ratio = datamod_consts.head(n);
-  SparseMatrix<Type> ratio_matrix = datamod_matrices[0];
-  SparseMatrix<Type> disp_matrix = datamod_matrices[1];
-  int n_outcome = ratio_matrix.rows();
-  matrix<Type, n_outcome, 2> ans;
-  ans.col(0) = ratio_matrix * ratio_ratio;
-  ans.col(1) = disp_matrix * datamod_param;
-  return ans;
-}
-
-
-template <class Type>
-matrix<Type> make_datamod_vals_miscount(vector<Type> datamod_param,
-					LIST_SM_t datamod_matrices) {
-  int n = datamods_param.size() / 2;
-  vector<Type> prob = datamod_param.head(n);
-  vector<Type> rate = datamod_param.tail(n);
-  SparseMatrix<Type> prob_matrix = datamod_matrices[0];
-  SparseMatrix<Type> rate_matrix = datamod_matrices[1];
-  int n_outcome = prob_matrix.rows();
-  matrix<Type, n_outcome, 2> ans;
-  ans.col(0) = prob_matrix * prob;
-  ans.col(1) = rate_matrix * rate;
-  return ans;
-}
-
-template <class Type>
-matrix<Type> make_datamod_vals_noise(vector<Type> datamod_consts,
-				     LIST_SM_t datamod_matrices) {
-  int n = datamod_consts.size() / 2;
-  vector<Type> mean = datamod_consts.head(n);
-  vector<Type> sd = datamod_consts.tail(n);
-  SparseMatrix<Type> mean_matrix = datamod_matrices[0];
-  SparseMatrix<Type> sd_matrix = datamod_matrices[1];
-  int n_outcome = mean_matrix.rows();
-  matrix<Type, n_outcome, 2> ans;
-  ans.col(0) = mean_matrix * mean;
-  ans.col(1) = sd_matrix * sd;
-  return ans;
-}
-
-
-template <class Type>
-matrix<Type> make_datamod_vals_overcount(vector<Type> datamod_param,
-					 LIST_SM_t datamod_matrices) {
-  int n = datamods_param.size();
-  SparseMatrix<Type> matrix = datamod_matrices[0];
-  int n_outcome = matrix.rows();
-  matrix<Type, n_outcome, 1> ans;
-  ans.col(0) = matrix * datamod_param;
-  return ans;
-}
-
-template <class Type>
-matrix<Type> make_datamod_vals_undercount(vector<Type> datamod_param,
-					  LIST_SM_t datamod_matrices) {
-  int n = datamods_param.size();
-  SparseMatrix<Type> matrix = datamod_matrices[0];
-  int n_outcome = matrix.rows();
-  matrix<Type, n_outcome, 1> ans;
-  ans.col(0) = matrix * datamod_param;
+  int n = datamod_param.size() / 2;
+  vector<Type> logit_prob = datamod_param;
+  vector<Type> prob_mean = datamod_consts.head(n);
+  vector<Type> prob_disp = datamod_consts.tail(n);
+  vector<Type> prob = invlogit(logit_prob);
+  Type ans = Type(0);
+  vector<Type> shape1 = prob_mean / prob_disp;
+  vector<Type> shape2 = log1p(-prob_mean) / prob_disp;
+  ans += dbeta(prob, shape1, shape2, true).sum();
+  ans += (log(prob) + log1p(-prob)).sum(); // Jacobian
   return ans;
 }
 
@@ -1054,7 +1056,7 @@ template <class Type>
 Type logpost_datamod(vector<Type> datamod_param,
 		     vector<Type> datamod_consts,
 		     int i_datamod) {
-  Type ans = 0;
+  Type ans = Type(0);
   switch(i_datamod) {
   case 1000:
     ans = logpost_datamod_exposure(datamod_param, datamod_consts);
@@ -1062,13 +1064,16 @@ Type logpost_datamod(vector<Type> datamod_param,
   case 2000:
     ans = logpost_datamod_miscount(datamod_param, datamod_consts);
     break;
+  case 3000:
+    ans = 0; // no parameters
+    break;
   case 4000:
     ans = logpost_datamod_overcount(datamod_param, datamod_consts);
     break;
   case 5000:
     ans = logpost_datamod_undercount(datamod_param, datamod_consts);
     break;
-  default:                                                                                          // # nocov
+  default: // # nocov
     error("Internal error: 'logpost_datamod' cannot handle i_datmod = %d", // # nocov
 	  i_datamod); // # nocov
   }
@@ -1076,39 +1081,116 @@ Type logpost_datamod(vector<Type> datamod_param,
 }
 
 
+// 'Methods' for fill_datamod_vals function for data models -------------------
+
 template <class Type>
-Type make_datamod_vals(vector<Type> datamod_param,
+void fill_datamod_vals_exposure(MatrixD<Type> &datamod_vals,
+				vector<Type> datamod_param,
+				vector<Type> datamod_consts,
+				const LIST_SM_t<Type> &datamod_matrices) {
+  
+  int n = datamod_param.size();
+  vector<Type> ratio = datamod_consts.head(n);
+  vector<Type> disp = datamod_param;
+  SparseMatrix<Type> ratio_matrix = datamod_matrices[0];
+  SparseMatrix<Type> disp_matrix = datamod_matrices[1];
+  int n_outcome = ratio_matrix.rows();
+  datamod_vals.resize(n_outcome, 2);
+  datamod_vals.col(0) = ratio_matrix * ratio;
+  datamod_vals.col(1) = disp_matrix * disp;
+}
+
+template <class Type>
+void fill_datamod_vals_miscount(MatrixD<Type> &datamod_vals,
+				vector<Type> datamod_param,
+				const LIST_SM_t<Type> &datamod_matrices) {
+  int n = datamod_param.size() / 2;
+  vector<Type> prob = datamod_param.head(n);
+  vector<Type> rate = datamod_param.tail(n);
+  SparseMatrix<Type> prob_matrix = datamod_matrices[0];
+  SparseMatrix<Type> rate_matrix = datamod_matrices[1];
+  int n_outcome = prob_matrix.rows();
+  datamod_vals.resize(n_outcome, 2);
+  datamod_vals.col(0) = prob_matrix * prob;
+  datamod_vals.col(1) = rate_matrix * rate;
+}
+
+template <class Type>
+void fill_datamod_vals_noise(MatrixD<Type> &datamod_vals,
+			     vector<Type> datamod_consts,
+			     const LIST_SM_t<Type> &datamod_matrices) {
+  int n = datamod_consts.size() / 2;
+  vector<Type> mean = datamod_consts.head(n);
+  vector<Type> sd = datamod_consts.tail(n);
+  SparseMatrix<Type> mean_matrix = datamod_matrices[0];
+  SparseMatrix<Type> sd_matrix = datamod_matrices[1];
+  int n_outcome = mean_matrix.rows();
+  datamod_vals.resize(n_outcome, 2);
+  datamod_vals.col(0) = mean_matrix * mean;
+  datamod_vals.col(1) = sd_matrix * sd;
+}
+
+template <class Type>
+void fill_datamod_vals_overcount(MatrixD<Type> &datamod_vals,
+				 vector<Type> datamod_param,
+				 const LIST_SM_t<Type> &datamod_matrices) {
+  vector<Type> rate = datamod_param;
+  SparseMatrix<Type> rate_matrix = datamod_matrices[0];
+  int n_outcome = rate_matrix.rows();
+  datamod_vals.resize(n_outcome, 1);
+  datamod_vals.col(0) = rate_matrix * rate;
+}
+
+template <class Type>
+void fill_datamod_vals_undercount(MatrixD<Type> &datamod_vals,
+				  vector<Type> datamod_param,
+				  const LIST_SM_t<Type> &datamod_matrices) {
+  vector<Type> prob = datamod_param;
+  SparseMatrix<Type> prob_matrix = datamod_matrices[0];
+  int n_outcome = prob_matrix.rows();
+  datamod_vals.resize(n_outcome, 1);
+  datamod_vals.col(0) = prob_matrix * prob;
+}
+
+// Equivalent of method dispatch for fill_datamod_vals ------------------------
+
+template <class Type>
+void fill_datamod_vals(MatrixD<Type> &datamod_vals,
+		       vector<Type> datamod_param,
 		       vector<Type> datamod_consts,
-		       LIST_SM_t datamod_matrices,
+		       const LIST_SM_t<Type> &datamod_matrices,
 		       int i_datamod) {
-  Type ans = 0;
   switch(i_datamod) {
   case 1000:
-    ans = make_datamod_vals_exposure(datamod_param,
-				     datamod_consts,
-				     datamod_matrices);
+    fill_datamod_vals_exposure(datamod_vals,
+			       datamod_param,
+			       datamod_consts,
+			       datamod_matrices);
     break;
   case 2000:
-    ans = logpost_datamod_miscount(datamod_param,
-				   datamod_matrices);
+    fill_datamod_vals_miscount(datamod_vals,
+			       datamod_param,
+			       datamod_matrices);
     break;
   case 3000:
-    ans = logpost_datamod_miscount(datamod_consts,
-				   datamod_matrices);
+    fill_datamod_vals_noise(datamod_vals,
+			    datamod_consts,
+			    datamod_matrices);
     break;
   case 4000:
-    ans = logpost_datamod_overcount(datamod_param,
-				    datamod_matrices);
+    fill_datamod_vals_overcount(datamod_vals,
+				datamod_param,
+				datamod_matrices);
     break;
   case 5000:
-    ans = logpost_datamod_undercount(datamod_param,
-				     datamod_matrices);
+    fill_datamod_vals_undercount(datamod_vals,
+				 datamod_param,
+				 datamod_matrices);
     break;
-  default:                                                                                          // # nocov
-    error("Internal error: 'make_datamod_vals' cannot handle i_datmod = %d",
+  default: // # nocov
+    error("Internal error: 'fill_datamod_vals' cannot handle i_datmod = %d", // # nocov
 	  i_datamod); // # nocov
   }
-  return ans;
 }
 
 
@@ -1120,8 +1202,8 @@ Type make_datamod_vals(vector<Type> datamod_param,
 
 template <class Type>
 Type loglik_pois_no_disp(Type outcome,
-			       Type linpred,
-			       Type offset) {
+			 Type linpred,
+			 Type offset) {
   Type rate = exp(linpred) * offset;
   return dpois(outcome, rate, true);
 }
@@ -1157,7 +1239,7 @@ Type loglik_pois_has_disp(Type outcome,
 			  Type offset,
 			  Type disp) {
   Type rate = exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
   Type ans = dnbinom(outcome, size, prob, true);
   return ans;
@@ -1169,7 +1251,7 @@ Type loglik_pois_has_disp_rr3(Type outcome,
 			      Type offset,
 			      Type disp) {
   Type rate = exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
   return log_dnbinom_rr3(outcome, size, prob);
 }
@@ -1209,8 +1291,8 @@ Type loglik_pois_no_disp_exposure(Type outcome,
 				  Type offset) {
   Type r = datamod_vals[0];
   Type d = datamod_vals[1];
-  Type rate = exp(linpred) * offset / ((1 + (1 / d)) * r);
-  Type size = 3 + 1 / d;
+  Type rate = exp(linpred) * offset / ((Type(1) + (Type(1) / d)) * r);
+  Type size = Type(3) + Type(1) / d;
   Type prob = size / (rate + size);
   return dnbinom(outcome, size, prob, true);
 }
@@ -1223,8 +1305,8 @@ Type loglik_pois_no_disp_exposure_rr3(Type outcome,
 				      Type offset) {
   Type r = datamod_vals[0];
   Type d = datamod_vals[1];
-  Type rate = exp(linpred) * offset / ((1 + (1 / d)) * r);
-  Type size = 3 + 1 / d;
+  Type rate = exp(linpred) * offset / ((Type(1) + (Type(1) / d)) * r);
+  Type size = Type(3) + Type(1) / d;
   Type prob = size / (rate + size);
   return log_dnbinom_rr3(outcome, size, prob);
 }
@@ -1257,7 +1339,7 @@ Type loglik_pois_no_disp_overcount(Type outcome,
 				  Type linpred,
 				  Type offset) {
   Type r = datamod_vals[0];
-  Type lambda = (1 + r) * exp(linpred) * offset;
+  Type lambda = (Type(1) + r) * exp(linpred) * offset;
   return dpois(outcome, lambda, true);
 }
 
@@ -1267,7 +1349,7 @@ Type loglik_pois_no_disp_overcount_rr3(Type outcome,
 				       Type linpred,
 				       Type offset) {
   Type r = datamod_vals[0];
-  Type lambda = (1 + r) * exp(linpred) * offset;
+  Type lambda = (Type(1) + r) * exp(linpred) * offset;
   return log_dpois_rr3(outcome, lambda);
 }
 
@@ -1286,7 +1368,7 @@ Type loglik_pois_no_disp_undercount_rr3(Type outcome,
 					vector<Type> datamod_vals,
 					Type linpred,
 					Type offset) {
-  Type r = datamod_vals[0];
+  Type p = datamod_vals[0];
   Type lambda = p * exp(linpred) * offset;
   return log_dpois_rr3(outcome, lambda);
 }
@@ -1307,8 +1389,7 @@ Type loglik_binom_no_disp_undercount_rr3(Type outcome,
 					 Type linpred,
 					 Type offset) {
   Type p = datamod_vals[0];
-  Type mu = 1 / (1 + exp(-1 * linpred));
-  Type prob = p * mu
+  Type prob = p / (Type(1) + exp(-linpred));
   return log_dbinom_rr3(outcome, offset, prob);
 }
 
@@ -1324,7 +1405,7 @@ Type loglik_pois_has_disp_miscount(Type outcome,
   Type p = datamod_vals[0];
   Type r = datamod_vals[1];
   Type rate = (p + r) * exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
   return dnbinom(outcome, size, prob, true);
 }
@@ -1338,9 +1419,9 @@ Type loglik_pois_has_disp_miscount_rr3(Type outcome,
   Type p = datamod_vals[0];
   Type r = datamod_vals[1];
   Type rate = (p + r) * exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
-  return log_dnbinom_rr3(outcome, size, prob, true);
+  return log_dnbinom_rr3(outcome, size, prob);
 }
 
 template <class Type>
@@ -1350,21 +1431,21 @@ Type loglik_pois_has_disp_overcount(Type outcome,
 				    Type offset,
 				    Type disp) {
   Type r = datamod_vals[0];
-  Type rate = (1 + r) * exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type rate = (Type(1) + r) * exp(linpred) * offset;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
   return dnbinom(outcome, size, prob, true);
 }
 
 template <class Type>
-Type loglik_pois_has_disp_overcount(Type outcome,
-				    vector<Type> datamod_vals,
-				    Type linpred,
-				    Type offset,
-				    Type disp) {
+Type loglik_pois_has_disp_overcount_rr3(Type outcome,
+					vector<Type> datamod_vals,
+					Type linpred,
+					Type offset,
+					Type disp) {
   Type r = datamod_vals[0];
-  Type rate = (1 + r) * exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type rate = (Type(1) + r) * exp(linpred) * offset;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
   return log_dnbinom_rr3(outcome, size, prob);
 }
@@ -1377,7 +1458,7 @@ Type loglik_pois_has_disp_undercount(Type outcome,
 				     Type disp) {
   Type p = datamod_vals[0];
   Type rate = p * exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
   return dnbinom(outcome, size, prob, true);
 }
@@ -1390,7 +1471,7 @@ Type loglik_pois_has_disp_undercount_rr3(Type outcome,
 					 Type disp) {
   Type p = datamod_vals[0];
   Type rate = p * exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
   return log_dnbinom_rr3(outcome, size, prob);
 }
@@ -1403,7 +1484,7 @@ Type loglik_binom_has_disp_undercount(Type outcome,
 				      Type disp) {
   Type p = datamod_vals[0];
   Type rate = p * exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
   return dnbinom(outcome, size, prob, true);
 }
@@ -1416,7 +1497,7 @@ Type loglik_binom_has_disp_undercount_rr3(Type outcome,
 					  Type disp) {
   Type p = datamod_vals[0];
   Type rate = p * exp(linpred) * offset;
-  Type size = 1 / disp;
+  Type size = Type(1) / disp;
   Type prob = size / (rate + size);
   return log_dnbinom_rr3(outcome, size, prob);
 }
@@ -1435,8 +1516,6 @@ Type loglik_norm_noise(Type outcome,
 }
 
 
-
-
 // Equivalent of method dispatch for loglik -----------------------------------
 
 template <class Type>
@@ -1444,7 +1523,7 @@ Type loglik_no_disp_no_dm(Type outcome,
 			  Type linpred,
 			  Type offset,
 			  int i_lik) {
-  Type ans = 0;
+  Type ans = Type(0);
   switch(i_lik) {
   case 200000:
     ans = loglik_pois_no_disp(outcome, linpred, offset); // done
@@ -1471,7 +1550,7 @@ Type loglik_has_disp_no_dm(Type outcome,
 			   Type offset,
 			   Type disp,
 			   int i_lik) {
-  Type ans = 0;
+  Type ans = Type(0);
   switch(i_lik) {
   case 100000:
     ans = loglik_pois_has_disp(outcome, linpred, offset, disp); // done
@@ -1501,7 +1580,7 @@ Type loglik_no_disp_has_dm(Type outcome,
 			   Type linpred,
 			   Type offset,
 			   int i_lik) {
-  Type ans = 0;
+  Type ans = Type(0);
   switch(i_lik) {
   case 201000:
     ans = loglik_pois_no_disp_exposure(outcome,
@@ -1578,7 +1657,7 @@ Type loglik_has_disp_has_dm(Type outcome,
 			    Type offset,
 			    Type disp,
 			    int i_lik) {
-  Type ans = 0;
+  Type ans = Type(0);
   switch(i_lik) {
   case 102000:
     ans = loglik_pois_has_disp_miscount(outcome,
@@ -1605,7 +1684,8 @@ Type loglik_has_disp_has_dm(Type outcome,
     ans = loglik_pois_has_disp_overcount_rr3(outcome,
 					     datamod_vals,
 					     linpred,
-					     offset);
+					     offset,
+					     disp);
     break;
   case 105000:
     ans = loglik_pois_has_disp_undercount(outcome,
@@ -1639,7 +1719,8 @@ Type loglik_has_disp_has_dm(Type outcome,
     ans = loglik_norm_noise(outcome,
 			    datamod_vals,
 			    linpred,
-			    offset);
+			    offset,
+			    disp);
     break;
   default:                                                                     // # nocov
     error("Internal error: 'loglik_has_disp_hs_dm' cannot handle i_lik = %d",  // # nocov
@@ -1648,47 +1729,6 @@ Type loglik_has_disp_has_dm(Type outcome,
   return ans;
 }
 
-
-
-
-// List objects to hold matrices ----------------------------------------------
-
-// Modified from code at https://github.com/kaskr/adcomp/issues/96
-
-template<class Type>
-struct LIST_SM_t : vector<SparseMatrix<Type> > {
-  LIST_SM_t(SEXP x){
-    (*this).resize(LENGTH(x));
-    for (int i = 0; i < LENGTH(x); i++){
-      SEXP sm = VECTOR_ELT(x, i);
-      if(!isValidSparseMatrix(sm))
-        error("Internal error: not a sparse matrix"); // # nocov
-      (*this)(i) = asSparseMatrix<Type>(sm);
-    }
-  }
-};
-
-template<class Type>
-struct LIST_M_t : vector<matrix<int> > {
-  LIST_M_t(SEXP x){
-    (*this).resize(LENGTH(x));
-    for (int i = 0; i < LENGTH(x); i++){
-      SEXP m = VECTOR_ELT(x, i);
-      (*this)(i) = asMatrix<int>(m);
-    }
-  }
-};
-
-template<class Type>
-struct LIST_Type_t : vector<vector<Type> > {
-  LIST_Type_t(SEXP x){
-    (*this).resize(LENGTH(x));
-    for (int i = 0; i < LENGTH(x); i++){
-      SEXP v = VECTOR_ELT(x, i);
-      (*this)(i) = asVector<Type>(v);
-    }
-  }
-};
 
 // Objective function ---------------------------------------------------------
 
@@ -1718,6 +1758,7 @@ Type objective_function<Type>::operator() ()
   DATA_STRUCT(matrices_along_by_effectfree, LIST_M_t);
   DATA_SCALAR(mean_disp);
   DATA_MATRIX(matrix_covariates);
+  DATA_INTEGER(i_datamod);
   DATA_VECTOR(datamod_consts);
   DATA_STRUCT(datamod_matrices, LIST_SM_t);
 
@@ -1737,9 +1778,11 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper);
   vector<vector<Type> > hyperrandfree_split = split(hyperrandfree, terms_hyperrandfree);
   vector<vector<Type> > consts_split = split(consts, terms_consts);
-  int has_disp = mean_disp > 0;
+  bool has_disp = mean_disp > 0;
   Type disp = has_disp ? exp(log_disp) : 0;
-  int uses_covariates = matrix_covariates.cols() > 0;
+  bool uses_covariates = matrix_covariates.cols() > 0;
+  bool has_datamod = i_datamod > 0;
+  MatrixD<Type> datamod_vals;
 
   // linear predictor
 
@@ -1767,17 +1810,18 @@ Type objective_function<Type>::operator() ()
     linpred = linpred + matrix_covariates * coef_covariates;
   }
 
-  // data model values
 
   if (has_datamod) {
-    matrix<Type> datamod_vals = make_datamod_vals(datamod_param,
-						  datamod_consts,
-						  datamod_matrices);
+    fill_datamod_vals(datamod_vals,
+		      datamod_param,
+		      datamod_consts,
+		      datamod_matrices,
+		      i_datamod);
   }
   
   // negative log posterior
   
-  Type ans = 0;
+  Type ans = Type(0);
 
   // contribution to log posterior from priors
   for (int i_term = 0; i_term < n_term; i_term++) {
@@ -1827,19 +1871,19 @@ Type objective_function<Type>::operator() ()
   }
 
   // contribution to log posterior from data model
-  if (has_datamod_hyper) {
-    ans -= logpost_datamod_hyper(datamod_hyper,
-				 i_datamod);
+  if (has_datamod) {
+    ans -= logpost_datamod(datamod_param,
+			   datamod_consts,
+			   i_datamod);
   }
   
   // contribution to log posterior from data
   for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
     Type out = outcome[i_outcome];
-    Type dp = datamod_param[i_outcome];
     Type lin = linpred[i_outcome];
     Type off = offset[i_outcome];
     if (has_datamod) {
-      vector<Type> dv = datamod_vals.row(i);
+      vector<Type> dv = datamod_vals.row(i_outcome);
       if (has_disp)
 	ans -= loglik_has_disp_has_dm(out, dv, lin, off, disp, i_lik);
       else
