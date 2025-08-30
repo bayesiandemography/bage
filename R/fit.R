@@ -336,6 +336,29 @@ make_fit_datamod_matrices <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make Vector Holding Parameters for Data Model
+#'
+#' Return vector of length 0 if no data model,
+#' or data model does not use parameters
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A list
+#'
+#' @noRd
+make_fit_datamod_param <- function(mod) {
+  has_datamod <- has_datamod(mod)
+  if (has_datamod) {
+    datamod <- mod$datamod
+    ans <- make_datamod_param(datamod)
+  }
+  else
+    ans <- double()
+  ans
+}
+
+
+## HAS_TESTS
 #' Make 'i_datamod', Index for Data Models
 #'
 #' Value is 0 if no data model
@@ -371,12 +394,13 @@ make_fit_i_datamod <- function(mod) {
 #'
 #' @noRd
 make_fit_map <- function(mod) {
+  eps_disp <- 1e-6
   priors <- mod$priors
   mean_disp <- mod$mean_disp
   ## determine whether any parameters fixed
   is_known <- vapply(priors, is_known, FALSE)
   is_effectfree_fixed <- any(is_known)
-  is_disp_fixed <- mean_disp == 0
+  is_disp_fixed <- abs(mean_disp) < eps_disp
   ## return NULL if nothing fixed
   if (!is_effectfree_fixed && !is_disp_fixed)
     return(NULL)
@@ -404,11 +428,13 @@ make_fit_parameters <- function(mod) {
   hyperrandfree <- make_hyperrandfree(mod)
   log_disp <- c(disp = 0)
   coef_covariates <- make_coef_covariates(mod)
+  datamod_param <- make_fit_datamod_param(mod)
   list(effectfree = effectfree,
        hyper = hyper,
        hyperrandfree = hyperrandfree,
        log_disp = log_disp,
-       coef_covariates = coef_covariates)
+       coef_covariates = coef_covariates,
+       datamod_param = datamod_param)
 }
 
 

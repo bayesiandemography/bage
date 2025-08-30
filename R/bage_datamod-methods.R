@@ -620,11 +620,57 @@ make_datamod_matrices.bage_datamod_undercount <- function(datamod) {
 }
 
 
+## 'make_datamod_param' ----------------------------------------------------
 
+#' Make Parameter Vector for Data Model
+#'
+#' @param datamod Object of class 'bage_datamod'
+#'
+#' @returns Double vector
+#'
+#' @noRd
+make_datamod_param <- function(datamod) {
+  UseMethod("make_datamod_param")
+}
 
+## HAS_TESTS
+#' @export
+make_datamod_param.bage_datamod_exposure <- function(datamod) {
+  disp_mean <- datamod$disp_mean
+  times <- length(disp_mean)
+  rep.int(0, times = times)
+}
 
+## HAS_TESTS
+#' @export
+make_datamod_param.bage_datamod_miscount <- function(datamod) {
+  prob_mean <- datamod$prob_mean
+  rate_mean <- datamod$rate_mean
+  times <- length(prob_mean) + length(rate_mean)
+  rep.int(0, times = times)
+}
 
+## HAS_TESTS
+#' @export
+make_datamod_param.bage_datamod_noise <- function(datamod) {
+  double()
+}
 
+## HAS_TESTS
+#' @export
+make_datamod_param.bage_datamod_overcount <- function(datamod) {
+  rate_mean <- datamod$rate_mean
+  times <- length(rate_mean)
+  rep.int(0, times = times)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_param.bage_datamod_undercount <- function(datamod) {
+  prob_mean <- datamod$prob_mean
+  times <- length(prob_mean)
+  rep.int(0, times = times)
+}
 
 
 ## Helper function for 'draw_outcome_true_given_obs' --------------------------
