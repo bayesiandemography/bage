@@ -189,12 +189,17 @@ set_datamod_exposure <- function(mod, ratio, disp)  {
   measure_vars_ratio <- "ratio"
   measure_vars_disp <- "mean"
   check_bage_mod(x = mod, nm_x = "mod")
+  model_descr <- model_descr(mod)
   nm_distn <- nm_distn(mod)
   if (nm_distn != "pois") {
-    model_descr <- model_descr(mod)
-    cli::cli_abort(c(paste("An exposure data model can only be used",
-                           "with a Poisson model."),
-                     i = "{.arg mod} is a {model_descr} model."))
+    cli::cli_abort(c("{.arg mod} is a {model_descr} model.",
+                     i = paste("An exposure data model can only be used",
+                               "with a Poisson model.")))
+  }
+  if (!has_varying_offset(mod)) {
+    cli::cli_abort(c("{.arg mod} does not include exposure.",
+                     i = paste("An exposure data model can only be used",
+                               "with a model with exposure.")))
   }
   data <- mod$data
   ## process 'ratio'

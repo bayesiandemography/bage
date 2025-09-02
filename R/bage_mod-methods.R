@@ -1926,6 +1926,34 @@ has_datamod_outcome.bage_mod <- function(mod) {
 }
 
 
+## 'has_datamod_param' --------------------------------------------------------
+
+#' Test Whether Model Includes Datamod
+#' with Parameters
+#'
+#' @param mod A model object.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+has_datamod_param <- function(mod) {
+    UseMethod("has_datamod_param")
+}
+
+## HAS_TESTS
+#' @export
+has_datamod_param.bage_mod <- function(mod) {
+  has_datamod <- has_datamod(mod)
+  if (has_datamod) {
+    datamod <- mod$datamod
+    param <- make_datamod_param(datamod)
+    length(param) > 0L
+  }
+  else
+    FALSE
+}
+
+
 ## 'has_disp' ----------------------------------------------------------------
 
 #' Test whether a model includes a dispersion parameter
