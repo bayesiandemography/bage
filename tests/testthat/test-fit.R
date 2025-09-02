@@ -801,6 +801,24 @@ test_that("'make_fit_random' works when hyper, hyperrand, covariates", {
   expect_identical(make_fit_random(mod), c("effectfree", "hyperrandfree", "coef_covariates"))
 })
 
+test_that("'make_fit_random' works when hyper, hyperrand, covariates, data model", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_prior(age ~ Lin()) |>
+    set_covariates(~income) |>
+    set_datamod_undercount(prob = data.frame(mean = 0.8, disp = 0.2))
+  expect_identical(make_fit_random(mod),
+                   c("effectfree", "hyperrandfree", "coef_covariates", "datamod_param"))
+})
+
+
 
 ## 'make_fit_times' -----------------------------------------------------------
 

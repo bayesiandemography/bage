@@ -453,7 +453,11 @@ make_fit_random <- function(mod) {
   has_hyper <- any(make_lengths_hyper(mod) > 0L)
   has_hyperrandfree <- any(vapply(priors, has_hyperrandfree, FALSE))
   has_covariates <- has_covariates(mod)
-  if (!has_hyper && !has_hyperrandfree && !has_covariates)
+  has_datamod_param <- has_datamod_param(mod)
+  if (!has_hyper
+      && !has_hyperrandfree
+      && !has_covariates
+      && !has_datamod_param)
     ans <- NULL
   else {
     ans <- "effectfree"
@@ -461,6 +465,8 @@ make_fit_random <- function(mod) {
       ans <- c(ans, "hyperrandfree")
     if (has_covariates)
       ans <- c(ans, "coef_covariates")
+    if (has_datamod_param)
+      ans <- c(ans, "datamod_param")
   }
   ans
 }

@@ -2353,10 +2353,11 @@ test_that("'has_datamod' works with valid inputs", {
 test_that("'has_datamod_outcome' works with valid inputs", {
     data <- data.frame(deaths = 1:10 * 3,
                        time = 2001:2010,
+                       popn = rep(100, 10),
                        income = rnorm(10))
     mod <- mod_pois(deaths ~ time,
                     data = data,
-                    exposure = 1)
+                    exposure = popn)
     expect_false(has_datamod_outcome(mod))
     mod <- set_datamod_exposure(mod,
                                 ratio = data.frame(ratio = 1),
@@ -2367,6 +2368,34 @@ test_that("'has_datamod_outcome' works with valid inputs", {
                                   prob = data.frame(mean = 0.9, disp = 0.2))
     )
     expect_true(has_datamod(mod))
+})
+
+
+## 'has_datamod_param' --------------------------------------------------------
+
+test_that("'has_datamod_param' works with Poisson", {
+  data <- data.frame(deaths = 1:10 * 3,
+                     time = 2001:2010)
+  mod <- mod_pois(deaths ~ time,
+                  data = data,
+                  exposure = 1)
+  expect_false(has_datamod_param(mod))
+  mod <- mod |>
+    set_datamod_overcount(rate = data.frame(mean = 0.1, disp = 0.2))
+  expect_true(has_datamod_param(mod))
+})
+
+test_that("'has_datamod_param' works with normal", {
+  data <- data.frame(time = 2001:2010,
+                     income = rnorm(10))
+  mod <- mod_norm(income ~ time,
+                  data = data,
+                  weights = 1)
+  expect_false(has_datamod_param(mod))
+  mod <- mod |>
+    set_datamod_noise(mean = data.frame(mean = 0),
+                      sd = data.frame(sd = 0.2))
+  expect_false(has_datamod_param(mod))
 })
 
 
