@@ -1,5 +1,4 @@
 
-#define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #include <TMB.hpp>
 #include "init.h"
 
