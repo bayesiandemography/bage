@@ -2,7 +2,7 @@
 
 #' Name of Data Model Used in Printing
 #'
-#' @param mod An object of class 'bage_datamod'
+#' @param datamod An object of class 'bage_datamod'
 #'
 #' @returns A string
 #'
@@ -31,6 +31,86 @@ datamod_descr.bage_datamod_overcount <- function(datamod) "overcount"
 #' @export
 datamod_descr.bage_datamod_undercount <- function(datamod) "undercount"
 
+
+
+## 'draw_datamod_param' -------------------------------------------------------
+
+## HAS_TESTS
+#' Draw from Prior Distribution for Data Model Parameters
+#'
+#' @param datamod Object of class 'bage_mod'
+#' @param n_sim Number of draws
+#'
+#' @returns A matrix
+#'
+#' @noRd
+draw_datamod_param <- function(datamod, n_sim) {
+  UseMethod("draw_datamod_param")
+}
+
+## HAS_TESTS
+#' @export
+draw_datamod_param.bage_datamod_exposure <- function(datamod, n_sim) {
+  disp_mean <- datamod$disp_mean
+  n_disp <- length(disp_mean)
+  rate <- 1 / disp_mean
+  rate <- rep(rate, times = n_sim)
+  ans <- stats::rexp(n = n_disp * n_sim, rate = rate)
+  ans <- matrix(ans, nrow = n_disp, ncol = n_sim)
+  ans
+}
+
+## HAS_TESTS
+#' @export
+draw_datamod_param.bage_datamod_miscount <- function(datamod, n_sim) {
+  prob_mean <- datamod$prob_mean
+  prob_disp <- datamod$prob_disp
+  rate_mean <- datamod$rate_mean
+  rate_disp <- datamod$rate_disp
+  n_prob <- length(prob_mean)
+  n_rate <- length(rate_mean)
+  shape1 <- prob_mean / prob_disp
+  shape2 <- (1 - prob_mean) / prob_disp
+  shape1 <- rep(shape1, times = n_sim)
+  shape2 <- rep(shape2, times = n_sim)
+  prob <- stats::rbeta(n = n_prob * n_sim, shape1 = shape1, shape2 = shape2)
+  shape <- 1 / rate_disp
+  scale <- rate_disp * rate_mean
+  rate <- stats::rgamma(n = n_rate * n_sim, shape = shape, scale = scale)
+  prob <- matrix(prob, nrow = n_prob, ncol = n_sim)
+  rate <- matrix(rate, nrow = n_rate, ncol = n_sim)
+  ans <- rbind(prob, rate)
+  ans
+}
+
+## HAS_TESTS
+#' @export
+draw_datamod_param.bage_datamod_overcount <- function(datamod, n_sim) {
+  rate_mean <- datamod$rate_mean
+  rate_disp <- datamod$rate_disp
+  n_rate <- length(rate_mean)
+  shape <- 1 / rate_disp
+  scale <- rate_disp * rate_mean
+  rate <- stats::rgamma(n = n_rate * n_sim, shape = shape, scale = scale)
+  ans <- matrix(rate, nrow = n_rate, ncol = n_sim)
+  ans
+}
+
+
+## HAS_TESTS
+#' @export
+draw_datamod_param.bage_datamod_undercount <- function(datamod, n_sim) {
+  prob_mean <- datamod$prob_mean
+  prob_disp <- datamod$prob_disp
+  n_prob <- length(prob_mean)
+  shape1 <- prob_mean / prob_disp
+  shape2 <- (1 - prob_mean) / prob_disp
+  shape1 <- rep(shape1, times = n_sim)
+  shape2 <- rep(shape2, times = n_sim)
+  prob <- stats::rbeta(n = n_prob * n_sim, shape1 = shape1, shape2 = shape2)
+  ans <- matrix(prob, nrow = n_prob, ncol = n_sim)
+  ans
+}
 
 
 ## 'draw_offset_obs_given_true' ----------------------------------------------
@@ -507,6 +587,105 @@ draw_outcome_true_given_obs.bage_datamod_undercount <- function(datamod,
 }
 
 
+
+## 'get_datamod_transform_param' ----------------------------------------------
+
+#' Get Function to Transform Draws for Data Model Parameters
+#'
+#' @param datamod Object of class 'bage_datamod'
+#'
+#' @returns A function
+#'
+#' @noRd
+get_datamod_transform_param <- function(datamod) {
+  UseMethod("get_datamod_transform_param")
+}
+
+## HAS_TESTS
+#' @export
+get_datamod_transform_param.bage_datamod_exposure <- function(datamod) {
+  exp
+}
+
+## HAS_TESTS
+#' @export
+get_datamod_transform_param.bage_datamod_miscount <- function(datamod) {
+  prob_mean <- datamod$prob_mean
+  n_prob <- length(prob_mean)
+  ans <- function(x) {
+    s <- seq_len(n_prob)
+    logit_prob <- x[s]
+    log_rate <- x[-s]
+    prob <- poputils::invlogit(logit_prob)
+    rate <- exp(log_rate)
+    vctrs::vec_c(prob, rate)
+  }
+}
+
+## HAS_TESTS
+#' @export
+get_datamod_transform_param.bage_datamod_overcount <- function(datamod) {
+  exp
+}
+
+## HAS_TESTS
+#' @export
+get_datamod_transform_param.bage_datamod_undercount <- function(datamod) {
+  poputils::invlogit
+}
+
+
+## 'make_datamod_comp' --------------------------------------------------------
+
+## HAS_TESTS
+#' Make Character Vector with Comp for Data Model
+#'
+#' For use in 'components()'
+#' 
+#' @param datamod Object of class 'bage_datamod'
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_datamod_comp <- function(datamod) {
+  UseMethod("make_datamod_comp")
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_comp.bage_datamod_exposure <- function(datamod) {
+  disp_mean <- datamod$disp_mean
+  n <- length(disp_mean)
+  rep.int("disp", times = n)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_comp.bage_datamod_miscount <- function(datamod) {
+  prob_mean <- datamod$prob_mean
+  rate_mean <- datamod$rate_mean
+  n_prob <- length(prob_mean)
+  n_rate <- length(rate_mean)
+  rep(c("prob", "rate"), times = c(n_prob, n_rate))
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_comp.bage_datamod_overcount <- function(datamod) {
+  rate_mean <- datamod$rate_mean
+  n_rate <- length(rate_mean)
+  rep.int("rate", times = n_rate)
+}
+
+## HAS_TESTS
+#' @export
+make_datamod_comp.bage_datamod_undercount <- function(datamod) {
+  prob_mean <- datamod$prob_mean
+  n_prob <- length(prob_mean)
+  rep.int("prob", times = n_prob)
+}
+
+
 ## 'make_datamod_consts' ------------------------------------------------------
 
 #' Make Vector to Hold Constants for Data Model
@@ -546,7 +725,10 @@ make_datamod_consts.bage_datamod_miscount <- function(datamod) {
 make_datamod_consts.bage_datamod_noise <- function(datamod) {
   mean <- datamod$mean_mean
   sd <- datamod$sd_sd
-  c(mean, sd)
+  outcome_sd <- datamod$outcome_sd
+  ans <- c(mean, sd)
+  ans <- ans / outcome_sd
+  ans
 }
 
 ## HAS_TESTS
@@ -565,6 +747,49 @@ make_datamod_consts.bage_datamod_undercount <- function(datamod) {
   prob_disp <- datamod$prob_disp
   c(prob_mean,
     prob_disp)
+}
+
+
+## 'make_level_datamod' -------------------------------------------------------
+
+#' Make Level Vector for Data Model
+#'
+#' Only include levels for parameters
+#' estimated in TMB
+#'
+#' @param datamod Object of class 'bage_datamod'
+#'
+#' @returns Double vector
+#'
+#' @noRd
+make_level_datamod <- function(datamod) {
+  UseMethod("make_level_datamod")
+}
+
+## HAS_TESTS
+#' @export
+make_level_datamod.bage_datamod_exposure <- function(datamod) {
+  datamod$disp_levels
+}
+
+## HAS_TESTS
+#' @export
+make_level_datamod.bage_datamod_miscount <- function(datamod) {
+  prob_levels <- datamod$prob_levels
+  rate_levels <- datamod$rate_levels
+  c(prob_levels, rate_levels)
+}
+
+## HAS_TESTS
+#' @export
+make_level_datamod.bage_datamod_overcount <- function(datamod) {
+  datamod$rate_levels
+}
+
+## HAS_TESTS
+#' @export
+make_level_datamod.bage_datamod_undercount <- function(datamod) {
+  datamod$prob_levels
 }
 
 
@@ -637,8 +862,7 @@ make_datamod_param <- function(datamod) {
 #' @export
 make_datamod_param.bage_datamod_exposure <- function(datamod) {
   disp_mean <- datamod$disp_mean
-  times <- length(disp_mean)
-  rep.int(0, times = times)
+  log(disp_mean)
 }
 
 ## HAS_TESTS
@@ -646,8 +870,8 @@ make_datamod_param.bage_datamod_exposure <- function(datamod) {
 make_datamod_param.bage_datamod_miscount <- function(datamod) {
   prob_mean <- datamod$prob_mean
   rate_mean <- datamod$rate_mean
-  times <- length(prob_mean) + length(rate_mean)
-  rep.int(0, times = times)
+  c(poputils::logit(prob_mean),
+    log(rate_mean))
 }
 
 ## HAS_TESTS
@@ -660,16 +884,14 @@ make_datamod_param.bage_datamod_noise <- function(datamod) {
 #' @export
 make_datamod_param.bage_datamod_overcount <- function(datamod) {
   rate_mean <- datamod$rate_mean
-  times <- length(rate_mean)
-  rep.int(0, times = times)
+  log(rate_mean)
 }
 
 ## HAS_TESTS
 #' @export
 make_datamod_param.bage_datamod_undercount <- function(datamod) {
   prob_mean <- datamod$prob_mean
-  times <- length(prob_mean)
-  rep.int(0, times = times)
+  poputils::logit(prob_mean)
 }
 
 

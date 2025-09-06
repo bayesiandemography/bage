@@ -2759,7 +2759,8 @@ test_that("'make_expected_obs'  with Poisson throws expected error with invalid 
                                     sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
                                                                                i = seq_len(120),
                                                                              j = rep(1, 120)),
-                                    nms_by = c("age", "sex"))
+                                    nms_by = c("age", "sex"),
+                                    outcome_sd = 2)
   mod$datamod <- datamod
   components <- data.frame(term = c("(Intercept)", rep("datamod", 2)),
                            component = c("(Intercept)", rep("prob", times = 2)),
@@ -2838,7 +2839,8 @@ test_that("'make_expected_obs' with binomial throws expected error with invalid 
                                     sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
                                                                              i = seq_len(120),
                                                                              j = rep(1, 120)),
-                                    nms_by = c("age", "sex"))
+                                    nms_by = c("age", "sex"),
+                                    outcome_sd = 2)
   mod$datamod <- datamod
   components <- data.frame(term = c("(Intercept)", rep("datamod", 2)),
                            component = c("(Intercept)", rep("prob", times = 2)),

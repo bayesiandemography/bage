@@ -297,8 +297,6 @@ test_that("'fit_default' gives same answer with and without aggregation - norm, 
 })
 
 
-
-
 ## 'fit_inner_outer' ----------------------------------------------------------
 
 test_that("'fit_inner_outer' works with with pois", {
@@ -420,6 +418,53 @@ test_that("'fit_inner_outer' throws error when 'start_oldpar' is TRUE", {
                                vars_inner = c("age", "sex")),
                "`start_oldpar` must be FALSE when using \"inner-outer\" method.")
 })
+
+test_that("'fit_inner_outer' throws error when model has covariates", {
+  set.seed(0)
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2003,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$wt <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
+  data$wealth <- rnorm(n = nrow(data))
+  formula <- income ~ age * sex + region * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt) |>
+    set_covariates(~ wealth)  
+  set.seed(0)
+  expect_error(fit_inner_outer(mod,
+                               optimizer = "BFGS",
+                               quiet = TRUE,
+                               start_oldpar = FALSE,
+                               vars_inner = c("age", "sex")),
+               "\"inner-outer\" method cannot be used with models that include covariates.")
+})
+
+test_that("'fit_inner_outer' throws error when model has data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2003,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$wt <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
+  formula <- income ~ age * sex + region * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt) |>
+    set_datamod_noise(mean = data.frame(mean = 0), sd = data.frame(sd = 0.3))
+  set.seed(0)
+  expect_error(fit_inner_outer(mod,
+                               optimizer = "BFGS",
+                               quiet = TRUE,
+                               start_oldpar = FALSE,
+                               vars_inner = c("age", "sex")),
+               "\"inner-outer\" method cannot be used with models that include a data model.")
+})
+
+
 
 
 ## 'make_f_new' ---------------------------------------------------------------
@@ -745,7 +790,7 @@ test_that("'make_fit_parameters' works - has datamod", {
   expect_true(is.list(ans))
   expect_identical(names(ans), c("effectfree", "hyper", "hyperrandfree", "log_disp",
                                  "coef_covariates", "datamod_param"))
-  expect_identical(ans$datamod_param, 0)
+  expect_identical(ans$datamod_param, log(0.2))
 })
 
 
@@ -815,7 +860,7 @@ test_that("'make_fit_random' works when hyper, hyperrand, covariates, data model
     set_covariates(~income) |>
     set_datamod_undercount(prob = data.frame(mean = 0.8, disp = 0.2))
   expect_identical(make_fit_random(mod),
-                   c("effectfree", "hyperrandfree", "coef_covariates", "datamod_param"))
+                   c("effectfree", "hyperrandfree", "coef_covariates"))
 })
 
 

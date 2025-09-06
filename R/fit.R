@@ -148,6 +148,10 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
 fit_inner_outer <- function(mod, optimizer, quiet, vars_inner, start_oldpar) {
   if (start_oldpar)
     cli::cli_abort("{.arg start_oldpar} must be {.val {FALSE}} when using \"inner-outer\" method.")
+  if (has_covariates(mod))
+    cli::cli_abort("\"inner-outer\" method cannot be used with models that include covariates.")
+  if (has_datamod(mod))
+    cli::cli_abort("\"inner-outer\" method cannot be used with models that include a data model.")
   if (is.null(vars_inner))
     vars_inner <- make_vars_inner(mod)
   else
@@ -465,8 +469,6 @@ make_fit_random <- function(mod) {
       ans <- c(ans, "hyperrandfree")
     if (has_covariates)
       ans <- c(ans, "coef_covariates")
-    if (has_datamod_param)
-      ans <- c(ans, "datamod_param")
   }
   ans
 }

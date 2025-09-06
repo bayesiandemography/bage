@@ -13,7 +13,82 @@ test_that("'datamod_descr' returns expected string", {
   expect_identical(datamod_descr(x), "overcount")
   class(x) <- "bage_datamod_undercount"
   expect_identical(datamod_descr(x), "undercount")
-})          
+})
+
+
+## 'draw_datamod_param' -------------------------------------------------------
+
+test_that("'draw_datamod_param' works with bage_datamod_exposure", {
+  set.seed(0)
+  ratio_ratio <- c(0.5, 0.2, 0.3, 0.4)
+  ratio_levels <- 1:4
+  ratio_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  disp_mean <- c(0.3, 0.2, 0.3, 0.2)
+  disp_levels <- 1:4
+  disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
+                                       ratio_levels = ratio_levels,
+                                       ratio_matrix_outcome = ratio_matrix_outcome,
+                                       disp_mean = disp_mean,
+                                       disp_levels = disp_levels,
+                                       disp_matrix_outcome = disp_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  ans <- draw_datamod_param(datamod, n_sim = 10000)
+  expect_equal(rowMeans(ans), disp_mean, tolerance = 0.01)
+})
+
+test_that("'draw_datamod_param' works with bage_datamod_miscount", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       rate_mean = rate_mean,
+                                       rate_disp = rate_disp,
+                                       rate_levels = rate_levels,
+                                       rate_matrix_outcome = rate_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  ans <- draw_datamod_param(datamod, n_sim = 10000)
+  expect_equal(rowMeans(ans), c(prob_mean, rate_mean), tolerance = 0.01)
+})
+
+test_that("'draw_datamod_param' works with bage_datamod_overcount", {
+  set.seed(0)
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
+                                        rate_disp = rate_disp,
+                                        rate_levels = rate_levels,
+                                        rate_matrix_outcome = rate_matrix_outcome,
+                                        nms_by = c("sex", "age"))
+  ans <- draw_datamod_param(datamod, n_sim = 10000)
+  expect_equal(rowMeans(ans), rate_mean, tolerance = 0.01)
+})
+
+test_that("'draw_datamod_param' works with bage_datamod_undercount", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  ans <- draw_datamod_param(datamod, n_sim = 10000)
+  expect_equal(rowMeans(ans), prob_mean, tolerance = 0.01)
+})
 
 
 ## 'draw_offset_obs_given_true' -----------------------------------------------
@@ -243,7 +318,8 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_
                                     sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("sex", "age"))
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = 2)
   outcome <- rnorm(12)
   outcome[12] <- NA
   offset <- runif(12, min = 1, max = 10)
@@ -277,7 +353,8 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_
                                     sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("sex", "age"))
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = 2)
   outcome <- rvec::rnorm_rvec(n = 12, n_draw = 10)
   outcome[12] <- NA
   offset <- runif(12, min = 1, max = 10)
@@ -434,7 +511,6 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_undercount - ou
   ans_expected <- vctrs::vec_c(NA, u)
   expect_equal(ans_obtained, ans_expected)
 })
-
 
 
 ## 'draw_outcome_true_given_obs' -----------------------------------------------
@@ -702,7 +778,6 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_miscount - no d
   expect_equal(ans_obtained, ans_expected)
 })
 
-
 test_that("'draw_outcome_true_given_obs' throws expected error with wrong distribution and bage_datamod_miscount", {
   set.seed(0)
   prob_mean <- c(0.5, 0.2, 0.3, 0.4)
@@ -756,7 +831,8 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_noise - no na",
                                     sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("sex", "age"))
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = 2)
   outcome <- rnorm(12)
   offset <- runif(12, max = 10)
   expected <- rvec::rnorm_rvec(12, n_draw = 10)
@@ -793,7 +869,8 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_noise - has na"
                                     sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("sex", "age"))
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = 2)
   outcome <- rnorm(12)
   offset <- runif(12, max = 10)
   offset[1] <- NA
@@ -831,7 +908,8 @@ test_that("'draw_outcome_true_given_obs' throws expected error with wrong distri
                                     sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("sex", "age"))
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = 2)
   outcome <- rnorm(12)
   offset <- runif(12, max = 10)
   expected <- rvec::rnorm_rvec(12, n_draw = 10)
@@ -1144,6 +1222,167 @@ test_that("'draw_outcome_true_given_obs' gives expected error with bage_datamod_
 })
 
 
+
+## 'get_datamod_transform_param' ----------------------------------------------
+
+test_that("'get_datamod_transform_param' works with bage_datamod_exposure", {
+  set.seed(0)
+  ratio_ratio <- c(0.5, 0.2, 0.3, 0.4)
+  ratio_levels <- 1:4
+  ratio_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  disp_mean <- c(0.3, 0.2, 0.3, 0.2)
+  disp_levels <- 1:4
+  disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
+                                       ratio_levels = ratio_levels,
+                                       ratio_matrix_outcome = ratio_matrix_outcome,
+                                       disp_mean = disp_mean,
+                                       disp_levels = disp_levels,
+                                       disp_matrix_outcome = disp_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  fun <- get_datamod_transform_param(datamod)
+  expect_identical(fun(1:3), exp(1:3))
+})
+
+test_that("'make_i_datamod' works with bage_datamod_miscount", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       rate_mean = rate_mean,
+                                       rate_disp = rate_disp,
+                                       rate_levels = rate_levels,
+                                       rate_matrix_outcome = rate_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  fun <- get_datamod_transform_param(datamod)
+  x <- runif(7)
+  expect_identical(fun(x),
+                   c(poputils::invlogit(x[1:4]), exp(x[5:7])))
+  x <- rvec::runif_rvec(7, n_draw = 10)
+  expect_identical(fun(x),
+                   c(poputils::invlogit(x[1:4]), exp(x[5:7])))
+})
+
+test_that("'get_datamod_transform_param' works with bage_datamod_overcount", {
+  set.seed(0)
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
+                                        rate_disp = rate_disp,
+                                        rate_levels = rate_levels,
+                                        rate_matrix_outcome = rate_matrix_outcome,
+                                        nms_by = c("sex", "age"))
+  fun <- get_datamod_transform_param(datamod)
+  expect_identical(fun(1:10), exp(1:10))
+})
+
+test_that("'get_datamod_transform_param' works with bage_datamod_undercount", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  fun <- get_datamod_transform_param(datamod)
+  x <- rvec::runif_rvec(10, n_draw = 5)
+  expect_identical(fun(x), poputils::invlogit(x))
+})
+
+
+## 'make_datamod_comp' --------------------------------------------------------
+
+test_that("'make_datamod_comp' works with bage_datamod_exposure", {
+  set.seed(0)
+  ratio_ratio <- c(0.5, 0.2, 0.3, 0.4)
+  ratio_levels <- 1:4
+  ratio_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  disp_mean <- c(0.3, 0.2, 0.3, 0.2)
+  disp_levels <- 1:4
+  disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
+                                       ratio_levels = ratio_levels,
+                                       ratio_matrix_outcome = ratio_matrix_outcome,
+                                       disp_mean = disp_mean,
+                                       disp_levels = disp_levels,
+                                       disp_matrix_outcome = disp_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  ans_obtained <- make_datamod_comp(datamod)
+  ans_expected <- rep("disp", 4)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_datamod_comp' works with bage_datamod_miscount", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       rate_mean = rate_mean,
+                                       rate_disp = rate_disp,
+                                       rate_levels = rate_levels,
+                                       rate_matrix_outcome = rate_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  ans_obtained <- make_datamod_comp(datamod)
+  ans_expected <- rep(c("prob", "rate"), times = 4:3)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_datamod_comp' works with bage_datamod_overcount", {
+  set.seed(0)
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
+                                        rate_disp = rate_disp,
+                                        rate_levels = rate_levels,
+                                        rate_matrix_outcome = rate_matrix_outcome,
+                                        nms_by = c("sex", "age"))
+  ans_obtained <- make_datamod_comp(datamod)
+  ans_expected <- rep("rate", 3)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_datamod_comp' works with bage_datamod_undercount", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  ans_obtained <- make_datamod_comp(datamod)
+  ans_expected <- rep("prob", 4)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_datamod_consts' ------------------------------------------------------
 
 test_that("'make_datamod_consts' works with bage_datamod_exposure", {
@@ -1207,9 +1446,10 @@ test_that("'make_datamod_consts' works with bage_datamod_noise", {
                                     sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("sex", "age"))
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = 2)
   ans_obtained <- make_datamod_consts(datamod)
-  ans_expected <- c(mean_mean, sd_sd)
+  ans_expected <- c(mean_mean, sd_sd) / 2
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1308,7 +1548,8 @@ test_that("'make_datamod_matrices' works with bage_datamod_noise", {
                                     sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("sex", "age"))
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = 2)
   ans_obtained <- make_datamod_matrices(datamod)
   ans_expected <- list(mean_matrix_outcome,
                        sd_matrix_outcome)
@@ -1366,7 +1607,7 @@ test_that("'make_datamod_param' works with bage_datamod_exposure", {
                                        disp_matrix_outcome = disp_matrix_outcome,
                                        nms_by = c("sex", "age"))
   ans_obtained <- make_datamod_param(datamod)
-  ans_expected <- rep(0, 4)
+  ans_expected <- log(disp_mean)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1390,7 +1631,7 @@ test_that("'make_datamod_param' works with bage_datamod_miscount", {
                                        rate_matrix_outcome = rate_matrix_outcome,
                                        nms_by = c("sex", "age"))
   ans_obtained <- make_datamod_param(datamod)
-  ans_expected <- rep(0, 7)
+  ans_expected <- c(poputils::logit(prob_mean), log(rate_mean))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1408,7 +1649,8 @@ test_that("'make_datamod_param' works with bage_datamod_noise", {
                                     sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("sex", "age"))
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = 2)
   ans_obtained <- make_datamod_param(datamod)
   ans_expected <- double()
   expect_equal(ans_obtained, ans_expected)
@@ -1426,7 +1668,7 @@ test_that("'make_datamod_param' works with bage_datamod_overcount", {
                                         rate_matrix_outcome = rate_matrix_outcome,
                                         nms_by = c("sex", "age"))
   ans_obtained <- make_datamod_param(datamod)
-  ans_expected <- rep(0, 3)
+  ans_expected <- log(rate_mean)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1442,8 +1684,87 @@ test_that("'make_datamod_param' works with bage_datamod_undercount", {
                                        prob_matrix_outcome = prob_matrix_outcome,
                                        nms_by = c("sex", "age"))
   ans_obtained <- make_datamod_param(datamod)
-  ans_expected <- rep(0, 4)
+  ans_expected <- poputils::logit(prob_mean)
   expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_level_datamod' -------------------------------------------------------
+
+test_that("'make_level_datamod' works with bage_datamod_exposure", {
+  set.seed(0)
+  ratio_ratio <- c(0.5, 0.2, 0.3, 0.4)
+  ratio_levels <- 1:4
+  ratio_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  disp_mean <- c(0.3, 0.2, 0.3, 0.2)
+  disp_levels <- 1:4
+  disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
+                                       ratio_levels = ratio_levels,
+                                       ratio_matrix_outcome = ratio_matrix_outcome,
+                                       disp_mean = disp_mean,
+                                       disp_levels = disp_levels,
+                                       disp_matrix_outcome = disp_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  ans_obtained <- make_level_datamod(datamod)
+  ans_expected <- disp_levels
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_datamod' works with bage_datamod_miscount", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       rate_mean = rate_mean,
+                                       rate_disp = rate_disp,
+                                       rate_levels = rate_levels,
+                                       rate_matrix_outcome = rate_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  ans_obtained <- make_level_datamod(datamod)
+  ans_expected <- c(prob_levels, rate_levels)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_level_datamod' works with bage_datamod_overcount", {
+  set.seed(0)
+  rate_mean <- c(0.3, 0.3, 0.2)
+  rate_disp <- c(0.5, 0.2, 0.6)
+  rate_levels <- 1:3
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
+                                        rate_disp = rate_disp,
+                                        rate_levels = rate_levels,
+                                        rate_matrix_outcome = rate_matrix_outcome,
+                                        nms_by = c("sex", "age"))
+  ans_obtained <- make_level_datamod(datamod)
+  ans_expected <- rate_levels
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_level_datamod' works with bage_datamod_undercount", {
+  set.seed(0)
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- rep(0.4, 4)
+  prob_levels <- 1:4
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       nms_by = c("sex", "age"))
+  ans_obtained <- make_level_datamod(datamod)
+  ans_expected <- prob_levels
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -1655,7 +1976,8 @@ test_that("'make_i_lik' works with bage_datamod_noise", {
                               sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
                                                                        i = 1:5,
                                                                        j = rep(1, 5)),
-                              nms_by = c("sex", "age"))
+                              nms_by = c("sex", "age"),
+                              outcome_sd = 2)
   expect_identical(make_i_lik_part(x), 3000L)
 })
 

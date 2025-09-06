@@ -202,7 +202,6 @@ test_that("'set_datamod_exposure' throws correct error when applied to model wit
 })
 
 
-
 ## 'set_datamod_miscount' -----------------------------------------------------
 
 test_that("'set_datamod_miscount' works with 2 by variables", {
@@ -279,6 +278,7 @@ test_that("'set_datamod_noise' works with 2 by variables", {
   expect_equal(mod$datamod$mean_mean, 0.9)
   expect_equal(mod$datamod$sd_sd, rep(0.6, times = 6))
   expect_identical(mod$datamod$nms_by, c("age", "sex"))
+  expect_identical(mod$datamod$outcome_sd, mod$outcome_sd)
   expect_message(set_datamod_noise(mod,
                                    mean = mean,
                                    sd = sd),
@@ -534,18 +534,21 @@ test_that("'set_n_draw' reduces draws in fitted object", {
                   exposure = popn)
   mod <- set_prior(mod, time ~ Lin_AR1())
   mod <- set_covariates(mod, ~ income)
+  mod <- set_datamod_overcount(mod, rate = data.frame(mean = 0.1, disp = 0.2))
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
   expect_identical(ncol(mod$draws_effectfree), 10L)
   expect_identical(ncol(mod$draws_hyper), 10L)
   expect_identical(ncol(mod$draws_hyperrandfree), 10L)
   expect_identical(ncol(mod$draws_coef_covariates), 10L)
+  expect_identical(ncol(mod$draws_datamod_param), 10L)
   mod <- set_n_draw(mod, n_draw = 5)
   expect_identical(mod$n_draw, 5L)
   expect_identical(ncol(mod$draws_effectfree), 5L)
   expect_identical(ncol(mod$draws_hyper), 5L)
   expect_identical(ncol(mod$draws_hyperrandfree), 5L)
   expect_identical(ncol(mod$draws_coef_covariates), 5L)
+  expect_identical(ncol(mod$draws_datamod_param), 5L)
 })
 
 
@@ -848,7 +851,8 @@ test_that("'unfit' works with valid inputs", {
   mod_unfit <- mod_pois(formula = formula,
                         data = data,
                         exposure = popn) |>
-    set_covariates(~ income)
+    set_covariates(~ income) |>
+    set_datamod_overcount(rate = data.frame(mean = 0.1, disp = 0.3))
   mod_fit <- fit(mod_unfit)
   mod_fit_unfit <- unfit(mod_unfit)
   nms <- c("draws_effectfree",
@@ -859,8 +863,9 @@ test_that("'unfit' works with valid inputs", {
            "point_effectfree",
            "point_hyper",
            "point_hyperrandfree",
-           "point_coef_covariates",
            "point_disp",
+           "point_coef_covariates",
+           "point_datamod_param",
            "computations",
            "oldpar")
   expect_true(all(nms %in% names(mod_unfit)))
