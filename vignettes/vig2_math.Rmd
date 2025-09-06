@@ -1332,7 +1332,7 @@ where values for $m_{g[i]}$ and $s_{h[i]}$ are supplied by the user.
 ### Combined model seen by TMB
 
 \begin{equation}
-  y_i^{\text{obs}} \sim \text{N}(\gamma_i + m_{g[i]}, w_i^{-1}\sigma^2 + s_{h[i]}^2)
+  \frac{y_i^{\text{obs}} - \bar{y}}{s} \sim \text{N}\left(\mu_i + \frac{m_{g[i]}}{s}, \frac{\bar{w} \xi^2}{w_i} + \frac{s_{h[i]}^2}{s^2}\right)
 \end{equation}
 
 

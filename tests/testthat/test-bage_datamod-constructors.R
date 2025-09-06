@@ -57,13 +57,15 @@ test_that("'new_bage_datamod_noise' works", {
   sd_levels <- 1:4
   sd_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   nms_by <- c("age", "region")
+  outcome_sd <- 5
   x <- new_bage_datamod_noise(mean_mean = mean_mean,
                               mean_levels = mean_levels,
                               mean_matrix_outcome = mean_matrix_outcome,
                               sd_sd = sd_sd,
                               sd_levels = sd_levels,
                               sd_matrix_outcome = sd_matrix_outcome,
-                              nms_by = nms_by)
+                              nms_by = nms_by,
+                              outcome_sd = outcome_sd)
   expect_s3_class(x, "bage_datamod_noise")
   expect_s3_class(x, "bage_datamod_outcome")
 })

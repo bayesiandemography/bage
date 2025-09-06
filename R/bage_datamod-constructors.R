@@ -107,6 +107,8 @@ new_bage_datamod_miscount <- function(prob_mean,
 #' @param sd_matrix_outcome Sparse matrix mapping
 #' sd to outcome
 #' @param nms_by Names of by variables for mean, sd
+#' @param outcome_sd Standard deviation of
+#' the original, unscaled outcome
 #' 
 #' @returns Object of class 'bage_datamod_noise'
 #'
@@ -117,14 +119,16 @@ new_bage_datamod_noise <- function(mean_mean,
                                    sd_sd,
                                    sd_levels,
                                    sd_matrix_outcome,
-                                   nms_by) {
+                                   nms_by,
+                                   outcome_sd) {
   ans <- list(mean_mean = mean_mean,
               mean_levels = mean_levels,
               mean_matrix_outcome = mean_matrix_outcome,
               sd_sd = sd_sd,
               sd_levels = sd_levels,
               sd_matrix_outcome = sd_matrix_outcome,
-              nms_by = nms_by)
+              nms_by = nms_by,
+              outcome_sd = outcome_sd)
   class(ans) <- c("bage_datamod_noise",
                   "bage_datamod_outcome",
                   "bage_datamod")

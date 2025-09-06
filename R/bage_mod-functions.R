@@ -351,7 +351,7 @@ set_datamod_miscount <- function(mod, prob, rate) {
   ## construct datamod and add to 'mod'
   datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
                                        prob_disp = prob_disp,
-                                       prob_levels = levels,
+                                       prob_levels = prob_levels,
                                        prob_matrix_outcome = prob_matrix_outcome,
                                        rate_mean = rate_mean,
                                        rate_disp = rate_disp,
@@ -397,7 +397,6 @@ set_datamod_noise <- function(mod, mean, sd) {
                      i = "{.arg mod} is a {model_descr} model."))
   }
   data <- mod$data
-  outcome_mean <- mod$outcome_mean
   outcome_sd <- mod$outcome_sd
   ## process 'mean'
   check_datamod_val(x = mean,
@@ -442,12 +441,13 @@ set_datamod_noise <- function(mod, mean, sd) {
   nms_by <- union(nms_by_mean, nms_by_sd)
   ## construct datamod and add to 'mod'
   datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = levels,
+                                    mean_levels = mean_levels,
                                     mean_matrix_outcome = mean_matrix_outcome,
                                     sd_sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = nms_by)
+                                    nms_by = nms_by,
+                                    outcome_sd = outcome_sd)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
     alert_replacing_existing_datamod(datamod_new = datamod,
@@ -759,6 +759,8 @@ set_n_draw <- function(mod, n_draw = 1000L) {
         mod$draws_coef_covariates <- mod$draws_coef_covariates[, s, drop = FALSE]        
       if (has_disp(mod))
         mod$draws_disp <- mod$draws_disp[s]
+      if (has_datamod_param(mod))
+        mod$draws_datamod_param <- mod$draws_datamod_param[, s, drop = FALSE]
     }
   }
   mod
@@ -1151,11 +1153,13 @@ unfit <- function(mod) {
   mod["draws_hyperrandfree"] <- list(NULL)
   mod["draws_coef_covariates"] <- list(NULL)
   mod["draws_disp"] <- list(NULL)
+  mod["draws_datamod_param"] <- list(NULL)
   mod["point_effectfree"] <- list(NULL)
   mod["point_hyper"] <- list(NULL)
   mod["point_hyperrandfree"] <- list(NULL)
   mod["point_coef_covariates"] <- list(NULL)
   mod["point_disp"] <- list(NULL)
+  mod["point_datamod_param"] <- list(NULL)
   mod["computations"] <- list(NULL)
   mod["oldpar"] <- list(NULL)
   mod
