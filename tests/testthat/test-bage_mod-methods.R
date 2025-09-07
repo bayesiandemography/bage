@@ -2357,7 +2357,8 @@ test_that("'has_datamod_outcome' works with valid inputs", {
                        income = rnorm(10))
     mod <- mod_pois(deaths ~ time,
                     data = data,
-                    exposure = popn)
+                    exposure = popn) |>
+      set_disp(mean = 0)
     expect_false(has_datamod_outcome(mod))
     mod <- set_datamod_exposure(mod,
                                 ratio = data.frame(ratio = 1),
@@ -2514,6 +2515,7 @@ test_that("'make_disp_obs' works with Poisson, exposure data model", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
+    set_disp(mean = 0) |>
     set_datamod_exposure(ratio = ratio, disp = disp)
   components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
                            component = c("(Intercept)", rep("disp", 6)),
@@ -2649,6 +2651,7 @@ test_that("'make_expected_obs' works with Poisson, exposure data model", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
+    set_disp(mean = 0) |>
     set_datamod_exposure(ratio = ratio, disp = disp)
   components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
                            component = c("(Intercept)", rep("disp", 6)),
