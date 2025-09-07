@@ -1235,20 +1235,20 @@ Note that
 ### Combined model seen by TMB
 
 \begin{align}
-  y_i^{\text{obs}} & \sim \text{NegBinom}(3 + \delta_{g[i]}^{-1}, [1 + (1 + \delta_{g[i]}^{-1})^{-1}^{-1} \mu_i w_i^{\text{obs}}]^{-1} )  \\
+  y_i^{\text{obs}} & \sim \text{NegBinom}\left(3 + \delta_{g[i]}^{-1}, \frac{1 + \delta_{g[i]}^{-1}}{1 + \delta_{g[i]}^{-1} + \mu_i w_i^{\text{obs}}} \right)  \\
   \delta_g & \sim \text{Exp}(A_g^{(\delta)})
 \end{align}
 
 Note that
 \begin{equation}
-E[y_i^{\text{obs}}] = \left( \frac{3 + \delta_{g[i]}^{-1}}{1 + \delta_{g[i]}^{-1}} \right) \frac{w_i^{\text{obs}}}{} \mu_i 
+E[y_i^{\text{obs}}] = \left( \frac{3 + \delta_{g[i]}^{-1}}{1 + \delta_{g[i]}^{-1}} \right) \mu_i w_i^{\text{obs}}
 \end{equation}
 
 ### Obtaining $w_i^{\text{true}}$
 
 Equations \@ref(eq:lik-pois-offset) and \@ref(eq:w-true) imply
 \begin{equation}
-  w_i^{\text{true}} \sim \text{Gamma}(3 + \delta_{g[i]}^{-1} + y_i, [1 + \delta_{g[i]}^{-1}]  [w_i^{\text{obs}}]^{-1} + \mu_i)
+  w_i^{\text{true}} \sim \text{Gamma}\left(3 + \delta_{g[i]}^{-1} + y_i, \frac{1 + \delta_{g[i]}^{-1}}{w_i^{\text{obs}}} + \mu_i \right)
 \end{equation}
 
 ## Binomial, measurement errors in outcome variable {#sec:datamod-binom}
