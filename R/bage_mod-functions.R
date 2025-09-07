@@ -168,18 +168,140 @@ set_covariates <- function(mod, formula) {
 
 #' Specify Exposure Data Model
 #'
-#' @param mod An object of class `"bage_mod"`,
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param ratio A data frame with 'by' variables
-#' and a variable called `"ratio"`.
-#' @param disp A data frame with 'by' variables
-#' and a variable called `"mean"`.
+#' @description
+#' 
+#' Specify a measurement data model for the exposure
+#' term in a Poisson model. The data model assumes
+#' that, within each cell, observed exposure is drawn 
+#' from an Inverse-Gamma distribution, with
+#'
+#' E\[expected exposure\] = coverage ratio \eqn{\times} true exposure
+#'
+#' and
+#'
+#' var\[expected exposure\] = dispersion \eqn{\times}
+#'   (coverage ratio \eqn{\times} true exposure)^2
+#'
+#' Dispersion is estimated within the model.
+#'
+#' @details
+#' 
+#' `set_datamod_exposure()` can only be used
+#' with model where dispersion in Poisson rates
+#' has been set to zero, using function [set_disp()].
+#' In models that use `set_datamod_exposure()`,
+#' "dispersion" refers to variation in
+#' observed exposures, not variation in Poisson rates.
+#'
+#' @section The `ratio` argument:
+#'
+#' The `ratio` argument specifies the expected ratio between
+#' reported and actual exposures. For instance,
+#' a value of 1.1 implies that reported exposures
+#' are expected to exceed actual exposures by 10%.
+#'
+#' The `ratio` argument to `set_datamod_exposure()`
+#' is a data frame with a column called `"ratio"`,
+#' and, optionally, one or more columns with 'by' variables.
+#' For instance, a value for `ratio` of
+#'
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            ratio = c(0.9, 0.8))
+#'```
+#' 
+#' implies that exposure is undercounted by 10% among
+#' females and 20% among males.
+#'
+#' The default value for `ratio` is
+#' ```
+#' data.frame(ratio = 1)
+#' ```
+#' implying that the observed exposure is an unbiased
+#' estimate of the true exposure.
+#'
+#' @section The `disp` argument:
+#'
+#' Dispersion in observed exposure is
+#' treated as unknown, and is estimated
+#' within the model. The `disp` argument
+#' is used to specify the prior mean for
+#' dispersion, which is given an
+#' exponential prior.
+#'
+#' `disp` is a data frame
+#' with a column called `"mean"`, and, optionally,
+#' one or more columns with 'by' variables. For instance,
+#' a value for `disp` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            mean = c(0.15, 0.12))
+#'```
+#' implies that the prior mean for dispersion
+#' is 0.15 for females and 0.12 for males.
+#' 
+#' @section Mathematical details:
+#'
+#' The model for observed exposure is
+#'
+#' \deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + \delta_{g \lbrack i \rbrack }^{-1}, (1 + \delta_{g \lbrack i\rbrack }^{-1}) r_{h \lbrack i \rbrack } w_i^{\text{true}})}
+#'
+#' where
+#' - \eqn{w_i^{\text{obs}}} is observed exposure for cell \eqn{i}
+#'   (the `exposure` argument to [mod_pois()]);
+#' - \eqn{w_i^{\text{true}}} is true exposure for cell \eqn{i};
+#' - \eqn{\delta_{g\lbrack i\rbrack }} is dispersion for cell \eqn{i}; and
+#' - \eqn{r_{h\lbrack i \rbrack}} is the ratio of observed to true exposure
+#'   in cell \eqn{i} (the `ratio` variable in the `ratio`
+#'   argument for `set_datamod_exposure()`).
+#'
+#' The same value \eqn{\delta_g} for dispersion can
+#' be used for multiple cells \eqn{i},
+#' and similarly for \eqn{r_h}.
+#'
+#' Dispersion \eqn{\delta_g} has prior
+#'
+#' \deqn{\delta_g \sim \text{Exp}(m_g)}
+#'
+#' where \eqn{m_g} is specified is the prior mean
+#' (the `mean` variable in the `disp` for
+#' `set_datamod_exposure()`).
+#' 
+#' @param mod An object of class `"bage_mod_pois"`,
+#' created with [mod_pois()].
+#' @param ratio The ratio between observed
+#' exposure and true exposure.
+#' A data frame with a variable called `"ratio"`,
+#' and, optionally, one or more 'by' variables.
+#' Default is `data.frame(ratio = 1)`.
+#' @param disp The prior mean for dispersion.
+#' A data frame with a variable called `"mean"`,
+#' and, oprtionally, one or more 'by' variables.
 #'
 #' @returns A modified version of `mod`.
 #'
-#' @noRd
-set_datamod_exposure <- function(mod, ratio, disp)  {
+#' @seealso
+#' - [mod_pois()] Specify a Poisson model
+#' - [set_disp()] Specify dispersion of rates, probabilities, or means
+#' - [components()] Values for parameters estimated in the
+#'   model, included the dispersion parameter in the data
+#'   model for exposure.
+#' - [set_datamod_miscount()] Specify a data model for a
+#'   Poisson model where the outcome variable
+#'   is subject to undercount and overcount
+#' - [set_datamod_overcount()] Specify a data model for a
+#'   Poisson model where the outcome variable is
+#'   subject to overcount, but not undercount
+#' - [set_datamod_undercount()] Specify a data model for a
+#'   Poisson or binomial model where the
+#'   outcome variable is subject to undercount,
+#'   but not overcount
+#' - [set_datamod_noise()] Specify a data model for a
+#'   normal model where the  outcome variable
+#'   has normally-distributed measurement errors
+#'
+#' @export
+set_datamod_exposure <- function(mod, ratio = NULL, disp)  {
   nm_offset_data <- mod$nm_offset_data
   nm_offset_mod <- get_nm_offset_mod(mod)
   error_offset_formula_used(nm_offset_data = nm_offset_data,
@@ -196,6 +318,13 @@ set_datamod_exposure <- function(mod, ratio, disp)  {
                      i = paste("An exposure data model can only be used",
                                "with a Poisson model.")))
   }
+  if (has_disp(mod)) {
+    cli::cli_abort(c("{.arg mod} has non-zero dispersion.",
+                     i = paste("An exposure data model can only be used",
+                               "with a model that has no dispersion in rates."),
+                     i = paste("Use {.fun set_disp} to set dispersion",
+                               "in rates to zero?")))
+  }
   if (!has_varying_offset(mod)) {
     cli::cli_abort(c("{.arg mod} does not include exposure.",
                      i = paste("An exposure data model can only be used",
@@ -203,6 +332,8 @@ set_datamod_exposure <- function(mod, ratio, disp)  {
   }
   data <- mod$data
   ## process 'ratio'
+  if (is.null(ratio))
+    ratio <- data.frame(ratio = 1)
   check_datamod_val(x = ratio,
                     nm_x = "ratio",
                     measure_vars = measure_vars_ratio)
@@ -279,7 +410,7 @@ set_datamod_exposure <- function(mod, ratio, disp)  {
 #'
 #' @returns A modified version of `mod`.
 #'
-#' @noRd
+#' @export
 set_datamod_miscount <- function(mod, prob, rate) {
   ## preliminaries
   measure_vars_prob <- c("mean", "disp")
@@ -378,12 +509,12 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #' [mod_binom()], or [mod_norm()].
 #' @param mean A data frame with 'by' variables
 #' and a variable called `"mean"`.
-#' @param prob A data frame with 'by' variables
-#' and a variable called `"prob"`.
+#' @param sd A data frame with 'by' variables
+#' and a variable called `"sd"`.
 #'
 #' @returns A modified version of `mod`.
 #'
-#' @noRd
+#' @export
 set_datamod_noise <- function(mod, mean, sd) {
   ## preliminaries
   measure_vars_mean <- "mean"
@@ -467,7 +598,7 @@ set_datamod_noise <- function(mod, mean, sd) {
 #'
 #' @returns A modified version of `mod`.
 #'
-#' @noRd
+#' @export
 set_datamod_overcount <- function(mod, rate) {
   ##  preliminaries
   measure_vars_rate <- c("mean", "disp")
@@ -533,7 +664,7 @@ set_datamod_overcount <- function(mod, rate) {
 #'
 #' @returns A modified version of `mod`.
 #'
-#' @noRd
+#' @export
 set_datamod_undercount <- function(mod, prob) {
   ##  preliminaries
   measure_vars_prob <- c("mean", "disp")
@@ -1237,3 +1368,20 @@ set_var_inner <- function(mod, name, var) {
   mod
 }
 
+
+## library(poputils)
+## library(dplyr)
+## disp_popn <- tibble(age = age_labels(type = "five", max = 60, open = FALSE),
+##                     mean = if_else(age %in% c("20-24", "25-29"), 0.05, 0.02))
+
+## mod_base <- mod_pois(injuries ~ age * sex + year,
+##                      data = nzl_injuries,
+##                      exposure = popn) |>
+##   set_disp(mean = 0) |>
+##   fit()
+
+## mod_expose <- mod_base |>
+##   set_datamod_exposure(disp = disp_popn) |>
+##   fit()
+
+## fit(mod)
