@@ -82,6 +82,38 @@ The same value \eqn{d_g} for dispersion can
 be used for multiple cells \eqn{i}.
 }
 
+\examples{
+## specify model, including setting
+## dispersion for rates to zero
+mod <- mod_pois(injuries ~ age * sex + year,
+                data = nzl_injuries,
+                exposure = popn) |>
+  set_disp(mean = 0) |>
+  set_datamod_exposure(disp = 0.00002)
+
+## fit the model
+mod <- mod |>
+  fit()
+mod
+
+## examine results - note the new variable '.popn'
+## with imputed true values for population
+aug <- mod |>
+  augment()
+
+## allow different dispersions for each sex
+disp_sex <- data.frame(sex = c("Female", "Male"),
+                       disp = c(0.00001, 0.00003))
+mod <- mod |>
+  set_datamod_exposure(disp = disp_sex)
+mod
+
+## our outcome variable is in fact confidentialized
+## confidentialized, so we allow for that too
+mod <- mod |>
+  set_confidential_rr3()
+mod
+}
 \seealso{
 \itemize{
 \item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model

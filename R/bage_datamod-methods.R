@@ -182,19 +182,30 @@ draw_offset_true_given_obs.bage_datamod_exposure <- function(datamod,
   if (nm_distn == "pois") {
     n_offset <- length(offset_obs)
     n_draw <- rvec::n_draw(expected)
+    offset_obs <- rep(offset_obs, times = n_draw)
+    if (rvec::is_rvec(outcome))
+      outcome <- as.numeric(outcome)
+    else
+      outcome <- rep(outcome, times = n_draw)
+    expected <- as.numeric(expected)
     is_ok <- !is.na(offset_obs) & !is.na(outcome)
     n_ok <- sum(is_ok)
-    ans <- rvec::new_rvec(length = n_offset, n_draw = n_draw)
+    ans <- rep.int(NA_real_, times = n_offset * n_draw)
     disp <- get_datamod_disp(datamod)
+    disp <- rep.int(disp, times = n_draw)
     shape <- 3 + 1 / disp[is_ok] + outcome[is_ok]
     rate <- (1 + 1 / disp[is_ok]) / offset_obs[is_ok] + expected[is_ok]
-    ans[is_ok] <- rvec::rgamma_rvec(n = n_ok, shape = shape, rate = rate)
+    ans[is_ok] <- rvec::rgamma_rvec(n = n_ok,
+                                    shape = shape,
+                                    rate = rate)
   }
   else {
     cli::cli_abort(paste("Internal error: {.var datamod} has class",
                          "{.cls {class(datamod)}} but {.var nm_distn}",
                          "is {.val {nm_distn}}."))
   }
+  ans <- matrix(ans, nrow = n_offset, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
