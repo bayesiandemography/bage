@@ -472,47 +472,32 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #' @param mod An object of class `"bage_mod"`,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
-#' @param mean A data frame with 'by' variables
-#' and a variable called `"mean"`.
 #' @param sd A data frame with 'by' variables
 #' and a variable called `"sd"`.
 #'
 #' @returns A modified version of `mod`.
 #'
 #' @export
-set_datamod_noise <- function(mod, mean, sd) {
+set_datamod_noise <- function(mod, sd) {
   ## preliminaries
-  measure_vars_mean <- "mean"
   measure_vars_sd <- "sd"
   check_bage_mod(x = mod, nm_x = "mod")
+  model_descr <- model_descr(mod)
   nm_distn <- nm_distn(mod)
   if (nm_distn != "norm") {
-    model_descr <- model_descr(mod)
-    cli::cli_abort(c(paste("A noise data model can only be used",
-                           "with a normal model."),
-                     i = "{.arg mod} is a {model_descr} model."))
+    cli::cli_abort(c("{.arg mod} is a {model_descr} model.",
+                     i = paste("A noise data model can only be used",
+                               "with a normal model.")))
   }
   data <- mod$data
   outcome_sd <- mod$outcome_sd
-  ## process 'mean'
-  check_datamod_val(x = mean,
-                    nm_x = "mean",
-                    measure_vars = measure_vars_mean)
-  nms_by_mean <- setdiff(names(mean), measure_vars_mean)
-  by_val_mean <- mean[nms_by_mean]
-  check_datamod_by_val(by_val = by_val_mean,
-                       data = data,
-                       nm_val = "mean")
-  mean_mean <- mean$mean
-  mean_mean <- make_datamod_measure(data = data,
-                                    by_val = by_val_mean,
-                                    measure = mean_mean)
-  mean_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_mean,
-                                     nm_component = "mean")
-  mean_matrix_outcome <- make_matrix_val_outcome(data = data,
-                                                 by_val = by_val_mean)
   ## process 'sd'
+  if (is.numeric(sd)) {
+    check_number(x = sd, nm_x = "sd")
+    if (sd <= 0)
+      cli::cli_abort("{.arg sd} less than or equal to 0.")
+    sd <- data.frame(sd = sd)
+  }
   check_datamod_val(x = sd,
                     nm_x = "sd",
                     measure_vars = measure_vars_sd)
@@ -533,16 +518,11 @@ set_datamod_noise <- function(mod, mean, sd) {
                                    nm_component = "sd")
   sd_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                by_val = by_val_sd)
-  ## construct 'nms_by'
-  nms_by <- union(nms_by_mean, nms_by_sd)
   ## construct datamod and add to 'mod'
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd_sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd_sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = nms_by,
+                                    nms_by = nms_by_sd,
                                     outcome_sd = outcome_sd)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod

@@ -1084,7 +1084,7 @@ models <- tibble(
       "\\gamma_i \\sim \\text{Beta}(\\xi^{-1} \\mu_i, \\xi^{-1}(1 - \\mu_i))",
       "$$"
     ),
-    "$$ y_i^{\\text{true}} \\sim \\text{N}(\\mu_i, w_i^{-1} \\xi^2) $$"
+    "$$ y_i^{\\text{true}} \\sim \\text{N}(\\gamma_i, w_i^{-1} \\sigma^2) $$"
   ),
   `Data model` = c(
     paste(
@@ -1102,8 +1102,7 @@ models <- tibble(
     "$$ y_i^{\\text{obs}} \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]}) $$",
     paste(
       "$$",
-      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i \\\\",
-      "\\epsilon_i \\sim \\text{N}(m_{g[i]}, s_{h[i]}^2)",
+      "y_i^{\\text{obs}} \\sim \\text{N}(y_i^{\\text{true}}, s_{h[i]}^2)",
       "$$"
     )
   )
@@ -1249,6 +1248,22 @@ Equations \@ref(eq:lik-pois-offset) and \@ref(eq:w-true) imply
   w_i^{\text{true}} \sim \text{Gamma}\left(3 + d_{g[i]}^{-1} + y_i, \frac{1 + d_{g[i]}^{-1}}{w_i^{\text{obs}}} + \mu_i \right)
 \end{equation}
 
+Note that
+\begin{align}
+E[w_i^{\text{true}}] & = \frac{(3 + d_{g[i]}^{-1} + y_i) w_i^{\text{obs}}}{1 + d_{g[i]}^{-1} + \mu_i w_i^{\text{obs}}} \\
+  & = \lambda_i \hat{w}_i^{\text{data}} + (1 - \lambda_i) \hat{w}_i^{\text{rate}}
+\end{align}
+where
+\begin{align}
+  \hat{w}_i^{\text{data}} & =\frac{3 + d_{g[i]}^{-1}}{1 + d_{g[i]}^{-1}} w_i^{\text{obs}} \\
+  \hat{w}_i^{\text{data}} & = \frac{y_i}{\mu_i} \\
+ \lambda_i & = \frac{1 + d_{g[i]}^{-1}}{1 + d_{g[i]}^{-1} + \mu_i w_i^{\text{obs}}}.
+\end{align}
+
+
+$\hat{w}_i^{\text{data}}$ is an estimate of $w_i^{\text{true}}$ derived from the data model, and $\hat{w}_i^{\text{rate}}$ is an estimate derived from the model for the rates.
+
+
 ## Binomial, measurement errors in outcome variable {#sec:datamod-binom}
 
 ### System model
@@ -1321,23 +1336,22 @@ where
 
 ### Data model
 
-\begin{align}
-  y_i^{\text{obs}} & = y_i^{\text{true}} + \epsilon_i \\
-  \epsilon_i & \sim \text{N}(m_{g[i]}, s_{h[i]}^2)
-\end{align}
-where values for $m_{g[i]}$ and $s_{h[i]}$ are supplied by the user.
+\begin{equation}
+  y_i^{\text{obs}} \sim \text{N}(y_i^{\text{true}}, s_{h[i]}^2)
+\end{equation}
+where values for $s_{h[i]}$ are supplied by the user.
 
 ### Combined model seen by TMB
 
 \begin{equation}
-  \frac{y_i^{\text{obs}} - \bar{y}}{s} \sim \text{N}\left(\mu_i + \frac{m_{g[i]}}{s}, \frac{\bar{w} \xi^2}{w_i} + \frac{s_{h[i]}^2}{s^2}\right)
+  \frac{y_i^{\text{obs}} - \bar{y}}{s} \sim \text{N}\left(\mu_i, \frac{\bar{w} \xi^2}{w_i} + \frac{s_{h[i]}^2}{s^2}\right)
 \end{equation}
 
 
 ### Obtaining $y_i^{\text{true}}$
 
 \begin{equation}
-  y_i^{\text{true}} \sim \text{N}\left(\frac{\tau_1}{\tau_1 + \tau_2} \gamma_i + \frac{\tau_2}{\tau_1 + \tau_2} (y_i^{\text{obs}} - m_{g[i]}),\quad
+  y_i^{\text{true}} \sim \text{N}\left(\frac{\tau_1}{\tau_1 + \tau_2} \gamma_i + \frac{\tau_2}{\tau_1 + \tau_2} y_i^{\text{obs}},\quad
 \frac{1}{\tau_1 + \tau_2} \right)
 \end{equation}
 where $\tau_1 = w_i \sigma^{-2}$ and $\tau_2 = s_{h[i]}^{-2}$

@@ -266,16 +266,10 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_miscount - outc
 
 test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is numeric", {
   set.seed(0)
-  mean_mean <- c(0.5, 0.2, 0.3, -0.4)
-  mean_levels <- 1:4
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
   sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
                                     nms_by = c("sex", "age"),
@@ -292,7 +286,7 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_
                                               fitted = fitted)
   set.seed(1)
   noise <- rvec::rnorm_rvec(n = 11,
-                            mean = get_datamod_mean(datamod)[-12],
+                            mean = 0,
                             sd = get_datamod_sd(datamod)[-12],
                             n_draw = 10)
   ans_expected <- vctrs::vec_c(outcome[-12] + noise, NA)
@@ -301,16 +295,10 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_
 
 test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is rvec", {
   set.seed(0)
-  mean_mean <- c(0.5, 0.2, 0.3, -0.4)
-  mean_levels <- 1:4
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
   sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
                                     nms_by = c("sex", "age"),
@@ -327,7 +315,7 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_
                                               fitted = fitted)
   set.seed(1)
   noise <- rvec::rnorm_rvec(n = 11,
-                            mean = get_datamod_mean(datamod)[-12],
+                            mean = 0,
                             sd = get_datamod_sd(datamod)[-12],
                             n_draw = 10)
   ans_expected <- vctrs::vec_c(outcome[-12] + noise, NA)
@@ -767,16 +755,10 @@ test_that("'draw_outcome_true_given_obs' throws expected error with wrong distri
 
 test_that("'draw_outcome_true_given_obs' works with bage_datamod_noise - no na", {
   set.seed(0)
-  mean_mean <- c(0.5, 0.2, 0.3, -0.4)
-  mean_levels <- 1:4
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
   sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
                                     nms_by = c("sex", "age"),
@@ -797,7 +779,7 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_noise - no na",
   tau1 <- offset / (disp^2)
   tau2 <- 1 / (get_datamod_sd(datamod)^2)
   mean <- (tau1/(tau1+tau2)) * expected +
-    (tau2/(tau1+tau2)) * (outcome - get_datamod_mean(datamod))
+    (tau2/(tau1+tau2)) * outcome
   sd <- sqrt(1/(tau1+tau2))
   ans_expected <- rvec::rnorm_rvec(n = 12, mean = mean, sd = sd)
   expect_equal(ans_obtained, ans_expected)
@@ -805,16 +787,10 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_noise - no na",
 
 test_that("'draw_outcome_true_given_obs' works with bage_datamod_noise - has na", {
   set.seed(0)
-  mean_mean <- c(0.5, 0.2, 0.3, -0.4)
-  mean_levels <- 1:4
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
   sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
                                     nms_by = c("sex", "age"),
@@ -836,7 +812,7 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_noise - has na"
   tau1 <- offset[-1] / (disp^2)
   tau2 <- 1 / (get_datamod_sd(datamod)^2)[-1]
   mean <- (tau1/(tau1+tau2)) * expected[-1] +
-    (tau2/(tau1+tau2)) * (outcome[-1] - get_datamod_mean(datamod)[-1])
+    (tau2/(tau1+tau2)) * outcome[-1]
   sd <- sqrt(1/(tau1+tau2))
   ans_expected <- vctrs::vec_c(NA, rvec::rnorm_rvec(n = 11, mean = mean, sd = sd))
   expect_equal(ans_obtained, ans_expected)
@@ -844,16 +820,10 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_noise - has na"
 
 test_that("'draw_outcome_true_given_obs' throws expected error with wrong distribution and bage_datamod_noise", {
   set.seed(0)
-  mean_mean <- c(0.5, 0.2, 0.3, -0.4)
-  mean_levels <- 1:4
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
   sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
                                     nms_by = c("sex", "age"),
@@ -1337,22 +1307,16 @@ test_that("'make_i_datamod' works with bage_datamod_miscount", {
 
 test_that("'make_datamod_consts' works with bage_datamod_noise", {
   set.seed(0)
-  mean_mean <- c(0.5, 0.2, 0.3, -0.4)
-  mean_levels <- 1:4
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
   sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
                                     nms_by = c("sex", "age"),
                                     outcome_sd = 2)
   ans_obtained <- make_datamod_consts(datamod)
-  ans_expected <- c(mean_mean, sd_sd) / 2
+  ans_expected <- sd_sd / 2
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1432,23 +1396,16 @@ test_that("'make_datamod_matrices' works with bage_datamod_miscount", {
 
 test_that("'make_datamod_matrices' works with bage_datamod_noise", {
   set.seed(0)
-  mean_mean <- c(0.5, 0.2, 0.3, -0.4)
-  mean_levels <- 1:4
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
   sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
                                     nms_by = c("sex", "age"),
                                     outcome_sd = 2)
   ans_obtained <- make_datamod_matrices(datamod)
-  ans_expected <- list(mean_matrix_outcome,
-                       sd_matrix_outcome)
+  ans_expected <- list(sd_matrix_outcome)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1527,16 +1484,10 @@ test_that("'make_datamod_param' works with bage_datamod_miscount", {
 
 test_that("'make_datamod_param' works with bage_datamod_noise", {
   set.seed(0)
-  mean_mean <- c(0.5, 0.2, 0.3, -0.4)
-  mean_levels <- 1:4
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
   sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
                                     nms_by = c("sex", "age"),
@@ -1817,12 +1768,7 @@ test_that("'make_i_lik' works with bage_datamod_miscount", {
 })
 
 test_that("'make_i_lik' works with bage_datamod_noise", {
-  x <- new_bage_datamod_noise(mean_mean = 0.5,
-                              mean_levels = "mean",
-                              mean_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
-                                                                         i = 1:5,
-                                                                         j = rep(1, 5)),
-                              sd_sd = 0.5,
+  x <- new_bage_datamod_noise(sd_sd = 0.5,
                               sd_levels = "sd",
                               sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5),
                                                                        i = 1:5,

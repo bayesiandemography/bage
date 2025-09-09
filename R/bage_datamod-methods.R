@@ -286,14 +286,11 @@ draw_outcome_obs_given_true.bage_datamod_noise <- function(datamod,
     outcome_true <- rep(outcome_true, times = n_draw)
   is_ok <- !is.na(outcome_true)
   n_ok <- sum(is_ok)
-  mean <- get_datamod_mean(datamod)
   sd <- get_datamod_sd(datamod)
-  mean <- rep(mean, times = n_draw)
   sd <- rep(sd, times = n_draw)
-  mean <- mean[is_ok]
-  sd <- sd[is_ok]
-  noise <- stats::rnorm(n = n_ok, mean = mean, sd = sd)
-  ans[is_ok] <- outcome_true[is_ok] + noise
+  ans[is_ok] <- stats::rnorm(n = n_ok,
+                             mean = outcome_true[is_ok],
+                             sd = sd[is_ok])
   ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
   ans <- rvec::rvec_dbl(ans)
   ans
@@ -472,13 +469,12 @@ draw_outcome_true_given_obs.bage_datamod_noise <- function(datamod,
     n_draw <- rvec::n_draw(expected)
     is_ok <- !is.na(outcome) & !is.na(offset)
     n_ok <- sum(is_ok)
-    mean_noise <- get_datamod_mean(datamod)
     sd_noise <- get_datamod_sd(datamod)
     prec_true <- offset[is_ok] / (disp^2)
     prec_noise <- 1 / (sd_noise[is_ok]^2)
     wt_true <- prec_true / (prec_true + prec_noise)
     mean_true <- (wt_true * expected[is_ok]
-      + (1 - wt_true) * (outcome[is_ok] - mean_noise[is_ok]))
+      + (1 - wt_true) * outcome[is_ok])
     sd_true <- 1 / sqrt(prec_true + prec_noise)
     ans <- rvec::new_rvec(length = n_outcome,
                           n_draw = n_draw)
@@ -703,12 +699,9 @@ make_datamod_consts.bage_datamod_miscount <- function(datamod) {
 ## HAS_TESTS
 #' @export
 make_datamod_consts.bage_datamod_noise <- function(datamod) {
-  mean <- datamod$mean_mean
   sd <- datamod$sd_sd
   outcome_sd <- datamod$outcome_sd
-  ans <- c(mean, sd)
-  ans <- ans / outcome_sd
-  ans
+  sd / outcome_sd
 }
 
 ## HAS_TESTS
@@ -798,9 +791,8 @@ make_datamod_matrices.bage_datamod_miscount <- function(datamod) {
 ## HAS_TESTS
 #' @export
 make_datamod_matrices.bage_datamod_noise <- function(datamod) {
-  mean <- datamod$mean_matrix_outcome
   sd <- datamod$sd_matrix_outcome
-  list(mean, sd)
+  list(sd)
 }
 
 ## HAS_TESTS

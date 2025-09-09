@@ -4,15 +4,12 @@
 \alias{set_datamod_noise}
 \title{Specify Noise Data Model}
 \usage{
-set_datamod_noise(mod, mean, sd)
+set_datamod_noise(mod, sd)
 }
 \arguments{
 \item{mod}{An object of class \code{"bage_mod"},
 created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
-
-\item{mean}{A data frame with 'by' variables
-and a variable called \code{"mean"}.}
 
 \item{sd}{A data frame with 'by' variables
 and a variable called \code{"sd"}.}

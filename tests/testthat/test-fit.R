@@ -454,7 +454,7 @@ test_that("'fit_inner_outer' throws error when model has data model", {
   mod <- mod_norm(formula = formula,
                   data = data,
                   weights = wt) |>
-    set_datamod_noise(mean = data.frame(mean = 0), sd = data.frame(sd = 0.3))
+    set_datamod_noise(sd = 0.3)
   set.seed(0)
   expect_error(fit_inner_outer(mod,
                                optimizer = "BFGS",

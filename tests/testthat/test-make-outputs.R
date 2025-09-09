@@ -269,29 +269,6 @@ test_that("'get_datamod_disp' works", {
 })
 
 
-## 'get_datamod_mean' ---------------------------------------------------------
-
-test_that("'get_datamod_mean_mean' works", {
-  mean_mean <- c(0.1, 0.4, 0.2)
-  mean_levels <- 1:3
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  sd_sd <- c(0.5, 0.2, 0.3, 0.4)
-  sd_levels <- 1:4
-  sd_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd_sd = sd_sd,
-                                    sd_levels = sd_levels,
-                                    sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("age", "sex"),
-                                    outcome_sd = 2)
-  ans_obtained <- get_datamod_mean(datamod)
-  ans_expected <- as.numeric(mean_matrix_outcome %*% mean_mean)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'get_datamod_prob' ----------------------------------------------------
 
 test_that("'get_datamod_prob' works", {
@@ -351,10 +328,7 @@ test_that("'get_datamod_sd' works", {
   sd_sd <- c(0.5, 0.2, 0.3, 0.4)
   sd_levels <- 1:4
   sd_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = mean_levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd_sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd_sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
                                     nms_by = c("age", "sex"),

@@ -44,18 +44,12 @@ test_that("'new_bage_datamod_miscount' works", {
 ## 'bage_datamod_noise' -------------------------------------------------------
 
 test_that("'new_bage_datamod_noise' works", {
-  mean_mean <- c(0.1, 0.4, 0.2)
-  mean_levels = c("a", "b", "c")
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
   sd_sd <- c(0.3, 0.4, 1, 0.2)
   sd_levels <- 1:4
   sd_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   nms_by <- c("age", "region")
   outcome_sd <- 5
-  x <- new_bage_datamod_noise(mean_mean = mean_mean,
-                              mean_levels = mean_levels,
-                              mean_matrix_outcome = mean_matrix_outcome,
-                              sd_sd = sd_sd,
+  x <- new_bage_datamod_noise(sd_sd = sd_sd,
                               sd_levels = sd_levels,
                               sd_matrix_outcome = sd_matrix_outcome,
                               nms_by = nms_by,
