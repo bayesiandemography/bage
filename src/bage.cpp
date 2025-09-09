@@ -312,6 +312,30 @@ Type log_dbinom_robust_rr3(Type x,
 }
 
 template <class Type>
+Type log_dnbinom_rr3(Type x,
+		     Type size,
+		     Type prob) {
+  const Type log_one_third = -log(3);
+  const Type log_two_thirds = log(2) - log(3);
+  Type ans = dnbinom(x, size, prob, true);
+  if (x >= Type(2))
+    ans += logspace_add(ans,
+			log_one_third
+			+ dnbinom(x - Type(2), size, prob, true));
+  if (x >= Type(1))
+    ans = logspace_add(ans,
+		       log_two_thirds
+		       + dnbinom(x - Type(1), size, prob, true));
+  ans = logspace_add(ans,
+		     log_two_thirds
+		     + dnbinom(x + Type(1), size, prob, true));
+  ans = logspace_add(ans,
+		     log_one_third
+		     + dnbinom(x + Type(2), size, prob, true));
+  return ans;
+}
+
+template <class Type>
 Type log_dnbinom_mu_rr3(Type x,
 			Type size,
 			Type mu) {
@@ -1023,20 +1047,6 @@ Type logpost_has_hyperrandfree(const vector<Type>& effectfree,
 // 'Methods' for logpost function for data models -----------------------------
 
 template <class Type>
-Type logpost_datamod_exposure(const vector<Type>& datamod_param,
-			      const vector<Type>& datamod_consts) {
-  const int n = datamod_param.size();
-  const vector<Type>& log_disp = datamod_param;
-  const auto& disp_mean = datamod_consts.tail(n);
-  const vector<Type> disp = exp(log_disp);
-  Type ans = Type(0);
-  const vector<Type> rate = disp_mean.cwiseInverse();
-  ans += dexp(disp, rate, true).sum();
-  ans += log_disp.sum(); // Jacobian
-  return ans;
-}
-
-template <class Type>
 Type logpost_datamod_miscount(const vector<Type>& datamod_param,
 			      const vector<Type>& datamod_consts,
 			      const LIST_SM_t<Type> &datamod_matrices) {
@@ -1108,8 +1118,7 @@ Type logpost_datamod(const vector<Type>& datamod_param,
   Type ans = Type(0);
   switch(i_datamod) {
   case 1000:
-    ans = logpost_datamod_exposure(datamod_param,
-				   datamod_consts);
+    ans = 0; // no parameters
     break;
   case 2000:
     ans = logpost_datamod_miscount(datamod_param,
@@ -1139,19 +1148,13 @@ Type logpost_datamod(const vector<Type>& datamod_param,
 
 template <class Type>
 void fill_datamod_vals_exposure(MatrixD<Type> &datamod_vals,
-				const vector<Type>& datamod_param,
 				const vector<Type>& datamod_consts,
 				const LIST_SM_t<Type> &datamod_matrices) {
-  const int n = datamod_param.size();
-  const vector<Type> ratio = datamod_consts.head(n); // not using tail
-  const vector<Type>& log_disp = datamod_param;
-  const SparseMatrix<Type>& ratio_matrix = datamod_matrices[0];
-  const SparseMatrix<Type>& disp_matrix = datamod_matrices[1];
-  const int n_outcome = ratio_matrix.rows();
-  const vector<Type> disp = exp(log_disp);
-  datamod_vals.resize(n_outcome, 2);
-  datamod_vals.col(0) = ratio_matrix * ratio;
-  datamod_vals.col(1) = disp_matrix * disp;
+  const vector<Type>& disp = datamod_consts;
+  const SparseMatrix<Type>& disp_matrix = datamod_matrices[0];
+  const int n_outcome = disp_matrix.rows();
+  datamod_vals.resize(n_outcome, 1);
+  datamod_vals.col(0) = disp_matrix * disp;
 }
 
 template <class Type>
@@ -1223,7 +1226,6 @@ void fill_datamod_vals(MatrixD<Type> &datamod_vals,
   case 1000:
     fill_datamod_vals_exposure(datamod_vals,
 			       datamod_param,
-			       datamod_consts,
 			       datamod_matrices);
     break;
   case 2000:
@@ -1347,11 +1349,10 @@ Type loglik_pois_no_disp_exposure(Type outcome,
 				  const vector<Type>& datamod_vals,
 				  Type linpred,
 				  Type offset) {
-  Type r = datamod_vals[0];
-  Type d = datamod_vals[1];
-  Type mu = exp(linpred) * offset / ((Type(1) + (Type(1) / d)) * r);
-  Type size = Type(3) + Type(1) / d;
-  return dnbinom_mu(outcome, size, mu, true);
+  Type d_inv = 1 / datamod_vals[0];
+  Type size = Type(3) + d_inv;
+  Type prob = (1 + d_inv) / (1 + d_inv + exp(linpred) * offset);
+  return dnbinom(outcome, size, prob, true);
 }
 
 
@@ -1360,11 +1361,10 @@ Type loglik_pois_no_disp_exposure_rr3(Type outcome,
 				      const vector<Type>& datamod_vals,
 				      Type linpred,
 				      Type offset) {
-  Type r = datamod_vals[0];
-  Type d = datamod_vals[1];
-  Type mu = exp(linpred) * offset / ((Type(1) + (Type(1) / d)) * r);
-  Type size = Type(3) + Type(1) / d;
-  return log_dnbinom_mu_rr3(outcome, size, mu);
+  Type d_inv  = 1 / datamod_vals[0];
+  Type size = Type(3) + d_inv;
+  Type prob = (1 + d_inv) / (1 + d_inv + exp(linpred) * offset);
+  return log_dnbinom_rr3(outcome, size, prob);
 }
 
 template <class Type>

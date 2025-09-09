@@ -2,36 +2,22 @@
 ## HAS_TESTS
 #' Create New Data Model for Exposures
 #'
-#' @param ratio_ratio Expected ratio of reported exposure
-#' to true exposure. Numeric vector.
-#' @param ratio_levels Levels of 'by' variables for
-#' which there are potentially distinct values of 'ratio_ratio'.
-#' A character vector.
-#' @param ratio_matrix_outcome Sparse matrix mapping
-#' ratio to outcome
-#' @param disp_mean Mean for exponential
-#' prior for dispersion. Numeric vector
+#' @param disp Dispersion. Numeric vector
 #' @param disp_levels Levels of 'by' variables for
-#' which there are potentially distinct values of 'disp_mean'.
+#' which there are potentially distinct values of 'disp'.
 #' A character vector.
 #' @param disp_matrix_outcome Sparse matrix mapping
-#' disp_mean to outcome
-#' @param nms_by Names of by variables for ratio, disp
+#' disp to outcome
+#' @param nms_by Names of by variables for disp
 #'
 #' @returns Object of class 'bage_datamod_exposure'
 #'
 #' @noRd
-new_bage_datamod_exposure <- function(ratio_ratio,
-                                      ratio_levels,
-                                      ratio_matrix_outcome,
-                                      disp_mean,
+new_bage_datamod_exposure <- function(disp,
                                       disp_levels,
                                       disp_matrix_outcome,
                                       nms_by) {
-  ans <- list(ratio_ratio = ratio_ratio,
-              ratio_levels = ratio_levels,
-              ratio_matrix_outcome = ratio_matrix_outcome,
-              disp_mean = disp_mean,
+  ans <- list(disp = disp,
               disp_levels = disp_levels,
               disp_matrix_outcome = disp_matrix_outcome,
               nms_by = nms_by)

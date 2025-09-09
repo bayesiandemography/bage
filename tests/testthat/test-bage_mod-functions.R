@@ -125,19 +125,17 @@ test_that("'set_datamod_exposure' works with 2 by variables", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- 1
-  ratio <- data.frame(ratio = 1)
   disp <- expand.grid(age = 0:3, sex = 1:2)
-  disp$mean <- 0.6
+  disp$disp <- 0.6
   formula <- deaths ~ age:sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
     set_disp(mean = 0)
-  mod <- set_datamod_exposure(mod, ratio = ratio, disp = disp)
+  mod <- set_datamod_exposure(mod, disp = disp)
   expect_s3_class(mod$datamod, "bage_datamod_exposure")
   expect_identical(mod$datamod$nms_by, c("age", "sex"))
   expect_message(set_datamod_exposure(mod,
-                                      ratio = ratio,
                                       disp = disp),
                  paste("Replacing existing \"exposure\" data model",
                        "with new \"exposure\" data model."))
@@ -147,32 +145,45 @@ test_that("'set_datamod_exposure' works with 1 by variable", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- 1
-  ratio <- data.frame(ratio = 1)
   disp <- expand.grid(age = 0:3)
-  disp$mean <- 1:4
+  disp$disp <- 1:4
   formula <- deaths ~ age:sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
     set_disp(mean = 0)
-  mod <- set_datamod_exposure(mod, ratio = ratio, disp = disp)
+  mod <- set_datamod_exposure(mod, disp = disp)
   expect_s3_class(mod$datamod, "bage_datamod_exposure")
   expect_identical(mod$datamod$nms_by, "age")
+})
+
+test_that("'set_datamod_exposure' works with numeric disp", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  disp <- 0.1
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_disp(mean = 0)
+  mod <- set_datamod_exposure(mod, disp = disp)
+  expect_s3_class(mod$datamod, "bage_datamod_exposure")
+  expect_identical(mod$datamod$nms_by, character())
 })
 
 test_that("'set_datamod_exposure' throws correct error with non-Poisson", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- 1
-  ratio <- data.frame(ratio = 1)
   disp <- expand.grid(age = 0:3)
-  disp$mean <- 1:4
+  disp$disp <- 1:4
   formula <- deaths ~ age:sex + time
   mod <- mod_binom(formula = formula,
                   data = data,
                   size = popn) |>
     set_disp(mean = 0)
-  expect_error(set_datamod_exposure(mod, ratio = ratio, disp = disp),
+  expect_error(set_datamod_exposure(mod, disp = disp),
                "`mod` is a binomial model.")
 })
 
@@ -180,7 +191,6 @@ test_that("'set_datamod_exposure' throws correct error with exposure specified t
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- 1
-  ratio <- data.frame(ratio = 1)
   disp <- expand.grid(age = 0:3)
   disp$mean <- 1:4
   formula <- deaths ~ age:sex + time
@@ -188,7 +198,7 @@ test_that("'set_datamod_exposure' throws correct error with exposure specified t
                                    data = data,
                                    exposure = ~ popn + 1) |>
                      set_disp(mean = 0))
-  expect_error(set_datamod_exposure(mod, ratio = ratio, disp = disp),
+  expect_error(set_datamod_exposure(mod, disp = disp),
                "`set_datamod_exposure\\(\\)` cannot be used with models where exposure specified using formula.")
 })
 
@@ -199,29 +209,23 @@ test_that("'set_datamod_exposure' throws correct error when applied to model wit
                   data = data,
                   exposure = 1)  |>
     set_disp(mean = 0)
-  expect_error(set_datamod_exposure(mod,
-                                    ratio = data.frame(ratio = 1),
-                                    disp = data.frame(mean = 0.2)),
+  expect_error(set_datamod_exposure(mod, disp = 0.2),
                "`mod` does not include exposure.")
 })
-
 
 test_that("'set_datamod_exposure' throws appropriate error when Poisson disp non-zero", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- 1
-  ratio <- data.frame(ratio = 1)
   disp <- expand.grid(age = 0:3, sex = 1:2)
-  disp$mean <- 0.6
+  disp$disp <- 0.6
   formula <- deaths ~ age:sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  expect_error(set_datamod_exposure(mod, ratio = ratio, disp = disp),
+  expect_error(set_datamod_exposure(mod, disp = disp),
                "`mod` has non-zero dispersion.")
 })
-
-
 
 
 ## 'set_datamod_miscount' -----------------------------------------------------

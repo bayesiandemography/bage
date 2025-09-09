@@ -4,41 +4,40 @@
 \alias{set_datamod_exposure}
 \title{Specify Exposure Data Model}
 \usage{
-set_datamod_exposure(mod, ratio = NULL, disp)
+set_datamod_exposure(mod, disp)
 }
 \arguments{
 \item{mod}{An object of class \code{"bage_mod_pois"},
 created with \code{\link[=mod_pois]{mod_pois()}}.}
 
-\item{ratio}{The ratio between observed
-exposure and true exposure.
-A data frame with a variable called \code{"ratio"},
-and, optionally, one or more 'by' variables.
-Default is \code{data.frame(ratio = 1)}.}
-
-\item{disp}{The prior mean for dispersion.
-A data frame with a variable called \code{"mean"},
-and, oprtionally, one or more 'by' varaibles.}
+\item{disp}{Dispersion. A data frame
+with a variable called \code{"mean"},
+and, oprtionally, one or more 'by' variables.}
 }
 \value{
 A modified version of \code{mod}.
 }
 \description{
-Specify a measurement data model for the exposure
+Specify a data model for the exposure
 term in a Poisson model. The data model assumes
 that, within each cell, observed exposure is drawn
 from an Inverse-Gamma distribution, with
 
-E[expected exposure] = coverage ratio \eqn{\times} true exposure
+E[expected exposure] = true exposure
 
 and
 
 var[expected exposure] = dispersion \eqn{\times}
-(coverage ratio \eqn{\times} true exposure)^2
-
-Dispersion is estimated within the model.
+(true exposure)^2
 }
 \details{
+With the Inverse-Gamma distribution,
+the coefficient of variation for
+observed exposure (i.e. the standard
+deviation divided by the mean) is \eqn{\sqrt{\text{dispersion}}}).
+This implies that the average size of errors
+scales with the mean.
+
 \code{set_datamod_exposure()} can only be used
 with model where dispersion in Poisson rates
 has been set to zero, using function \code{\link[=set_disp]{set_disp()}}.
@@ -46,56 +45,22 @@ In models that use \code{set_datamod_exposure()},
 "dispersion" refers to variation in
 observed exposures, not variation in Poisson rates.
 }
-\section{The \code{ratio} argument}{
-
-
-The \code{ratio} argument specifies the expected ratio between
-reported and actual exposures. For instance,
-a value of 1.1 implies that reported exposures
-are expected to exceed actual exposures by 10\%.
-
-The \code{ratio} argument to \code{set_datamod_exposure()}
-is a data frame with a column called \code{"ratio"},
-and, optionally, one or more columns with 'by' variables.
-For instance, a value for \code{ratio} of
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{data.frame(sex = c("Female", "Male"),
-           ratio = c(0.9, 0.8))
-}\if{html}{\out{</div>}}
-
-implies that exposure is undercounted by 10\% among
-females and 20\% among males.
-
-The default value for \code{ratio} is
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{data.frame(ratio = 1)
-}\if{html}{\out{</div>}}
-
-implying that the observed exposure is an unbiased
-estimate of the true exposure.
-}
-
 \section{The \code{disp} argument}{
 
 
-Dispersion in observed exposure is
-treated as unknown, and is estimated
-within the model. The \code{disp} argument
-is used to specify the prior mean for
-dispersion, which is given an
-exponential prior.
-
-\code{disp} is a data frame
-with a column called \code{"mean"}, and, optionally,
-one or more columns with 'by' variables. For instance,
-a value for \code{disp} of
+\code{disp} can be a single number, in which
+case the same dispersion is used for all cells.
+It can also be a data frame with a
+with a variable called \code{"disp"} and
+one or more columns with 'by' variables.
+For instance, a  \code{disp} of
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{data.frame(sex = c("Female", "Male"),
-           mean = c(0.15, 0.12))
+           disp = c(0.15, 0.12))
 }\if{html}{\out{</div>}}
 
-implies that the prior mean for dispersion
-is 0.15 for females and 0.12 for males.
+implies that dispersion is 0.15 for
+females and 0.12 for males.
 }
 
 \section{Mathematical details}{
@@ -103,30 +68,18 @@ is 0.15 for females and 0.12 for males.
 
 The model for observed exposure is
 
-\deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + \delta_{g \lbrack i \rbrack }^{-1}, (1 + \delta_{g \lbrack i\rbrack }^{-1}) r_{h \lbrack i \rbrack } w_i^{\text{true}})}
+\deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g \lbrack i \rbrack }^{-1}, (1 + d_{g \lbrack i\rbrack }^{-1}) r_{h \lbrack i \rbrack } w_i^{\text{true}})}
 
 where
 \itemize{
 \item \eqn{w_i^{\text{obs}}} is observed exposure for cell \eqn{i}
 (the \code{exposure} argument to \code{\link[=mod_pois]{mod_pois()}});
-\item \eqn{w_i^{\text{true}}} is true exposure for cell \eqn{i};
-\item \eqn{\delta_{g\lbrack i\rbrack }} is dispersion for cell \eqn{i}; and
-\item \eqn{r_{h\lbrack i \rbrack}} is the ratio of observed to true exposure
-in cell \eqn{i} (the \code{ratio} variable in the \code{ratio}
-argument for \code{set_datamod_exposure()}).
+\item \eqn{w_i^{\text{true}}} is true exposure for cell \eqn{i}; and
+\item \eqn{d_{g\lbrack i\rbrack }} is dispersion for cell \eqn{i}.
 }
 
-The same value \eqn{\delta_g} for dispersion can
-be used for multiple cells \eqn{i},
-and similarly for \eqn{r_h}.
-
-Dispersion \eqn{\delta_g} has prior
-
-\deqn{\delta_g \sim \text{Exp}(m_g)}
-
-where \eqn{m_g} is specified is the prior mean
-(the \code{mean} variable in the \code{disp} for
-\code{set_datamod_exposure()}).
+The same value \eqn{d_g} for dispersion can
+be used for multiple cells \eqn{i}.
 }
 
 \seealso{

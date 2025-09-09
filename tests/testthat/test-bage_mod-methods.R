@@ -2360,9 +2360,7 @@ test_that("'has_datamod_outcome' works with valid inputs", {
                     exposure = popn) |>
       set_disp(mean = 0)
     expect_false(has_datamod_outcome(mod))
-    mod <- set_datamod_exposure(mod,
-                                ratio = data.frame(ratio = 1),
-                                disp = data.frame(mean = 0.1))
+    mod <- set_datamod_exposure(mod, disp = 0.1)
     expect_true(has_datamod(mod))
     suppressMessages(
     mod <- set_datamod_undercount(mod,
@@ -2510,20 +2508,15 @@ test_that("'make_disp_obs' works with Poisson, exposure data model", {
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 5)
   formula <- deaths ~ age + time + sex
-  ratio <- data.frame(sex = c("F", "M"), ratio = c(1.1, 1.2))
-  disp <- data.frame(time = 2000:2006, mean = 2)
+  disp <- data.frame(time = 2000:2006, disp = 2)
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
     set_disp(mean = 0) |>
-    set_datamod_exposure(ratio = ratio, disp = disp)
-  components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
-                           component = c("(Intercept)", rep("disp", 6)),
-                           level = c("(Intercept)", 2000:2005),
-                           .fitted = rvec::runif_rvec(7, n_draw = 10))
+    set_datamod_exposure(disp = disp)
   ans_obtained <- make_disp_obs(mod = mod,
-                                components = components)
-  d <- get_datamod_disp(mod$datamod, components)
+                                components = NULL)
+  d <- get_datamod_disp(mod$datamod)
   ans_expected <- 1 / (3 + d^{-1})
   expect_equal(ans_obtained, ans_expected)
 })
@@ -2552,27 +2545,43 @@ test_that("'make_disp_obs' works with Poisson", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-## test_that("'make_disp_obs' works with Poisson, overcount data model, mean_disp is 0", {
-##   set.seed(0)
-##   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##   data$popn <- rpois(n = nrow(data), lambda = 100)
-##   data$deaths <- rpois(n = nrow(data), lambda = 5)
-##   formula <- deaths ~ age + time + sex
-##   rate <- data.frame(sex = c("F", "M"), mean = c(1.1, 1.2), disp = c(0.5, 0.3))
-##   mod <- mod_pois(formula = formula,
-##                   data = data,
-##                   exposure = popn) |>
-##     set_disp(mean = 0) |>
-##     set_datamod_overcount(rate = rate)
-##   ans_obtained <- make_disp_obs(mod = mod,
-##                                 components = NULL,
-##                                 disp = NULL)
-##   ans_expected <- rep(disp, times = nrow(data))
-##   expect_equal(ans_obtained, ans_expected)
-## })
+test_that("'make_disp_obs' works with Poisson, overcount data model, mean_disp is 0", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  rate <- data.frame(sex = c("F", "M"), mean = c(1.1, 1.2), disp = c(0.5, 0.3))
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_disp(mean = 0) |>
+    set_datamod_overcount(rate = rate)
+  ans_obtained <- make_disp_obs(mod = mod,
+                                components = NULL)
+  ans_expected <- NULL
+  expect_equal(ans_obtained, ans_expected)
+})
 
+test_that("'make_disp_obs' works with binomial, undercount data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  prob <- data.frame(sex = c("F", "M"), mean = c(0.1, 0.2), disp = c(0.5, 0.3))
+  mod <- mod_binom(formula = formula,
+                  data = data,
+                  size = popn) |>
+    set_datamod_undercount(prob = prob) |>
+    fit()
+  ans_obtained <- make_disp_obs(mod = mod,
+                                components = NULL)
+  ans_expected <- rep(get_disp(mod), times = nrow(data))
+  expect_equal(ans_obtained, ans_expected)
+})
 
-test_that("'make_disp_obs' works with binomial", {
+test_that("'make_disp_obs' works with binomial, mean_disp is 0", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -2596,25 +2605,6 @@ test_that("'make_disp_obs' works with binomial", {
   ans_expected <- NULL
   expect_equal(ans_obtained, ans_expected)
 })
-
-## test_that("'make_disp_obs' works with binomial, undercount data model", {
-##   set.seed(0)
-##   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##   data$popn <- rpois(n = nrow(data), lambda = 100)
-##   data$deaths <- rpois(n = nrow(data), lambda = 5)
-##   formula <- deaths ~ age + time + sex
-##   prob <- data.frame(sex = c("F", "M"), mean = c(0.1, 0.2), disp = c(0.5, 0.3))
-##   mod <- mod_binom(formula = formula,
-##                   data = data,
-##                   size = popn) |>
-##     set_datamod_undercount(prob = prob)
-##   disp <- rvec::runif_rvec(n = 1, n_draw = 10)
-##   ans_obtained <- make_disp_obs(mod = mod,
-##                                 components = NULL,
-##                                 disp = disp)
-##   ans_expected <- rep(disp, times = nrow(data))
-##   expect_equal(ans_obtained, ans_expected)
-## })
 
 
 ## 'make_expected_obs' --------------------------------------------------------
@@ -2646,24 +2636,18 @@ test_that("'make_expected_obs' works with Poisson, exposure data model", {
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 5)
   formula <- deaths ~ age + time + sex
-  ratio <- data.frame(sex = c("F", "M"), ratio = c(1.1, 1.2))
-  disp <- data.frame(time = 2000:2006, mean = 2)
+  disp <- data.frame(time = 2000:2006, disp = 2)
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
     set_disp(mean = 0) |>
-    set_datamod_exposure(ratio = ratio, disp = disp)
-  components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
-                           component = c("(Intercept)", rep("disp", 6)),
-                           level = c("(Intercept)", 2000:2005),
-                           .fitted = rvec::runif_rvec(7, n_draw = 10))
+    set_datamod_exposure(disp)
   expected <- rvec::runif_rvec(n = 120, n_draw = 10)
   ans_obtained <- make_expected_obs(mod = mod,
-                                    components = components,
+                                    components = NULL,
                                     expected = expected)
-  d <- get_datamod_disp(mod$datamod, components)
-  r <- get_datamod_ratio(mod$datamod)
-  ans_expected <- ((3 + d^{-1})/(1 + d^{-1})) * expected / r
+  d <- get_datamod_disp(mod$datamod)
+  ans_expected <- ((3 + d^{-1})/(1 + d^{-1})) * expected
   expect_equal(ans_obtained, ans_expected)
 })
 

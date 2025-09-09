@@ -410,18 +410,15 @@ generate_ssvd_helper <- function(ssvd,
 #' Get Values for 'disp' for a Data Model
 #'
 #' @param datamod Object of class "bage_datamod"
-#' @param components Data frame with estimate of 'disp'
 #'
-#' @returns An rvec, the same length as 'outcome'
+#' @returns A numeric vector, the same length as 'outcome'
 #'
 #' @noRd
-get_datamod_disp <- function(datamod, components) {
+get_datamod_disp <- function(datamod) {
+  disp <- datamod$disp
   disp_matrix_outcome <- datamod$disp_matrix_outcome
-  disp_matrix_outcome <- as.matrix(disp_matrix_outcome) ## remove after updating rvec
-  is_disp <- (components$term == "datamod"
-    & components$component == "disp")
-  disp <- components$.fitted[is_disp]
   disp <- disp_matrix_outcome %*% disp
+  disp <- as.numeric(disp)
   disp
 }
 
@@ -481,24 +478,6 @@ get_datamod_rate <- function(datamod, components) {
   rate <- components$.fitted[is_rate]
   rate <- rate_matrix_outcome %*% rate
   rate
-}
-
-
-## HAS_TESTS
-#' Get Values for 'ratio' for a Data Model
-#'
-#' @param datamod Object of class "bage_datamod"
-#' that has a 'ratio' parameter
-#'
-#' @returns A numeric vector, the same length as 'outcome'
-#'
-#' @noRd
-get_datamod_ratio <- function(datamod) {
-  ratio_ratio <- datamod$ratio_ratio
-  ratio_matrix_outcome <- datamod$ratio_matrix_outcome
-  ratio <- ratio_matrix_outcome %*% ratio_ratio
-  ratio <- as.numeric(ratio) ## convert from matrix
-  ratio
 }
 
 

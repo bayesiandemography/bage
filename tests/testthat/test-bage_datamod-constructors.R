@@ -2,17 +2,11 @@
 ## 'bage_datamod_exposure' ----------------------------------------------------
 
 test_that("'new_bage_datamod_exposure' works", {
-  ratio_ratio <- c(0.1, 0.4, 0.2)
-  ratio_levels <- c("a", "b", "c")
-  ratio_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  disp_mean <- c(0.5, 0.2, 0.3, 0.4)
+  disp <- c(0.5, 0.2, 0.3, 0.4)
   disp_levels <- 1:4
   disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   nms_by <- c("age", "region")
-  x <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
-                                 ratio_levels = ratio_levels,
-                                 ratio_matrix_outcome = ratio_matrix_outcome,
-                                 disp_mean = disp_mean,
+  x <- new_bage_datamod_exposure(disp = disp,
                                  disp_levels = disp_levels,
                                  disp_matrix_outcome = disp_matrix_outcome,
                                  nms_by = nms_by)

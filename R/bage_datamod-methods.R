@@ -50,18 +50,6 @@ draw_datamod_param <- function(datamod, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_datamod_param.bage_datamod_exposure <- function(datamod, n_sim) {
-  disp_mean <- datamod$disp_mean
-  n_disp <- length(disp_mean)
-  rate <- 1 / disp_mean
-  rate <- rep(rate, times = n_sim)
-  ans <- stats::rexp(n = n_disp * n_sim, rate = rate)
-  ans <- matrix(ans, nrow = n_disp, ncol = n_sim)
-  ans
-}
-
-## HAS_TESTS
-#' @export
 draw_datamod_param.bage_datamod_miscount <- function(datamod, n_sim) {
   prob_mean <- datamod$prob_mean
   prob_disp <- datamod$prob_disp
@@ -143,15 +131,14 @@ draw_offset_obs_given_true.bage_datamod_exposure <- function(datamod,
   ans <- rvec::new_rvec(length = n_offset, n_draw = n_draw)
   is_ok <- !is.na(offset_true)
   n_ok <- sum(is_ok)
-  ratio <- get_datamod_ratio(datamod)
-  disp <- get_datamod_disp(datamod = datamod,
-                           components = components)
+  disp <- get_datamod_disp(datamod)
   disp_inv <- 1 / disp
   shape <- 2 + disp_inv[is_ok]
-  rate <- (1 + disp_inv[is_ok]) * ratio[is_ok] * offset_true[is_ok]
+  rate <- (1 + disp_inv[is_ok]) * offset_true[is_ok]
   ans_inv <- rvec::rgamma_rvec(n = n_ok,
                                shape = shape,
-                               rate = rate)
+                               rate = rate,
+                               n_draw = n_draw)
   ans[is_ok] <- 1 / ans_inv
   ans
 }
@@ -198,11 +185,9 @@ draw_offset_true_given_obs.bage_datamod_exposure <- function(datamod,
     is_ok <- !is.na(offset_obs) & !is.na(outcome)
     n_ok <- sum(is_ok)
     ans <- rvec::new_rvec(length = n_offset, n_draw = n_draw)
-    ratio <- get_datamod_ratio(datamod)
-    disp <- get_datamod_disp(datamod = datamod,
-                             components = components)
+    disp <- get_datamod_disp(datamod)
     shape <- 3 + 1 / disp[is_ok] + outcome[is_ok]
-    rate <- (1 + 1 / disp[is_ok]) * (ratio[is_ok] / offset_obs[is_ok]) + expected[is_ok]
+    rate <- (1 + 1 / disp[is_ok]) / offset_obs[is_ok] + expected[is_ok]
     ans[is_ok] <- rvec::rgamma_rvec(n = n_ok, shape = shape, rate = rate)
   }
   else {
@@ -603,12 +588,6 @@ get_datamod_transform_param <- function(datamod) {
 
 ## HAS_TESTS
 #' @export
-get_datamod_transform_param.bage_datamod_exposure <- function(datamod) {
-  exp
-}
-
-## HAS_TESTS
-#' @export
 get_datamod_transform_param.bage_datamod_miscount <- function(datamod) {
   prob_mean <- datamod$prob_mean
   n_prob <- length(prob_mean)
@@ -649,14 +628,6 @@ get_datamod_transform_param.bage_datamod_undercount <- function(datamod) {
 #' @noRd
 make_datamod_comp <- function(datamod) {
   UseMethod("make_datamod_comp")
-}
-
-## HAS_TESTS
-#' @export
-make_datamod_comp.bage_datamod_exposure <- function(datamod) {
-  disp_mean <- datamod$disp_mean
-  n <- length(disp_mean)
-  rep.int("disp", times = n)
 }
 
 ## HAS_TESTS
@@ -702,9 +673,7 @@ make_datamod_consts <- function(datamod) {
 ## HAS_TESTS
 #' @export
 make_datamod_consts.bage_datamod_exposure <- function(datamod) {
-  ratio <- datamod$ratio_ratio
-  disp_mean <- datamod$disp_mean
-  c(ratio, disp_mean)
+  datamod$disp
 }
 
 ## HAS_TESTS
@@ -768,12 +737,6 @@ make_level_datamod <- function(datamod) {
 
 ## HAS_TESTS
 #' @export
-make_level_datamod.bage_datamod_exposure <- function(datamod) {
-  datamod$disp_levels
-}
-
-## HAS_TESTS
-#' @export
 make_level_datamod.bage_datamod_miscount <- function(datamod) {
   prob_levels <- datamod$prob_levels
   rate_levels <- datamod$rate_levels
@@ -809,9 +772,8 @@ make_datamod_matrices <- function(datamod) {
 ## HAS_TESTS
 #' @export
 make_datamod_matrices.bage_datamod_exposure <- function(datamod) {
-  ratio <- datamod$ratio_matrix_outcome
   disp <- datamod$disp_matrix_outcome
-  list(ratio, disp)
+  list(disp)
 }
 
 ## HAS_TESTS
@@ -861,8 +823,7 @@ make_datamod_param <- function(datamod) {
 ## HAS_TESTS
 #' @export
 make_datamod_param.bage_datamod_exposure <- function(datamod) {
-  disp_mean <- datamod$disp_mean
-  log(disp_mean)
+  double()
 }
 
 ## HAS_TESTS
@@ -893,6 +854,40 @@ make_datamod_param.bage_datamod_undercount <- function(datamod) {
   prob_mean <- datamod$prob_mean
   poputils::logit(prob_mean)
 }
+
+
+## 'make_i_lik_part' ----------------------------------------------------------
+
+## HAS_TESTS
+#' @export
+make_i_lik_part.bage_datamod_exposure <- function(x) {
+  1000L
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_part.bage_datamod_miscount <- function(x) {
+  2000L
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_part.bage_datamod_noise <- function(x) {
+  3000L
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_part.bage_datamod_overcount <- function(x) {
+  4000L
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_part.bage_datamod_undercount <- function(x) {
+  5000L
+}
+
 
 
 ## Helper function for 'draw_outcome_true_given_obs' --------------------------
@@ -952,20 +947,16 @@ draw_outcome_true_binom_betabinom <- function(outcome,
 #' Use with Exposure Data Model
 #'
 #' @param datamod Object of class "bage_datamod_overcount"
-#' @param components Data frame with estimates of 'ratio' and 'disp'
 #' @param expected Rvec with expected value from system model
 #'
 #' @returns An rvec
 #'
 #' @noRd
 make_expected_obs_exposure <- function(datamod,
-                                       components,
                                        expected) {
-  ratio <- get_datamod_ratio(datamod)
-  disp <- get_datamod_disp(datamod = datamod,
-                           components = components)
+  disp <- get_datamod_disp(datamod)
   numerator <- (3 * disp + 1) * expected
-  denominator <- (disp + 1) * ratio
+  denominator <- disp + 1
   numerator / denominator
 }
 
@@ -1029,39 +1020,4 @@ make_expected_obs_undercount <- function(datamod,
   prob <- get_datamod_prob(datamod = datamod,
                            components = components)
   prob * expected
-}
-
-
-
-
-## 'make_i_lik_part' ----------------------------------------------------------
-
-## HAS_TESTS
-#' @export
-make_i_lik_part.bage_datamod_exposure <- function(x) {
-  1000L
-}
-
-## HAS_TESTS
-#' @export
-make_i_lik_part.bage_datamod_miscount <- function(x) {
-  2000L
-}
-
-## HAS_TESTS
-#' @export
-make_i_lik_part.bage_datamod_noise <- function(x) {
-  3000L
-}
-
-## HAS_TESTS
-#' @export
-make_i_lik_part.bage_datamod_overcount <- function(x) {
-  4000L
-}
-
-## HAS_TESTS
-#' @export
-make_i_lik_part.bage_datamod_undercount <- function(x) {
-  5000L
 }
