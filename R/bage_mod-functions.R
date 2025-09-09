@@ -170,22 +170,27 @@ set_covariates <- function(mod, formula) {
 #'
 #' @description
 #' 
-#' Specify a measurement data model for the exposure
+#' Specify a data model for the exposure
 #' term in a Poisson model. The data model assumes
 #' that, within each cell, observed exposure is drawn 
 #' from an Inverse-Gamma distribution, with
 #'
-#' E\[expected exposure\] = coverage ratio \eqn{\times} true exposure
+#' E\[expected exposure\] = true exposure
 #'
 #' and
 #'
 #' var\[expected exposure\] = dispersion \eqn{\times}
-#'   (coverage ratio \eqn{\times} true exposure)^2
-#'
-#' Dispersion is estimated within the model.
+#'   (true exposure)^2
 #'
 #' @details
 #' 
+#' With the Inverse-Gamma distribution,
+#' the coefficient of variation for
+#' observed exposure (i.e. the standard
+#' deviation divided by the mean) is \eqn{\sqrt{\text{dispersion}}}).
+#' This implies that the average size of errors
+#' scales with the mean.
+#'
 #' `set_datamod_exposure()` can only be used
 #' with model where dispersion in Poisson rates
 #' has been set to zero, using function [set_disp()].
@@ -193,89 +198,40 @@ set_covariates <- function(mod, formula) {
 #' "dispersion" refers to variation in
 #' observed exposures, not variation in Poisson rates.
 #'
-#' @section The `ratio` argument:
-#'
-#' The `ratio` argument specifies the expected ratio between
-#' reported and actual exposures. For instance,
-#' a value of 1.1 implies that reported exposures
-#' are expected to exceed actual exposures by 10%.
-#'
-#' The `ratio` argument to `set_datamod_exposure()`
-#' is a data frame with a column called `"ratio"`,
-#' and, optionally, one or more columns with 'by' variables.
-#' For instance, a value for `ratio` of
-#'
-#' ```
-#' data.frame(sex = c("Female", "Male"),
-#'            ratio = c(0.9, 0.8))
-#'```
-#' 
-#' implies that exposure is undercounted by 10% among
-#' females and 20% among males.
-#'
-#' The default value for `ratio` is
-#' ```
-#' data.frame(ratio = 1)
-#' ```
-#' implying that the observed exposure is an unbiased
-#' estimate of the true exposure.
-#'
 #' @section The `disp` argument:
 #'
-#' Dispersion in observed exposure is
-#' treated as unknown, and is estimated
-#' within the model. The `disp` argument
-#' is used to specify the prior mean for
-#' dispersion, which is given an
-#' exponential prior.
-#'
-#' `disp` is a data frame
-#' with a column called `"mean"`, and, optionally,
-#' one or more columns with 'by' variables. For instance,
-#' a value for `disp` of
+#' `disp` can be a single number, in which
+#' case the same dispersion is used for all cells.
+#' It can also be a data frame with a
+#' with a variable called `"disp"` and
+#' one or more columns with 'by' variables. 
+#' For instance, a  `disp` of
 #' ```
 #' data.frame(sex = c("Female", "Male"),
-#'            mean = c(0.15, 0.12))
+#'            disp = c(0.15, 0.12))
 #'```
-#' implies that the prior mean for dispersion
-#' is 0.15 for females and 0.12 for males.
+#' implies that dispersion is 0.15 for
+#' females and 0.12 for males.
 #' 
 #' @section Mathematical details:
 #'
 #' The model for observed exposure is
 #'
-#' \deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + \delta_{g \lbrack i \rbrack }^{-1}, (1 + \delta_{g \lbrack i\rbrack }^{-1}) r_{h \lbrack i \rbrack } w_i^{\text{true}})}
+#' \deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g \lbrack i \rbrack }^{-1}, (1 + d_{g \lbrack i\rbrack }^{-1}) r_{h \lbrack i \rbrack } w_i^{\text{true}})}
 #'
 #' where
 #' - \eqn{w_i^{\text{obs}}} is observed exposure for cell \eqn{i}
 #'   (the `exposure` argument to [mod_pois()]);
-#' - \eqn{w_i^{\text{true}}} is true exposure for cell \eqn{i};
-#' - \eqn{\delta_{g\lbrack i\rbrack }} is dispersion for cell \eqn{i}; and
-#' - \eqn{r_{h\lbrack i \rbrack}} is the ratio of observed to true exposure
-#'   in cell \eqn{i} (the `ratio` variable in the `ratio`
-#'   argument for `set_datamod_exposure()`).
+#' - \eqn{w_i^{\text{true}}} is true exposure for cell \eqn{i}; and
+#' - \eqn{d_{g\lbrack i\rbrack }} is dispersion for cell \eqn{i}.
 #'
-#' The same value \eqn{\delta_g} for dispersion can
-#' be used for multiple cells \eqn{i},
-#' and similarly for \eqn{r_h}.
+#' The same value \eqn{d_g} for dispersion can
+#' be used for multiple cells \eqn{i}.
 #'
-#' Dispersion \eqn{\delta_g} has prior
-#'
-#' \deqn{\delta_g \sim \text{Exp}(m_g)}
-#'
-#' where \eqn{m_g} is specified is the prior mean
-#' (the `mean` variable in the `disp` for
-#' `set_datamod_exposure()`).
-#' 
 #' @param mod An object of class `"bage_mod_pois"`,
 #' created with [mod_pois()].
-#' @param ratio The ratio between observed
-#' exposure and true exposure.
-#' A data frame with a variable called `"ratio"`,
-#' and, optionally, one or more 'by' variables.
-#' Default is `data.frame(ratio = 1)`.
-#' @param disp The prior mean for dispersion.
-#' A data frame with a variable called `"mean"`,
+#' @param disp Dispersion. A data frame
+#' with a variable called `"mean"`,
 #' and, oprtionally, one or more 'by' variables.
 #'
 #' @returns A modified version of `mod`.
@@ -301,15 +257,14 @@ set_covariates <- function(mod, formula) {
 #'   has normally-distributed measurement errors
 #'
 #' @export
-set_datamod_exposure <- function(mod, ratio = NULL, disp)  {
+set_datamod_exposure <- function(mod, disp)  {
   nm_offset_data <- mod$nm_offset_data
   nm_offset_mod <- get_nm_offset_mod(mod)
   error_offset_formula_used(nm_offset_data = nm_offset_data,
                             nm_offset_mod = nm_offset_mod,
                             nm_fun = "set_datamod_exposure")
   ## preliminaries
-  measure_vars_ratio <- "ratio"
-  measure_vars_disp <- "mean"
+  measure_vars_disp <- "disp"
   check_bage_mod(x = mod, nm_x = "mod")
   model_descr <- model_descr(mod)
   nm_distn <- nm_distn(mod)
@@ -331,29 +286,13 @@ set_datamod_exposure <- function(mod, ratio = NULL, disp)  {
                                "with a model with exposure.")))
   }
   data <- mod$data
-  ## process 'ratio'
-  if (is.null(ratio))
-    ratio <- data.frame(ratio = 1)
-  check_datamod_val(x = ratio,
-                    nm_x = "ratio",
-                    measure_vars = measure_vars_ratio)
-  nms_by_ratio <- setdiff(names(ratio), measure_vars_ratio)
-  by_val_ratio <- ratio[nms_by_ratio]
-  check_datamod_by_val(by_val = by_val_ratio,
-                       data = data,
-                       nm_val = "ratio")
-  check_positive(x = ratio$ratio,
-                 nm_x = "ratio",
-                 nm_df = "ratio")
-  ratio_ratio <- make_datamod_measure(data = data,
-                                      by_val = by_val_ratio,
-                                      measure = ratio$ratio)
-  ratio_levels <- make_datamod_levels(data = data,
-                                      by_val = by_val_ratio,
-                                      nm_component = "ratio")
-  ratio_matrix_outcome <- make_matrix_val_outcome(data = data,
-                                                  by_val = by_val_ratio)
   ## process 'disp'
+  if (is.numeric(disp)) {
+    check_number(x = disp, nm_x = "disp")
+    if (disp <= 0)
+      cli::cli_abort("{.arg disp} less than or equal to 0.")
+    disp <- data.frame(disp = disp)
+  }
   check_datamod_val(x = disp,
                     nm_x = "disp",
                     measure_vars = measure_vars_disp)
@@ -362,27 +301,22 @@ set_datamod_exposure <- function(mod, ratio = NULL, disp)  {
   check_datamod_by_val(by_val = by_val_disp,
                        data = data,
                        nm_val = "disp")
-  check_positive(x = disp$mean,
-                 nm_x = "mean",
+  check_positive(x = disp[[measure_vars_disp]],
+                 nm_x = measure_vars_disp,
                  nm_df = "disp")
-  disp_mean <- make_datamod_measure(data = data,
-                                    by_val = by_val_disp,
-                                    measure = disp$mean)
+  disp <- make_datamod_measure(data = data,
+                               by_val = by_val_disp,
+                               measure = disp[[measure_vars_disp]])
   disp_levels <- make_datamod_levels(data = data,
                                      by_val = by_val_disp,
                                      nm_component = "levels")
   disp_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_disp)
-  ## construct 'nms_by'
-  nms_by <- union(nms_by_ratio, nms_by_disp)
   ## construct datamod and add to 'mod'
-  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
-                                       ratio_levels = ratio_levels,
-                                       ratio_matrix_outcome = ratio_matrix_outcome,
-                                       disp_mean = disp_mean,
+  datamod <- new_bage_datamod_exposure(disp = disp,
                                        disp_levels = disp_levels,
                                        disp_matrix_outcome = disp_matrix_outcome,
-                                       nms_by = nms_by)
+                                       nms_by = nms_by_disp)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
     alert_replacing_existing_datamod(datamod_new = datamod,
@@ -1367,23 +1301,3 @@ set_var_inner <- function(mod, name, var) {
   ## return
   mod
 }
-
-
-## library(poputils)
-## library(dplyr)
-## disp_popn <- tibble(age = age_labels(type = "five", max = 60, open = FALSE),
-##                     mean = if_else(age %in% c("20-24", "25-29"), 0.05, 0.02))
-
-## mod_base <- mod_pois(injuries ~ age * sex + year,
-##                      data = nzl_injuries,
-##                      exposure = popn) |>
-##   set_disp(mean = 0) |>
-##   fit()
-
-## mod_expose <- mod_base |>
-##   set_datamod_exposure(disp = disp_popn) |>
-##   fit()
-
-## fit(mod)
-
-

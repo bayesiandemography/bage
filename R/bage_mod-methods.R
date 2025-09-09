@@ -2081,8 +2081,7 @@ make_disp_obs <- function(mod, components) {
 make_disp_obs.bage_mod_pois <- function(mod, components) {
   datamod <- mod$datamod
   if (inherits(datamod, "bage_datamod_exposure")) {
-    disp <- get_datamod_disp(datamod = datamod,
-                             components = components)
+    disp <- get_datamod_disp(datamod)
     ans <- disp / (3 * disp + 1)
   }
   else {
@@ -2145,7 +2144,6 @@ make_expected_obs.bage_mod_pois <- function(mod, components, expected) {
   else {
     if (inherits(datamod, "bage_datamod_exposure")) {
       ans <- make_expected_obs_exposure(datamod = datamod,
-                                        components = components,
                                         expected = expected)
     }
     else if (inherits(datamod, "bage_datamod_miscount")) {

@@ -256,28 +256,15 @@ test_that("'get_term_from_est' works", {
 ## 'get_datamod_disp' ----------------------------------------------------
 
 test_that("'get_datamod_disp' works", {
-  ratio_ratio <- c(0.1, 0.4, 0.2)
-  ratio_levels <- 1:3
-  ratio_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  disp_mean <- c(0.5, 0.2, 0.3, 0.4)
+  disp <- c(0.5, 0.2, 0.3, 0.4)
   disp_levels <- 1:4
   disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
-  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
-                                       ratio_levels = ratio_levels,
-                                       ratio_matrix_outcome = ratio_matrix_outcome,
-                                       disp_mean = disp_mean,
+  datamod <- new_bage_datamod_exposure(disp = disp,
                                        disp_levels = disp_levels,
                                        disp_matrix_outcome = disp_matrix_outcome,
                                        nms_by = c("age", "sex"))
-  components <- tibble::tibble(
-    term = c("(Intercept)", rep("datamod", 4)),
-    component = c("(Intercept)", rep("disp", 4)),
-    level = c("(Intercept)", 0:3),
-    .fitted = rvec::runif_rvec(n = 5, n_draw = 10)
-  )
-  ans_obtained <- get_datamod_disp(datamod = datamod,
-                                   components = components)
-  ans_expected <- as.matrix(disp_matrix_outcome) %*% components$.fitted[-1]
+  ans_obtained <- get_datamod_disp(datamod)
+  ans_expected <- as.numeric(disp_matrix_outcome %*% disp)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -351,28 +338,6 @@ test_that("'get_datamod_rate' works", {
   ans_obtained <- get_datamod_rate(datamod = datamod,
                                    components = components)
   ans_expected <- as.matrix(rate_matrix_outcome) %*% components$.fitted[-1]
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'get_datamod_ratio' ----------------------------------------------------
-
-test_that("'get_datamod_ratio' works", {
-  ratio_ratio <- c(0.1, 0.4, 0.2)
-  ratio_levels <- 1:3
-  ratio_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
-  disp_mean <- c(0.5, 0.2, 0.3, 0.4)
-  disp_levels <- 1:4
-  disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
-  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
-                                       ratio_levels = ratio_levels,
-                                       ratio_matrix_outcome = ratio_matrix_outcome,
-                                       disp_mean = disp_mean,
-                                       disp_levels = disp_levels,
-                                       disp_matrix_outcome = disp_matrix_outcome,
-                                       nms_by = c("age", "sex"))
-  ans_obtained <- get_datamod_ratio(datamod)
-  ans_expected <- as.numeric(ratio_matrix_outcome %*% ratio_ratio)
   expect_identical(ans_obtained, ans_expected)
 })
 
