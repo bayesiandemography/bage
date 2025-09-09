@@ -1225,7 +1225,7 @@ void fill_datamod_vals(MatrixD<Type> &datamod_vals,
   switch(i_datamod) {
   case 1000:
     fill_datamod_vals_exposure(datamod_vals,
-			       datamod_param,
+			       datamod_consts,
 			       datamod_matrices);
     break;
   case 2000:

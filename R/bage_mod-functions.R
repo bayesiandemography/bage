@@ -256,6 +256,37 @@ set_covariates <- function(mod, formula) {
 #'   normal model where the  outcome variable
 #'   has normally-distributed measurement errors
 #'
+#' @examples
+#' ## specify model, including setting
+#' ## dispersion for rates to zero
+#' mod <- mod_pois(injuries ~ age * sex + year,
+#'                 data = nzl_injuries,
+#'                 exposure = popn) |>
+#'   set_disp(mean = 0) |>
+#'   set_datamod_exposure(disp = 0.00002)
+#'
+#' ## fit the model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#'
+#' ## examine results - note the new variable '.popn'
+#' ## with imputed true values for population
+#' aug <- mod |>
+#'   augment()
+#'
+#' ## allow different dispersions for each sex
+#' disp_sex <- data.frame(sex = c("Female", "Male"),
+#'                        disp = c(0.00001, 0.00003))
+#' mod <- mod |>
+#'   set_datamod_exposure(disp = disp_sex)
+#' mod
+#'
+#' ## our outcome variable is confidentialized,
+#' ## so we allow for that too
+#' mod <- mod |>
+#'   set_confidential_rr3()
+#' mod
 #' @export
 set_datamod_exposure <- function(mod, disp)  {
   nm_offset_data <- mod$nm_offset_data
@@ -1301,3 +1332,6 @@ set_var_inner <- function(mod, name, var) {
   ## return
   mod
 }
+
+
+

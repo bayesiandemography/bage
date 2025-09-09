@@ -510,7 +510,9 @@ draw_vals_augment_fitted.bage_mod <- function(mod, quiet) {
     offset <- draw_offset_true_given_obs(datamod = datamod,
                                          nm_distn = nm_distn,
                                          components = components,
-                                         offset_obs = offset)
+                                         outcome = outcome,
+                                         offset_obs = offset,
+                                         expected = expected)
   if (has_missing_outcome)
     outcome <- impute_outcome_true(nm_distn = nm_distn,
                                    outcome = outcome,
@@ -2603,8 +2605,25 @@ print.bage_mod <- function(x, ...) {
   has_varying_offset <- has_varying_offset(x)
   if (has_varying_offset) {
     nm_offset_mod <- get_nm_offset_mod(x)
-    nm_offset_mod <- sprintf("% *s", nchar_offset, nm_offset_mod)
-    str_offset <- sprintf("%s = %s", nm_offset_mod, nm_offset_data)
+    nm_offset_data <- get_nm_offset_data(x)
+    str_offset <- sprintf("% *s: %s",
+                          nchar_offset + 15L,
+                          nm_offset_mod,
+                          nm_offset_data)
+  }
+  if (has_datamod) {
+    datamod_descr <- datamod_descr(datamod)
+    str_datamod <- sprintf("% *s: %s",
+                           nchar_offset + 15L,
+                           "data model",
+                           datamod_descr)
+  }
+  if (has_confidential) {
+    str_call_confidential <- str_call_confidential(confidential)
+    str_confidential <- sprintf("% *s: %s",
+                                nchar_offset + 15L,
+                                "confidentialization",
+                                str_call_confidential)
   }
   terms <- tidy(x)
   terms <- as.data.frame(terms)
@@ -2625,8 +2644,8 @@ print.bage_mod <- function(x, ...) {
   }
   has_optimizer <- !is.null(optimizer)
   if (has_optimizer)
-  settings <- cbind(settings,
-                    data.frame(optimizer = optimizer))
+    settings <- cbind(settings,
+                      data.frame(optimizer = optimizer))
   is_inner_outer <- !is.null(vars_inner)
   if (is_inner_outer)
     settings <- cbind(settings,
@@ -2649,12 +2668,12 @@ print.bage_mod <- function(x, ...) {
     cat(str_offset)
     cat("\n")
   }
-  if (has_confidential) {
+  if (has_datamod) {
+    cat(str_datamod)
     cat("\n")
-    cat(sprintf("% *s: %s",
-                nchar_offset + 15L,
-                "confidentialization",
-                str_call_confidential(confidential)))
+  }
+  if (has_confidential) {
+    cat(str_confidential)
     cat("\n")
   }
   cat("\n")
