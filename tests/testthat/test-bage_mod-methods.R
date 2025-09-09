@@ -2392,8 +2392,7 @@ test_that("'has_datamod_param' works with normal", {
                   weights = 1)
   expect_false(has_datamod_param(mod))
   mod <- mod |>
-    set_datamod_noise(mean = data.frame(mean = 0),
-                      sd = data.frame(sd = 0.2))
+    set_datamod_noise(sd = 0.2)
   expect_false(has_datamod_param(mod))
 })
 
@@ -2736,12 +2735,7 @@ test_that("'make_expected_obs'  with Poisson throws expected error with invalid 
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  datamod <- new_bage_datamod_noise(mean_mean = 0.1,
-                                    mean_levels = "mean",
-                                    mean_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
-                                                                               i = seq_len(120),
-                                                                               j = rep(1, 120)),
-                                    sd_sd = 0.3,
+  datamod <- new_bage_datamod_noise(sd_sd = 0.3,
                                     sd_levels = "sd",
                                     sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
                                                                                i = seq_len(120),
@@ -2816,12 +2810,7 @@ test_that("'make_expected_obs' with binomial throws expected error with invalid 
   mod <- mod_binom(formula = formula,
                    data = data,
                    size = popn)
-  datamod <- new_bage_datamod_noise(mean_mean = 0.1,
-                                    mean_levels = "mean",
-                                    mean_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
-                                                                               i = seq_len(120),
-                                                                               j = rep(1, 120)),
-                                    sd_sd = 0.3,
+  datamod <- new_bage_datamod_noise(sd_sd = 0.3,
                                     sd_levels = "sd",
                                     sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
                                                                              i = seq_len(120),

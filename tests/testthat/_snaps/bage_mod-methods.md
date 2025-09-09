@@ -8,8 +8,7 @@
       
          deaths ~ age + sex + time
       
-        exposure = popn
-      
+                       exposure: popn
             confidentialization: rr3()
       
               term  prior along n_par n_par_free
@@ -36,7 +35,7 @@
       
          deaths ~ age + sex + time
       
-        exposure = popn
+                       exposure: popn
       
               term  prior along n_par n_par_free
        (Intercept) NFix()     -     1          1

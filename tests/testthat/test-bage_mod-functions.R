@@ -292,21 +292,18 @@ test_that("'set_datamod_noise' works with 2 by variables", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$income <- rnorm(nrow(data))
   data$wt <- 1
-  mean <- data.frame(mean = 0.9)
   sd <- expand.grid(age = 0:3, sex = 1:2)
   sd$sd <- 0.6
   formula <- income ~ age:sex + time
   mod <- mod_norm(formula = formula,
                   data = data,
                   weight = wt)
-  mod <- set_datamod_noise(mod, mean = mean, sd = sd)
+  mod <- set_datamod_noise(mod, sd = sd)
   expect_s3_class(mod$datamod, "bage_datamod_noise")
-  expect_equal(mod$datamod$mean_mean, 0.9)
   expect_equal(mod$datamod$sd_sd, rep(0.6, times = 6))
   expect_identical(mod$datamod$nms_by, c("age", "sex"))
   expect_identical(mod$datamod$outcome_sd, mod$outcome_sd)
   expect_message(set_datamod_noise(mod,
-                                   mean = mean,
                                    sd = sd),
                  paste("Replacing existing \"noise\" data model",
                        "with new \"noise\" data model."))
@@ -317,20 +314,32 @@ test_that("'set_datamod_noise' works with 1 by variable", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$income <- rnorm(nrow(data))
   data$wt <- 1
-  mean <- data.frame(mean = 0.9)
   sd <- expand.grid(age = 0:3)
-  sd$sd <- 1
+  sd$sd <- 1:4
   formula <- income ~ age:sex + time
   mod <- mod_norm(formula = formula,
                   data = data,
                   weights = wt)
-  mod <- set_datamod_noise(mod, mean = mean, sd = sd)
+  mod <- set_datamod_noise(mod, sd = sd)
   expect_s3_class(mod$datamod, "bage_datamod_noise")
-  expect_equal(mod$datamod$mean_mean, 0.9)
-  expect_equal(mod$datamod$sd_sd, rep(1, times = 3))
+  expect_equal(mod$datamod$sd_sd, 1:3)
 })
 
-test_that("'set_datamod_noise' throws correct error with non-Poisson", {
+test_that("'set_datamod_noise' works with numeric sd", {
+  set.seed(0)
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$income <- rnorm(nrow(data))
+  data$wt <- 1
+  formula <- income ~ age:sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  mod <- set_datamod_noise(mod, sd = 0.2)
+  expect_s3_class(mod$datamod, "bage_datamod_noise")
+  expect_equal(mod$datamod$sd_sd, 0.2)
+})
+
+test_that("'set_datamod_noise' throws correct error with non-normal", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- 1
@@ -341,8 +350,8 @@ test_that("'set_datamod_noise' throws correct error with non-Poisson", {
   mod <- mod_binom(formula = formula,
                    data = data,
                    size = popn)
-  expect_error(set_datamod_noise(mod, mean = mean, sd = sd),
-               "A noise data model can only be used with a normal model.")
+  expect_error(set_datamod_noise(mod, sd = sd),
+               "`mod` is a binomial model.")
 })
 
 

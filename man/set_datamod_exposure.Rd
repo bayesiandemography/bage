@@ -108,8 +108,8 @@ mod <- mod |>
   set_datamod_exposure(disp = disp_sex)
 mod
 
-## our outcome variable is in fact confidentialized
-## confidentialized, so we allow for that too
+## our outcome variable is confidentialized,
+## so we allow for that too
 mod <- mod |>
   set_confidential_rr3()
 mod

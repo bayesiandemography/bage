@@ -1179,14 +1179,10 @@ template <class Type>
 void fill_datamod_vals_noise(MatrixD<Type> &datamod_vals,
 			     const vector<Type>& datamod_consts,
 			     const LIST_SM_t<Type> &datamod_matrices) {
-  const int n = datamod_consts.size() / 2;
-  const vector<Type> mean = datamod_consts.head(n);
-  const vector<Type> sd = datamod_consts.tail(n);
-  const SparseMatrix<Type>& mean_matrix = datamod_matrices[0];
-  const SparseMatrix<Type>& sd_matrix = datamod_matrices[1];
-  const int n_outcome = mean_matrix.rows();
-  datamod_vals.resize(n_outcome, 2);
-  datamod_vals.col(0) = mean_matrix * mean;
+  const vector<Type>& sd = datamod_consts;
+  const SparseMatrix<Type>& sd_matrix = datamod_matrices[0];
+  const int n_outcome = sd_matrix.rows();
+  datamod_vals.resize(n_outcome, 1);
   datamod_vals.col(1) = sd_matrix * sd;
 }
 
@@ -1554,11 +1550,10 @@ Type loglik_norm_noise(Type outcome,
 		       Type linpred,
 		       Type offset,
 		       Type disp) {
-  Type m = datamod_vals[0];          // on transformed scale
-  Type s = datamod_vals[1];          // on transformed scale
-  Type mean = linpred + m;           // on transformed scale
-  Type sd = disp / sqrt(offset) + s; // on transformed scale
-  return dnorm(outcome, mean, sd, true);
+  const Type s = datamod_vals[0];                // on transformed scale
+  const Type var = disp * disp / offset + s * s; // on transformed scale
+  const Type sd = sqrt(var);                     // on transformed scale
+  return dnorm(outcome, linpred, sd, true);
 }
 
 

@@ -80,37 +80,25 @@ new_bage_datamod_miscount <- function(prob_mean,
 ## HAS_TESTS
 #' Create New Random Error Data Model for Outcomes
 #'
-#' @param mean_mean Mean of errors. Numeric vector.
-#' @param mean_levels Levels of 'by' variables for
-#' which there are potentially distinct values
-#' of 'mean_mean'. A character vector.
-#' @param mean_matrix_outcome Sparse matrix mapping
-#' mean to outcome
 #' @param sd_sd Standard devation of errors Numeric vector
 #' @param sd_levels Levels of 'by' variables for
 #' which there are potentially distinct values
 #' of 'sd_sd'. A character vector.
 #' @param sd_matrix_outcome Sparse matrix mapping
 #' sd to outcome
-#' @param nms_by Names of by variables for mean, sd
+#' @param nms_by Names of by variables for sd
 #' @param outcome_sd Standard deviation of
 #' the original, unscaled outcome
 #' 
 #' @returns Object of class 'bage_datamod_noise'
 #'
 #' @noRd
-new_bage_datamod_noise <- function(mean_mean,
-                                   mean_levels,
-                                   mean_matrix_outcome,
-                                   sd_sd,
+new_bage_datamod_noise <- function(sd_sd,
                                    sd_levels,
                                    sd_matrix_outcome,
                                    nms_by,
                                    outcome_sd) {
-  ans <- list(mean_mean = mean_mean,
-              mean_levels = mean_levels,
-              mean_matrix_outcome = mean_matrix_outcome,
-              sd_sd = sd_sd,
+  ans <- list(sd_sd = sd_sd,
               sd_levels = sd_levels,
               sd_matrix_outcome = sd_matrix_outcome,
               nms_by = nms_by,
