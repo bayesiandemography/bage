@@ -1204,6 +1204,30 @@ check_response_nonneg <- function(formula, data, nm_distn) {
                      i = "Response variable: {.var {nm_response}}."))
   invisible(TRUE)
 }
+
+
+## HAS_TESTS
+#' Check that Response Variable in Formula is
+#' Does Not Involve a Function Call
+#'
+#' @param formula A formula
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_response_not_call <- function(formula) {
+  response <- formula[[2L]]
+  if (is.call(response)) {
+    str_resp <- deparse1(response)
+    nm_fun <- deparse1(response[[1L]])
+    cli::cli_abort(c("Response includes function call.",
+                     i = "Response: {.var {str_resp}}.",
+                     i = paste("Use function {.fun {nm_fun}} to create a",
+                               "new variable in {.arg data} and use",
+                               "that as the response?")))
+  }
+  invisible(TRUE)
+}
         
     
 ## HAS_TESTS

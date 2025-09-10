@@ -1207,13 +1207,17 @@ make_offsets_effectfree_effect <- function(mod) {
 #'
 #' @noRd
 make_outcome <- function(formula, data) {
-    nm_response <- deparse1(formula[[2L]])
-    nms_data <- names(data)
-    ans <- data[[match(nm_response, nms_data)]]
-    ans <- as.double(ans)
-    check_inf(x = ans, nm_x = nm_response)
-    check_nan(x = ans, nm_x = nm_response)
-    ans
+  nm_response <- deparse1(formula[[2L]])
+  nms_data <- names(data)
+  i_response <- match(nm_response, nms_data, nomatch = 0L)
+  if (i_response == 0L)
+    cli::cli_abort(paste("Internal error: response {.val {nm_response}}",
+                         "not found in {.arg data}."))
+  ans <- data[[i_response]]
+  ans <- as.double(ans)
+  check_inf(x = ans, nm_x = nm_response)
+  check_nan(x = ans, nm_x = nm_response)
+  ans
 }
 
 
