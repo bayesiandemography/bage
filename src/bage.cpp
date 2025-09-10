@@ -1183,7 +1183,7 @@ void fill_datamod_vals_noise(MatrixD<Type> &datamod_vals,
   const SparseMatrix<Type>& sd_matrix = datamod_matrices[0];
   const int n_outcome = sd_matrix.rows();
   datamod_vals.resize(n_outcome, 1);
-  datamod_vals.col(1) = sd_matrix * sd;
+  datamod_vals.col(0) = sd_matrix * sd;
 }
 
 template <class Type>

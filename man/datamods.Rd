@@ -8,21 +8,17 @@ The models for rates, probabilities, or means
 created with functions \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
 and \code{\link[=mod_norm]{mod_norm()}} can be extended by adding data models,
 also referred to as measurement error models.
-Data models can only be use with the outcome variable,
-with one exception: in Poisson models where dispersion
-is set to 0 (via \code{\link[=set_disp]{set_disp()}}), a data model
-can be used with exposure.
 }
 \details{
 \tabular{lllll}{
    \strong{Function} \tab \strong{Assumptions about measurement error} \tab \strong{pois} \tab \strong{binom} \tab \strong{norm} \cr
-   \code{\link[=set_datamod_exposure]{set_datamod_exposure()}} \tab Exposure has positive and negative errors \tab Yes* \tab No \tab No \cr
-   \code{\link[=set_datamod_miscount]{set_datamod_miscount()}} \tab Outcome has positive and negative errors \tab Yes \tab No \tab No \cr
-   \code{\link[=set_datamod_noise]{set_datamod_noise()}} \tab Outcome has positive and negative errors \tab No \tab No \tab Yes \cr
-   \code{\link[=set_datamod_overcount]{set_datamod_overcount()}} \tab Outcome has positive errors \tab Yes \tab No \tab No \cr
-   \code{\link[=set_datamod_undercount]{set_datamod_undercount()}} \tab Outcome has negative errors \tab Yes \tab No \tab No \cr
+   \code{\link[=set_datamod_miscount]{set_datamod_miscount()}} \tab Reported outcome has undercount and overcount \tab Yes \tab No \tab No \cr
+   \code{\link[=set_datamod_undercount]{set_datamod_undercount()}} \tab Reported outcome has undercount \tab Yes \tab Yes \tab No \cr
+   \code{\link[=set_datamod_overcount]{set_datamod_overcount()}} \tab Reported outcome has overcount \tab Yes \tab No \tab No \cr
+   \code{\link[=set_datamod_noise]{set_datamod_noise()}} \tab Reported outcome unbiased, but with measurement errors in both directions \tab No \tab No \tab Yes \cr
+   \code{\link[=set_datamod_exposure]{set_datamod_exposure()}} \tab Reported exposure unbiased, but with measurement errors in both directions \tab Yes* \tab No \tab No \cr
 }
 
 
-*Only models with no dispersion.
+*Models with no dispersion term for rates.
 }

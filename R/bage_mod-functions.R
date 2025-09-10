@@ -183,13 +183,22 @@ set_covariates <- function(mod, formula) {
 #'   (true exposure)^2
 #'
 #' @details
+#'
+#' The model assumes that the exposure variable
+#' is unbiased. If there is in fact evidence
+#' of biases, then this evidence should be
+#' used to create a de-biased version of the
+#' variable (eg one where estimated biases
+#' have been subtracted), to supply to
+#' [mod_pois()].
 #' 
 #' With the Inverse-Gamma distribution,
 #' the coefficient of variation for
 #' observed exposure (i.e. the standard
 #' deviation divided by the mean) is \eqn{\sqrt{\text{dispersion}}}).
 #' This implies that the average size of errors
-#' scales with the mean.
+#' scales with the mean. It also implies that
+#' values for dispersion will typically be very small.
 #'
 #' `set_datamod_exposure()` can only be used
 #' with model where dispersion in Poisson rates
@@ -202,7 +211,7 @@ set_covariates <- function(mod, formula) {
 #'
 #' `disp` can be a single number, in which
 #' case the same dispersion is used for all cells.
-#' It can also be a data frame with a
+#' `sd` can also be a data frame with a
 #' with a variable called `"disp"` and
 #' one or more columns with 'by' variables. 
 #' For instance, a  `disp` of
@@ -217,44 +226,40 @@ set_covariates <- function(mod, formula) {
 #'
 #' The model for observed exposure is
 #'
-#' \deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g \lbrack i \rbrack }^{-1}, (1 + d_{g \lbrack i\rbrack }^{-1}) r_{h \lbrack i \rbrack } w_i^{\text{true}})}
+#' \deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g \lbrack i \rbrack }^{-1}, (1 + d_{g \lbrack i\rbrack }^{-1}) w_i^{\text{true}})}
 #'
 #' where
 #' - \eqn{w_i^{\text{obs}}} is observed exposure for cell \eqn{i}
 #'   (the `exposure` argument to [mod_pois()]);
 #' - \eqn{w_i^{\text{true}}} is true exposure for cell \eqn{i}; and
-#' - \eqn{d_{g\lbrack i\rbrack }} is dispersion for cell \eqn{i}.
+#' - \eqn{d_{g\lbrack i\rbrack }} is the value for dispersion
+#'   that is applied to cell \eqn{i}.
 #'
-#' The same value \eqn{d_g} for dispersion can
-#' be used for multiple cells \eqn{i}.
+#' The number of distinct values of \eqn{d_g}
+#' is typically much less than the number
+#' of cells. For instance, there might
+#' only be two distinct values for \eqn{d_g},
+#' with everyone aged 0-49 receiving the
+#' first value, and everyone age 50+ receiving
+#' the second. See below for an example.
 #'
 #' @param mod An object of class `"bage_mod_pois"`,
 #' created with [mod_pois()].
-#' @param disp Dispersion. A data frame
-#' with a variable called `"mean"`,
-#' and, oprtionally, one or more 'by' variables.
+#' @param disp Dispersion of measurement errors.
+#' A single number, or a data frame
+#' with a variable called `"disp"`,
+#' and one or more 'by' variables.
 #'
 #' @returns A modified version of `mod`.
 #'
 #' @seealso
 #' - [mod_pois()] Specify a Poisson model
 #' - [set_disp()] Specify dispersion of rates, probabilities, or means
-#' - [components()] Values for parameters estimated in the
-#'   model, included the dispersion parameter in the data
-#'   model for exposure.
-#' - [set_datamod_miscount()] Specify a data model for a
-#'   Poisson model where the outcome variable
-#'   is subject to undercount and overcount
-#' - [set_datamod_overcount()] Specify a data model for a
-#'   Poisson model where the outcome variable is
-#'   subject to overcount, but not undercount
-#' - [set_datamod_undercount()] Specify a data model for a
-#'   Poisson or binomial model where the
-#'   outcome variable is subject to undercount,
-#'   but not overcount
-#' - [set_datamod_noise()] Specify a data model for a
-#'   normal model where the  outcome variable
-#'   has normally-distributed measurement errors
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for exposure
+#' - [datamods] Data models implemented in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
 #'
 #' @examples
 #' ## specify model, including setting
@@ -270,8 +275,9 @@ set_covariates <- function(mod, formula) {
 #'   fit()
 #' mod
 #'
-#' ## examine results - note the new variable '.popn'
-#' ## with imputed true values for population
+#' ## examine results - note the new variable
+#' ## '.popn' with estimates of the true
+#' ## population
 #' aug <- mod |>
 #'   augment()
 #'
@@ -283,10 +289,26 @@ set_covariates <- function(mod, formula) {
 #' mod
 #'
 #' ## our outcome variable is confidentialized,
-#' ## so we allow for that too
+#' ## so we recognize that in the model too
 #' mod <- mod |>
 #'   set_confidential_rr3()
 #' mod
+#'
+#' ## now a model where everyone aged 0-49
+#' ## receives one value for dispersion,
+#' ## and everyone aged 50+ receives another
+#' library(poputils) ## for 'age_upper()'
+#' nzl_injuries_age <- nzl_injuries |>
+#'   mutate(age_group = if_else(age_upper(age) < 50,
+#'                              "0-49",
+#'                              "50+"))
+#' disp_age <- data.frame(age_group = c("0-49", "50+"),
+#'                        disp = c(0.000025, 0.00001))
+#' mod <- mod_pois(injuries ~ age * sex + year,
+#'                 data = nzl_injuries_age, ## new
+#'                 exposure = popn) |>
+#'   set_disp(mean = 0) |>
+#'   set_datamod_exposure(disp = disp_age)
 #' @export
 set_datamod_exposure <- function(mod, disp)  {
   nm_offset_data <- mod$nm_offset_data
@@ -469,14 +491,110 @@ set_datamod_miscount <- function(mod, prob, rate) {
 
 #' Specify Noise Data Model
 #'
-#' @param mod An object of class `"bage_mod"`,
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param sd A data frame with 'by' variables
-#' and a variable called `"sd"`.
+#' @description 
+#' Specify a data model for the outcome
+#' variable in a normal model, where
+#'
+#' observed outcome = true outcome + error
+#'
+#' and error has a normal distribution with
+#' mean zero and a known standard deviation.
+#'
+#' @details
+#'
+#' The model assumes that the outcome variable
+#' is unbiased. If there is in fact evidence
+#' of biases, then this evidence should be
+#' used to create a de-biased version of the
+#' variable (eg one where estimated biases
+#' have been subtracted), to supply to
+#' [mod_norm()].
+#'
+#' @section The `sd` argument:
+#'
+#' `sd` can be a single number, in which
+#' case the same standard deviation
+#' is used for all cells.
+#' `sd` can also be a data frame with a
+#' with a variable called `"sd"` and
+#' one or more columns with 'by' variables. 
+#' For instance, a  `sd` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            sd = c(330, 240))
+#'```
+#' implies that measurement errors
+#' have standard deviation 330 for females
+#' and 240 for males.
+#' 
+#' @section Mathematical details:
+#'
+#' The model for the observed outcome is
+#'
+#' \deqn{y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i}
+#' \deqn{\epsilon_i \sim \text{N}(0, s_i^2)}
+#'
+#' where
+#' - \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+#' - \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+#' - \eqn{\epsilon_i} is the measurement error for cell \eqn{i}; and
+#' - \eqn{s_{g\lbrack i\rbrack }} is the standard deviation of
+#'   the measurement error for cell \eqn{i}.
+#'
+#' @param mod An object of class `"bage_mod_norm"`,
+#' created with [mod_norm()].
+#' @param sd Standard deviation of measurement errors.
+#' A single number, or a data frame
+#' with 'by' variables.
 #'
 #' @returns A modified version of `mod`.
 #'
+#' @seealso
+#' - [mod_norm()] Specify a normal model
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for outcome
+#' - [datamods] Data models implemented in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
+#'
+## prepare outcome variable
+#' spend <- nld_expenditure |>
+#'   mutate(log_spend = log(value + 1))
+#'
+#' ## specify model
+#' mod <- mod_norm(log_spend ~ age * diag + year,
+#'                 data = spend,
+#'                 weights = 1) |>
+#'   set_datamod_noise(sd = 0.1)
+#' 
+#' ## fit model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#' 
+#' ## create new aggregated diagnositic
+#' ## group variable
+#' library(dplyr)
+#' spend <- spend |>
+#'   mutate(diag_ag = case_when(
+#'     diag == "Neoplasms" ~ diag,
+#'     diag == "Not allocated" ~ diag,
+#'     TRUE ~ "Other"
+#'   ))
+#'
+#' ## assume size of measurement errors
+#' ## varies across these aggregated groups
+#' sd_diag <- data.frame(diag_ag = c("Neoplasms",
+#'                                   "Not allocated",
+#'                                   "Other"),
+#'                       sd = c(0.05, 0.2, 0.1))
+#'
+#' ## fit model that uses diagnostic-specific
+#' ## standard deviations
+#' mod <- mod_norm(log_spend ~ age * diag + year,
+#'                 data = spend,
+#'                 weights = 1) |>
+#'   set_datamod_noise(sd = sd_diag)
 #' @export
 set_datamod_noise <- function(mod, sd) {
   ## preliminaries

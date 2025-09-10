@@ -10,9 +10,10 @@ set_datamod_exposure(mod, disp)
 \item{mod}{An object of class \code{"bage_mod_pois"},
 created with \code{\link[=mod_pois]{mod_pois()}}.}
 
-\item{disp}{Dispersion. A data frame
-with a variable called \code{"mean"},
-and, oprtionally, one or more 'by' variables.}
+\item{disp}{Dispersion of measurement errors.
+A single number, or a data frame
+with a variable called \code{"disp"},
+and one or more 'by' variables.}
 }
 \value{
 A modified version of \code{mod}.
@@ -31,12 +32,21 @@ var[expected exposure] = dispersion \eqn{\times}
 (true exposure)^2
 }
 \details{
+The model assumes that the exposure variable
+is unbiased. If there is in fact evidence
+of biases, then this evidence should be
+used to create a de-biased version of the
+variable (eg one where estimated biases
+have been subtracted), to supply to
+\code{\link[=mod_pois]{mod_pois()}}.
+
 With the Inverse-Gamma distribution,
 the coefficient of variation for
 observed exposure (i.e. the standard
 deviation divided by the mean) is \eqn{\sqrt{\text{dispersion}}}).
 This implies that the average size of errors
-scales with the mean.
+scales with the mean. It also implies that
+values for dispersion will typically be very small.
 
 \code{set_datamod_exposure()} can only be used
 with model where dispersion in Poisson rates
@@ -50,7 +60,7 @@ observed exposures, not variation in Poisson rates.
 
 \code{disp} can be a single number, in which
 case the same dispersion is used for all cells.
-It can also be a data frame with a
+\code{sd} can also be a data frame with a
 with a variable called \code{"disp"} and
 one or more columns with 'by' variables.
 For instance, a  \code{disp} of
@@ -68,18 +78,24 @@ females and 0.12 for males.
 
 The model for observed exposure is
 
-\deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g \lbrack i \rbrack }^{-1}, (1 + d_{g \lbrack i\rbrack }^{-1}) r_{h \lbrack i \rbrack } w_i^{\text{true}})}
+\deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g \lbrack i \rbrack }^{-1}, (1 + d_{g \lbrack i\rbrack }^{-1}) w_i^{\text{true}})}
 
 where
 \itemize{
 \item \eqn{w_i^{\text{obs}}} is observed exposure for cell \eqn{i}
 (the \code{exposure} argument to \code{\link[=mod_pois]{mod_pois()}});
 \item \eqn{w_i^{\text{true}}} is true exposure for cell \eqn{i}; and
-\item \eqn{d_{g\lbrack i\rbrack }} is dispersion for cell \eqn{i}.
+\item \eqn{d_{g\lbrack i\rbrack }} is the value for dispersion
+that is applied to cell \eqn{i}.
 }
 
-The same value \eqn{d_g} for dispersion can
-be used for multiple cells \eqn{i}.
+The number of distinct values of \eqn{d_g}
+is typically much less than the number
+of cells. For instance, there might
+only be two distinct values for \eqn{d_g},
+with everyone aged 0-49 receiving the
+first value, and everyone age 50+ receiving
+the second. See below for an example.
 }
 
 \examples{
@@ -96,8 +112,9 @@ mod <- mod |>
   fit()
 mod
 
-## examine results - note the new variable '.popn'
-## with imputed true values for population
+## examine results - note the new variable
+## '.popn' with estimates of the true
+## population
 aug <- mod |>
   augment()
 
@@ -109,30 +126,35 @@ mod <- mod |>
 mod
 
 ## our outcome variable is confidentialized,
-## so we allow for that too
+## so we recognize that in the model too
 mod <- mod |>
   set_confidential_rr3()
 mod
+
+## now a model where everyone aged 0-49
+## receives one value for dispersion,
+## and everyone aged 50+ receives another
+library(poputils) ## for 'age_upper()'
+nzl_injuries_age <- nzl_injuries |>
+  mutate(age_group = if_else(age_upper(age) < 50,
+                             "0-49",
+                             "50+"))
+disp_age <- data.frame(age_group = c("0-49", "50+"),
+                       disp = c(0.000025, 0.00001))
+mod <- mod_pois(injuries ~ age * sex + year,
+                data = nzl_injuries_age, ## new
+                exposure = popn) |>
+  set_disp(mean = 0) |>
+  set_datamod_exposure(disp = disp_age)
 }
 \seealso{
 \itemize{
 \item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
 \item \code{\link[=set_disp]{set_disp()}} Specify dispersion of rates, probabilities, or means
-\item \code{\link[=components]{components()}} Values for parameters estimated in the
-model, included the dispersion parameter in the data
-model for exposure.
-\item \code{\link[=set_datamod_miscount]{set_datamod_miscount()}} Specify a data model for a
-Poisson model where the outcome variable
-is subject to undercount and overcount
-\item \code{\link[=set_datamod_overcount]{set_datamod_overcount()}} Specify a data model for a
-Poisson model where the outcome variable is
-subject to overcount, but not undercount
-\item \code{\link[=set_datamod_undercount]{set_datamod_undercount()}} Specify a data model for a
-Poisson or binomial model where the
-outcome variable is subject to undercount,
-but not overcount
-\item \code{\link[=set_datamod_noise]{set_datamod_noise()}} Specify a data model for a
-normal model where the  outcome variable
-has normally-distributed measurement errors
+\item \code{\link[=augment]{augment()}} Original data plus estimated values,
+including estimates of true value for exposure
+\item \link{datamods} Data models implemented in \code{bage}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+vignette
 }
 }
