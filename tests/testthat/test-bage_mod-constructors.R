@@ -38,6 +38,17 @@ test_that("'mod_pois' works with valid inputs - no exposure", {
     expect_s3_class(ans_obtained, "bage_mod_pois")
 })
 
+test_that("'mod_pois' gives correct error when no exposure specified", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age:sex + time
+    expect_error(mod_pois(formula = formula,
+                          data = data),
+                 "Argument `exposure` is missing, with no default.")
+})
+
+
 
 ## 'mod_binom' ----------------------------------------------------------------
 
@@ -61,6 +72,17 @@ test_that("'mod_binom' works with valid inputs", {
                                size = "popn")
     expect_identical(ans_noquote, ans_withquote)
 })
+
+test_that("'mod_binom' gives correct error when no size supplied", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- round(data$popn / 3)
+    formula <- deaths ~ age:sex + time
+    expect_error(mod_binom(formula = formula,
+                           data = data),
+                 "Argument `size` is missing, with no default.")
+})
+
 
 
 ## 'mod_norm' -----------------------------------------------------------------
@@ -109,6 +131,17 @@ test_that("'mod_norm' works with no values for outcome variable", {
     expect_identical(ans_obtained$outcome_mean, 0)
     expect_identical(ans_obtained$outcome_sd, 1)
 })
+
+test_that("'mod_norm' gives correct error when no weights supplied", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$income <- rnorm(nrow(data))
+    formula <- income ~ age:sex + time
+    expect_error(mod_norm(formula = formula,
+                          data = data),
+                 "Argument `weights` is missing, with no default.")
+})
+
 
 ## 'mod_helper' ---------------------------------------------------------------
 
