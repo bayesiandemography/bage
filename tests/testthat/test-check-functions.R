@@ -1345,6 +1345,18 @@ test_that("'check_response_nonneg' returns correct error with invalid inputs", {
 })
 
 
+## 'check_response_not_call' --------------------------------------------------
+
+test_that("'check_response_not_call' returns TRUE with valid inputs", {
+    expect_true(check_response_not_call(deaths ~ sex))
+})
+
+test_that("'check_response_not_call' returns correct error with invalid inputs", {
+  expect_error(check_response_not_call(log(deaths) ~ sex),
+               "Response includes function call.")
+})
+
+
 ## 'check_scale' --------------------------------------------------------------
 
 test_that("'check_scale' returns TRUE with valid inputs", {
