@@ -7,16 +7,132 @@
 set_datamod_noise(mod, sd)
 }
 \arguments{
-\item{mod}{An object of class \code{"bage_mod"},
-created with \code{\link[=mod_pois]{mod_pois()}},
-\code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+\item{mod}{An object of class \code{"bage_mod_norm"},
+created with \code{\link[=mod_norm]{mod_norm()}}.}
 
-\item{sd}{A data frame with 'by' variables
-and a variable called \code{"sd"}.}
+\item{sd}{Standard deviation of measurement errors.
+A single number, or a data frame
+with 'by' variables.}
 }
 \value{
 A modified version of \code{mod}.
 }
 \description{
-Specify Noise Data Model
+Specify a data model for the outcome
+variable in a normal model, where
+
+observed outcome = true outcome + error
+
+and error has a normal distribution with
+mean zero and a known standard deviation.
+}
+\details{
+The model assumes that the outcome variable
+is unbiased. If there is in fact evidence
+of biases, then this evidence should be
+used to create a de-biased version of the
+variable (eg one where estimated biases
+have been subtracted), to supply to
+\code{\link[=mod_norm]{mod_norm()}}.
+}
+\section{The \code{sd} argument}{
+
+
+\code{sd} can be a single number, in which
+case the same standard deviation
+is used for all cells.
+\code{sd} can also be a data frame with a
+with a variable called \code{"sd"} and
+one or more columns with 'by' variables.
+For instance, a  \code{sd} of
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{data.frame(sex = c("Female", "Male"),
+           sd = c(330, 240))
+}\if{html}{\out{</div>}}
+
+implies that measurement errors
+have standard deviation 330 for females
+and 240 for males.
+}
+
+\section{Mathematical details}{
+
+
+The model for the observed outcome is
+
+\deqn{y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i}
+\deqn{\epsilon_i \sim \text{N}(0, s_i^2)}
+
+where
+\itemize{
+\item \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+\item \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+\item \eqn{\epsilon_i} is the measurement error for cell \eqn{i}; and
+\item \eqn{s_{g\lbrack i\rbrack }} is the standard deviation of
+the measurement error for cell \eqn{i}.
+}
+}
+
+\seealso{
+\itemize{
+\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
+\item \code{\link[=augment]{augment()}} Original data plus estimated values,
+including estimates of true value for outcome
+\item \link{datamods} Data models implemented in \code{bage}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+vignette
+}
+
+spend <- nld_expenditure |>
+mutate(log_spend = log(value + 1))
+\subsection{specify model}{
+
+mod <- mod_norm(log_spend ~ age * diag + year,
+data = spend,
+weights = 1) |>
+set_datamod_noise(sd = 0.1)
+}
+
+\subsection{fit model}{
+
+mod <- mod |>
+fit()
+mod
+}
+
+\subsection{create new aggregated diagnositic}{
+}
+
+\subsection{group variable}{
+
+library(dplyr)
+spend <- spend |>
+mutate(diag_ag = case_when(
+diag == "Neoplasms" ~ diag,
+diag == "Not allocated" ~ diag,
+TRUE ~ "Other"
+))
+}
+
+\subsection{assume size of measurement errors}{
+}
+
+\subsection{varies across these aggregated groups}{
+
+sd_diag <- data.frame(diag_ag = c("Neoplasms",
+"Not allocated",
+"Other"),
+sd = c(0.05, 0.2, 0.1))
+}
+
+\subsection{fit model that uses diagnostic-specific}{
+}
+
+\subsection{standard deviations}{
+
+mod <- mod_norm(log_spend ~ age * diag + year,
+data = spend,
+weights = 1) |>
+set_datamod_noise(sd = sd_diag)
+}
 }
