@@ -1059,6 +1059,7 @@ Principles:
 - Can have data model for outcome, or for exposure, but not both
 - But *can* have data model and confidentialization (eg model of undercount, combined with RR3)
 - Models must scale well -- cannot use direct approach of treating true outcome, or true exposure, as parameter to be estimated directly
+- Poisson cannot include dispersion terms for rates, and binomial models cannot include dispersion terms for probabilities
 
 Notation:
 
@@ -1069,21 +1070,12 @@ Notation:
 library(tibble)
 
 models <- tibble(
-  Model = c("Poisson", "Poisson", "Binomial", "Normal"),
+  Model = c("Poisson", "Poisson", "Poisson", "Binomial", "Normal"),
   `System model` = c(
-    paste(
-      "$$",
-      "y_i^{\\text{true}} \\sim \\text{Poisson}(\\gamma_i w_i) \\\\",
-      "\\gamma_i \\sim \\text{Gamma}(\\xi^{-1}, (\\xi \\mu_i)^{-1})",
-      "$$"
-    ),
+    "$$ y_i^{\\text{true}} \\sim \\text{Poisson}(\\mu_i w_i) $$",
+    "$$ y_i^{\\text{true}} \\sim \\text{Poisson}(\\mu_i w_i) $$",
     "$$ y_i \\sim \\text{Poisson}(\\mu_i w_i^{\\text{true}}) $$",
-    paste(
-      "$$",
-      "y_i^{\\text{true}} \\sim \\text{Binomial}(w_i, \\gamma_i) \\\\",
-      "\\gamma_i \\sim \\text{Beta}(\\xi^{-1} \\mu_i, \\xi^{-1}(1 - \\mu_i))",
-      "$$"
-    ),
+    "$$ y_i^{\\text{true}} \\sim \\text{Binomial}(w_i, \\mu_i) $$",
     "$$ y_i^{\\text{true}} \\sim \\text{N}(\\gamma_i, w_i^{-1} \\sigma^2) $$"
   ),
   `Data model` = c(
@@ -1096,13 +1088,20 @@ models <- tibble(
     ),
     paste(
       "$$",
+      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i \\\\",
+      "\\epsilon_i \\sim \\text{Skellam}(\\lambda_{g[i]}, \\lambda_{g[i]})",
+      "$$"
+    ),
+    paste(
+      "$$",
       "w_i^{\\text{obs}} \\sim \\text{InvGamma}(2 + \\delta_{g[i]}^{-1}, [1 + \\delta_{g[i]}^{-1}] w_i^{\\text{true}})",
       "$$"
     ),
     "$$ y_i^{\\text{obs}} \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]}) $$",
     paste(
       "$$",
-      "y_i^{\\text{obs}} \\sim \\text{N}(y_i^{\\text{true}}, s_{h[i]}^2)",
+      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i \\\\",
+      "\\epsilon_i \\sim \\text{N}(0, s_{g[i]}^2) ",
       "$$"
     )
   )
@@ -1119,33 +1118,27 @@ kable(models,
 
 ### System model
 
-Same as original model, but be explicit that modelling actual outcome:
-\begin{align}
-  y_i^{\text{true}} & \sim \text{Poisson}(\gamma_i w_i) (\#eq:lik-pois-outcome-1) \\
-  \gamma_i & \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  (\#eq:lik-pois-outcome-2)
-\end{align}
-with option that $\xi \equiv 0$ so that
+No dispersion term (ie $\xi \equiv 0$), and be explicit that modelling actual outcome:
 \begin{equation}
-  y_i^{\text{true}} \sim \text{Poisson}(\mu_i w_i). (\#eq:like-pois-outcome-3)
+  y_i^{\text{true}} \sim \text{Poisson}(\mu_i w_i). (\#eq:lik-pois-outcome)
 \end{equation}
 
 ### Data model
 
 \begin{align}
   y_i^{\text{obs}} & = u_i + v_i \\
-  u_i & \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) (\#eq:datamod-u-i) \\
-  v_i & \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i) (\#eq:datamod-v-i) \\
-  \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\ 
-  \kappa_h & \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)}),
+  u_i & \sim \text{Binomial}(y_i^{\text{true}}, \pi_i) (\#eq:datamod-u-i) \\
+  v_i & \sim \text{Poisson}(\kappa_i \gamma_i w_i) (\#eq:datamod-v-i) \\
+  \pi_i & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\ 
+  \kappa_i & \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)}),
 \end{align}
 where values for $A_g^{(\pi)}$, $B_g^{(\pi)}$, $A_h^{(\kappa)}$, and $B_h^{(\kappa)}$ are supplied by the user.
 
 Note
 \begin{align}
-  u_i & \mid \pi_{g[i]}, \gamma_i, w_i \sim \text{Poisson}(\pi_{g[i]} \gamma_i w_i), (\#eq:datamod-u-i-cond) \\
-  y_i^{\text{obs}} & \mid \pi_{g[i]}, \kappa_{h[i]}, \gamma_i, w_i \sim \text{Poisson}((\pi_{g[i]} + \kappa_{h[i]}) \gamma_i w_i)
+  u_i & \mid \pi_i, \gamma_i, w_i \sim \text{Poisson}(\pi_i \gamma_i w_i), (\#eq:datamod-u-i-cond) \\
+  y_i^{\text{obs}} & \mid \pi_i, \kappa_i, \gamma_i, w_i \sim \text{Poisson}([\pi_i + \kappa_i] \gamma_i w_i)
 \end{align}
-
 
 We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure overcount model, and for $m_i \equiv 0$, $0 < p_i < 1$, which yields a pure undercount model.
 
@@ -1153,11 +1146,11 @@ We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure
 
 \begin{align}
   y_i^{\text{obs}} & \sim \begin{cases}
-    \text{NegBinom}\left(\xi^{-1}, [1 + (\pi_{g[i]} + \kappa_{h[i]})\mu_i w_i \xi]^{-1}\right) & \xi > 0 \\
-    \text{Poisson}([\pi_{g[i]} + \kappa_{h[i]}]\mu_i w_i) & \xi \equiv 0
+    \text{NegBinom}\left(\xi^{-1}, [1 + (\pi_i + \kappa_i)\mu_i w_i \xi]^{-1}\right) & \xi > 0 \\
+    \text{Poisson}([\pi_i + \kappa_i]\mu_i w_i) & \xi \equiv 0
   \end{cases} \\
-  \pi_g & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\
-  \kappa_h & \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)})
+  \pi_i & \sim \text{Beta}(A_g^{(\pi)}, B_g^{(\pi)}) \\
+  \kappa_i & \sim \text{Gamma}(A_h^{(\kappa)}, B_h^{(\kappa)})
 \end{align}
 
 
@@ -1167,7 +1160,7 @@ We allow for the possibility that $p_i \equiv 1$, $m_i > 0$, which yields a pure
 
 As shown in Appendix \@ref(app:datamod), equations \@ref(eq:datamod-v-i) and \@ref(eq:datamod-u-i-cond) imply that
 \begin{equation}
-  u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i \sim  \text{Binomial}\left(y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_{h[i]}}\right)
+  u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_i, \mu_i, \xi, w_i \sim  \text{Binomial}\left(y_i^{\text{obs}}, \frac{\pi_{g[i]}}{\pi_{g[i]} + \kappa_i}\right)
 \end{equation}
 
 
