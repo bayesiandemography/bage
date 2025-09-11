@@ -171,7 +171,7 @@ set_covariates <- function(mod, formula) {
 #' @description
 #' 
 #' Specify a data model for the exposure
-#' term in a Poisson model. The data model assumes
+#' variable in a Poisson model. The data model assumes
 #' that, within each cell, observed exposure is drawn 
 #' from an Inverse-Gamma distribution, with
 #'
@@ -385,6 +385,62 @@ set_datamod_exposure <- function(mod, disp)  {
 
 #' Specify Miscount Data Model
 #'
+#' Specify a data model for the outcome variable
+#' in a Poisson model, where the outcome variable
+#' is subject simultaneously to undercount and
+#' to overcount.
+#'
+#' The miscount data model assumes that
+#' the reported value for an outcome includes
+#' (1) people or events who belong in the
+#' target population, and (2) people
+#' or events who do not belong in the targe population.
+#' Coverage of (1) is incomplete, so that
+#' the count (1)
+#' is typically less (and never higher) than
+#' the true population. people or events who belong in
+#' the target population is incomplete, so
+#' the 
+#' the reported value for an outcome as the sum
+#' of two quantities:
+#'
+#' 1. An incomplete count of people or events who
+#'   belong in the target population.
+#' 2. A count 
+
+
+#'    belong in the target population.
+#' 2. CouPeople or events who belong in the target
+#'   population, but who are 
+#'
+#' The miscount data model 
+#'
+#' reported outcome = i
+#'
+#' 
+#'
+#' The data model assumes that observed counts
+#' of people or events are the sum
+#' of two quantities:
+#'
+#' 1. People are events that are 
+#' are the sum of two quantities:
+#'
+#' 1. made up of two things:
+#'
+#' 1
+#'
+#' observed outcome = true (but incomplet
+#' sum of two terms:
+#' 1. True 
+#'
+#' observed outcome = 
+#'
+#' We have observed outcome variable takes the form
+#'
+#' 
+#'
+#' 
 #' @param mod An object of class `"bage_mod"`,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
@@ -415,7 +471,25 @@ set_datamod_miscount <- function(mod, prob, rate) {
   check_datamod_val(x = prob,
                     nm_x = "prob",
                     measure_vars = measure_vars_prob)
-  nms_by_prob <- setdiff(names(prob), measure_vars_prob)
+  nms_by_prob <- setdiff(names(prob), measure_vars_prob)## Extract neonatal deaths and create tabulations
+
+## Preliminaries --------------------------------------------------------------
+
+suppressPackageStartupMessages({
+  library(duckdb)
+  library(dplyr)
+  library(poputils)
+  library(readr)
+  library(command)
+})
+
+cmd_assign(.mortality_data = "data/mother_data.csv.gz",
+           .corresp_16 = "data/SA2_2016_to_4_SEIFA_2016_corresp.csv",
+           .corresp_21 = "data/SA2_2021_to_4_SEIFA_2021_corresp.csv",
+           year_min = 2016,
+           year_max = 2022,
+           .out = "out/neonatal_deaths.csv")
+
   by_val_prob <- prob[nms_by_prob]
   check_datamod_by_val(by_val = by_val_prob,
                        data = data,
