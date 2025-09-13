@@ -471,25 +471,7 @@ set_datamod_miscount <- function(mod, prob, rate) {
   check_datamod_val(x = prob,
                     nm_x = "prob",
                     measure_vars = measure_vars_prob)
-  nms_by_prob <- setdiff(names(prob), measure_vars_prob)## Extract neonatal deaths and create tabulations
-
-## Preliminaries --------------------------------------------------------------
-
-suppressPackageStartupMessages({
-  library(duckdb)
-  library(dplyr)
-  library(poputils)
-  library(readr)
-  library(command)
-})
-
-cmd_assign(.mortality_data = "data/mother_data.csv.gz",
-           .corresp_16 = "data/SA2_2016_to_4_SEIFA_2016_corresp.csv",
-           .corresp_21 = "data/SA2_2021_to_4_SEIFA_2021_corresp.csv",
-           year_min = 2016,
-           year_max = 2022,
-           .out = "out/neonatal_deaths.csv")
-
+  nms_by_prob <- setdiff(names(prob), measure_vars_prob)
   by_val_prob <- prob[nms_by_prob]
   check_datamod_by_val(by_val = by_val_prob,
                        data = data,

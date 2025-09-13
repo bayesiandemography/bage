@@ -146,7 +146,7 @@ draw_outcome_obs_given_conf.bage_confidential_rr3 <- function(confidential,
 #' constructed.
 #'
 #' @param x Object of class 'bage_confidential',
-#' or 'bag_datamod'
+#' or 'bage_datamod'
 #'
 #' @returns An integer scalar
 #'
