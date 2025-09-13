@@ -20,7 +20,7 @@ A modified version of \code{mod}.
 }
 \description{
 Specify a data model for the exposure
-term in a Poisson model. The data model assumes
+variable in a Poisson model. The data model assumes
 that, within each cell, observed exposure is drawn
 from an Inverse-Gamma distribution, with
 

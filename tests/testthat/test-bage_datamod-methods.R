@@ -1140,7 +1140,6 @@ test_that("'draw_outcome_true_given_obs' gives expected error with bage_datamod_
 })
 
 
-
 ## 'get_datamod_transform_param' ----------------------------------------------
 
 test_that("'get_datamod_transform_param' works with bage_datamod_miscount", {
@@ -1163,12 +1162,16 @@ test_that("'get_datamod_transform_param' works with bage_datamod_miscount", {
                                        rate_matrix_outcome = rate_matrix_outcome,
                                        nms_by = c("sex", "age"))
   fun <- get_datamod_transform_param(datamod)
-  x <- runif(7)
+  x <- rvec::rnorm_rvec(7, n_draw = 10)
+  s1 <- prob_mean / prob_disp
+  s2 <- (1 - prob_mean) / prob_disp
+  shape <- 1 / rate_disp
+  rate <- 1 / (rate_disp * rate_mean)
   expect_identical(fun(x),
-                   c(poputils::invlogit(x[1:4]), exp(x[5:7])))
-  x <- rvec::runif_rvec(7, n_draw = 10)
-  expect_identical(fun(x),
-                   c(poputils::invlogit(x[1:4]), exp(x[5:7])))
+                   c(rvec::qbeta_rvec(xx <- rvec::pnorm_rvec(x[1:4]), s1, s2),
+                     rvec::qgamma_rvec(rvec::pnorm_rvec(x[5:7]),
+                                                        shape,
+                                                        rate = rate)))
 })
 
 test_that("'get_datamod_transform_param' works with bage_datamod_overcount", {
@@ -1183,7 +1186,14 @@ test_that("'get_datamod_transform_param' works with bage_datamod_overcount", {
                                         rate_matrix_outcome = rate_matrix_outcome,
                                         nms_by = c("sex", "age"))
   fun <- get_datamod_transform_param(datamod)
-  expect_identical(fun(1:10), exp(1:10))
+  x <- rvec::rnorm_rvec(n = 3, n_draw = 10)
+  ans_obtained <- fun(x)
+  shape <- 1 / rate_disp
+  rate <- 1 / (rate_disp * rate_mean)
+  ans_expected <- rvec::qgamma_rvec(rvec::pnorm_rvec(x),
+                                    shape = shape,
+                                    rate = rate)
+  expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'get_datamod_transform_param' works with bage_datamod_undercount", {
@@ -1198,8 +1208,12 @@ test_that("'get_datamod_transform_param' works with bage_datamod_undercount", {
                                        prob_matrix_outcome = prob_matrix_outcome,
                                        nms_by = c("sex", "age"))
   fun <- get_datamod_transform_param(datamod)
-  x <- rvec::runif_rvec(10, n_draw = 5)
-  expect_identical(fun(x), poputils::invlogit(x))
+  x <- rvec::rnorm_rvec(4, n_draw = 5)
+  ans_obtained <- fun(x)
+  s1 <- prob_mean / prob_disp
+  s2 <- (1 - prob_mean) / prob_disp
+  ans_expected <- rvec::qbeta_rvec(rvec::pnorm_rvec(x), s1, s2)
+  expect_equal(ans_obtained, ans_expected)
 })
 
 
@@ -1478,7 +1492,7 @@ test_that("'make_datamod_param' works with bage_datamod_miscount", {
                                        rate_matrix_outcome = rate_matrix_outcome,
                                        nms_by = c("sex", "age"))
   ans_obtained <- make_datamod_param(datamod)
-  ans_expected <- c(poputils::logit(prob_mean), log(rate_mean))
+  ans_expected <- rep(0, times = 7)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1509,7 +1523,7 @@ test_that("'make_datamod_param' works with bage_datamod_overcount", {
                                         rate_matrix_outcome = rate_matrix_outcome,
                                         nms_by = c("sex", "age"))
   ans_obtained <- make_datamod_param(datamod)
-  ans_expected <- log(rate_mean)
+  ans_expected <- rep(0, times = 3)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1525,7 +1539,7 @@ test_that("'make_datamod_param' works with bage_datamod_undercount", {
                                        prob_matrix_outcome = prob_matrix_outcome,
                                        nms_by = c("sex", "age"))
   ans_obtained <- make_datamod_param(datamod)
-  ans_expected <- poputils::logit(prob_mean)
+  ans_expected <- rep(0, times = 4)
   expect_equal(ans_obtained, ans_expected)
 })
 

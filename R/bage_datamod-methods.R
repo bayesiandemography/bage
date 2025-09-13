@@ -597,13 +597,24 @@ get_datamod_transform_param <- function(datamod) {
 #' @export
 get_datamod_transform_param.bage_datamod_miscount <- function(datamod) {
   prob_mean <- datamod$prob_mean
+  prob_disp <- datamod$prob_disp
   n_prob <- length(prob_mean)
+  rate_mean <- datamod$rate_mean
+  rate_disp <- datamod$rate_disp
+  shape1 <- prob_mean / prob_disp
+  shape2 <- (1 - prob_mean) / prob_disp
+  shape <- 1 / rate_disp
+  scale <- rate_mean * rate_disp
+  eps <- 1e-12
   ans <- function(x) {
+    if (!rvec::is_rvec(x))
+      cli::cli_abort("Internal error: {.arg x} is not an rvec.")
+    u <- rvec::pnorm_rvec(x)
+    u <- rvec::if_else_rvec(u < eps, eps, u)
+    u <- rvec::if_else_rvec(u > 1 - eps, 1 - eps, u)
     s <- seq_len(n_prob)
-    logit_prob <- x[s]
-    log_rate <- x[-s]
-    prob <- poputils::invlogit(logit_prob)
-    rate <- exp(log_rate)
+    prob <- rvec::qbeta_rvec(u[s], shape1 = shape1, shape2 = shape2)
+    rate <- rvec::qgamma_rvec(u[-s], shape = shape, scale = scale)
     vctrs::vec_c(prob, rate)
   }
 }
@@ -611,13 +622,37 @@ get_datamod_transform_param.bage_datamod_miscount <- function(datamod) {
 ## HAS_TESTS
 #' @export
 get_datamod_transform_param.bage_datamod_overcount <- function(datamod) {
-  exp
+  rate_mean <- datamod$rate_mean
+  rate_disp <- datamod$rate_disp
+  shape <- 1 / rate_disp
+  scale <- rate_mean * rate_disp
+  eps <- 1e-12
+  ans <- function(x) {
+    if (!rvec::is_rvec(x))
+      cli::cli_abort("Internal error: {.arg x} is not an rvec.")
+    u <- rvec::pnorm_rvec(x)
+    u <- rvec::if_else_rvec(u < eps, eps, u)
+    u <- rvec::if_else_rvec(u > 1 - eps, 1 - eps, u)
+    rvec::qgamma_rvec(u, shape = shape, scale = scale)
+  }
 }
 
 ## HAS_TESTS
 #' @export
 get_datamod_transform_param.bage_datamod_undercount <- function(datamod) {
-  poputils::invlogit
+  prob_mean <- datamod$prob_mean
+  prob_disp <- datamod$prob_disp
+  shape1 <- prob_mean / prob_disp
+  shape2 <- (1 - prob_mean) / prob_disp
+  eps <- 1e-12
+  ans <- function(x) {
+    if (!rvec::is_rvec(x))
+      cli::cli_abort("Internal error: {.arg x} is not an rvec.")
+    u <- rvec::pnorm_rvec(x)
+    u <- rvec::if_else_rvec(u < eps, eps, u)
+    u <- rvec::if_else_rvec(u > 1 - eps, 1 - eps, u)
+    rvec::qbeta_rvec(u, shape1 = shape1, shape2 = shape2)
+  }
 }
 
 
@@ -832,10 +867,9 @@ make_datamod_param.bage_datamod_exposure <- function(datamod) {
 ## HAS_TESTS
 #' @export
 make_datamod_param.bage_datamod_miscount <- function(datamod) {
-  prob_mean <- datamod$prob_mean
-  rate_mean <- datamod$rate_mean
-  c(poputils::logit(prob_mean),
-    log(rate_mean))
+  n_prob <- length(datamod$prob_mean)
+  n_rate <- length(datamod$rate_mean)
+  rep(0, times = n_prob + n_rate)
 }
 
 ## HAS_TESTS
@@ -847,15 +881,15 @@ make_datamod_param.bage_datamod_noise <- function(datamod) {
 ## HAS_TESTS
 #' @export
 make_datamod_param.bage_datamod_overcount <- function(datamod) {
-  rate_mean <- datamod$rate_mean
-  log(rate_mean)
+  n_rate <- length(datamod$rate_mean)
+  rep(0, times = n_rate)
 }
 
 ## HAS_TESTS
 #' @export
 make_datamod_param.bage_datamod_undercount <- function(datamod) {
-  prob_mean <- datamod$prob_mean
-  poputils::logit(prob_mean)
+  n_prob <- length(datamod$prob_mean)
+  rep(0, times = n_prob)
 }
 
 

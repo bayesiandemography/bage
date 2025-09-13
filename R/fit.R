@@ -469,6 +469,8 @@ make_fit_random <- function(mod) {
       ans <- c(ans, "hyperrandfree")
     if (has_covariates)
       ans <- c(ans, "coef_covariates")
+    if (has_datamod_param)
+      ans <- c(ans, "datamod_param")
   }
   ans
 }

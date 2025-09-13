@@ -23,5 +23,56 @@ called \code{"disp"}}
 A modified version of \code{mod}.
 }
 \description{
-Specify Miscount Data Model
+Specify a data model for the outcome variable
+in a Poisson model, where the outcome variable
+is subject simultaneously to undercount and
+to overcount.
+}
+\details{
+The miscount data model assumes that
+the reported value for an outcome includes
+(1) people or events who belong in the
+target population, and (2) people
+or events who do not belong in the targe population.
+Coverage of (1) is incomplete, so that
+the count (1)
+is typically less (and never higher) than
+the true population. people or events who belong in
+the target population is incomplete, so
+the
+the reported value for an outcome as the sum
+of two quantities:
+\enumerate{
+\item An incomplete count of people or events who
+belong in the target population.
+\item A count
+belong in the target population.
+\item CouPeople or events who belong in the target
+population, but who are
+}
+
+The miscount data model
+
+reported outcome = i
+
+The data model assumes that observed counts
+of people or events are the sum
+of two quantities:
+\enumerate{
+\item People are events that are
+are the sum of two quantities:
+\item made up of two things:
+}
+
+1
+
+observed outcome = true (but incomplet
+sum of two terms:
+\enumerate{
+\item True
+}
+
+observed outcome =
+
+We have observed outcome variable takes the form
 }

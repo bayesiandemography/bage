@@ -1047,64 +1047,22 @@ Type logpost_has_hyperrandfree(const vector<Type>& effectfree,
 // 'Methods' for logpost function for data models -----------------------------
 
 template <class Type>
-Type logpost_datamod_miscount(const vector<Type>& datamod_param,
-			      const vector<Type>& datamod_consts,
-			      const LIST_SM_t<Type> &datamod_matrices) {
-  const SparseMatrix<Type>& prob_matrix = datamod_matrices[0];
-  const SparseMatrix<Type>& rate_matrix = datamod_matrices[1];
-  const int n_prob = prob_matrix.cols();
-  const int n_rate = rate_matrix.cols();
-  const vector<Type> logit_prob = datamod_param.head(n_prob);
-  const auto& log_rate = datamod_param.tail(n_rate);
-  const auto& prob_mean = datamod_consts.head(n_prob);
-  const auto& prob_disp = datamod_consts.segment(n_prob, n_prob);
-  const auto& rate_mean = datamod_consts.segment(2 * n_prob, n_rate);
-  const auto& rate_disp = datamod_consts.tail(n_rate);
-  const vector<Type> prob = invlogit(logit_prob);
-  const vector<Type> rate = exp(log_rate);
-  Type ans = Type(0);
-  const vector<Type> shape1 = prob_mean / prob_disp;
-  const vector<Type> shape2 = (Type(1) - prob_mean) / prob_disp;
-  ans += dbeta(prob, shape1, shape2, true).sum();
-  ans += (log(prob) + log1p(-prob)).sum(); // Jacobian
-  const vector<Type> shape = rate_disp.cwiseInverse();
-  const vector<Type> scale = rate_mean * rate_disp;
-  ans += dgamma(rate, shape, scale, true).sum();
-  ans += log_rate.sum(); // Jacobian
-  return ans;
+Type logpost_datamod_miscount(const vector<Type>& datamod_param) {
+  const vector<Type>& z = datamod_param;
+  return dnorm(z, Type(0), Type(1), true).sum();
 }
 
 template <class Type>
-Type logpost_datamod_overcount(const vector<Type>& datamod_param,
-			       const vector<Type>& datamod_consts) {
-  const int n = datamod_param.size();
-  const auto& log_rate = datamod_param;
-  const auto& rate_mean = datamod_consts.head(n);
-  const auto& rate_disp = datamod_consts.tail(n);
-  const vector<Type> rate = exp(log_rate);
-  Type ans = Type(0);
-  const vector<Type> shape = rate_disp.cwiseInverse();
-  const vector<Type> scale = rate_mean * rate_disp;
-  ans += dgamma(rate, shape, scale, true).sum();
-  ans += log_rate.sum(); // Jacobian
-  return ans;
+Type logpost_datamod_overcount(const vector<Type>& datamod_param) {
+  const vector<Type>& z_rate = datamod_param;
+  return dnorm(z_rate, Type(0), Type(1), true).sum();
 }
 
 
 template <class Type>
-Type logpost_datamod_undercount(const vector<Type>& datamod_param,
-				const vector<Type>& datamod_consts) {
-  const int n = datamod_param.size();
-  const vector<Type> logit_prob = datamod_param;
-  const auto& prob_mean = datamod_consts.head(n);
-  const auto& prob_disp = datamod_consts.tail(n);
-  const vector<Type> prob = invlogit(logit_prob);
-  Type ans = Type(0);
-  const vector<Type> shape1 = prob_mean / prob_disp;
-  const vector<Type> shape2 = (Type(1) - prob_mean) / prob_disp;
-  ans += dbeta(prob, shape1, shape2, true).sum();
-  ans += (log(prob) + log1p(-prob)).sum(); // Jacobian
-  return ans;
+Type logpost_datamod_undercount(const vector<Type>& datamod_param) {
+  const vector<Type>& z_prob = datamod_param;
+  return dnorm(z_prob, Type(0), Type(1), true).sum();
 }
 
 
@@ -1112,8 +1070,6 @@ Type logpost_datamod_undercount(const vector<Type>& datamod_param,
 
 template <class Type>
 Type logpost_datamod(const vector<Type>& datamod_param,
-		     const vector<Type>& datamod_consts,
-		     const LIST_SM_t<Type> &datamod_matrices,
 		     int i_datamod) {
   Type ans = Type(0);
   switch(i_datamod) {
@@ -1121,20 +1077,16 @@ Type logpost_datamod(const vector<Type>& datamod_param,
     ans = 0; // no parameters
     break;
   case 2000:
-    ans = logpost_datamod_miscount(datamod_param,
-				   datamod_consts,
-				   datamod_matrices);
+    ans = logpost_datamod_miscount(datamod_param);
     break;
   case 3000:
     ans = 0; // no parameters
     break;
   case 4000:
-    ans = logpost_datamod_overcount(datamod_param,
-				    datamod_consts);
+    ans = logpost_datamod_overcount(datamod_param);
     break;
   case 5000:
-    ans = logpost_datamod_undercount(datamod_param,
-				     datamod_consts);
+    ans = logpost_datamod_undercount(datamod_param);
     break;
   default: // # nocov
     Rf_error("Internal error: 'logpost_datamod' cannot handle i_datmod = %d", // # nocov
@@ -1151,7 +1103,7 @@ void fill_datamod_vals_exposure(MatrixD<Type> &datamod_vals,
 				const vector<Type>& datamod_consts,
 				const LIST_SM_t<Type> &datamod_matrices) {
   const vector<Type>& disp = datamod_consts;
-  const SparseMatrix<Type>& disp_matrix = datamod_matrices[0];
+  const SparseMatrix<Type>& disp_matrix = datamod_matrices(0);
   const int n_outcome = disp_matrix.rows();
   datamod_vals.resize(n_outcome, 1);
   datamod_vals.col(0) = disp_matrix * disp;
@@ -1160,16 +1112,30 @@ void fill_datamod_vals_exposure(MatrixD<Type> &datamod_vals,
 template <class Type>
 void fill_datamod_vals_miscount(MatrixD<Type> &datamod_vals,
 				const vector<Type>& datamod_param,
+				 const vector<Type>& datamod_consts,
 				const LIST_SM_t<Type> &datamod_matrices) {
-  const SparseMatrix<Type>& prob_matrix = datamod_matrices[0];
-  const SparseMatrix<Type>& rate_matrix = datamod_matrices[1];
+  const SparseMatrix<Type>& prob_matrix = datamod_matrices(0);
+  const SparseMatrix<Type>& rate_matrix = datamod_matrices(1);
   const int n_prob = prob_matrix.cols();
   const int n_rate = rate_matrix.cols();
   const int n_outcome = prob_matrix.rows();
-  const vector<Type> logit_prob = datamod_param.head(n_prob);
-  const auto& log_rate = datamod_param.tail(n_rate);
-  const vector<Type> prob = invlogit(logit_prob);
-  const vector<Type> rate = exp(log_rate);
+  const vector<Type> z_prob = datamod_param.head(n_prob);
+  const vector<Type> z_rate = datamod_param.tail(n_rate);
+  const auto& prob_mean = datamod_consts.head(n_prob);
+  const auto& prob_disp = datamod_consts.segment(n_prob, n_prob);
+  const auto& rate_mean = datamod_consts.segment(2 * n_prob, n_rate);
+  const auto& rate_disp = datamod_consts.tail(n_rate);
+  const vector<Type> shape1 = prob_mean / prob_disp;
+  const vector<Type> shape2 = (Type(1) - prob_mean) / prob_disp;
+  const vector<Type> shape = rate_disp.cwiseInverse();
+  const vector<Type> scale = rate_mean.cwiseProduct(rate_disp);
+  vector<Type> u_prob = pnorm(z_prob, Type(0), Type(1));
+  vector<Type> u_rate = pnorm(z_rate, Type(0), Type(1));
+  const Type eps = Type(1e-12);
+  u_prob = u_prob.cwiseMax(eps).cwiseMin(Type(1) - eps);
+  u_rate = u_rate.cwiseMax(eps).cwiseMin(Type(1) - eps);
+  const vector<Type> prob = qbeta(u_prob, shape1, shape2);
+  const vector<Type> rate = qgamma(u_rate, shape, scale);
   datamod_vals.resize(n_outcome, 2);
   datamod_vals.col(0) = prob_matrix * prob;
   datamod_vals.col(1) = rate_matrix * rate;
@@ -1180,7 +1146,7 @@ void fill_datamod_vals_noise(MatrixD<Type> &datamod_vals,
 			     const vector<Type>& datamod_consts,
 			     const LIST_SM_t<Type> &datamod_matrices) {
   const vector<Type>& sd = datamod_consts;
-  const SparseMatrix<Type>& sd_matrix = datamod_matrices[0];
+  const SparseMatrix<Type>& sd_matrix = datamod_matrices(0);
   const int n_outcome = sd_matrix.rows();
   datamod_vals.resize(n_outcome, 1);
   datamod_vals.col(0) = sd_matrix * sd;
@@ -1189,11 +1155,20 @@ void fill_datamod_vals_noise(MatrixD<Type> &datamod_vals,
 template <class Type>
 void fill_datamod_vals_overcount(MatrixD<Type> &datamod_vals,
 				 const vector<Type>& datamod_param,
+				 const vector<Type>& datamod_consts,
 				 const LIST_SM_t<Type> &datamod_matrices) {
-  const auto& log_rate = datamod_param;
-  const SparseMatrix<Type>& rate_matrix = datamod_matrices[0];
+  const vector<Type>& z_rate = datamod_param;
+  const int n_param = datamod_param.size();
+  const vector<Type> rate_mean = datamod_consts.head(n_param);
+  const vector<Type> rate_disp = datamod_consts.tail(n_param);
+  const SparseMatrix<Type>& rate_matrix = datamod_matrices(0);
   int n_outcome = rate_matrix.rows();
-  const vector<Type> rate = exp(log_rate);
+  const vector<Type> shape = rate_disp.cwiseInverse();
+  const vector<Type> scale = rate_mean * rate_disp;
+  vector<Type> u_rate = pnorm(z_rate, Type(0), Type(1));
+  const Type eps = Type(1e-12);
+  u_rate = u_rate.cwiseMax(eps).cwiseMin(Type(1) - eps);
+  const vector<Type> rate = qgamma(u_rate, shape, scale);
   datamod_vals.resize(n_outcome, 1);
   datamod_vals.col(0) = rate_matrix * rate;
 }
@@ -1201,11 +1176,20 @@ void fill_datamod_vals_overcount(MatrixD<Type> &datamod_vals,
 template <class Type>
 void fill_datamod_vals_undercount(MatrixD<Type> &datamod_vals,
 				  const vector<Type>& datamod_param,
+				  const vector<Type>& datamod_consts,
 				  const LIST_SM_t<Type> &datamod_matrices) {
-  const vector<Type> logit_prob = datamod_param;
-  const SparseMatrix<Type>& prob_matrix = datamod_matrices[0];
+  const vector<Type>& z_prob = datamod_param;
+  const int n_param = datamod_param.size();
+  const vector<Type> prob_mean = datamod_consts.head(n_param);
+  const vector<Type> prob_disp = datamod_consts.tail(n_param);
+  const SparseMatrix<Type>& prob_matrix = datamod_matrices(0);
   int n_outcome = prob_matrix.rows();
-  const vector<Type> prob = invlogit(logit_prob);
+  const vector<Type> shape1 = prob_mean / prob_disp;
+  const vector<Type> shape2 = (Type(1) - prob_mean) / prob_disp;
+  vector<Type> u_prob = pnorm(z_prob, Type(0), Type(1));
+  const Type eps = Type(1e-12);
+  u_prob = u_prob.cwiseMax(eps).cwiseMin(Type(1) - eps);
+  const vector<Type> prob = qbeta(u_prob, shape1, shape2);
   datamod_vals.resize(n_outcome, 1);
   datamod_vals.col(0) = prob_matrix * prob;
 }
@@ -1227,6 +1211,7 @@ void fill_datamod_vals(MatrixD<Type> &datamod_vals,
   case 2000:
     fill_datamod_vals_miscount(datamod_vals,
 			       datamod_param,
+			       datamod_consts,
 			       datamod_matrices);
     break;
   case 3000:
@@ -1237,11 +1222,13 @@ void fill_datamod_vals(MatrixD<Type> &datamod_vals,
   case 4000:
     fill_datamod_vals_overcount(datamod_vals,
 				datamod_param,
+				datamod_consts,
 				datamod_matrices);
     break;
   case 5000:
     fill_datamod_vals_undercount(datamod_vals,
 				 datamod_param,
+				 datamod_consts,
 				 datamod_matrices);
     break;
   default: // # nocov
@@ -1914,8 +1901,6 @@ Type objective_function<Type>::operator() ()
   // contribution to log posterior from data model
   if (has_datamod) {
     ans -= logpost_datamod(datamod_param,
-			   datamod_consts,
-			   datamod_matrices,
 			   i_datamod);
   }
   
