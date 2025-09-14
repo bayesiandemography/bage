@@ -156,6 +156,18 @@ test_that("'is_same_class' returns FALSE when classes different", {
 })
 
 
+
+## 'log_dskellam_R' -----------------------------------------------------------
+
+log_dskellam_call_ <- function(k, mu1, mu2, x_thresh = 700) {
+  .Call("C_log_dskellam_R",
+        as.integer(k),
+        as.numeric(mu1),
+        as.numeric(mu2),
+        as.numeric(x_thresh))
+}
+
+
 ## 'make_scaled_eigen' --------------------------------------------------------
 
 ## See also tests for rvnorm_eigen
