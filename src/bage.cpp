@@ -1,4 +1,3 @@
-
 #include <TMB.hpp>
 #include "init.h"
 
@@ -7,11 +6,17 @@ using namespace Eigen;
 using namespace tmbutils;
 
 
+
+// Constants ------------------------------------------------------------------
+
+constexpr double LOG_ONE_THIRD  = -1.0986122886681098;
+constexpr double LOG_TWO_THIRDS = -0.4054651081081644;
+
+
 // Alias for dynamic matrix ---------------------------------------------------
 
 template<class Type>
 using MatrixD = Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic>;
-
 
 // List objects to hold matrices ----------------------------------------------
 
@@ -226,6 +231,25 @@ Type dnbinom_mu(Type x,
   return dnbinom(x, size, prob, give_log);
 }
 
+// calculate besselI when 'x' is large - Debye-type expansion up to O(x^-3)
+template<class Type>
+Type log_besselI_large(Type x, Type nu) {
+  const Type two_pi = Type(6.2831853071795864769252867665590057683943L);
+  Type mu4 = Type(4.0) * nu * nu;          // μ = 4 ν^2
+  Type t   = Type(1.0) / (Type(8.0) * x);  // 1/(8x)
+  Type S1 = -(mu4 - Type(1.0)) * t;
+  Type S2 =  (mu4 - Type(1.0)) * (mu4 - Type(9.0)) * (t * t) / Type(2.0);
+  Type S3 = -(mu4 - Type(1.0)) * (mu4 - Type(9.0)) * (mu4 - Type(25.0)) * (t * t * t) / Type(6.0);
+  Type u  = S1 + S2 + S3;
+  return x - Type(0.5) * log(two_pi * x) + log1p(u);
+}
+
+// calculate besselI when 'x' is small
+template<class Type>
+Type log_besselI_small(Type x, Type nu) {
+  return log(besselI(x, nu));
+}
+
 template <class Type>
 Type log_dbetabinom(Type x,
 		    Type size,
@@ -243,22 +267,20 @@ Type log_dbetabinom_rr3(Type x,
 			Type size,
 			Type mu,
 			Type disp) {
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
   Type ans = log_dbetabinom(x, size, mu, disp);
-  if (x >= Type(2))
+  if (asDouble(x) >= 2.0)
     ans = logspace_add(ans,
-		      log_one_third
+		      LOG_ONE_THIRD
 		      + log_dbetabinom(x - Type(2), size, mu, disp));
-  if (x >= Type(1))
+  if (asDouble(x) >= 1.0)
     ans = logspace_add(ans,
-		       log_two_thirds
+		       LOG_TWO_THIRDS
 		       + log_dbetabinom(x - Type(1), size, mu, disp));
   ans = logspace_add(ans,
-		     log_two_thirds
+		     LOG_TWO_THIRDS
 		     + log_dbetabinom(x + Type(1), size, mu, disp));
   ans = logspace_add(ans,
-		     log_one_third
+		     LOG_ONE_THIRD
 		     + log_dbetabinom(x + Type(2), size, mu, disp));
   return ans;
 }
@@ -267,22 +289,20 @@ template <class Type>
 Type log_dbinom_rr3(Type x,
 		    Type size,
 		    Type prob) {
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
   Type ans = dbinom(x, size, prob, true);
-  if (x >= Type(2))
+  if (asDouble(x) >= 2.0)
     ans += logspace_add(ans,
-			log_one_third
+			LOG_ONE_THIRD
 			+ dbinom(x - Type(2), size, prob, true));
-  if (x >= Type(1))
+  if (asDouble(x) >= 1.0)
     ans = logspace_add(ans,
-		       log_two_thirds
+		       LOG_TWO_THIRDS
 		       + dbinom(x - Type(1), size, prob, true));
   ans = logspace_add(ans,
-		     log_two_thirds
+		     LOG_TWO_THIRDS
 		     + dbinom(x + Type(1), size, prob, true));
   ans = logspace_add(ans,
-		     log_one_third
+		     LOG_ONE_THIRD
 		     + dbinom(x + Type(2), size, prob, true));
   return ans;
 }
@@ -291,22 +311,20 @@ template <class Type>
 Type log_dbinom_robust_rr3(Type x,
 			   Type size,
 			   Type logit_p) {
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
   Type ans = dbinom_robust(x, size, logit_p, true);
-  if (x >= Type(2))
+  if (asDouble(x) >= 2.0)
     ans = logspace_add(ans,
-		       log_one_third
+		       LOG_ONE_THIRD
 		       + dbinom_robust(x - Type(2), size, logit_p, true));
-  if (x >= Type(1))
+  if (asDouble(x) >= 1.0)
     ans = logspace_add(ans,
-		       log_two_thirds
+		       LOG_TWO_THIRDS
 		       + dbinom_robust(x - Type(1), size, logit_p, true));
   ans = logspace_add(ans,
-		     log_two_thirds
+		     LOG_TWO_THIRDS
 		     + dbinom_robust(x + Type(1), size, logit_p, true));
   ans = logspace_add(ans,
-		     log_one_third
+		     LOG_ONE_THIRD
 		     + dbinom_robust(x + Type(2), size, logit_p, true));
   return ans;
 }
@@ -315,22 +333,20 @@ template <class Type>
 Type log_dnbinom_rr3(Type x,
 		     Type size,
 		     Type prob) {
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
   Type ans = dnbinom(x, size, prob, true);
-  if (x >= Type(2))
+  if (asDouble(x) >= 2.0)
     ans += logspace_add(ans,
-			log_one_third
+			LOG_ONE_THIRD
 			+ dnbinom(x - Type(2), size, prob, true));
-  if (x >= Type(1))
+  if (asDouble(x) >= 1.0)
     ans = logspace_add(ans,
-		       log_two_thirds
+		       LOG_TWO_THIRDS
 		       + dnbinom(x - Type(1), size, prob, true));
   ans = logspace_add(ans,
-		     log_two_thirds
+		     LOG_TWO_THIRDS
 		     + dnbinom(x + Type(1), size, prob, true));
   ans = logspace_add(ans,
-		     log_one_third
+		     LOG_ONE_THIRD
 		     + dnbinom(x + Type(2), size, prob, true));
   return ans;
 }
@@ -339,47 +355,96 @@ template <class Type>
 Type log_dnbinom_mu_rr3(Type x,
 			Type size,
 			Type mu) {
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
   Type ans = dnbinom_mu(x, size, mu, true);
-  if (x >= Type(2))
+  if (asDouble(x) >= 2.0)
     ans += logspace_add(ans,
-			log_one_third
+			LOG_ONE_THIRD
 			+ dnbinom_mu(x - Type(2), size, mu, true));
-  if (x >= Type(1))
+  if (asDouble(x) >= 1.0)
     ans = logspace_add(ans,
-		       log_two_thirds
+		       LOG_TWO_THIRDS
 		       + dnbinom_mu(x - Type(1), size, mu, true));
   ans = logspace_add(ans,
-		     log_two_thirds
+		     LOG_TWO_THIRDS
 		     + dnbinom_mu(x + Type(1), size, mu, true));
   ans = logspace_add(ans,
-		     log_one_third
+		     LOG_ONE_THIRD
 		     + dnbinom_mu(x + Type(2), size, mu, true));
   return ans;
 }
 
 template <class Type>
 Type log_dpois_rr3(Type x, Type rate) {
-  const Type log_one_third = -log(3);
-  const Type log_two_thirds = log(2) - log(3);
   Type ans = dpois(x, rate, true);
-  if (x >= Type(2))
+  if (asDouble(x) >= 2.0)
     ans = logspace_add(ans,
-		       log_one_third
+		       LOG_ONE_THIRD
 		       + dpois(x - Type(2), rate, true));
-  if (x >= Type(1))
+  if (asDouble(x) >= 1.0)
     ans = logspace_add(ans,
-		       log_two_thirds
+		       LOG_TWO_THIRDS
 		       + dpois(x - Type(1), rate, true));
   ans = logspace_add(ans,
-		     log_two_thirds
+		     LOG_TWO_THIRDS
 		     + dpois(x + Type(1), rate, true));
   ans = logspace_add(ans,
-		     log_one_third
+		     LOG_ONE_THIRD
 		     + dpois(x + Type(2), rate, true));
   return ans;
 }
+
+template<class Type>
+Type log_dskellam(Type x, Type mu1, Type mu2) {
+  const Type threshold = 500;
+  // cases where mu1, mu2 <= 0
+  const bool is_mu1_nonpos = !(mu1 > Type(0));
+  if (is_mu1_nonpos) {
+    if (x > 0)
+      return -std::numeric_limits<double>::infinity();
+    else {
+      Type x_neg = -x;
+      return dpois(x_neg, mu2, true);
+    }
+  }
+  const bool is_mu2_nonpos = !(mu2 > Type(0));
+  if (is_mu2_nonpos) {
+    if (x < 0)
+      return -std::numeric_limits<double>::infinity();
+    else
+      return dpois(x, mu1, true);
+  }
+  // case where mu1, mu2 > 0
+  Type x_abs = fabs(x);
+  Type base = -(mu1 + mu2) + Type(0.5 * x) * (log(mu1) - log(mu2));
+  Type arg = Type(2.0) * sqrt(mu1 * mu2);
+  Type logI;
+  if (asDouble(arg) < threshold)
+    logI = log(besselI(arg, x_abs));
+  else
+    logI = log_besselI_large(arg, x_abs);
+  return base + logI;
+}
+
+template <class Type>
+Type log_dskellam_rr3(Type x, Type mu1, Type mu2) {
+  Type ans = log_dskellam(x, mu1, mu2);
+  if (asDouble(x) >= 2.0)
+    ans = logspace_add(ans,
+		       LOG_ONE_THIRD
+		       + log_dskellam(x - Type(2), mu1, mu2));
+  if (asDouble(x) >= 1.0)
+    ans = logspace_add(ans,
+		       LOG_TWO_THIRDS
+		       + log_dskellam(x - Type(1), mu1, mu2));
+  ans = logspace_add(ans,
+		     LOG_TWO_THIRDS
+		     + log_dskellam(x + Type(1), mu1, mu2));
+  ans = logspace_add(ans,
+		     LOG_ONE_THIRD
+		     + log_dskellam(x + Type(2), mu1, mu2));
+  return ans;
+}
+
 
 template <class Type>
 Type logpost_ar_inner(const vector<Type>& effectfree,
@@ -1275,6 +1340,7 @@ Type loglik_binom_no_disp_rr3(Type outcome,
 }
 
 
+
 // Has disp, no data models
 
 template <class Type>
@@ -1370,6 +1436,28 @@ Type loglik_pois_no_disp_miscount_rr3(Type outcome,
   Type r = datamod_vals[1];
   Type lambda = (p + r) * exp(linpred) * offset;
   return log_dpois_rr3(outcome, lambda);
+}
+
+template <class Type>
+Type loglik_pois_no_disp_noise(Type outcome,
+			       const vector<Type>& datamod_vals,
+			       Type linpred,
+			       Type offset) {
+  Type s = datamod_vals[0];
+  Type mu1 = exp(linpred) * offset + Type(0.5) * s * s;
+  Type mu2 = Type(0.5) * s * s;
+  return log_dskellam(outcome, mu1, mu2);
+}
+
+template <class Type>
+Type loglik_pois_no_disp_noise_rr3(Type outcome,
+				   const vector<Type>& datamod_vals,
+				   Type linpred,
+				   Type offset) {
+  Type s = datamod_vals[0];
+  Type mu1 = exp(linpred) * offset + Type(0.5) * s * s;
+  Type mu2 = Type(0.5) * s * s;
+  return log_dskellam_rr3(outcome, mu1, mu2);
 }
 
 template <class Type>
@@ -1633,6 +1721,18 @@ Type loglik_no_disp_has_dm(Type outcome,
 					   datamod_vals,
 					   linpred,
 					   offset);
+    break;
+  case 203000:
+    ans = loglik_pois_no_disp_noise(outcome,
+				    datamod_vals,
+				    linpred,
+				    offset);
+    break;
+  case 203010:
+    ans = loglik_pois_no_disp_noise_rr3(outcome,
+					datamod_vals,
+					linpred,
+					offset);
     break;
   case 204000:
     ans = loglik_pois_no_disp_overcount(outcome,

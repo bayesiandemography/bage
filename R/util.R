@@ -134,7 +134,6 @@ is_not_testing_or_snapshot <- function() {
 is_same_class <- function(x, y)
   identical(class(x)[[1L]], class(y)[[1L]])
 
-
 ## HAS_TESTS
 #' Use a precision matrix to construct scaled eigen vectors
 #'
