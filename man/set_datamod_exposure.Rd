@@ -16,7 +16,7 @@ with a variable called \code{"disp"},
 and one or more 'by' variables.}
 }
 \value{
-A modified version of \code{mod}.
+A revised version of \code{mod}.
 }
 \description{
 Specify a data model for the exposure
@@ -49,11 +49,12 @@ scales with the mean. It also implies that
 values for dispersion will typically be very small.
 
 \code{set_datamod_exposure()} can only be used
-with model where dispersion in Poisson rates
-has been set to zero, using function \code{\link[=set_disp]{set_disp()}}.
-In models that use \code{set_datamod_exposure()},
-"dispersion" refers to variation in
-observed exposures, not variation in Poisson rates.
+with a Poisson model for rates in which dispersion
+in rates (as opposed to dispersion in observed
+exposure) is zero. Dispersion in
+rates can be set using \code{\link[=set_disp]{set_disp()}},
+though \code{set_datamod_exposure()} will also
+do so.
 }
 \section{The \code{disp} argument}{
 

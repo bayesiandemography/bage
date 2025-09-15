@@ -16,7 +16,7 @@ a variable called \code{"mean"}, and a variable
 called \code{"disp"}}
 }
 \value{
-A modified version of \code{mod}.
+A revised version of \code{mod}.
 }
 \description{
 Specify Overcount Data Model

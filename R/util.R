@@ -364,6 +364,111 @@ rpois_guarded <- function(lambda) {
 }
 
 
+
+#' Draw from Posterior Distribution of True Values
+#' Given Observed Values, for Poisson plus Symmetric Skellam
+#'
+#' Use exact when m or lambda < 50; otherwise use normal approximation
+#'
+#' @param y_obs Observed value
+#' @param lambda Expected value
+#' @param m Mu for symmetric Skellam
+#' @param k_sd Width of window, in SDs. Defaults to 8.
+#' @param p0_threshold If approx Pr[y_true=0] > p0_threshold, use windowing
+#'
+#' @returns A single draw
+#'
+#' @noRd
+draw_true_given_obs_pois_skellam <- function(y,
+                                             lambda,
+                                             m, 
+                                             threshold = 50,
+                                             k_sd = 6L,
+                                             p0_thresh = 0.01) {
+  # Use exact method if scales are small
+  if (min(lambda, m) < threshold) {
+    ans <- draw_true_given_obs_pois_skellam_exact(y = y,
+                                                  lambda = lambda,
+                                                  m = m,
+                                                  k_sd = k_sd)
+  }
+  else {
+    # Gaussian posterior from linear-Gaussian approximation:
+    # X ~ N(lambda, lambda), U ~ N(0, 2m), Y = X + U
+    mu_post  <- lambda + (lambda / (lambda + 2*m)) * (y - lambda)
+    var_post <- (lambda * 2*m) / (lambda + 2*m)
+    sd_post  <- sqrt(var_post)
+    # Heuristics for choosing discrete window vs truncnorm+round
+    near_boundary <- (mu_post < 3 * sd_post)
+    # Approximate discrete mass at 0 using continuous Normal over [-0.5, 0.5]
+    p0_approx <- pnorm((0.5 - mu_post) / sd_post) - pnorm((-0.5 - mu_post) / sd_post)
+    p0_above_threshold <- p0_approx > p0_thresh
+    need_window <- near_boundary || p0_above_threshold
+    if (!need_window) {
+      # Fast truncnorm + rounding
+      u <- runif(n)
+      alpha <- (0 - mu_post) / sd_post
+      p0_trunc <- pnorm(alpha)
+      z <- qnorm(p0_trunc + (1 - p0_trunc) * u)
+      ans <- floor(mu_post + sd_post * z + 0.5)
+      ans <- min(x, 0L)
+    }
+    else {
+      # Discrete window around mean
+      L <- floor(mu_post - window_sd * sd_post)
+      L <- max(0L, L)
+      R <- ceiling(mu_post + window_sd * sd_post)
+      R <- max(L, R)
+      y_trues <- L:R
+      lw <- dnorm(y_trues, mean = mu_post, sd = sd_post, log = TRUE)
+      M <- max(lw)
+      prob <- exp(lw - M)
+      ans <- sample(y_trues, size = 1L, prob = prob)
+    }
+  }
+  ans
+}
+
+
+#' Draw from Posterior Distribution of True Values
+#' Given Observed Values, for Poisson plus Symmetric Skellam
+#' - Small Sample
+#'
+#' Assume lambda and m both less than 50
+#'
+#' @param y_obs Observed value
+#' @param lambda Expected value
+#' @param m Mu for symmetric Skellam
+#' @param k_sd Width of window, in SDs. Defaults to 8.
+#'
+#' @returns A single draw
+#'
+#' @noRd
+draw_true_given_obs_pois_skellam_exact <- function(y_obs, lambda, m, k_sd = 8L) {
+  ## --- Choose a fixed window around y_obs ---
+  ## rough posterior scale: Var(y_obs) \approx lambda + 2 * m
+  sd_y_obs <- sqrt(lambda + 2 * m)
+  ## window boundaries
+  L <- floor(y_obs - k_sd * sd_y_obs)
+  L <- max(0L, L)
+  R <- max(y_obs + k_sd * sd_y_obs,
+           lambda + k_sd * sqrt(lambda + 1))
+  R <- ceiling(R)
+  R <- max(L + 1L, R)
+  y_trues <- L:R
+  ## Stable log Bessel I_{|y_obs - y_true|}(2m): scaled besselI + 2m
+  nu <- abs(y_obs - y_trues)
+  logI <- log(besselI(2 * m, nu = nu, expon.scaled = TRUE)) + 2 * m
+  # Unnormalized log posterior weights
+  logw <- y_trues * log(lambda) - lgamma(y_trues + 1) + logI
+  # Normalize using log-sum-exp
+  M <- max(logw)
+  prob <- exp(logw - M)
+  # Draw a single value of y_true
+  sample(y_trues, size = 1L, prob = prob)
+}
+
+
 ## HAS_TESTS
 #' Convert Rvec Columns to Numeric Columns by Taking Means
 #'

@@ -264,7 +264,7 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_miscount - outc
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is numeric", {
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is numeric, model is normal", {
   set.seed(0)
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
@@ -293,7 +293,7 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is rvec", {
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is rvec, model is normal", {
   set.seed(0)
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
@@ -321,6 +321,69 @@ test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_
   ans_expected <- vctrs::vec_c(outcome[-12] + noise, NA)
   expect_equal(ans_obtained, ans_expected)
 })
+
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is numeric, model is Poisson", {
+  set.seed(0)
+  sd_sd <- c(0.3, 0.3, 0.2)
+  sd_levels <- 1:3
+  sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
+                                    sd_levels = sd_levels,
+                                    sd_matrix_outcome = sd_matrix_outcome,
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = NULL)
+  outcome <- rpois(12, lambda = 12)
+  outcome[12] <- NA
+  offset <- runif(12, min = 1, max = 10)
+  fitted <- rvec::rgamma_rvec(12, shape = 1, scale = 1, n_draw = 10)
+  set.seed(1)
+  ans_obtained <- draw_outcome_obs_given_true(datamod = datamod,
+                                              components = NULL,
+                                              outcome_true = outcome,
+                                              offset = offset,
+                                              fitted = fitted)
+  set.seed(1)
+  noise <- rvec::rpois_rvec(n = 11,
+                            lambda = 0.5 * (get_datamod_sd(datamod)^2)[-12],
+                            n_draw = 10) -
+    rvec::rpois_rvec(n = 11,
+                     lambda = 0.5 * (get_datamod_sd(datamod)^2)[-12],
+                     n_draw = 10)
+  ans_expected <- vctrs::vec_c(outcome[-12] + noise, NA)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'draw_outcome_obs_given_true' works with bage_datamod_noise, outcome_true is rvec, model is Poisson", {
+  set.seed(0)
+  sd_sd <- c(0.3, 0.3, 0.2)
+  sd_levels <- 1:3
+  sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
+                                    sd_levels = sd_levels,
+                                    sd_matrix_outcome = sd_matrix_outcome,
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = NULL)
+  outcome <- rvec::rpois_rvec(n = 12, lambda = 20, n_draw = 10)
+  outcome[12] <- NA
+  offset <- runif(12, min = 1, max = 10)
+  fitted <- rvec::rgamma_rvec(12, shape = 1, scale = 1, n_draw = 10)
+  set.seed(1)
+  ans_obtained <- draw_outcome_obs_given_true(datamod = datamod,
+                                              components = NULL,
+                                              outcome_true = outcome,
+                                              offset = offset,
+                                              fitted = fitted)
+  set.seed(1)
+  noise <- rvec::rpois_rvec(n = 11,
+                            lambda = 0.5 * (get_datamod_sd(datamod)[-12])^2,
+                            n_draw = 10) -
+    rvec::rpois_rvec(n = 11,
+                     lambda = 0.5 * (get_datamod_sd(datamod)[-12])^2,
+                     n_draw = 10)
+  ans_expected <- vctrs::vec_c(outcome[-12] + noise, NA)
+  expect_equal(ans_obtained, ans_expected)
+})
+
 
 test_that("'draw_outcome_obs_given_true' works with bage_datamod_overcount - oucome_obs is numeric", {
   set.seed(0)
@@ -1319,7 +1382,7 @@ test_that("'make_i_datamod' works with bage_datamod_miscount", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_datamod_consts' works with bage_datamod_noise", {
+test_that("'make_datamod_consts' works with bage_datamod_noise - has outcome_sd", {
   set.seed(0)
   sd_sd <- c(0.3, 0.3, 0.2)
   sd_levels <- 1:3
@@ -1331,6 +1394,21 @@ test_that("'make_datamod_consts' works with bage_datamod_noise", {
                                     outcome_sd = 2)
   ans_obtained <- make_datamod_consts(datamod)
   ans_expected <- sd_sd / 2
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_datamod_consts' works with bage_datamod_noise - no outcome_sd", {
+  set.seed(0)
+  sd_sd <- c(0.3, 0.3, 0.2)
+  sd_levels <- 1:3
+  sd_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
+  datamod <- new_bage_datamod_noise(sd = sd_sd,
+                                    sd_levels = sd_levels,
+                                    sd_matrix_outcome = sd_matrix_outcome,
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = NULL)
+  ans_obtained <- make_datamod_consts(datamod)
+  ans_expected <- sd_sd
   expect_equal(ans_obtained, ans_expected)
 })
 

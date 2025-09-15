@@ -244,12 +244,6 @@ Type log_besselI_large(Type x, Type nu) {
   return x - Type(0.5) * log(two_pi * x) + log1p(u);
 }
 
-// calculate besselI when 'x' is small
-template<class Type>
-Type log_besselI_small(Type x, Type nu) {
-  return log(besselI(x, nu));
-}
-
 template <class Type>
 Type log_dbetabinom(Type x,
 		    Type size,
@@ -395,7 +389,7 @@ Type log_dpois_rr3(Type x, Type rate) {
 
 template<class Type>
 Type log_dskellam(Type x, Type mu1, Type mu2) {
-  const Type threshold = 500;
+  const Type threshold = 500.0;
   // cases where mu1, mu2 <= 0
   const bool is_mu1_nonpos = !(mu1 > Type(0));
   if (is_mu1_nonpos) {

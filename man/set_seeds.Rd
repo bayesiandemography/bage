@@ -17,7 +17,7 @@ of integers with names \code{"seed_components"}
 and \code{"seed_forecast_augment"}.}
 }
 \value{
-A modified version of \code{mod}.
+A revised version of \code{mod}.
 }
 \description{
 Reset random seeds stored in a model object.
