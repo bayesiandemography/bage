@@ -84,7 +84,6 @@ draw_datamod_param.bage_datamod_overcount <- function(datamod, n_sim) {
   ans
 }
 
-
 ## HAS_TESTS
 #' @export
 draw_datamod_param.bage_datamod_undercount <- function(datamod, n_sim) {
@@ -288,9 +287,16 @@ draw_outcome_obs_given_true.bage_datamod_noise <- function(datamod,
   n_ok <- sum(is_ok)
   sd <- get_datamod_sd(datamod)
   sd <- rep(sd, times = n_draw)
-  ans[is_ok] <- stats::rnorm(n = n_ok,
-                             mean = outcome_true[is_ok],
-                             sd = sd[is_ok])
+  outcome_sd <- datamod$outcome_sd
+  is_skellam <- is.null(outcome_sd)
+  if (is_skellam) {
+    mu <- 0.5 * (sd[is_ok])^2
+    noise <- stats::rpois(n = n_ok, lambda = mu) -
+      stats::rpois(n = n_ok, lambda = mu)
+  }
+  else
+    noise <- stats::rnorm(n = n_ok, mean = 0, sd = sd[is_ok])
+  ans[is_ok] <- outcome_true[is_ok] + noise
   ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
   ans <- rvec::rvec_dbl(ans)
   ans
@@ -736,7 +742,10 @@ make_datamod_consts.bage_datamod_miscount <- function(datamod) {
 make_datamod_consts.bage_datamod_noise <- function(datamod) {
   sd <- datamod$sd_sd
   outcome_sd <- datamod$outcome_sd
-  sd / outcome_sd
+  has_outcome_sd <- !is.null(outcome_sd) ## normal model for outcomes
+  if (has_outcome_sd)
+    sd <- sd / outcome_sd
+  sd
 }
 
 ## HAS_TESTS

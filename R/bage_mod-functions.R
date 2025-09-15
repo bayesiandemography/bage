@@ -36,7 +36,7 @@
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @seealso
 #' - [confidential] Overview of confidentialization procedures
@@ -201,11 +201,12 @@ set_covariates <- function(mod, formula) {
 #' values for dispersion will typically be very small.
 #'
 #' `set_datamod_exposure()` can only be used
-#' with model where dispersion in Poisson rates
-#' has been set to zero, using function [set_disp()].
-#' In models that use `set_datamod_exposure()`,
-#' "dispersion" refers to variation in
-#' observed exposures, not variation in Poisson rates.
+#' with a Poisson model for rates in which dispersion
+#' in rates (as opposed to dispersion in observed
+#' exposure) is zero. Dispersion in
+#' rates can be set using [set_disp()],
+#' though `set_datamod_exposure()` will also
+#' do so.
 #'
 #' @section The `disp` argument:
 #'
@@ -250,7 +251,7 @@ set_covariates <- function(mod, formula) {
 #' with a variable called `"disp"`,
 #' and one or more 'by' variables.
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @seealso
 #' - [mod_pois()] Specify a Poisson model
@@ -327,11 +328,8 @@ set_datamod_exposure <- function(mod, disp)  {
                                "with a Poisson model.")))
   }
   if (has_disp(mod)) {
-    cli::cli_abort(c("{.arg mod} has non-zero dispersion.",
-                     i = paste("An exposure data model can only be used",
-                               "with a model that has no dispersion in rates."),
-                     i = paste("Use {.fun set_disp} to set dispersion",
-                               "in rates to zero?")))
+    cli::cli_alert("Setting dispersion to zero. (Required for exposure data model.)")
+    mod <- set_disp(mod, mean = 0)
   }
   if (!has_varying_offset(mod)) {
     cli::cli_abort(c("{.arg mod} does not include exposure.",
@@ -385,73 +383,37 @@ set_datamod_exposure <- function(mod, disp)  {
 
 #' Specify Miscount Data Model
 #'
-#' Specify a data model for the outcome variable
-#' in a Poisson model, where the outcome variable
-#' is subject simultaneously to undercount and
+#' Specify a data model for the outcome
+#' in a Poisson model, where the outcome
+#' is subject to both undercount and
 #' to overcount.
 #'
 #' The miscount data model assumes that
-#' the reported value for an outcome includes
-#' (1) people or events who belong in the
-#' target population, and (2) people
-#' or events who do not belong in the targe population.
-#' Coverage of (1) is incomplete, so that
-#' the count (1)
-#' is typically less (and never higher) than
-#' the true population. people or events who belong in
-#' the target population is incomplete, so
-#' the 
-#' the reported value for an outcome as the sum
-#' of two quantities:
+#' the reported value for the outcome is
+#' the sum of two quantities,
 #'
-#' 1. An incomplete count of people or events who
-#'   belong in the target population.
-#' 2. A count 
-
-
-#'    belong in the target population.
-#' 2. CouPeople or events who belong in the target
-#'   population, but who are 
+#' 1. A potentially incomplete count
+#'    of people or events belonging to
+#'    the target population.
+#' 2. A count of people or events that
+#'    do not belong to the target population,
+#'    and are included incorrectly.
 #'
-#' The miscount data model 
+#' The miscount data model is essentially a combination
+#' of the [undercount][set_datamod_undercount()]
+#' and [overcount][set_datamod_overcount()]
+#' data models.
 #'
-#' reported outcome = i
-#'
-#' 
-#'
-#' The data model assumes that observed counts
-#' of people or events are the sum
-#' of two quantities:
-#'
-#' 1. People are events that are 
-#' are the sum of two quantities:
-#'
-#' 1. made up of two things:
-#'
-#' 1
-#'
-#' observed outcome = true (but incomplet
-#' sum of two terms:
-#' 1. True 
-#'
-#' observed outcome = 
-#'
-#' We have observed outcome variable takes the form
-#'
-#' 
-#'
-#' 
-#' @param mod An object of class `"bage_mod"`,
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param rate A data frame with 'by' variables,
-#' a variable called `"mean"`, and a variable
-#' called `"disp"`
+#' @param mod An object of class `"bage_mod_pois"`,
+#' created with [mod_pois()].
 #' @param prob A data frame with 'by' variables,
 #' a variable called `"mean"`, and a variable
-#' called `"disp"`
+#' called `"disp"`.
+#' @param rate A data frame with 'by' variables,
+#' a variable called `"mean"`, and a variable
+#' called `"disp"`.
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @export
 set_datamod_miscount <- function(mod, prob, rate) {
@@ -548,13 +510,19 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #' Specify Noise Data Model
 #'
 #' @description 
-#' Specify a data model for the outcome
-#' variable in a normal model, where
+#' Specify a data model in which
 #'
-#' observed outcome = true outcome + error
+#' `observed outcome = true outcome + error`,
 #'
-#' and error has a normal distribution with
-#' mean zero and a known standard deviation.
+#' where the error has a symmetric distribution
+#' with mean 0.
+#'
+#' If the true outcome has a normal
+#' distribution, then the error has a
+#' normal distribution. If the
+#' true outcome has a Poisson distribution,
+#' then the error has a symmetric Skellam
+#' distribution.
 #'
 #' @details
 #'
@@ -562,9 +530,35 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #' is unbiased. If there is in fact evidence
 #' of biases, then this evidence should be
 #' used to create a de-biased version of the
-#' variable (eg one where estimated biases
-#' have been subtracted), to supply to
-#' [mod_norm()].
+#' outcome variable in `data`, and this de-biased
+#' version should be used by [mod_norm()] or
+#' [mod_pois()].
+#'
+#' If `set_datamod_noise()` is used with a Poisson
+#' model, then the dispersion term for
+#' the Poisson rates must be set to zero.
+#' This can be done using [set_disp()],
+#' though `set_datamod_noise()` will also
+#' do so.
+#'
+#' @section The Skellam distribution:
+#'
+#' The [Skellam](https://en.wikipedia.org/wiki/Skellam_distribution)
+#' distribution is confined to integers,
+#' but can take positive and negative values.
+#'
+#' If
+#'
+#' \deqn{X_1 \sim \text{Poisson}(\mu_1)}
+#' \deqn{X_2 \sim \text{Poisson}(\mu_2)}
+#'
+#' then
+#'
+#' \deqn{Y = X_1 - X_2}
+#'
+#' has a \eqn{\text{Skellam}(\mu_1, \mu_2)} distribution.
+#' If \eqn{\mu_1 = \mu_2}, then the distribution
+#' is symmetric.
 #'
 #' @section The `sd` argument:
 #'
@@ -588,32 +582,43 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #' The model for the observed outcome is
 #'
 #' \deqn{y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i}
-#' \deqn{\epsilon_i \sim \text{N}(0, s_i^2)}
 #'
-#' where
+#' with
+#'
+#' \deqn{\epsilon_i \sim \text{N}(0, s_{g[i]}^2)}
+#'
+#' if \eqn{y_i^{\text{true}}} has a normal distribution, and
+#'
+#' \deqn{\epsilon_i \sim \text{Skellam}(0.5 s_{g[i]}^2, 0.5 s_{g[i]}^2)}
+#'
+#' if \eqn{y_i^{\text{true}}} has a Poisson distribution, where
+#' 
 #' - \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
 #' - \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
 #' - \eqn{\epsilon_i} is the measurement error for cell \eqn{i}; and
 #' - \eqn{s_{g\lbrack i\rbrack }} is the standard deviation of
 #'   the measurement error for cell \eqn{i}.
 #'
-#' @param mod An object of class `"bage_mod_norm"`,
-#' created with [mod_norm()].
+#' @param mod An object of class `"bage_mod"`,
+#' created with [mod_norm()] or [mod_pois()].
 #' @param sd Standard deviation of measurement errors.
 #' A single number, or a data frame
 #' with 'by' variables.
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @seealso
 #' - [mod_norm()] Specify a normal model
+#' - [mod_pois()] Specify a Poisson model
 #' - [augment()] Original data plus estimated values,
 #'   including estimates of true value for outcome
 #' - [datamods] Data models implemented in `bage`
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
 #'   vignette
 #'
-## prepare outcome variable
+#' @examples
+#' ## prepare outcome variable
+#' library(dplyr)
 #' spend <- nld_expenditure |>
 #'   mutate(log_spend = log(value + 1))
 #'
@@ -658,13 +663,25 @@ set_datamod_noise <- function(mod, sd) {
   check_bage_mod(x = mod, nm_x = "mod")
   model_descr <- model_descr(mod)
   nm_distn <- nm_distn(mod)
-  if (nm_distn != "norm") {
+  if (!(nm_distn %in% c("pois", "norm"))) {
     cli::cli_abort(c("{.arg mod} is a {model_descr} model.",
                      i = paste("A noise data model can only be used",
-                               "with a normal model.")))
+                               "with Poisson or normal models.")))
   }
   data <- mod$data
-  outcome_sd <- mod$outcome_sd
+  ## model-specific processing
+  if (nm_distn == "pois") {
+    if (has_disp(mod)) {
+      cli::cli_alert(paste("Setting dispersion to zero. (Required when using",
+                           "noise data model with Poisson rates model.)"))
+      mod <- set_disp(mod, mean = 0)
+      outcome_sd <- NULL
+    }
+  }
+  else if (nm_distn == "norm")
+    outcome_sd <- mod$outcome_sd
+  else
+    cli::cli_abort("Internal error: {.val {nm_distn}} is not a valid valud for {.arg distn}.")
   ## process 'sd'
   if (is.numeric(sd)) {
     check_number(x = sd, nm_x = "sd")
@@ -715,7 +732,7 @@ set_datamod_noise <- function(mod, sd) {
 #'
 #' @inheritParams set_datamod_miscount
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @export
 set_datamod_overcount <- function(mod, rate) {
@@ -781,7 +798,7 @@ set_datamod_overcount <- function(mod, rate) {
 #'
 #' @inheritParams set_datamod_miscount
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @export
 set_datamod_undercount <- function(mod, prob) {
@@ -860,7 +877,7 @@ set_datamod_undercount <- function(mod, prob) {
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @examples
 #' ## 'injuries' variable in 'nzl_injuries' dataset
@@ -1123,7 +1140,7 @@ set_prior <- function(mod, formula) {
 #' `"seed_augment"`, `"seed_forecast_components"`,
 #' and `"seed_forecast_augment"`.
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @seealso
 #' - [report_sim()] Do a simulation study. (`report_sim()`

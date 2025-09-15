@@ -12,7 +12,7 @@ created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 }
 \value{
-A modified version of \code{mod}.
+A revised version of \code{mod}.
 }
 \description{
 Specify a confidentialization procedure

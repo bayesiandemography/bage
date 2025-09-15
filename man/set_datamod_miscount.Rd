@@ -20,7 +20,7 @@ a variable called \code{"mean"}, and a variable
 called \code{"disp"}}
 }
 \value{
-A modified version of \code{mod}.
+A revised version of \code{mod}.
 }
 \description{
 Specify a data model for the outcome variable

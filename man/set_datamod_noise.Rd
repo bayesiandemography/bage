@@ -7,34 +7,68 @@
 set_datamod_noise(mod, sd)
 }
 \arguments{
-\item{mod}{An object of class \code{"bage_mod_norm"},
-created with \code{\link[=mod_norm]{mod_norm()}}.}
+\item{mod}{An object of class \code{"bage_mod"},
+created with \code{\link[=mod_norm]{mod_norm()}} or \code{\link[=mod_pois]{mod_pois()}}.}
 
 \item{sd}{Standard deviation of measurement errors.
 A single number, or a data frame
 with 'by' variables.}
 }
 \value{
-A modified version of \code{mod}.
+A revised version of \code{mod}.
 }
 \description{
-Specify a data model for the outcome
-variable in a normal model, where
+Specify a data model in which
 
-observed outcome = true outcome + error
+\verb{observed outcome = true outcome + error},
 
-and error has a normal distribution with
-mean zero and a known standard deviation.
+where the error has a symmetric distribution
+with mean 0.
+
+If the true outcome has a normal
+distribution, then the error has a
+normal distribution. If the
+true outcome has a Poisson distribution,
+then the error has a symmetric Skellam
+distribution.
 }
 \details{
 The model assumes that the outcome variable
 is unbiased. If there is in fact evidence
 of biases, then this evidence should be
 used to create a de-biased version of the
-variable (eg one where estimated biases
-have been subtracted), to supply to
-\code{\link[=mod_norm]{mod_norm()}}.
+outcome variable in \code{data}, and this de-biased
+version should be used by \code{\link[=mod_norm]{mod_norm()}} or
+\code{\link[=mod_pois]{mod_pois()}}.
+
+If \code{set_datamod_noise()} is used with a Poisson
+model, then the dispersion term for
+the Poisson rates must be set to zero.
+This can be done using \code{\link[=set_disp]{set_disp()}},
+though \code{set_datamod_noise()} will also
+do so.
 }
+\section{The Skellam distribution}{
+
+
+The \href{https://en.wikipedia.org/wiki/Skellam_distribution}{Skellam}
+distribution is confined to integers,
+but can take positive and negative values.
+
+If
+
+\deqn{X_1 \sim \text{Poisson}(\mu_1)}
+\deqn{X_2 \sim \text{Poisson}(\mu_2)}
+
+then
+
+\deqn{Y = X_1 - X_2}
+
+has a \eqn{\text{Skellam}(\mu_1, \mu_2)} distribution.
+If \eqn{\mu_1 = \mu_2}, then the distribution
+is symmetric.
+}
+
 \section{The \code{sd} argument}{
 
 
@@ -61,9 +95,16 @@ and 240 for males.
 The model for the observed outcome is
 
 \deqn{y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i}
-\deqn{\epsilon_i \sim \text{N}(0, s_i^2)}
 
-where
+with
+
+\deqn{\epsilon_i \sim \text{N}(0, s_{g[i]}^2)}
+
+if \eqn{y_i^{\text{true}}} has a normal distribution, and
+
+\deqn{\epsilon_i \sim \text{Skellam}(0.5 s_{g[i]}^2, 0.5 s_{g[i]}^2)}
+
+if \eqn{y_i^{\text{true}}} has a Poisson distribution, where
 \itemize{
 \item \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
 \item \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
@@ -73,66 +114,55 @@ the measurement error for cell \eqn{i}.
 }
 }
 
+\examples{
+## prepare outcome variable
+library(dplyr)
+spend <- nld_expenditure |>
+  mutate(log_spend = log(value + 1))
+
+## specify model
+mod <- mod_norm(log_spend ~ age * diag + year,
+                data = spend,
+                weights = 1) |>
+  set_datamod_noise(sd = 0.1)
+
+## fit model
+mod <- mod |>
+  fit()
+mod
+
+## create new aggregated diagnositic
+## group variable
+library(dplyr)
+spend <- spend |>
+  mutate(diag_ag = case_when(
+    diag == "Neoplasms" ~ diag,
+    diag == "Not allocated" ~ diag,
+    TRUE ~ "Other"
+  ))
+
+## assume size of measurement errors
+## varies across these aggregated groups
+sd_diag <- data.frame(diag_ag = c("Neoplasms",
+                                  "Not allocated",
+                                  "Other"),
+                      sd = c(0.05, 0.2, 0.1))
+
+## fit model that uses diagnostic-specific
+## standard deviations
+mod <- mod_norm(log_spend ~ age * diag + year,
+                data = spend,
+                weights = 1) |>
+  set_datamod_noise(sd = sd_diag)
+}
 \seealso{
 \itemize{
 \item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
 \item \code{\link[=augment]{augment()}} Original data plus estimated values,
 including estimates of true value for outcome
 \item \link{datamods} Data models implemented in \code{bage}
 \item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
 vignette
-}
-
-spend <- nld_expenditure |>
-mutate(log_spend = log(value + 1))
-\subsection{specify model}{
-
-mod <- mod_norm(log_spend ~ age * diag + year,
-data = spend,
-weights = 1) |>
-set_datamod_noise(sd = 0.1)
-}
-
-\subsection{fit model}{
-
-mod <- mod |>
-fit()
-mod
-}
-
-\subsection{create new aggregated diagnositic}{
-}
-
-\subsection{group variable}{
-
-library(dplyr)
-spend <- spend |>
-mutate(diag_ag = case_when(
-diag == "Neoplasms" ~ diag,
-diag == "Not allocated" ~ diag,
-TRUE ~ "Other"
-))
-}
-
-\subsection{assume size of measurement errors}{
-}
-
-\subsection{varies across these aggregated groups}{
-
-sd_diag <- data.frame(diag_ag = c("Neoplasms",
-"Not allocated",
-"Other"),
-sd = c(0.05, 0.2, 0.1))
-}
-
-\subsection{fit model that uses diagnostic-specific}{
-}
-
-\subsection{standard deviations}{
-
-mod <- mod_norm(log_spend ~ age * diag + year,
-data = spend,
-weights = 1) |>
-set_datamod_noise(sd = sd_diag)
 }
 }
