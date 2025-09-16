@@ -604,10 +604,10 @@ impute_outcome_true <- function(nm_distn,
     if (nm_distn == "pois") {
       if (has_disp) {
         shape <- 1 / disp[is_impute]
-        rate <- 1 / (expected[is_impute] * offset[is_impute] * disp[is_impute])
+        scale <- expected[is_impute] * offset[is_impute] * disp[is_impute]
         lambda <- stats::rgamma(n = n_impute,
                                 shape = shape,
-                                rate = rate) # doesn't need guarding
+                                scale = scale)
       }
       else 
         lambda <- expected[is_impute] * offset[is_impute]
@@ -619,7 +619,7 @@ impute_outcome_true <- function(nm_distn,
         shape2 <- (1 - expected[is_impute]) / disp[is_impute]
         prob <- stats::rbeta(n = n_impute,
                              shape1 = shape1,
-                             shape2 = shape2) # doesn't need guarding
+                             shape2 = shape2)
       }
       else
         prob <- expected[is_impute]

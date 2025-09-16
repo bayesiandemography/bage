@@ -213,7 +213,7 @@ test_that("'set_datamod_exposure' throws correct error when applied to model wit
                "`mod` does not include exposure.")
 })
 
-test_that("'set_datamod_exposure' throws appropriate error when Poisson disp non-zero", {
+test_that("'set_datamod_exposure' throws appropriate message when Poisson disp non-zero", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- 1
@@ -223,8 +223,8 @@ test_that("'set_datamod_exposure' throws appropriate error when Poisson disp non
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  expect_error(set_datamod_exposure(mod, disp = disp),
-               "`mod` has non-zero dispersion.")
+  expect_message(set_datamod_exposure(mod, disp = disp),
+                 "Setting dispersion to zero.")
 })
 
 

@@ -489,7 +489,9 @@ draw_vals_augment_fitted.bage_mod <- function(mod, quiet) {
     ans$.observed <- outcome / offset
   ## draw values for outcome and offset, where necessary
   if (has_confidential) {
-    expected_obs <- make_expected_obs(mod = mod, expected = expected)
+    expected_obs <- make_expected_obs(mod = mod,
+                                      components = components,
+                                      expected = expected)
     disp_obs <- make_disp_obs(mod) ## vector or NULL
     outcome <- draw_outcome_obs_given_conf(confidential = confidential,
                                            nm_distn = nm_distn,

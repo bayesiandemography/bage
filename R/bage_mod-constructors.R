@@ -135,7 +135,7 @@ mod_pois <- function(formula,
                         data = data,
                         nm_distn = "Poisson")
   ## process 'exposure'
-  if (!hasArg(exposure))
+  if (!methods::hasArg(exposure))
     cli::cli_abort("Argument {.arg exposure} is missing, with no default.")
   exposure <- deparse1(substitute(exposure))
   exposure <- gsub("^\\\"|\\\"$", "", exposure)
@@ -299,7 +299,7 @@ mod_binom <- function(formula, data, size) {
                         data = data,
                         nm_distn = "Binomial")
   ## process 'size'
-  if (!hasArg(size))
+  if (!methods::hasArg(size))
     cli::cli_abort("Argument {.arg size} is missing, with no default.")
   size <- deparse1(substitute(size))
   size <- gsub("^\\\"|\\\"$", "", size)
@@ -470,7 +470,7 @@ mod_norm <- function(formula, data, weights) {
                      data = data,
                      n_draw = 1000L)
   ## process 'weights'
-  if (!hasArg(weights))
+  if (!methods::hasArg(weights))
     cli::cli_abort("Argument {.arg weights} is missing, with no default.")
   weights <- deparse1(substitute(weights))
   weights <- gsub("^\\\"|\\\"$", "", weights)

@@ -237,7 +237,7 @@ test_that("'make_i_lik_part' works with bage_confidential_rr3", {
 
 test_that("'str_call_confidential' works", {
   expect_identical(str_call_confidential(new_bage_confidential_rr3()),
-                   "rr3()")
+                   "rr3")
 })
 
 

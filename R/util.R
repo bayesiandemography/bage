@@ -419,16 +419,16 @@ draw_true_given_obs_pois_skellam_approx <- function(y_obs,
   sd_post  <- sqrt(var_post)
   ## heuristics for choosing discrete window vs truncnorm + rounding
   near_boundary <- (mu_post < 3 * sd_post)
-  p0_approx <- pnorm(0.5, mean = mu_post, sd = sd_post) -
-    pnorm(-0.5, mean = mu_post, sd = sd_post)
+  p0_approx <- stats::pnorm(0.5, mean = mu_post, sd = sd_post) -
+    stats::pnorm(-0.5, mean = mu_post, sd = sd_post)
   p0_above_threshold <- p0_approx > p0_thresh
   need_window <- near_boundary || p0_above_threshold
   if (!need_window) {
     # truncnorm + rounding
-    u <- runif(n = 1L)
+    u <- stats::runif(n = 1L)
     alpha <- (0 - mu_post) / sd_post
-    p0_trunc <- pnorm(alpha)
-    z <- qnorm(p0_trunc + (1 - p0_trunc) * u)
+    p0_trunc <- stats::pnorm(alpha)
+    z <- stats::qnorm(p0_trunc + (1 - p0_trunc) * u)
     ans <- floor(mu_post + sd_post * z + 0.5)
     ans <- max(ans, 0L)
   }
@@ -439,7 +439,7 @@ draw_true_given_obs_pois_skellam_approx <- function(y_obs,
     R <- ceiling(mu_post + window_sd * sd_post)
     R <- max(L, R)
     y_trues <- L:R
-    lw <- dnorm(y_trues, mean = mu_post, sd = sd_post, log = TRUE)
+    lw <- stats::dnorm(y_trues, mean = mu_post, sd = sd_post, log = TRUE)
     M <- max(lw)
     prob <- exp(lw - M)
     ans <- sample(y_trues, size = 1L, prob = prob)

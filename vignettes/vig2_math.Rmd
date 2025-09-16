@@ -1254,7 +1254,7 @@ We use the normally-distributed latent variable $z_g$ and then transform to calc
 Appendix \@ref(app:datamod) has the derivation.
 
 
-## Poisson, undercount and overcount outcome variable {#sec:datamod-pois-miscount}
+## Poisson, undercount and overcount in outcome variable {#sec:datamod-pois-miscount}
 
 ### System model
 

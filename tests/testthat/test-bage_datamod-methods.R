@@ -829,7 +829,7 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_noise - no na",
   outcome <- rnorm(12)
   offset <- runif(12, max = 10)
   expected <- rvec::rnorm_rvec(12, n_draw = 10)
-  disp <- rvec::runif_rvec(1)
+  disp <- rvec::runif_rvec(1, n_draw = 10)
   set.seed(1)
   ans_obtained <- draw_outcome_true_given_obs(datamod = datamod,
                                               nm_distn = "norm",
@@ -1022,10 +1022,10 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_undercount - Po
   prob_levels <- 1:4
   prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
-                                       prob_disp = prob_disp,
-                                       prob_levels = prob_levels,
-                                       prob_matrix_outcome = prob_matrix_outcome,
-                                       nms_by = c("sex", "age"))
+                                         prob_disp = prob_disp,
+                                         prob_levels = prob_levels,
+                                         prob_matrix_outcome = prob_matrix_outcome,
+                                         nms_by = c("sex", "age"))
   components <- tibble::tibble(
     term = c("(Intercept)", rep("datamod", 4)),
     component = c("(Intercept)", rep("prob", times = 4)),
@@ -1036,7 +1036,7 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_undercount - Po
   offset <- runif(12, max = 10)
   offset[1] <- NA
   expected <- rvec::rgamma_rvec(12, shape = 1, rate = 0.2, n_draw = 10)
-  disp <- rvec::runif_rvec(1)
+  disp <- rvec::runif_rvec(1, n_draw = 10)
   set.seed(1)
   ans_obtained <- draw_outcome_true_given_obs(datamod = datamod,
                                               nm_distn = "pois",
@@ -1047,10 +1047,12 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_undercount - Po
                                               disp = disp)
   set.seed(1)
   pi <- rep(components$.fitted[2:5], times = 3)
-  w <- rvec::rnbinom_rvec(n = 11,
-                          size = outcome[-1] + (1/disp),
-                          prob = (1 + pi[-1] * expected[-1] * offset[-1] * disp) /
-                            (1 + expected[-1] * offset[-1] * disp))
+  p <- (1 + pi[-1] * expected[-1] * offset[-1] * disp) /
+    (1 + expected[-1] * offset[-1] * disp)
+  lambda <- rvec::rgamma_rvec(n = 11,
+                              shape = outcome[-1] + (1/disp),
+                              scale = (1 - p) / p)
+  w <- rvec::rpois_rvec(n = 11, lambda = lambda)
   ans_expected <- vctrs::vec_c(NA, outcome[-1] + w)
   expect_equal(ans_obtained, ans_expected)
 })
@@ -1124,12 +1126,13 @@ test_that("'draw_outcome_true_given_obs' works with bage_datamod_undercount - bi
                                               disp = disp)
   set.seed(1)
   pi <- rep(components$.fitted[2:5], times = 3)
-  ans_expected <- vctrs::vec_c(NA,
-                               draw_outcome_true_binom_betabinom(outcome = outcome[-1],
-                                                                 offset = offset[-1],
-                                                                 expected = expected[-1],
-                                                                 disp = disp,
-                                                                 prob = pi[-1]))
+  ans <- sample_post_binom_betabinom(n = rep(as.numeric(offset[-1]), times = 10),
+                                     y = rep(as.numeric(outcome[-1]), times = 10),
+                                     mu = as.numeric(expected[-1]),
+                                     xi = rep(as.numeric(disp), each = 11),
+                                     pi = as.numeric(pi[-1]))
+  ans_expected <- rvec::rvec(matrix(ans, nrow = 11))
+  ans_expected <- vctrs::vec_c(NA, ans_expected)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1697,43 +1700,6 @@ test_that("'make_expected_obs_exposure' works", {
   disp <- get_datamod_disp(datamod)
   ans_expected <- ((3 + 1/disp)/(1 + 1/disp)) * expected
   expect_equal(ans_obtained, ans_expected)
-})
-
-
-## 'draw_outcome_true_binom_betabinom' ----------------------------------------
-
-test_that("'draw_outcome_true_binom_betabinom' works with valid inputs - outcome is numeric", {
-  set.seed(0)
-  outcome <- rpois(12, lambda = 5)
-  offset <- rpois(12, lambda = 100) + 1
-  expected <- rvec::runif_rvec(12, n_draw = 10)
-  disp <- rvec::runif_rvec(1, n_draw = 10)
-  prob <- rvec::runif_rvec(n = 12, n_draw = 10)
-  set.seed(1)
-  ans <- draw_outcome_true_binom_betabinom(outcome = outcome,
-                                           offset = offset,
-                                           expected = expected,
-                                           disp = disp,
-                                           prob = prob)
-  expect_true(rvec::is_rvec(ans))
-  expect_true(all(draws_all(ans <= offset)))
-})
-
-test_that("'draw_outcome_true_binom_betabinom' works with valid inputs - outcome is rvec", {
-  set.seed(0)
-  outcome <- rvec::rpois_rvec(12, lambda = 5, n_draw = 10)
-  offset <- rpois(12, lambda = 100) + 1
-  expected <- rvec::runif_rvec(12, n_draw = 10)
-  disp <- rvec::runif_rvec(1, n_draw = 10)
-  prob <- rvec::runif_rvec(n = 12, n_draw = 10)
-  set.seed(1)
-  ans <- draw_outcome_true_binom_betabinom(outcome = outcome,
-                                           offset = offset,
-                                           expected = expected,
-                                           disp = disp,
-                                           prob = prob)
-  expect_true(rvec::is_rvec(ans))
-  expect_true(all(draws_all(ans <= offset)))
 })
 
 

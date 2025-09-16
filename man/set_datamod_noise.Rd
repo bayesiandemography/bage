@@ -118,7 +118,7 @@ the measurement error for cell \eqn{i}.
 ## Normal model ------------------------------
 
 ## prepare outcome variable
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 spend <- nld_expenditure |>
   mutate(log_spend = log(value + 1))
 
@@ -135,7 +135,7 @@ mod
 
 ## create new aggregated diagnositic
 ## group variable
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 spend <- spend |>
   mutate(diag_ag = case_when(
     diag == "Neoplasms" ~ diag,
