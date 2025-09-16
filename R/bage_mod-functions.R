@@ -253,6 +253,8 @@ set_covariates <- function(mod, formula) {
 #' - [augment()] Original data plus estimated values,
 #'   including estimates of true value for exposure
 #' - [datamods] Data models implemented in `bage`
+#' - [confidential] Confidentialization
+#'   processes modeled in `bage`
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
 #'   vignette
 #'
@@ -293,6 +295,7 @@ set_covariates <- function(mod, formula) {
 #' ## receives one value for dispersion,
 #' ## and everyone aged 50+ receives another
 #' library(poputils) ## for 'age_upper()'
+#' library(dplyr, warn.conflicts = FALSE)
 #' nzl_injuries_age <- nzl_injuries |>
 #'   mutate(age_group = if_else(age_upper(age) < 50,
 #'                              "0-49",
@@ -386,41 +389,33 @@ set_datamod_exposure <- function(mod, disp)  {
 #' of the [undercount][set_datamod_undercount()]
 #' and [overcount][set_datamod_overcount()]
 #' data models. It assumes that
-#' reported outcomes are the sum of:
+#' reported outcome is the sum of two quantities:
 #'
-#' - *Undercounted trues* A potentially incomplete
-#'   count of people or events belonging to
-#'   the target population.
-#' - *Overcount* A count of people or events
-#'   not belonging to the target population,
-#'   and included incorrectly.
+#' 1. *Units from target population, undercounted*
+#'   People or events belonging
+#'   to the target population, in which
+#'   each unit's inclusion probability
+#'   is less than 1.
+#' 2. *Overcount* People or events
+#'   that do not belong to target population,
+#'   or that are counted more than once.
 #'    
-#' Say, for instance, that a population
-#' contains 100 people. The census
-#' enumerates 91 of these people, but also
-#' mistakenly enumerates 6 additional people.
-#' Then
+#' If, for instance, a census
+#' enumerates 91 people from a true population
+#' of 100, but also mistakenly enumerates
+#' a further 6 people, then
 #' 
-#' - the true outcome is 100
-#' - the value for the undercounted trues is 91,
-#' - the value for overcount is 6, and
-#' - the reported outcome is 91 + 6 = 97.
-#'
-#' In the miscount model, the value for
-#' undercounted trues depends
-#' on the true value for the outcome,
-#' and on the probability that each person
-#' or event is correctly enumerated. The
-#' value for the overcount depends on the
-#' expected value for the outcome multiplied
-#' by an overcoverage rate.
+#' - the true value for the outcome variable is 100
+#' - the value for the undercounted target population is 91,
+#' - the value for the overcount is 6, and
+#' - the observed value for the outcome variable is 91 + 6 = 97.
 #'
 #' @section The `prob` argument:
 #'
 #' The `prob` argument specifies a prior
 #' distribution for the probability
 #' that a person or event in the target
-#' population will be included in the
+#' population is included in the
 #' reported outcome. `prob` is a
 #' data frame with a variable called `"mean"`,
 #' a variable called `"disp"`, and, optionally,
@@ -432,7 +427,7 @@ set_datamod_exposure <- function(mod, disp)  {
 #'            disp = c(0.02, 0.015))
 #'```
 #' implies that the expected value for
-#' the probability is 0.95 for females
+#' the inclusion probability is 0.95 for females
 #' and 0.92 for males, with slightly more
 #' uncertainty for females than for males.
 #'
@@ -450,8 +445,8 @@ set_datamod_exposure <- function(mod, disp)  {
 #'```
 #' implies that the expected value for
 #' the overcoverage rate is 0.03,
-#' with a dispersion of 0.1. Since no
-#' 'by' variables are given, identical
+#' with a dispersion of 0.1. Since no 'by'
+#' variables are included, the same
 #' mean and dispersion values are
 #' applied to all cells.
 #' 
@@ -473,10 +468,12 @@ set_datamod_exposure <- function(mod, disp)  {
 #' - \eqn{\pi_{g[i]}} is the probability that a member of the
 #'     target population in cell \eqn{i} is correctly enumerated in that cell;
 #' - \eqn{\kappa_{h[i]}} is the overcoverage rate for cell \eqn{i};
-#' - \eqn{m_g^{(\pi)}} is the expected value for \eqn{\pi_g};
-#' - \eqn{d_g^{(\pi)}} is disperson for \eqn{\pi_g};
-#' - \eqn{m_h^{(\kappa)}} is the expected value for \eqn{\kappa_h}; and
-#' - \eqn{d_h^{(\kappa)}} is disperson for \eqn{\kappa_h}.
+#' - \eqn{m_g^{(\pi)}} is the expected value for \eqn{\pi_g}
+#'   (specified via `prob`);
+#' - \eqn{d_g^{(\pi)}} is disperson for \eqn{\pi_g} (specified via `prob`);
+#' - \eqn{m_h^{(\kappa)}} is the expected value for \eqn{\kappa_h}
+#'   (specified via `rate`); and
+#' - \eqn{d_h^{(\kappa)}} is disperson for \eqn{\kappa_h} (specified via `rate`).
 #'
 #' @param mod An object of class `"bage_mod_pois"`,
 #' created with [mod_pois()].
@@ -493,6 +490,61 @@ set_datamod_exposure <- function(mod, disp)  {
 #'
 #' @returns A revised version of `mod`.
 #'
+#' @seealso
+#' - [mod_pois()] Specify a Poisson model
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for
+#'   the outcome variable
+#' - [components()] Estimated values for
+#'   model parameters, including inclusion
+#'   probabilities and overcount rates
+#' - [set_datamod_undercount()] An undercount-only
+#'   data model
+#' - [set_datamod_overcount()] An overcount-only
+#'   data model
+#' - [datamods] All data models implemented in `bage`
+#' - [confidential] Confidentialization
+#'   processes modeled in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
+#'
+#' @examples
+#' ## specify 'prob' and 'rate'
+#' prob <- data.frame(sex = c("Female", "Male"),
+#'                    mean = c(0.95, 0.97),
+#'                    disp = c(0.05, 0.05))
+#' rate <- data.frame(mean = 0.03, disp = 0.15)
+#'
+#' ## specify model
+#' mod <- mod_pois(divorces ~ age * sex + time,
+#'                 data = nzl_divorces,
+#'                 exposure = population) |>
+#'   set_datamod_miscount(prob = prob, rate = rate)
+#' mod
+#'
+#' ## fit model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#'
+#' ## original data, plus imputed values for outcome
+#' mod |>
+#'   augment()
+#'
+#' ## parameter estimates
+#' library(dplyr)
+#' mod |>
+#'   components() |>
+#'   filter(term == "datamod")
+#'
+#' ## the data have in fact been confidentialized,
+#' ## so we account for that, in addition
+#' ## to accounting for undercoverage and
+#' ## overcoverage
+#' mod <- mod |>
+#'  set_confidential_rr3() |>
+#'  fit()
+#' mod
 #' @export
 set_datamod_miscount <- function(mod, prob, rate) {
   ## preliminaries
@@ -698,7 +750,7 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #' ## Normal model ------------------------------
 #' 
 #' ## prepare outcome variable
-#' library(dplyr)
+#' library(dplyr, warn.conflicts = FALSE)
 #' spend <- nld_expenditure |>
 #'   mutate(log_spend = log(value + 1))
 #'
@@ -715,7 +767,7 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #' 
 #' ## create new aggregated diagnositic
 #' ## group variable
-#' library(dplyr)
+#' library(dplyr, warn.conflicts = FALSE)
 #' spend <- spend |>
 #'   mutate(diag_ag = case_when(
 #'     diag == "Neoplasms" ~ diag,
@@ -818,10 +870,114 @@ set_datamod_noise <- function(mod, sd) {
 
 #' Specify Overcount Data Model
 #'
+#' Specify a data model for the outcome
+#' in a Poisson model, where the outcome
+#' is subject to overcount
+#'
+#' The overcount data model assumes that
+#' reported values for the outcome overstate
+#' the actual values. The reported values
+#' might be affected by double-counting,
+#' for instance, or might include some
+#' people or events that are not in the target
+#' population.
+#' 
+#' @section The `rate` argument:
+#'
+#' The `rate` argument specifies a prior
+#' distribution for the overcoverage
+#' rate. `rate` is a
+#' data frame with a variable called `"mean"`,
+#' a variable called `"disp"`, and, optionally,
+#' one or more 'by' variables.
+#' For instance, a  `rate` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            mean = c(0.05, 0.03),
+#'            disp = c(0.1, 0.15))
+#'```
+#' implies that the reported value
+#' for the outcome is expected to
+#' overstate the true value by about 5%
+#' for females, and about 3% for females,
+#' with greater unceratinty for males than females.
+#'
+#' @section Mathematical details:
+#'
+#' The model for the observed outcome is
+#'
+#' \deqn{y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i}
+#' \deqn{\epsilon_i \sim \text{Poisson}(\kappa_{g[i]} \gamma_i w_i)}
+#' \deqn{\kappa_g \sim \text{Gamma}(1/d_g, 1/(d_g m_g))}
+#'
+#' where
+#' - \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+#' - \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+#' - \eqn{\epsilon_i} overcount in cell \eqn{i};
+#' - \eqn{\gamma_i} is the rate for cell \eqn{i};
+#' - \eqn{w_i} is exposure for cell \eqn{i};
+#' - \eqn{\kappa_{g[i]}} is the overcoverage rate for cell \eqn{i};
+#' - \eqn{m_g} is the expected value for \eqn{\kappa_g}
+#'   (specified via `rate`); and
+#' - \eqn{d_g} is disperson for \eqn{\kappa_g} (specified via `rate`).
+#'
 #' @inheritParams set_datamod_miscount
 #'
 #' @returns A revised version of `mod`.
 #'
+#' @seealso
+#' - [mod_pois()] Specify a Poisson model
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for
+#'   the outcome variable
+#' - [components()] Estimated values for
+#'   model parameters, including inclusion
+#'   probabilities and overcount rates
+#' - [set_datamod_undercount()] An undercount-only
+#'   data model
+#' - [set_datamod_miscount()] An undercount-and-overcount
+#'   data model
+#' - [datamods] All data models implemented in `bage`
+#' - [confidential] Confidentialization
+#'   processes modeled in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
+#'
+#' @examples
+#' ## specify 'rate'
+#' rate <- data.frame(sex = c("Female", "Male"),
+#'                    mean = c(0.1, 0.13),
+#'                    disp = c(0.2, 0.2))
+#'
+#' ## specify model
+#' mod <- mod_pois(divorces ~ age * sex + time,
+#'                 data = nzl_divorces,
+#'                 exposure = population) |>
+#'   set_datamod_overcount(rate)
+#' mod
+#'
+#' ## fit model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#'
+#' ## original data, plus imputed values for outcome
+#' mod |>
+#'   augment()
+#'
+#' ## parameter estimates
+#' library(dplyr)
+#' mod |>
+#'   components() |>
+#'   filter(term == "datamod")
+#'
+#' ## the data have in fact been confidentialized,
+#' ## so we account for that, in addition
+#' ## to accounting for overcoverage
+#' mod <- mod |>
+#'  set_confidential_rr3() |>
+#'  fit()
+#' mod
 #' @export
 set_datamod_overcount <- function(mod, rate) {
   ##  preliminaries
@@ -884,10 +1040,123 @@ set_datamod_overcount <- function(mod, rate) {
 
 #' Specify Undercount Data Model
 #'
-#' @inheritParams set_datamod_miscount
+#' Specify a data model for the outcome
+#' in a Poisson or binomial model,
+#' where the outcome
+#' is subject to undercount.
+#'
+#' The undercount data model assumes that
+#' reported values for the outcome variable
+#' understate the true values, because
+#' the reported values miss some people
+#' or events in the target population.
+#' In other words, the probability that
+#' any given unit in the target population
+#' will be included in the reported outcome
+#' is less than 1.
+#'
+#' @section The `prob` argument:
+#'
+#' The `prob` argument specifies a prior
+#' distribution for the probability
+#' that a person or event in the target
+#' population is included in the
+#' reported outcome. `prob` is a
+#' data frame with a variable called `"mean"`,
+#' a variable called `"disp"`, and, optionally,
+#' one or more 'by' variables.
+#' For instance, a  `prob` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            mean = c(0.95, 0.92),
+#'            disp = c(0.02, 0.015))
+#'```
+#' implies that the expected value for
+#' the inclusion probability is 0.95 for females
+#' and 0.92 for males, with slightly more
+#' uncertainty for females than for males.
+#'
+#' @section Mathematical details:
+#'
+#' The model for the observed outcome is
+#'
+#' \deqn{y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]})}
+#' \deqn{\pi_g \sim \text{Beta}(m_g^{(\pi)} / d_g^{(\pi)}, (1-m_g^{(\pi)}) / d_g^{(\pi)})}
+#'
+#' where
+#' - \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+#' - \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+#' - \eqn{\pi_{g[i]}} is the probability that a member of the
+#'     target population in cell \eqn{i} is correctly enumerated in that cell;
+#' - \eqn{m_g} is the expected value for \eqn{\pi_g}
+#'   (specified via `prob`); and
+#' - \eqn{d_g} is disperson for \eqn{\pi_g} (specified via `prob`).
+#'
+#' @param mod An object of class `"bage_mod"`,
+#' created with [mod_pois()] or [mod_binom()].
+#' @param prob The prior for the probability
+#' that a person or event in the target
+#' population will correctly enumerated.
+#' A data frame with a variable
+#' called `"mean"`, a variable called `"disp"`,
+#' and, optionally, one or more 'by' variables.
 #'
 #' @returns A revised version of `mod`.
 #'
+#' @seealso
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_binom()] Specify a binomial model
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for
+#'   the outcome variable
+#' - [components()] Estimated values for
+#'   model parameters, including inclusion
+#'   probabilities and overcount rates
+#' - [set_datamod_overcount()] An overcount-only
+#'   data model
+#' - [set_datamod_miscount()] An undercount-and-overcount
+#'   data model
+#' - [datamods] All data models implemented in `bage`
+#' - [confidential] Confidentialization
+#'   processes modeled in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#'   vignette
+#'
+#' @examples
+#' ## specify 'prob'
+#' prob <- data.frame(sex = c("Female", "Male"),
+#'                    mean = c(0.95, 0.97),
+#'                    disp = c(0.05, 0.05))
+#'
+#' ## specify model
+#' mod <- mod_pois(divorces ~ age * sex + time,
+#'                 data = nzl_divorces,
+#'                 exposure = population) |>
+#'   set_datamod_undercount(prob)
+#' mod
+#'
+#' ## fit model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#'
+#' ## original data, plus imputed values for outcome
+#' mod |>
+#'   augment()
+#'
+#' ## parameter estimates
+#' library(dplyr)
+#' mod |>
+#'   components() |>
+#'   filter(term == "datamod")
+#'
+#' ## the data have in fact been confidentialized,
+#' ## so we account for that, in addition
+#' ## to accounting for undercoverage
+#' mod <- mod |>
+#'  set_confidential_rr3() |>
+#'  fit()
+#' mod
 #' @export
 set_datamod_undercount <- function(mod, prob) {
   ##  preliminaries

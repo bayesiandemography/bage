@@ -178,5 +178,5 @@ str_call_confidential <- function(confidential) {
 ## HAS_TESTS
 #' @export
 str_call_confidential.bage_confidential_rr3 <- function(confidential) {
-  "rr3()"
+  "rr3"
 }

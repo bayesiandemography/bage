@@ -426,25 +426,37 @@ draw_outcome_true_given_obs.bage_datamod_miscount <- function(datamod,
                                                               disp) {
   has_disp <- !is.null(disp)
   n_outcome <- length(outcome)
+  n_draw <- n_draw(expected)
+  if (rvec::is_rvec(outcome))
+    outcome <- as.numeric(outcome)
+  else
+    outcome <- rep(outcome, times = n_draw)
+  offset <- rep(offset, times = n_draw)
+  expected <- as.numeric(expected)
+  if (has_disp) {
+    disp <- as.numeric(disp)
+    disp <- rep(disp, each = n_outcome)
+  }
   is_ok <- !is.na(outcome) & !is.na(offset)
   n_ok <- sum(is_ok)
-  n_draw <- n_draw(expected)
-  ans <- rvec::new_rvec(length = n_outcome, n_draw = n_draw)
+  ans <- rep(NA_real_, times = n_outcome * n_draw)
   if (nm_distn == "pois") {
     prob <- get_datamod_prob(datamod = datamod,
                              components = components)
     rate <- get_datamod_rate(datamod = datamod,
                              components = components)
+    prob <- as.numeric(prob)
+    rate <- as.numeric(rate)
     prob_obs <- prob[is_ok] / (prob[is_ok] + rate[is_ok])
     outcome_true_obs <- rbinom_guarded(size = outcome[is_ok],
                                        prob = prob_obs)
     if (has_disp) {
-      size_unobs <- outcome_true_obs + (1 / disp)
-      prob_unobs <- ((1 + prob[is_ok] * expected[is_ok] * offset[is_ok] * disp)
-        / (1 + expected[is_ok] * offset[is_ok] * disp))
-      outcome_true_unobs <- rvec::rnbinom_rvec(n = n_ok,
-                                               size = size_unobs,
-                                               prob = prob_unobs)
+      size_unobs <- outcome_true_obs + (1 / disp[is_ok])
+      prob_unobs <- ((1 + prob[is_ok] * expected[is_ok] * offset[is_ok] * disp[is_ok])
+        / (1 + expected[is_ok] * offset[is_ok] * disp[is_ok]))
+      outcome_true_unobs <- stats::rnbinom(n = n_ok,
+                                           size = size_unobs,
+                                           prob = prob_unobs)
     }
     else {
       lambda <- (1 - prob[is_ok]) * expected[is_ok] * offset[is_ok]
@@ -457,6 +469,8 @@ draw_outcome_true_given_obs.bage_datamod_miscount <- function(datamod,
                          "{.cls {class(datamod)}} but {.var nm_distn}",
                          "is {.val {nm_distn}}."))
   }
+  ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
@@ -472,7 +486,10 @@ draw_outcome_true_given_obs.bage_datamod_noise <- function(datamod,
                                                            disp) {
   n_outcome <- length(outcome)
   n_draw <- rvec::n_draw(expected)
-  outcome <- rep(outcome, times = n_draw)
+  if (rvec::is_rvec(outcome))
+    outcome <- as.numeric(outcome)
+  else
+    outcome <- rep(outcome, times = n_draw)
   offset <- rep(offset, times = n_draw)
   expected <- as.numeric(expected)
   is_ok <- !is.na(outcome) & !is.na(offset)
@@ -525,16 +542,20 @@ draw_outcome_true_given_obs.bage_datamod_overcount <- function(datamod,
                                                                offset,
                                                                expected,
                                                                disp) {
+  n_outcome <- length(outcome)
+  n_draw <- rvec::n_draw(expected)
+  if (rvec::is_rvec(outcome))
+    outcome <- as.numeric(outcome)
+  else
+    outcome <- rep(outcome, times = n_draw)
+  is_ok <- !is.na(outcome) ## not offset, since not used
+  n_ok <- sum(is_ok)
+  ans <- rep(NA_real_, times = n_outcome * n_draw)
   if (nm_distn == "pois") {
-    n_outcome <- length(outcome)
-    n_draw <- rvec::n_draw(expected)
-    is_ok <- !is.na(outcome) ## not offset, since not used
-    n_ok <- sum(is_ok)
     rate <- get_datamod_rate(datamod = datamod,
                              components = components)
+    rate <- as.numeric(rate)
     prob_obs <- 1 / (1 + rate[is_ok])
-    ans <- rvec::new_rvec(length = n_outcome,
-                          n_draw = n_draw)
     ans[is_ok] <- rbinom_guarded(size = outcome[is_ok],
                                  prob = prob_obs)
   }
@@ -543,6 +564,8 @@ draw_outcome_true_given_obs.bage_datamod_overcount <- function(datamod,
                          "{.cls {class(datamod)}} but {.var nm_distn}",
                          "is {.val {nm_distn}}."))
   }
+  ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
@@ -557,35 +580,44 @@ draw_outcome_true_given_obs.bage_datamod_undercount <- function(datamod,
                                                                 disp) {
   has_disp <- !is.null(disp)
   n_outcome <- length(outcome)
+  n_draw <- rvec::n_draw(expected)
+  if (rvec::is_rvec(outcome))
+    outcome <- as.numeric(outcome)
+  else
+    outcome <- rep(outcome, times = n_draw)
+  offset <- rep(offset, times = n_draw)
+  expected <- as.numeric(expected)
   is_ok <- !is.na(outcome) & !is.na(offset)
   n_ok <- sum(is_ok)
-  n_draw <- rvec::n_draw(expected)
   prob <- get_datamod_prob(datamod = datamod,
                            components = components)
-  ans <- rvec::new_rvec(length = n_outcome, n_draw = n_draw)
+  prob <- as.numeric(prob)
+  if (has_disp) {
+    disp <- as.numeric(disp)
+    disp <- rep(disp, each = n_outcome)
+  }
+  ans <- rep(NA_real_, times = n_outcome * n_draw)
   if (nm_distn == "pois") {
     if (has_disp) {
-      size_unobs <- outcome[is_ok] + (1 / disp)
-      prob_unobs <- ((1 + prob[is_ok] * expected[is_ok] * offset[is_ok] * disp)
-        / (1 + expected[is_ok] * offset[is_ok] * disp))
-      outcome_unobs <- rvec::rnbinom_rvec(n = n_ok,
-                                          size = size_unobs,
-                                          prob = prob_unobs)
+      shape <- outcome[is_ok] + (1 / disp[is_ok])
+      scale <- ((1 - prob[is_ok]) * expected[is_ok] * offset[is_ok] * disp[is_ok]
+        / (1 + prob[is_ok] * expected[is_ok] * offset[is_ok] * disp[is_ok]))
+      lambda <- stats::rgamma(n = n_ok, shape = shape, scale = scale)
     }
     else {
       lambda <- (1 - prob[is_ok]) * expected[is_ok] * offset[is_ok]
-      outcome_unobs <- rpois_guarded(lambda)
     }
+    outcome_unobs <- rpois_guarded(lambda)
     ans[is_ok] <- outcome[is_ok] + outcome_unobs
   }
   else if (nm_distn == "binom") {
     if (has_disp) {
       ## more complex distribution, so gets special function
-      ans[is_ok] <- draw_outcome_true_binom_betabinom(offset = offset[is_ok],
-                                                      outcome = outcome[is_ok],
-                                                      expected = expected[is_ok],
-                                                      disp = disp,
-                                                      prob = prob[is_ok])
+      ans[is_ok] <- sample_post_binom_betabinom(n = offset[is_ok],
+                                                y = outcome[is_ok],
+                                                mu = expected[is_ok],
+                                                xi = disp[is_ok],
+                                                pi = prob[is_ok])
     }
     else {
       size_unobs <- offset[is_ok] - outcome[is_ok]
@@ -601,6 +633,8 @@ draw_outcome_true_given_obs.bage_datamod_undercount <- function(datamod,
                          "{.cls {class(datamod)}} but {.var nm_distn}",
                          "is {.val {nm_distn}}."))
   }
+  ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
@@ -952,57 +986,6 @@ make_i_lik_part.bage_datamod_overcount <- function(x) {
 #' @export
 make_i_lik_part.bage_datamod_undercount <- function(x) {
   5000L
-}
-
-
-
-## Helper function for 'draw_outcome_true_given_obs' --------------------------
-
-## HAS_TESTS
-#' Draw Values for True Outcome, Given Observed Outcome,
-#' Based on Binomial Model and Undercount Data Model
-#'
-#' Note that 'outcome' is an rvec if it has been inferred
-#' from confidentialized values - otherwise it is
-#' a numeric vector.
-#'
-#' @param outcome Observed values for outcome.
-#' Can be rvec or numeric vector.
-#' @param offset Observed values for offset.
-#' Numeric vector.
-#' @param expected Expected values for rates/prob/mean.
-#' An rvec.
-#' @param disp Dispersion. An rvec.
-#' @param prob Probability event/person captured.
-#' An rvec.
-#'
-#' @returns An rvec
-#'
-#' @noRd
-draw_outcome_true_binom_betabinom <- function(outcome,
-                                              offset,
-                                              expected,
-                                              disp,
-                                              prob) {
-  n_draw <- rvec::n_draw(expected)
-  n_val <- length(expected)
-  offset <- rep(offset, times = n_draw)
-  if (rvec::is_rvec(outcome))
-    outcome <- as.numeric(outcome)
-  else
-    outcome <- rep(outcome, times = n_draw)
-  expected <- as.numeric(expected)
-  disp <- as.numeric(disp)
-  disp <- rep(disp, each = n_val)
-  prob <- as.numeric(prob)
-  ans <- sample_post_binom_betabinom(n = offset,
-                                     y = outcome,
-                                     mu = expected,
-                                     xi = disp,
-                                     pi = prob)
-  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
-  ans <- rvec::rvec_dbl(ans)
-  ans
 }
 
 

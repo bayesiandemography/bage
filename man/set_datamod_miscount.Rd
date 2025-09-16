@@ -36,36 +36,28 @@ The miscount data model is essentially a combination
 of the \link[=set_datamod_undercount]{undercount}
 and \link[=set_datamod_overcount]{overcount}
 data models. It assumes that
-reported outcomes are the sum of:
-\itemize{
-\item \emph{Undercounted trues} A potentially incomplete
-count of people or events belonging to
-the target population.
-\item \emph{Overcount} A count of people or events
-not belonging to the target population,
-and included incorrectly.
+reported outcome is the sum of two quantities:
+\enumerate{
+\item \emph{Units from target population, undercounted}
+People or events belonging
+to the target population, in which
+each unit's inclusion probability
+is less than 1.
+\item \emph{Overcount} People or events
+that do not belong to target population,
+or that are counted more than once.
 }
 
-Say, for instance, that a population
-contains 100 people. The census
-enumerates 91 of these people, but also
-mistakenly enumerates 6 additional people.
-Then
+If, for instance, a census
+enumerates 91 people from a true population
+of 100, but also mistakenly enumerates
+a further 6 people, then
 \itemize{
-\item the true outcome is 100
-\item the value for the undercounted trues is 91,
-\item the value for overcount is 6, and
-\item the reported outcome is 91 + 6 = 97.
+\item the true value for the outcome variable is 100
+\item the value for the undercounted target population is 91,
+\item the value for the overcount is 6, and
+\item the observed value for the outcome variable is 91 + 6 = 97.
 }
-
-In the miscount model, the value for
-undercounted trues depends
-on the true value for the outcome,
-and on the probability that each person
-or event is correctly enumerated. The
-value for the overcount depends on the
-expected value for the outcome multiplied
-by an overcoverage rate.
 }
 \section{The \code{prob} argument}{
 
@@ -73,7 +65,7 @@ by an overcoverage rate.
 The \code{prob} argument specifies a prior
 distribution for the probability
 that a person or event in the target
-population will be included in the
+population is included in the
 reported outcome. \code{prob} is a
 data frame with a variable called \code{"mean"},
 a variable called \code{"disp"}, and, optionally,
@@ -86,7 +78,7 @@ For instance, a  \code{prob} of
 }\if{html}{\out{</div>}}
 
 implies that the expected value for
-the probability is 0.95 for females
+the inclusion probability is 0.95 for females
 and 0.92 for males, with slightly more
 uncertainty for females than for males.
 }
@@ -107,8 +99,8 @@ For instance, a  \code{rate} of
 
 implies that the expected value for
 the overcoverage rate is 0.03,
-with a dispersion of 0.1. Since no
-'by' variables are given, identical
+with a dispersion of 0.1. Since no 'by'
+variables are included, the same
 mean and dispersion values are
 applied to all cells.
 }
@@ -133,10 +125,70 @@ where
 \item \eqn{\pi_{g[i]}} is the probability that a member of the
 target population in cell \eqn{i} is correctly enumerated in that cell;
 \item \eqn{\kappa_{h[i]}} is the overcoverage rate for cell \eqn{i};
-\item \eqn{m_g^{(\pi)}} is the expected value for \eqn{\pi_g};
-\item \eqn{d_g^{(\pi)}} is disperson for \eqn{\pi_g};
-\item \eqn{m_h^{(\kappa)}} is the expected value for \eqn{\kappa_h}; and
-\item \eqn{d_h^{(\kappa)}} is disperson for \eqn{\kappa_h}.
+\item \eqn{m_g^{(\pi)}} is the expected value for \eqn{\pi_g}
+(specified via \code{prob});
+\item \eqn{d_g^{(\pi)}} is disperson for \eqn{\pi_g} (specified via \code{prob});
+\item \eqn{m_h^{(\kappa)}} is the expected value for \eqn{\kappa_h}
+(specified via \code{rate}); and
+\item \eqn{d_h^{(\kappa)}} is disperson for \eqn{\kappa_h} (specified via \code{rate}).
 }
 }
 
+\examples{
+## specify 'prob' and 'rate'
+prob <- data.frame(sex = c("Female", "Male"),
+                   mean = c(0.95, 0.97),
+                   disp = c(0.05, 0.05))
+rate <- data.frame(mean = 0.03, disp = 0.15)
+
+## specify model
+mod <- mod_pois(divorces ~ age * sex + time,
+                data = nzl_divorces,
+                exposure = population) |>
+  set_datamod_miscount(prob = prob, rate = rate)
+mod
+
+## fit model
+mod <- mod |>
+  fit()
+mod
+
+## original data, plus imputed values for outcome
+mod |>
+  augment()
+
+## parameter estimates
+library(dplyr)
+mod |>
+  components() |>
+  filter(term == "datamod")
+
+## the data have in fact been confidentialized,
+## so we account for that, in addition
+## to accounting for undercoverage and
+## overcoverage
+mod <- mod |>
+ set_confidential_rr3() |>
+ fit()
+mod
+}
+\seealso{
+\itemize{
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
+\item \code{\link[=augment]{augment()}} Original data plus estimated values,
+including estimates of true value for
+the outcome variable
+\item \code{\link[=components]{components()}} Estimated values for
+model parameters, including inclusion
+probabilities and overcount rates
+\item \code{\link[=set_datamod_undercount]{set_datamod_undercount()}} An undercount-only
+data model
+\item \code{\link[=set_datamod_overcount]{set_datamod_overcount()}} An overcount-only
+data model
+\item \link{datamods} All data models implemented in \code{bage}
+\item \link{confidential} Confidentialization
+processes modeled in \code{bage}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+vignette
+}
+}

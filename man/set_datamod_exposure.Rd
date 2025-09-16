@@ -130,6 +130,7 @@ mod
 ## receives one value for dispersion,
 ## and everyone aged 50+ receives another
 library(poputils) ## for 'age_upper()'
+library(dplyr, warn.conflicts = FALSE)
 nzl_injuries_age <- nzl_injuries |>
   mutate(age_group = if_else(age_upper(age) < 50,
                              "0-49",
@@ -149,6 +150,8 @@ mod <- mod_pois(injuries ~ age * sex + year,
 \item \code{\link[=augment]{augment()}} Original data plus estimated values,
 including estimates of true value for exposure
 \item \link{datamods} Data models implemented in \code{bage}
+\item \link{confidential} Confidentialization
+processes modeled in \code{bage}
 \item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
 vignette
 }
