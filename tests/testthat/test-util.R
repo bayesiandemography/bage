@@ -58,6 +58,323 @@ test_that("works for x = 0 and x = size", {
 })
 
 
+## 'draw_true_given_obs_pois_skellam ------------------------------------------
+
+test_that("'draw_true_given_obs_pois_skellam' returns single nonnegative integer", {
+  set.seed(1)
+  ans <- draw_true_given_obs_pois_skellam(y_obs = 10, lambda = 12, m = 15)
+  expect_length(ans, 1L)
+  expect_true(is.finite(ans))
+  expect_true(is.integer(ans) || (is.numeric(ans) && ans == as.integer(ans)))
+  expect_gte(ans, 0L)
+})
+
+test_that("'draw_true_given_obs_pois_skellam' chooses exact method when both lambda and m below threshold", {
+  set.seed(2)
+  lambda <- 10
+  m <- 20
+  y_obs <- 8L
+  set.seed(0)
+  ans_dispatch <- draw_true_given_obs_pois_skellam(y_obs, lambda, m)
+  set.seed(0)
+  ans_exact <- draw_true_given_obs_pois_skellam_exact(y_obs, lambda, m, window_sd = 8L)
+  expect_identical(ans_dispatch, ans_exact)
+})
+
+test_that("'draw_true_given_obs_pois_skellam' chooses approx method when either lambda or m above threshold", {
+  set.seed(3)
+  # Make lambda large so approx branch is used
+  lambda <- 100
+  m <- 20
+  y_obs <- 60L
+  set.seed(0)
+  ans_dispatch <- draw_true_given_obs_pois_skellam(y_obs, lambda, m)
+  set.seed(0)
+  ans_approx <- draw_true_given_obs_pois_skellam_approx(y_obs, lambda, m,
+                                                        window_sd = 8L, p0_thresh = 0.01)
+  expect_identical(ans_dispatch, ans_approx)
+})
+
+test_that("draw_true_given_obs_pois_skellam - negative y_obs handled correctly by truncation", {
+  set.seed(4)
+  # Negative observed value: final draw should always be >= 0
+  ans <- draw_true_given_obs_pois_skellam(y_obs = -5, lambda = 10, m = 20)
+  expect_gte(ans, 0L)
+})
+
+
+## 'draw_true_given_obs_pois_skellam_approx' ----------------------------------
+
+test_that("'draw_true_given_obs_pois_skellam_approx' returns one nonnegative integer", {
+  set.seed(1)
+  ans <- draw_true_given_obs_pois_skellam_approx(
+    y_obs = 37, lambda = 40, m = 20, window_sd = 6L, p0_thresh = 0.01
+  )
+  expect_length(ans, 1L)
+  expect_true(is.finite(ans))
+  expect_true(is.integer(ans) || (is.numeric(ans) && ans == as.integer(ans)))
+  expect_gte(ans, 0L)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' works when far from boundary", {
+  set.seed(0)
+  y_obs <- 1000
+  lambda <- 1000
+  m <- 800
+  mu_post <- lambda + (lambda / (lambda + 2*m)) * (y_obs - lambda)
+  sd_post <- sqrt((lambda * 2*m) / (lambda + 2*m))
+  draws <- replicate(200,
+    draw_true_given_obs_pois_skellam_approx(y_obs, lambda, m, window_sd = 6L, p0_thresh = 0.01)
+  )
+  expect_true(all(draws >= 0))
+  expect_lt(mean(draws == 0L), 0.01)
+  expect_lt(abs(mean(draws) - mu_post), 0.2 * sd_post)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' works near boundary (mu_post small) or high p0", {
+  set.seed(4)
+  # Make mu_post small: lambda small, y not too large
+  y_obs <- 2
+  lambda <- 4
+  m <- 20
+  # Here mu_post ~ lambda + lambda/(lambda+2m)*(y-lambda) is small, near boundary
+  draws <- replicate(400,
+    draw_true_given_obs_pois_skellam_approx(y_obs, lambda, m, window_sd = 8L, p0_thresh = 0.05)
+  )
+  expect_true(all(draws >= 0))
+  # Substantial mass near 0 expected
+  expect_gt(mean(draws <= 1L), 0.1)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' empirical mean tracks Gaussian posterior mean (moderate case)", {
+  skip_on_cran()  # Monte Carlo
+  set.seed(5)
+  y_obs <- 120
+  lambda <- 100
+  m <- 60
+  mu_post <- lambda + (lambda / (lambda + 2*m)) * (y_obs - lambda)
+  sd_post <- sqrt((lambda * 2*m) / (lambda + 2*m))
+  n <- 5000
+  draws <- replicate(n,
+    draw_true_given_obs_pois_skellam_approx(y_obs, lambda, m, window_sd = 6L, p0_thresh = 0.01)
+  )
+  # Sampling error ~ sd / sqrt(n); allow a modest multiple
+  tol <- 3 * sd_post / sqrt(n)
+  expect_lt(abs(mean(draws) - mu_post), max(tol, 0.15))  # floor tolerance a bit for discreteness
+})
+
+test_that("draw_true_given_obs_pois_skellam_approx does not return NA/NaN/Inf in a few edge-y settings", {
+  set.seed(6)
+  params <- list(
+    list(y = 0,   lam = 0.1, m = 0.1),
+    list(y = 20,  lam = 5,   m = 40),
+    list(y = 200, lam = 150, m = 10),
+    list(y = 10,  lam = 300, m = 200)
+  )
+  for (p in params) {
+    ans <- draw_true_given_obs_pois_skellam_approx(
+      y_obs = p$y, lambda = p$lam, m = p$m, window_sd = 6L, p0_thresh = 0.02
+    )
+    expect_true(is.finite(ans))
+    expect_gte(ans, 0L)
+  }
+})
+
+
+## 'draw_true_given_obs_pois_skellam_exact' -----------------------------------
+
+test_that("'draw_true_given_obs_pois_skellam_exact' returns one nonnegative integer", {
+  set.seed(1)
+  ans <- draw_true_given_obs_pois_skellam_exact(
+    y_obs = 7, lambda = 12, m = 6, window_sd = 8L
+  )
+  expect_length(ans, 1L)
+  expect_true(is.finite(ans))
+  expect_true(is.integer(ans) || (is.numeric(ans) && ans == as.integer(ans)))
+  expect_gte(ans, 0L)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_exact' - empirical posterior mean matches exact posterior mean (small/moderate case)", {
+  set.seed(4)
+  y_obs  <- 8L
+  lambda <- 10
+  m      <- 6
+  # Build an exact posterior pmf over a generous finite window
+  sdY <- sqrt(lambda + 2*m)
+  L   <- max(0L, floor(y_obs - 8 * sdY))
+  R   <- max(L + 1L, ceiling(max(y_obs + 8 * sdY, lambda + 8 * sqrt(lambda + 1))))
+  xs  <- L:R
+  # Unnormalized log weights:
+  #   log w(x) = x log λ - log(x!) + log I_{|y-x|}(2m)
+  nu   <- abs(y_obs - xs)
+  logI <- log(besselI(2 * m, nu = nu, expon.scaled = TRUE)) + 2 * m
+  logw <- xs * log(lambda) - lgamma(xs + 1) + logI
+  M    <- max(logw)
+  w    <- exp(logw - M)
+  p    <- w / sum(w)
+  exact_mean <- sum(xs * p)
+  # Draw a bunch and compare means
+  n <- 8000
+  draws <- replicate(n, draw_true_given_obs_pois_skellam_exact(y_obs, lambda, m, window_sd = 8L))
+  # MC standard error ~ sd/sqrt(n); set a practical tolerance with floor for discreteness
+  tol <- max(sd(draws) / sqrt(n) * 4, 0.1)
+  expect_lt(abs(mean(draws) - exact_mean), tol)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_exact' - probability mass function is respected for a tiny case (enumeration check)", {
+  set.seed(5)
+  y_obs  <- 3L
+  lambda <- 2
+  m      <- 1
+  # Build exact posterior over 0..K where K is modest (manual enumeration feasible)
+  K  <- 20L
+  xs <- 0:K
+  nu <- abs(y_obs - xs)
+  logI <- log(besselI(2 * m, nu = nu, expon.scaled = TRUE)) + 2 * m
+  logw <- xs * log(lambda) - lgamma(xs + 1) + logI
+  p <- exp(logw - max(logw)); p <- p / sum(p)
+  # Empirical frequencies
+  n <- 20000
+  draws <- replicate(n, draw_true_given_obs_pois_skellam_exact(y_obs, lambda, m, window_sd = 8L))
+  tab <- table(factor(draws, levels = xs)) / n
+  # Compare over the bulk support (exclude far tail where p is tiny)
+  keep <- p > 1e-4
+  expect_lt(max(abs(tab[keep] - p[keep])), 0.02)  # 2% sup error over bulk is reasonable
+})
+
+test_that("'draw_true_given_obs_pois_skellam_exact' - no NA/NaN/Inf returned for a handful of edge-ish inputs", {
+  set.seed(6)
+  params <- list(
+    list(y = 0L,  lam = 0.1, m = 0.1),
+    list(y = 15L, lam = 4,   m = 10),
+    list(y = 25L, lam = 12,  m = 6),
+    list(y = 5L,  lam = 40,  m = 35)
+  )
+  for (p in params) {
+    ans <- draw_true_given_obs_pois_skellam_exact(
+      y_obs = p$y, lambda = p$lam, m = p$m, window_sd = 8L
+    )
+    expect_true(is.finite(ans))
+    expect_gte(ans, 0L)
+  }
+})
+
+
+## 'draw_true_given_obs_pois_skellam_exact' vs 'draw_true_given_obs_pois_skellam_approx' -----
+
+# Helper: draw n samples from a 1-draw function
+.draw_n <- function(fun, n, ...) {
+  v <- integer(n)
+  for (i in seq_len(n)) v[i] <- fun(...)
+  v
+}
+
+# Helper: empirical CDF at integer grid
+.emp_cdf <- function(x, grid = sort(unique(x))) {
+  fx <- ecdf(x)
+  fx(grid)
+}
+
+test_that("approx vs exact agree: moderate counts, near mean", {
+  skip_on_cran()
+  set.seed(101)
+  y_obs  <- 28L
+  lambda <- 30
+  m      <- 20
+  n      <- 4000
+  approx_draws <- .draw_n(draw_true_given_obs_pois_skellam_approx, n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 6L, p0_thresh = 0.01)
+  exact_draws  <- .draw_n(draw_true_given_obs_pois_skellam_exact,  n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L)
+  # Validity
+  expect_true(all(is.finite(approx_draws) & approx_draws >= 0))
+  expect_true(all(is.finite(exact_draws)  & exact_draws  >= 0))
+  # Means close (allow for MC noise + discreteness)
+  tol_mean <- 0.15 + 3 * sd(exact_draws) / sqrt(n)
+  expect_lt(abs(mean(approx_draws) - mean(exact_draws)), tol_mean)
+  # Empirical CDF sup distance (on shared grid)
+  grid <- sort(unique(c(approx_draws, exact_draws)))
+  d_sup <- max(abs(.emp_cdf(approx_draws, grid) - .emp_cdf(exact_draws, grid)))
+  expect_lt(d_sup, 0.06)   # 6% KS-like distance is tight for n=4000
+})
+
+test_that("approx vs exact agree: large counts", {
+  skip_on_cran()
+  set.seed(202)
+  y_obs  <- 110L
+  lambda <- 100
+  m      <- 80
+  n      <- 4000
+  approx_draws <- .draw_n(draw_true_given_obs_pois_skellam_approx, n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 6L, p0_thresh = 0.01)
+  exact_draws  <- .draw_n(draw_true_given_obs_pois_skellam_exact,  n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L)
+  expect_true(all(approx_draws >= 0L & exact_draws >= 0L))
+  tol_mean <- 0.2 + 3 * sd(exact_draws) / sqrt(n)
+  expect_lt(abs(mean(approx_draws) - mean(exact_draws)), tol_mean)
+  grid <- sort(unique(c(approx_draws, exact_draws)))
+  d_sup <- max(abs(.emp_cdf(approx_draws, grid) - .emp_cdf(exact_draws, grid)))
+  expect_lt(d_sup, 0.04)   # tighter with large counts
+})
+
+test_that("approx vs exact agree: boundary-ish (small mu_post, nontrivial mass at 0)", {
+  skip_on_cran()
+  set.seed(303)
+  y_obs  <- 2L
+  lambda <- 8
+  m      <- 20
+  n      <- 6000
+  approx_draws <- .draw_n(draw_true_given_obs_pois_skellam_approx, n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L, p0_thresh = 0.05)
+  exact_draws  <- .draw_n(draw_true_given_obs_pois_skellam_exact,  n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L)
+  expect_true(all(approx_draws >= 0L & exact_draws >= 0L))
+  # Compare mass at a few small points explicitly (0,1,2)
+  for (k in 0:2) {
+    p_a <- mean(approx_draws == k)
+    p_e <- mean(exact_draws  == k)
+    expect_lt(abs(p_a - p_e), 0.03)  # 3% absolute difference
+  }
+  # Mean tolerance a bit looser near boundary due to truncation/rounding
+  tol_mean <- 0.25 + 4 * sd(exact_draws) / sqrt(n)
+  expect_lt(abs(mean(approx_draws) - mean(exact_draws)), tol_mean)
+  # Distribution closeness
+  grid <- sort(unique(c(approx_draws, exact_draws)))
+  d_sup <- max(abs(.emp_cdf(approx_draws, grid) - .emp_cdf(exact_draws, grid)))
+  expect_lt(d_sup, 0.07)
+})
+
+test_that("approx vs exact agree: symmetric case around zero (uses windowing path)", {
+  skip_on_cran()
+  set.seed(404)
+  # Symmetric Skellam with y near lambda gives mu_post near lambda
+  y_obs  <- 15L
+  lambda <- 15
+  m      <- 15
+  n      <- 5000
+  approx_draws <- .draw_n(draw_true_given_obs_pois_skellam_approx, n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 7L, p0_thresh = 0.02)
+  exact_draws  <- .draw_n(draw_true_given_obs_pois_skellam_exact,  n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L)
+  expect_true(all(approx_draws >= 0L & exact_draws >= 0L))
+  tol_mean <- 0.2 + 3 * sd(exact_draws) / sqrt(n)
+  expect_lt(abs(mean(approx_draws) - mean(exact_draws)), tol_mean)
+  grid <- sort(unique(c(approx_draws, exact_draws)))
+  d_sup <- max(abs(.emp_cdf(approx_draws, grid) - .emp_cdf(exact_draws, grid)))
+  expect_lt(d_sup, 0.05)
+})
+
+
+
+
 ## 'insert_after' -------------------------------------------------------
 
 test_that("'insert_after' works with data frames", {

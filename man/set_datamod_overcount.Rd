@@ -7,13 +7,13 @@
 set_datamod_overcount(mod, rate)
 }
 \arguments{
-\item{mod}{An object of class \code{"bage_mod"},
-created with \code{\link[=mod_pois]{mod_pois()}},
-\code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+\item{mod}{An object of class \code{"bage_mod_pois"},
+created with \code{\link[=mod_pois]{mod_pois()}}.}
 
-\item{rate}{A data frame with 'by' variables,
-a variable called \code{"mean"}, and a variable
-called \code{"disp"}}
+\item{rate}{The prior for the overcoverage rate.
+A data frame with a variable
+called \code{"mean"}, a variable called \code{"disp"},
+and, optionally, one or more 'by' variables.}
 }
 \value{
 A revised version of \code{mod}.

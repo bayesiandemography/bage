@@ -7,8 +7,6 @@ output:
     toc: true
     toc_depth: 2
     number_sections: true
-pkgdown:
-  as_is: true
 vignette: >
   %\VignetteIndexEntry{2. Mathematical Details}
   %\VignetteEngine{knitr::rmarkdown}

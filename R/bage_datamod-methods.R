@@ -470,29 +470,49 @@ draw_outcome_true_given_obs.bage_datamod_noise <- function(datamod,
                                                            offset,
                                                            expected,
                                                            disp) {
+  n_outcome <- length(outcome)
+  n_draw <- rvec::n_draw(expected)
+  outcome <- rep(outcome, times = n_draw)
+  offset <- rep(offset, times = n_draw)
+  expected <- as.numeric(expected)
+  is_ok <- !is.na(outcome) & !is.na(offset)
+  n_ok <- sum(is_ok)
+  sd_noise <- get_datamod_sd(datamod)
+  sd_noise <- rep(sd_noise, times = n_draw)
+  ans <- rep(NA_real_, times = n_outcome * n_draw)
   if (nm_distn == "norm") {
-    n_outcome <- length(outcome)
-    n_draw <- rvec::n_draw(expected)
-    is_ok <- !is.na(outcome) & !is.na(offset)
-    n_ok <- sum(is_ok)
-    sd_noise <- get_datamod_sd(datamod)
-    prec_true <- offset[is_ok] / (disp^2)
-    prec_noise <- 1 / (sd_noise[is_ok]^2)
+    disp <- as.numeric(disp)
+    disp <- rep(disp, each = n_outcome)
+    prec_true <- offset[is_ok] / ((disp[is_ok])^2)
+    prec_noise <- 1 / ((sd_noise[is_ok])^2)
     wt_true <- prec_true / (prec_true + prec_noise)
     mean_true <- (wt_true * expected[is_ok]
       + (1 - wt_true) * outcome[is_ok])
     sd_true <- 1 / sqrt(prec_true + prec_noise)
-    ans <- rvec::new_rvec(length = n_outcome,
-                          n_draw = n_draw)
-    ans[is_ok] <- rvec::rnorm_rvec(n = n_ok,
-                                   mean = mean_true,
-                                   sd = sd_true)
+    ans[is_ok] <- stats::rnorm(n = n_ok,
+                               mean = mean_true,
+                               sd = sd_true)
+  }
+  else if (nm_distn == "pois") {
+    ## draw_true_given_obs_pois_skellam not vectorised
+    for (i in seq_along(ans)) {
+      if (is_ok[[i]]) {
+        y_obs <- outcome[[i]]
+        lambda <- expected[[i]] * offset[[i]]
+        m <- 0.5 * (sd_noise[[i]])^2
+        ans[[i]] <- draw_true_given_obs_pois_skellam(y_obs = y_obs,
+                                                     lambda = lambda,
+                                                     m = m)
+      }
+    }
   }
   else {
     cli::cli_abort(paste("Internal error: {.var datamod} has class",
                          "{.cls {class(datamod)}} but {.var nm_distn}",
                          "is {.val {nm_distn}}."))
   }
+  ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 

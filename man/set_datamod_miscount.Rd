@@ -7,72 +7,136 @@
 set_datamod_miscount(mod, prob, rate)
 }
 \arguments{
-\item{mod}{An object of class \code{"bage_mod"},
-created with \code{\link[=mod_pois]{mod_pois()}},
-\code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+\item{mod}{An object of class \code{"bage_mod_pois"},
+created with \code{\link[=mod_pois]{mod_pois()}}.}
 
-\item{prob}{A data frame with 'by' variables,
-a variable called \code{"mean"}, and a variable
-called \code{"disp"}}
+\item{prob}{The prior for the probability
+that a person or event in the target
+population will correctly enumerated.
+A data frame with a variable
+called \code{"mean"}, a variable called \code{"disp"},
+and, optionally, one or more 'by' variables.}
 
-\item{rate}{A data frame with 'by' variables,
-a variable called \code{"mean"}, and a variable
-called \code{"disp"}}
+\item{rate}{The prior for the overcoverage rate.
+A data frame with a variable
+called \code{"mean"}, a variable called \code{"disp"},
+and, optionally, one or more 'by' variables.}
 }
 \value{
 A revised version of \code{mod}.
 }
 \description{
-Specify a data model for the outcome variable
-in a Poisson model, where the outcome variable
-is subject simultaneously to undercount and
-to overcount.
+Specify a data model for the outcome
+in a Poisson model, where the outcome
+is subject to undercount and
+overcount.
 }
 \details{
-The miscount data model assumes that
-the reported value for an outcome includes
-(1) people or events who belong in the
-target population, and (2) people
-or events who do not belong in the targe population.
-Coverage of (1) is incomplete, so that
-the count (1)
-is typically less (and never higher) than
-the true population. people or events who belong in
-the target population is incomplete, so
-the
-the reported value for an outcome as the sum
-of two quantities:
-\enumerate{
-\item An incomplete count of people or events who
-belong in the target population.
-\item A count
-belong in the target population.
-\item CouPeople or events who belong in the target
-population, but who are
+The miscount data model is essentially a combination
+of the \link[=set_datamod_undercount]{undercount}
+and \link[=set_datamod_overcount]{overcount}
+data models. It assumes that
+reported outcomes are the sum of:
+\itemize{
+\item \emph{Undercounted trues} A potentially incomplete
+count of people or events belonging to
+the target population.
+\item \emph{Overcount} A count of people or events
+not belonging to the target population,
+and included incorrectly.
 }
 
-The miscount data model
-
-reported outcome = i
-
-The data model assumes that observed counts
-of people or events are the sum
-of two quantities:
-\enumerate{
-\item People are events that are
-are the sum of two quantities:
-\item made up of two things:
+Say, for instance, that a population
+contains 100 people. The census
+enumerates 91 of these people, but also
+mistakenly enumerates 6 additional people.
+Then
+\itemize{
+\item the true outcome is 100
+\item the value for the undercounted trues is 91,
+\item the value for overcount is 6, and
+\item the reported outcome is 91 + 6 = 97.
 }
 
-1
+In the miscount model, the value for
+undercounted trues depends
+on the true value for the outcome,
+and on the probability that each person
+or event is correctly enumerated. The
+value for the overcount depends on the
+expected value for the outcome multiplied
+by an overcoverage rate.
+}
+\section{The \code{prob} argument}{
 
-observed outcome = true (but incomplet
-sum of two terms:
-\enumerate{
-\item True
+
+The \code{prob} argument specifies a prior
+distribution for the probability
+that a person or event in the target
+population will be included in the
+reported outcome. \code{prob} is a
+data frame with a variable called \code{"mean"},
+a variable called \code{"disp"}, and, optionally,
+one or more 'by' variables.
+For instance, a  \code{prob} of
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{data.frame(sex = c("Female", "Male"),
+           mean = c(0.95, 0.92),
+           disp = c(0.02, 0.015))
+}\if{html}{\out{</div>}}
+
+implies that the expected value for
+the probability is 0.95 for females
+and 0.92 for males, with slightly more
+uncertainty for females than for males.
 }
 
-observed outcome =
+\section{The \code{rate} argument}{
 
-We have observed outcome variable takes the form
+
+The \code{rate} argument specifies a prior
+distribution for the overcoverage
+rate. \code{rate} is a
+data frame with a variable called \code{"mean"},
+a variable called \code{"disp"}, and, optionally,
+one or more 'by' variables.
+For instance, a  \code{rate} of
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{data.frame(mean = 0.03, disp = 0.1)
+}\if{html}{\out{</div>}}
+
+implies that the expected value for
+the overcoverage rate is 0.03,
+with a dispersion of 0.1. Since no
+'by' variables are given, identical
+mean and dispersion values are
+applied to all cells.
 }
+
+\section{Mathematical details}{
+
+
+The model for the observed outcome is
+
+\deqn{y_i^{\text{obs}} = u_i + v_i}
+\deqn{u_i \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]})}
+\deqn{v_i \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i)}
+\deqn{\pi_g \sim \text{Beta}(m_g^{(\pi)} / d_g^{(\pi)}, (1-m_g^{(\pi)}) / d_g^{(\pi)})}
+\deqn{\kappa_h \sim \text{Gamma}(1/d_h^{(\kappa)}, 1/(d_h^{(\kappa)} m_h^{(\kappa)}))}
+
+where
+\itemize{
+\item \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+\item \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+\item \eqn{\gamma_i} is the rate for cell \eqn{i};
+\item \eqn{w_i} is exposure for cell \eqn{i};
+\item \eqn{\pi_{g[i]}} is the probability that a member of the
+target population in cell \eqn{i} is correctly enumerated in that cell;
+\item \eqn{\kappa_{h[i]}} is the overcoverage rate for cell \eqn{i};
+\item \eqn{m_g^{(\pi)}} is the expected value for \eqn{\pi_g};
+\item \eqn{d_g^{(\pi)}} is disperson for \eqn{\pi_g};
+\item \eqn{m_h^{(\kappa)}} is the expected value for \eqn{\kappa_h}; and
+\item \eqn{d_h^{(\kappa)}} is disperson for \eqn{\kappa_h}.
+}
+}
+
