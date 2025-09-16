@@ -11,6 +11,7 @@ using namespace tmbutils;
 
 constexpr double LOG_ONE_THIRD  = -1.0986122886681098;
 constexpr double LOG_TWO_THIRDS = -0.4054651081081644;
+constexpr double PI = 3.14159265358979323846;
 
 
 // Alias for dynamic matrix ---------------------------------------------------
@@ -231,19 +232,6 @@ Type dnbinom_mu(Type x,
   return dnbinom(x, size, prob, give_log);
 }
 
-// calculate besselI when 'x' is large - Debye-type expansion up to O(x^-3)
-template<class Type>
-Type log_besselI_large(Type x, Type nu) {
-  const Type two_pi = Type(6.2831853071795864769252867665590057683943L);
-  Type mu4 = Type(4.0) * nu * nu;          // μ = 4 ν^2
-  Type t   = Type(1.0) / (Type(8.0) * x);  // 1/(8x)
-  Type S1 = -(mu4 - Type(1.0)) * t;
-  Type S2 =  (mu4 - Type(1.0)) * (mu4 - Type(9.0)) * (t * t) / Type(2.0);
-  Type S3 = -(mu4 - Type(1.0)) * (mu4 - Type(9.0)) * (mu4 - Type(25.0)) * (t * t * t) / Type(6.0);
-  Type u  = S1 + S2 + S3;
-  return x - Type(0.5) * log(two_pi * x) + log1p(u);
-}
-
 template <class Type>
 Type log_dbetabinom(Type x,
 		    Type size,
@@ -387,36 +375,60 @@ Type log_dpois_rr3(Type x, Type rate) {
   return ans;
 }
 
+
+
+template<class Type>
+Type log_dskellam_exact(Type x, Type mu1, Type mu2) {
+  Type nu = fabs(x);
+  Type v = Type(2.0) * sqrt(mu1 * mu2);
+  return -(mu1 + mu2)
+    + Type(0.5) * x * (log(mu1) - log(mu2))
+    + log(besselI(v, nu));
+}
+
+// uses saddle point approximation
+template<class Type>
+Type log_dskellam_approx(Type x, Type mu1, Type mu2) {
+  Type s = (x + sqrt(x * x + 4.0 * mu1 * mu2)) / (2.0 * mu1); // positive solution to K'(s) = x, s = e^t
+  Type t = log(s);
+  Type s_inv = Type(1.0) / s;
+  Type K = mu1 * (s - Type(1.0)) + mu2 * (s_inv - Type(1.0));
+  Type K2 = mu1 * s + mu2 * s_inv;
+  return -Type(0.5) * log(Type(2.0) * Type(PI))
+    - Type(0.5) * log(K2)
+    + K - t * x;
+}
+
 template<class Type>
 Type log_dskellam(Type x, Type mu1, Type mu2) {
-  const Type threshold = 500.0;
+  const Type thresh_small_mu = 5.0;
+  const Type thresh_small_x = 30.0;
+  const double mu1d = asDouble(mu1);
+  const double mu2d = asDouble(mu2);
+  const double xd = asDouble(x);
   // cases where mu1, mu2 <= 0
-  const bool is_mu1_nonpos = !(mu1 > Type(0));
+  const bool is_mu1_nonpos = !(mu1d > 0.0);
   if (is_mu1_nonpos) {
-    if (x > 0)
-      return -std::numeric_limits<double>::infinity();
-    else {
-      Type x_neg = -x;
-      return dpois(x_neg, mu2, true);
-    }
+    if (xd > 0.0)
+      return -std::numeric_limits<Type>::infinity();
+    else
+      return dpois(-x, mu2, true);
   }
-  const bool is_mu2_nonpos = !(mu2 > Type(0));
+  const bool is_mu2_nonpos = !(mu2d > 0.0);
   if (is_mu2_nonpos) {
-    if (x < 0)
-      return -std::numeric_limits<double>::infinity();
+    if (xd < 0.0)
+      return -std::numeric_limits<Type>::infinity();
     else
       return dpois(x, mu1, true);
   }
   // case where mu1, mu2 > 0
-  Type x_abs = fabs(x);
-  Type base = -(mu1 + mu2) + Type(0.5 * x) * (log(mu1) - log(mu2));
-  Type arg = Type(2.0) * sqrt(mu1 * mu2);
-  Type logI;
-  if (asDouble(arg) < threshold)
-    logI = log(besselI(arg, x_abs));
+  bool mu_small = mu1d + mu2d < thresh_small_mu;
+  bool x_small = std::abs(xd) < thresh_small_x;
+  bool use_exact = mu_small && x_small;
+  if (use_exact)
+    return log_dskellam_exact(x, mu1, mu2);
   else
-    logI = log_besselI_large(arg, x_abs);
-  return base + logI;
+    return log_dskellam_approx(x, mu1, mu2);
 }
 
 template <class Type>

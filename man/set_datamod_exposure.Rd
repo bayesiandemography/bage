@@ -61,7 +61,7 @@ do so.
 
 \code{disp} can be a single number, in which
 case the same dispersion is used for all cells.
-\code{sd} can also be a data frame with a
+\code{disp} can also be a data frame with a
 with a variable called \code{"disp"} and
 one or more columns with 'by' variables.
 For instance, a  \code{disp} of
@@ -71,7 +71,9 @@ For instance, a  \code{disp} of
 }\if{html}{\out{</div>}}
 
 implies that dispersion is 0.15 for
-females and 0.12 for males.
+females and 0.12 for males. See below
+for an example of dispersion varying
+with aggregated age groups.
 }
 
 \section{Mathematical details}{
@@ -89,14 +91,6 @@ where
 \item \eqn{d_{g\lbrack i\rbrack }} is the value for dispersion
 that is applied to cell \eqn{i}.
 }
-
-The number of distinct values of \eqn{d_g}
-is typically much less than the number
-of cells. For instance, there might
-only be two distinct values for \eqn{d_g},
-with everyone aged 0-49 receiving the
-first value, and everyone age 50+ receiving
-the second. See below for an example.
 }
 
 \examples{

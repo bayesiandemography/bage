@@ -212,7 +212,7 @@ set_covariates <- function(mod, formula) {
 #'
 #' `disp` can be a single number, in which
 #' case the same dispersion is used for all cells.
-#' `sd` can also be a data frame with a
+#' `disp` can also be a data frame with a
 #' with a variable called `"disp"` and
 #' one or more columns with 'by' variables. 
 #' For instance, a  `disp` of
@@ -221,7 +221,9 @@ set_covariates <- function(mod, formula) {
 #'            disp = c(0.15, 0.12))
 #'```
 #' implies that dispersion is 0.15 for
-#' females and 0.12 for males.
+#' females and 0.12 for males. See below
+#' for an example of dispersion varying
+#' with aggregated age groups.
 #' 
 #' @section Mathematical details:
 #'
@@ -235,14 +237,6 @@ set_covariates <- function(mod, formula) {
 #' - \eqn{w_i^{\text{true}}} is true exposure for cell \eqn{i}; and
 #' - \eqn{d_{g\lbrack i\rbrack }} is the value for dispersion
 #'   that is applied to cell \eqn{i}.
-#'
-#' The number of distinct values of \eqn{d_g}
-#' is typically much less than the number
-#' of cells. For instance, there might
-#' only be two distinct values for \eqn{d_g},
-#' with everyone aged 0-49 receiving the
-#' first value, and everyone age 50+ receiving
-#' the second. See below for an example.
 #'
 #' @param mod An object of class `"bage_mod_pois"`,
 #' created with [mod_pois()].
@@ -385,33 +379,117 @@ set_datamod_exposure <- function(mod, disp)  {
 #'
 #' Specify a data model for the outcome
 #' in a Poisson model, where the outcome
-#' is subject to both undercount and
-#' to overcount.
-#'
-#' The miscount data model assumes that
-#' the reported value for the outcome is
-#' the sum of two quantities,
-#'
-#' 1. A potentially incomplete count
-#'    of people or events belonging to
-#'    the target population.
-#' 2. A count of people or events that
-#'    do not belong to the target population,
-#'    and are included incorrectly.
+#' is subject to undercount and
+#' overcount.
 #'
 #' The miscount data model is essentially a combination
 #' of the [undercount][set_datamod_undercount()]
 #' and [overcount][set_datamod_overcount()]
-#' data models.
+#' data models. It assumes that
+#' reported outcomes are the sum of:
+#'
+#' - *Undercounted trues* A potentially incomplete
+#'   count of people or events belonging to
+#'   the target population.
+#' - *Overcount* A count of people or events
+#'   not belonging to the target population,
+#'   and included incorrectly.
+#'    
+#' Say, for instance, that a population
+#' contains 100 people. The census
+#' enumerates 91 of these people, but also
+#' mistakenly enumerates 6 additional people.
+#' Then
+#' 
+#' - the true outcome is 100
+#' - the value for the undercounted trues is 91,
+#' - the value for overcount is 6, and
+#' - the reported outcome is 91 + 6 = 97.
+#'
+#' In the miscount model, the value for
+#' undercounted trues depends
+#' on the true value for the outcome,
+#' and on the probability that each person
+#' or event is correctly enumerated. The
+#' value for the overcount depends on the
+#' expected value for the outcome multiplied
+#' by an overcoverage rate.
+#'
+#' @section The `prob` argument:
+#'
+#' The `prob` argument specifies a prior
+#' distribution for the probability
+#' that a person or event in the target
+#' population will be included in the
+#' reported outcome. `prob` is a
+#' data frame with a variable called `"mean"`,
+#' a variable called `"disp"`, and, optionally,
+#' one or more 'by' variables.
+#' For instance, a  `prob` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            mean = c(0.95, 0.92),
+#'            disp = c(0.02, 0.015))
+#'```
+#' implies that the expected value for
+#' the probability is 0.95 for females
+#' and 0.92 for males, with slightly more
+#' uncertainty for females than for males.
+#'
+#' @section The `rate` argument:
+#'
+#' The `rate` argument specifies a prior
+#' distribution for the overcoverage
+#' rate. `rate` is a
+#' data frame with a variable called `"mean"`,
+#' a variable called `"disp"`, and, optionally,
+#' one or more 'by' variables.
+#' For instance, a  `rate` of
+#' ```
+#' data.frame(mean = 0.03, disp = 0.1)
+#'```
+#' implies that the expected value for
+#' the overcoverage rate is 0.03,
+#' with a dispersion of 0.1. Since no
+#' 'by' variables are given, identical
+#' mean and dispersion values are
+#' applied to all cells.
+#' 
+#' @section Mathematical details:
+#'
+#' The model for the observed outcome is
+#'
+#' \deqn{y_i^{\text{obs}} = u_i + v_i}
+#' \deqn{u_i \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]})}
+#' \deqn{v_i \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i)}
+#' \deqn{\pi_g \sim \text{Beta}(m_g^{(\pi)} / d_g^{(\pi)}, (1-m_g^{(\pi)}) / d_g^{(\pi)})}
+#' \deqn{\kappa_h \sim \text{Gamma}(1/d_h^{(\kappa)}, 1/(d_h^{(\kappa)} m_h^{(\kappa)}))}
+#'
+#' where
+#' - \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+#' - \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+#' - \eqn{\gamma_i} is the rate for cell \eqn{i};
+#' - \eqn{w_i} is exposure for cell \eqn{i};
+#' - \eqn{\pi_{g[i]}} is the probability that a member of the
+#'     target population in cell \eqn{i} is correctly enumerated in that cell;
+#' - \eqn{\kappa_{h[i]}} is the overcoverage rate for cell \eqn{i};
+#' - \eqn{m_g^{(\pi)}} is the expected value for \eqn{\pi_g};
+#' - \eqn{d_g^{(\pi)}} is disperson for \eqn{\pi_g};
+#' - \eqn{m_h^{(\kappa)}} is the expected value for \eqn{\kappa_h}; and
+#' - \eqn{d_h^{(\kappa)}} is disperson for \eqn{\kappa_h}.
 #'
 #' @param mod An object of class `"bage_mod_pois"`,
 #' created with [mod_pois()].
-#' @param prob A data frame with 'by' variables,
-#' a variable called `"mean"`, and a variable
-#' called `"disp"`.
-#' @param rate A data frame with 'by' variables,
-#' a variable called `"mean"`, and a variable
-#' called `"disp"`.
+#' @param prob The prior for the probability
+#' that a person or event in the target
+#' population will correctly enumerated.
+#' A data frame with a variable
+#' called `"mean"`, a variable called `"disp"`,
+#' and, optionally, one or more 'by' variables.
+#' @param rate The prior for the overcoverage rate.
+#' A data frame with a variable
+#' called `"mean"`, a variable called `"disp"`,
+#' and, optionally, one or more 'by' variables.
 #'
 #' @returns A revised version of `mod`.
 #'
@@ -617,6 +695,8 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #'   vignette
 #'
 #' @examples
+#' ## Normal model ------------------------------
+#' 
 #' ## prepare outcome variable
 #' library(dplyr)
 #' spend <- nld_expenditure |>
@@ -656,6 +736,14 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #'                 data = spend,
 #'                 weights = 1) |>
 #'   set_datamod_noise(sd = sd_diag)
+#'
+#'
+#' ## Poisson model -----------------------------
+#'
+#' mod <- mod_pois(deaths ~ month,
+#'                 data = usa_deaths,
+#'                 exposure = 1) |>
+#'   set_datamod_noise(sd = 200)
 #' @export
 set_datamod_noise <- function(mod, sd) {
   ## preliminaries

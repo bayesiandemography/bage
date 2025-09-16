@@ -115,6 +115,8 @@ the measurement error for cell \eqn{i}.
 }
 
 \examples{
+## Normal model ------------------------------
+
 ## prepare outcome variable
 library(dplyr)
 spend <- nld_expenditure |>
@@ -154,6 +156,14 @@ mod <- mod_norm(log_spend ~ age * diag + year,
                 data = spend,
                 weights = 1) |>
   set_datamod_noise(sd = sd_diag)
+
+
+## Poisson model -----------------------------
+
+mod <- mod_pois(deaths ~ month,
+                data = usa_deaths,
+                exposure = 1) |>
+  set_datamod_noise(sd = 200)
 }
 \seealso{
 \itemize{
