@@ -1905,16 +1905,16 @@ Type objective_function<Type>::operator() ()
 
   // intermediate quantities
 
-  int n_outcome = outcome.size();
-  int n_term = i_prior.size();
+  const int n_outcome = outcome.size();
+  const int n_term = i_prior.size();
   vector<vector<Type> > effectfree_split = split(effectfree, terms_effectfree);
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper);
   vector<vector<Type> > hyperrandfree_split = split(hyperrandfree, terms_hyperrandfree);
   vector<vector<Type> > consts_split = split(consts, terms_consts);
-  bool has_disp = mean_disp > 0;
+  const bool has_disp = mean_disp > 0;
   Type disp = has_disp ? exp(log_disp) : 0;
-  bool uses_covariates = matrix_covariates.cols() > 0;
-  bool has_datamod = i_datamod > 0;
+  const bool uses_covariates = matrix_covariates.cols() > 0;
+  const bool has_datamod = i_datamod > 0;
   MatrixD<Type> datamod_vals;
 
   // linear predictor
@@ -1922,12 +1922,12 @@ Type objective_function<Type>::operator() ()
   vector<Type> linpred(n_outcome);
   linpred.fill(0);
   for (int i_term = 0; i_term < n_term; i_term++) {
-    SparseMatrix<Type> matrix_effect_outcome = matrices_effect_outcome[i_term];
+    const SparseMatrix<Type>& matrix_effect_outcome = matrices_effect_outcome[i_term];
     vector<Type> effectfree_term = effectfree_split[i_term];
-    int n_effect = matrix_effect_outcome.cols();
+    const int n_effect = matrix_effect_outcome.cols();
     vector<Type> effect_term(n_effect);
     if (uses_matrix_effectfree_effect[i_term]) {
-      SparseMatrix<Type> matrix_effectfree_effect = matrices_effectfree_effect[i_term];
+      const SparseMatrix<Type>& matrix_effectfree_effect = matrices_effectfree_effect[i_term];
       effect_term = matrix_effectfree_effect * effectfree_term;
     }
     else {
@@ -1961,8 +1961,8 @@ Type objective_function<Type>::operator() ()
     int i_prior_term = i_prior[i_term];
     if (i_prior_term > 0) { // i_prior_term == 0 when prior is "Known"
       vector<Type> effectfree_term = effectfree_split[i_term];
-      vector<Type> consts_term = consts_split[i_term];
-      matrix<int> matrix_along_by_effectfree = matrices_along_by_effectfree[i_term];
+      const vector<Type> consts_term = consts_split[i_term];
+      const matrix<int>& matrix_along_by_effectfree = matrices_along_by_effectfree[i_term];
       if (uses_hyper[i_term]) {
 	vector<Type> hyper_term = hyper_split[i_term];
 	if (uses_hyperrandfree[i_term]) { // if a prior uses hyperrandfree, then it uses hyper
