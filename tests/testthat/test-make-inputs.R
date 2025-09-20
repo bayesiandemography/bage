@@ -552,6 +552,12 @@ test_that("'get_is_in_lik_outcome' works with NAs", {
 })
 
 
+## 'init_val_sd' --------------------------------------------------------------
+
+test_that("'init_val_sd' works", {
+  expect_identical(init_val_sd(), log(0.05))
+})
+
 
 ## 'make_agesex' --------------------------------------------------------------
 
@@ -824,7 +830,7 @@ test_that("'make_hyper' works with valid inputs", {
                   data = data,
                   exposure = popn)
   ans_obtained <- make_hyper(mod)
-  ans_expected <- c(agegp = 0, "agegp:SEX" = 0)
+  ans_expected <- c(agegp = log(0.05), "agegp:SEX" = log(0.05))
   expect_identical(ans_obtained, ans_expected)
 })
 
