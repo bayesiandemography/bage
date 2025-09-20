@@ -304,6 +304,14 @@ infer_var_time <- function(formula) {
 }
 
 
+#' Initial Value for Standard Deviation Hyperparameter
+#'
+#' @returns A double
+#'
+#' @noRd
+init_val_sd <- function() log(0.05)
+
+
 ## HAS_TESTS
 #' Test Whether Row of 'data' is Included in Likelihood
 #'
@@ -319,7 +327,6 @@ get_is_in_lik <- function(mod) {
     & get_is_in_lik_offset(mod)
     & get_is_in_lik_outcome(mod))
 }
-
 
 
 #' Test Whether Row of 'data' is Included in Likelihood
@@ -683,12 +690,10 @@ make_effectfree <- function(mod) {
 #'
 #' @noRd
 make_hyper <- function(mod) {
-    priors <- mod$priors
-    ans <- rep(0, times = length(priors))
-    names(ans) <- names(priors)
-    lengths <- make_lengths_hyper(mod)
-    ans <- rep(ans, times = lengths)
-    ans
+  priors <- mod$priors
+  ans <- lapply(priors, make_param_hyper)
+  ans <- unlist(ans)
+  ans
 }
 
 

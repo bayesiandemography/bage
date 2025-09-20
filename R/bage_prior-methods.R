@@ -5224,6 +5224,8 @@ length_hyperrandfree.bage_prior_rw2zeroseasvary <- function(prior,
   n_seas_free <- sum(!is_first_period & !is_last_season)
   n_seas_free * n_by
 }
+
+
 ## 'levels_hyper' -------------------------------------------------------------
 
 #' Names of hyper-parameters
@@ -5512,7 +5514,7 @@ levels_hyperrand.bage_prior_rw2zeroseasvary <- function(prior, dimnames_term, va
 
 ## 'make_hyperrand_one' -------------------------------------------------------
 
-#' Derive Values From Hyper-Parameters Treated as Random Effects
+#' Derive Values For Hyper-Parameters Treated as Random Effects
 #'
 #' @param prior Object of class 'bage_prior'.
 #' @param hyperrandfree Values for unconstrained hyper-parameters. An rvec.
@@ -7399,6 +7401,164 @@ make_offset_effectfree_effect.bage_prior_svd_rw2zero <- function(prior,
                                     var_time = var_time,
                                     var_age = var_age,
                                     var_sexgender = var_sexgender)
+
+
+
+## 'make_param_hyper' -------------------------------------------------------------
+
+#' Make Initial Values for Hyper-Parameters
+#'
+#' @param prior An object of class 'bage_prior'.
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+make_param_hyper <- function(prior) {
+  UseMethod("make_param_hyper")
+}
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_ar <- function(prior) {
+  n_coef <- prior$specific$n_coef
+  rep(c(0, init_val_sd()), times = c(n_coef, 1L))
+}
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_known <- function(prior)
+  numeric()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_lin <- function(prior) {
+  init_val_sd()
+}
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_linar <- function(prior) {
+  n_coef <- prior$specific$n_coef
+  rep(c(0, init_val_sd()), times = c(n_coef, 1L))
+}
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_linex <- function(prior) {
+  numeric()
+}
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_norm <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_normfixed <- function(prior)
+  numeric()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rwrandom <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rwrandomseasfix <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rwrandomseasvary <- function(prior)
+  rep(init_val_sd(), times = 2L)
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rwzero <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rwzeroseasfix <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rwzeroseasvary <- function(prior)
+  rep(init_val_sd(), times = 2L)
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rw2infant <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rw2random <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rw2randomseasfix <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rw2randomseasvary <- function(prior)
+  rep(init_val_sd(), times = 2L)
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rw2zero <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rw2zeroseasfix <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_rw2zeroseasvary <- function(prior)
+  rep(init_val_sd(), times = 2L)
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_spline <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd <- function(prior)
+  numeric()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd_ar <- function(prior) {
+  n_coef <- prior$specific$n_coef
+  rep(c(0, init_val_sd()), times = c(n_coef, 1L))
+}
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd_rwrandom <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd_rwzero <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd_rw2random <- function(prior)
+  init_val_sd()
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd_rw2zero <- function(prior)
+  init_val_sd()
 
 
 ## 'print' --------------------------------------------------------------------

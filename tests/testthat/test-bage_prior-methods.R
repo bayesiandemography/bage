@@ -10096,6 +10096,167 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd_rw2 - sex x
 })
 
 
+## make_param_hyper -----------------------------------------------------------
+
+test_that("'make_param_hyper' works with 'bage_prior_ar'", {
+  expect_identical(make_param_hyper(prior = AR(n_coef = 2)),
+                   c(0, 0, log(0.05)))
+  expect_identical(make_param_hyper(prior = AR1()),
+                   c(0, log(0.05)))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_known'", {
+  expect_identical(make_param_hyper(prior = Known(1)),
+                   numeric())
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_lin'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(make_param_hyper(prior = Lin()),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_linar'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(make_param_hyper(prior = Lin_AR()),
+                   c(0, 0, log(0.05)))
+  expect_identical(make_param_hyper(prior = Lin_AR1()),
+                   c(0, log(0.05)))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_linex'", {
+  expect_identical(make_param_hyper(prior = Lin(s = 0)),
+                   numeric())
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_norm'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(make_param_hyper(prior = N()),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_normfixed'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(make_param_hyper(prior = NFix()),
+                   numeric())
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rwrandom'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW()),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rwrandomseasfix'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW_Seas(n_seas = 3)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rwrandomseasvary'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW_Seas(n_seas = 3, s_seas = 1)),
+                   c(log(0.05), log(0.05)))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rwzero'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW(sd = 0)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rwzeroseasfix'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW_Seas(n_seas = 3, sd = 0)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rwzeroseasvary'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW_Seas(n_seas = 3, s_seas = 1, sd = 0)),
+                   c(log(0.05), log(0.05)))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rw2infant'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW2_Infant()),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rw2random'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW2()),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rw2randomseasfix'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW2_Seas(n_seas = 3)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rw2randomseasvary'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW2_Seas(n_seas = 3, s_seas = 1)),
+                   c(log(0.05), log(0.05)))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rw2zero'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW2(sd = 0)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rw2zeroseasfix'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW2_Seas(n_seas = 3, sd = 0)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_rw2zeroseasvary'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(make_param_hyper(prior = RW2_Seas(n_seas = 3, s_seas = 1, sd = 0)),
+                   c(log(0.05), log(0.05)))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_spline'", {
+  expect_identical(make_param_hyper(prior = Sp()), 
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_svd'", {
+  expect_identical(make_param_hyper(prior = SVD(sim_ssvd())),
+                   numeric())
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_svd_ar'", {
+  expect_identical(make_param_hyper(prior = SVD_AR(HMD)),
+                   c(0, 0, log(0.05)))
+  expect_identical(make_param_hyper(prior = SVD_AR1(HMD)),
+                   c(0, log(0.05)))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_svd_rwrandom'", {
+  expect_identical(make_param_hyper(prior = SVD_RW(HMD)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_svd_rwzero'", {
+  expect_identical(make_param_hyper(prior = SVD_RW(HMD, sd = 0)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_svd_rw2random'", {
+  expect_identical(make_param_hyper(prior = SVD_RW2(HMD)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_svd_rw2zero'", {
+  expect_identical(make_param_hyper(prior = SVD_RW2(HMD, sd = 0)),
+                   log(0.05))
+})
+
+
 ## 'print' --------------------------------------------------------------------
 
 test_that("'print' works", {
