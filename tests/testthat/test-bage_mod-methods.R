@@ -2360,7 +2360,8 @@ test_that("'has_datamod_outcome' works with valid inputs", {
                     exposure = popn) |>
       set_disp(mean = 0)
     expect_false(has_datamod_outcome(mod))
-    mod <- set_datamod_exposure(mod, disp = 0.1)
+    mod <-
+      set_datamod_exposure(mod, disp = 0.1)
     expect_true(has_datamod(mod))
     suppressMessages(
     mod <- set_datamod_undercount(mod,
@@ -2390,7 +2391,7 @@ test_that("'has_datamod_param' works with normal", {
   mod <- mod_norm(income ~ time,
                   data = data,
                   weights = 1)
-  expect_false(has_datamod_param(mod))
+    expect_false(has_datamod_param(mod))
   mod <- mod |>
     set_datamod_noise(sd = 0.2)
   expect_false(has_datamod_param(mod))
@@ -3122,6 +3123,7 @@ test_that("'make_sd_obs' works with Poisson, noise data model", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
+    set_disp(mean = 0) |>
     set_datamod_noise(sd = 1)
   ans_obtained <- make_sd_obs(mod)
   ans_expected <- rep(1, times = nrow(data))
