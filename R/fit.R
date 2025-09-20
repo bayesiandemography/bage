@@ -549,8 +549,8 @@ optimize_adfun <- function(f,
     out <- optimize_cg(f = f, quiet = quiet)
   else
     cli::cli_abort("Internal error: {.val {optimizer}} is not a valid value for {.arg optimizer}.")
-  if (!out$converged)
-    cli::cli_alert_warning("Optimizer did not converge.")
+  if (!out$converged) # nocov
+    cli::cli_alert_warning("Optimizer did not converge.") # nocov
   out
 }
 

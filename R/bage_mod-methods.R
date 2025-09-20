@@ -493,12 +493,14 @@ draw_vals_augment_fitted.bage_mod <- function(mod, quiet) {
                                       components = components,
                                       expected = expected)
     disp_obs <- make_disp_obs(mod) ## vector or NULL
+    sd_obs <- make_sd_obs(mod) ## vector or NULL
     outcome <- draw_outcome_obs_given_conf(confidential = confidential,
                                            nm_distn = nm_distn,
                                            outcome_conf = outcome,
                                            offset = offset,
                                            expected_obs = expected_obs,
-                                           disp_obs = disp_obs)
+                                           disp_obs = disp_obs,
+                                           sd_obs = sd_obs)
   }
   if (has_datamod_outcome)
     outcome <- draw_outcome_true_given_obs(datamod = datamod,
@@ -984,9 +986,8 @@ generics::fit
 #' Current choices are `"multi"`,
 #' `"nlminb"`, `"BFGS"`, and `"CG"`. Default
 #' is `"multi"`. See below for details.
-#' @param quiet Whether to suppress warnings and
-#' progress messages from the optimizer.
-#'  Default is `TRUE`.
+#' @param quiet Whether to suppress messages.
+#' Default is `TRUE`.
 #' @param start_oldpar Whether the optimizer should start
 #' at previous estimates. Used only
 #' when `fit()` is being called on a fitted
@@ -1155,6 +1156,8 @@ generics::forecast
 #' @param include_estimates Whether to
 #' include historical estimates along
 #' with the forecasts. Default is `FALSE`.
+#' @param quiet Whether to suppress messages.
+#' Default is `FALSE`.
 #' @param ... Not currently used.
 #'
 #' @returns
@@ -1221,6 +1224,7 @@ forecast.bage_mod <- function(object,
                               labels = NULL,
                               output = c("augment", "components"),
                               include_estimates = FALSE,
+                              quiet = FALSE,
                               ...) {
   ## Note that time variable cannot be a covariate,
   ## since the time variable must be the "along" variable,
@@ -1239,6 +1243,7 @@ forecast.bage_mod <- function(object,
   var_age <- object$var_age
   var_sexgender <- object$var_sexgender
   output <- match.arg(output)
+  check_flag(x = quiet, nm_x = "quiet")
   check_flag(x = include_estimates, nm_x = "include_estimates")
   if (is.null(var_time))
     cli::cli_abort(c("Can't forecast when time variable not identified.",
@@ -1246,7 +1251,8 @@ forecast.bage_mod <- function(object,
   check_along_is_time(object)
   if (is_not_testing_or_snapshot())
     cli::cli_progress_message("{.fun components} for past values...") # nocov
-  comp_est <- components(object)
+  quiet_comp <- quiet || identical(output, "augment")
+  comp_est <- components(object, quiet = quiet_comp)
   has_newdata <- !is.null(newdata)
   has_labels <- !is.null(labels)
   if (has_newdata && has_labels)
@@ -2062,7 +2068,6 @@ is_fitted.bage_mod <- function(x)
   !is.null(x$draws_effectfree)
 
 
-
 ## 'make_disp_obs' ------------------------------------------------------------
 
 #' Make Dispersion Used in Model for Observed Outcome
@@ -2071,7 +2076,8 @@ is_fitted.bage_mod <- function(x)
 #' model of observed outcome that takes
 #' account of measurement errors
 #'
-#' @param datamod Object of class 'bage_datamod'
+#' @param mod Object of class 'bage_mod'
+#' @param components Tibble with estimates of parameters
 #'
 #' @returns An rvec
 #'
@@ -2154,6 +2160,9 @@ make_expected_obs.bage_mod_pois <- function(mod, components, expected) {
       ans <- make_expected_obs_miscount(datamod = datamod,
                                         components = components,
                                         expected = expected)
+    }
+    else if (inherits(datamod, "bage_datamod_noise")) {
+      ans <- make_expected_obs_noise(expected)
     }
     else if (inherits(datamod, "bage_datamod_overcount")) {
       ans <- make_expected_obs_overcount(datamod = datamod,
@@ -2418,6 +2427,38 @@ make_mod_outer.bage_mod_norm <- function(mod, mod_inner, use_term) {
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
   ans$outcome <- ans$outcome - linpred_inner
   ans
+}
+
+
+## 'make_sd_obs' --------------------------------------------------------------
+
+#' Make Standard Deviations Used in Data Models
+#'
+#' Make sd for data models
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_sd_obs <- function(mod) {
+  UseMethod("make_sd_obs")
+}
+
+## HAS_TESTS
+#' @export
+make_sd_obs.bage_mod <- function(mod) {
+  datamod <- mod$datamod
+  if (inherits(datamod, "bage_datamod_noise"))
+    get_datamod_sd(datamod)
+  else
+    NULL
+}
+
+## HAS_TESTS
+#' @export
+make_sd_obs.bage_mod_binom <- function(mod) {
+  NULL
 }
 
 

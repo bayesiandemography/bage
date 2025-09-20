@@ -227,6 +227,19 @@ test_that("'set_datamod_exposure' throws appropriate message when Poisson disp n
                  "Setting dispersion to zero.")
 })
 
+test_that("'set_datamod_exposure' throws appropriate message when Poisson disp non-zero", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_disp(mean = 0)
+    expect_error(set_datamod_exposure(mod, disp = -1),
+                 "`disp` less than or equal to 0.")
+})
+
 
 ## 'set_datamod_miscount' -----------------------------------------------------
 
@@ -339,7 +352,22 @@ test_that("'set_datamod_noise' works with numeric sd", {
   expect_equal(mod$datamod$sd_sd, 0.2)
 })
 
-test_that("'set_datamod_noise' throws correct error with non-normal", {
+test_that("'set_datamod_noise' works with numeric sd, poisson model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$deaths <- rpois(nrow(data), lambda = 10)
+  data$popn <- 100
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_message(mod <- set_datamod_noise(mod, sd = 0.2),
+                 "Setting dispersion to zero.")
+  expect_s3_class(mod$datamod, "bage_datamod_noise")
+  expect_equal(mod$datamod$sd_sd, 0.2)
+})
+
+test_that("'set_datamod_noise' throws correct error with non-normal, non-pois", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- 1

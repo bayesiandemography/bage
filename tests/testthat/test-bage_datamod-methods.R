@@ -1740,6 +1740,24 @@ test_that("'make_expected_obs_miscount' works", {
 })
 
 
+## 'make_expected_obs_noise' -----------------------------------------------
+
+test_that("'make_expected_obs_noise' works", {
+  sd_sd <- c(0.3, 0.2, 0.3, 0.2)
+  sd_levels <- 1:4
+  sd_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  datamod <- new_bage_datamod_noise(sd_sd = sd_sd,
+                                    sd_levels = sd_levels,
+                                    sd_matrix_outcome = sd_matrix_outcome,
+                                    nms_by = c("sex", "age"),
+                                    outcome_sd = NULL)
+  expected <- exp(rvec::rnorm_rvec(n = 12, n_draw = 10))
+  ans_obtained <- make_expected_obs_noise(expected)
+  ans_expected <- expected
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'make_expected_obs_overcount' ----------------------------------------------
 
 test_that("'make_expected_obs_overcount' works", {

@@ -1346,7 +1346,6 @@ Type loglik_binom_no_disp_rr3(Type outcome,
 }
 
 
-
 // Has disp, no data models
 
 template <class Type>

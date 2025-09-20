@@ -34,8 +34,7 @@ Current choices are \code{"multi"},
 \code{"nlminb"}, \code{"BFGS"}, and \code{"CG"}. Default
 is \code{"multi"}. See below for details.}
 
-\item{quiet}{Whether to suppress warnings and
-progress messages from the optimizer.
+\item{quiet}{Whether to suppress messages.
 Default is \code{TRUE}.}
 
 \item{start_oldpar}{Whether the optimizer should start

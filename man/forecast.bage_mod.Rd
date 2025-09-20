@@ -10,6 +10,7 @@
   labels = NULL,
   output = c("augment", "components"),
   include_estimates = FALSE,
+  quiet = FALSE,
   ...
 )
 }
@@ -28,6 +29,9 @@ future periods.}
 \item{include_estimates}{Whether to
 include historical estimates along
 with the forecasts. Default is \code{FALSE}.}
+
+\item{quiet}{Whether to suppress messages.
+Default is \code{FALSE}.}
 
 \item{...}{Not currently used.}
 }

@@ -364,6 +364,7 @@ rpois_guarded <- function(lambda) {
 }
 
 
+## HAS_TESTS
 #' Draw from Posterior Distribution of True Values
 #' Given Observed Values, for Poisson plus Symmetric Skellam
 #'
@@ -392,7 +393,7 @@ draw_true_given_obs_pois_skellam <- function(y_obs, lambda, m) {
 }
 
 
-
+## HAS_TESTS
 #' Draw from Posterior Distribution of True Values
 #' Given Observed Values, for Poisson plus Symmetric Skellam -
 #' approx version
@@ -448,6 +449,7 @@ draw_true_given_obs_pois_skellam_approx <- function(y_obs,
 }
 
 
+## HAS_TESTS
 #' Draw from Posterior Distribution of True Values
 #' Given Observed Values, for Poisson plus Symmetric Skellam
 #' - Exact, Small Sample
@@ -491,6 +493,99 @@ draw_true_given_obs_pois_skellam_exact <- function(y_obs,
 
 
 ## HAS_TESTS
+#' Skellam Density
+#'
+#' Uses approximation when numbers large.
+#'
+#' @param x Counts. Interish vector.
+#' @param mu1, mu2 Skellam parameters.
+#' Positive numeric vectors the same length as x.
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+dskellam <- function(x, mu1, mu2) {
+  thresh_small_mu <- 5.0
+  thresh_small_x  <- 30.0
+  n <- length(x)
+  ans <- rep(NA_real_, times = n)
+  is_na <- is.na(x)
+  is_mu1_zero <- mu1 == 0
+  is_mu2_zero <- mu2 == 0
+  both <- !is_na & is_mu1_zero & is_mu2_zero
+  first <- !is_na & is_mu1_zero & !is_mu2_zero
+  second <- !is_na & !is_mu1_zero & is_mu2_zero
+  neither <- !is_na & !is_mu1_zero & !is_mu2_zero
+  ans[both] <- 1
+  ans[first] <- stats::dpois(-x[first], mu2[first])
+  ans[second] <- stats::dpois(x[second], mu1[second])
+  mu_small <- (mu1 + mu2) < thresh_small_mu
+  x_small  <- abs(x) < thresh_small_x
+  use_exact <- neither & mu_small & x_small
+  use_approx <- neither & !use_exact
+  ans[use_exact] <- dskellam_exact(x = x[use_exact],
+                                   mu1 = mu1[use_exact],
+                                   mu2 = mu2[use_exact])
+  ans[use_approx] <- dskellam_approx(x = x[use_approx],
+                                     mu1 = mu1[use_approx],
+                                     mu2 = mu2[use_approx])
+  ans
+}
+
+
+## HAS_TESTS
+#' Skellam Density Calculated Via Saddle Point Approximation
+#'
+#' @param x Counts. Interish vector.
+#' @param mu1, mu2 Skellam parameters.
+#' Positive numeric vectors the same length as x.
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+dskellam_approx <- function(x, mu1, mu2) {
+  s <- (x + sqrt(x * x + 4 * mu1 * mu2)) / (2 * mu1)
+  t <- log(s)
+  s_inv <- 1 / s
+  K <- mu1 * (s - 1) + mu2 * (s_inv - 1)
+  K2 <- mu1 * s + mu2 * s_inv
+  logp <- -0.5 * log(2 * pi) - 0.5 * log(K2) + K - t * x
+  exp(logp)
+}
+
+
+## HAS_TESTS
+#' Skellam Density Calculated Via Bessel I
+#'
+#' This gives the exact density,
+#' but is slow, and has numerical
+#' problems with large numbers.
+#'
+#' @param x Counts. Interish vector.
+#' @param mu1, mu2 Skellam parameters.
+#' Positive numeric vectors the same length as x.
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+dskellam_exact <- function(x, mu1, mu2) {
+  v  <- 2 * sqrt(mu1 * mu2)
+  nu <- abs(x)
+  logp <- -(mu1 + mu2) +
+          0.5 * x * (log(mu1) - log(mu2)) +
+          log(besselI(v, nu, expon.scaled = TRUE)) + v
+  exp(logp)
+}
+
+
+
+
+
+
+
+
+
+## HAS_TESTS
 #' Convert Rvec Columns to Numeric Columns by Taking Means
 #'
 #' @param data A data frame
@@ -503,7 +598,6 @@ rvec_to_mean <- function(data) {
   data[is_rvec] <- lapply(data[is_rvec], rvec::draws_mean)
   data
 }
-
 
 
 ## HAS_TESTS

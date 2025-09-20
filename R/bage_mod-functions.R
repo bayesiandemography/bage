@@ -815,13 +815,13 @@ set_datamod_noise <- function(mod, sd) {
       cli::cli_alert(paste("Setting dispersion to zero. (Required when using",
                            "noise data model with Poisson rates model.)"))
       mod <- set_disp(mod, mean = 0)
-      outcome_sd <- NULL
     }
+    outcome_sd <- NULL
   }
   else if (nm_distn == "norm")
     outcome_sd <- mod$outcome_sd
   else
-    cli::cli_abort("Internal error: {.val {nm_distn}} is not a valid valud for {.arg distn}.")
+    cli::cli_abort("Internal error: {.val {nm_distn}} is not a valid valud for {.arg distn}.") # nocov
   ## process 'sd'
   if (is.numeric(sd)) {
     check_number(x = sd, nm_x = "sd")

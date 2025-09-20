@@ -1031,6 +1031,22 @@ make_expected_obs_miscount <- function(datamod,
   (prob + rate) * expected
 }
 
+## HAS_TESTS
+#' Make Modified Version of 'expected' to
+#' Use with Noise Data Model
+#'
+#' Noise data model assumes unbiased data
+#' so simply return expected value
+#'
+#' @param expected Rvec with expected value from system model
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_expected_obs_noise <- function(expected) {
+  expected
+}
+
 
 ## HAS_TESTS
 #' Make Modified Version of 'expected' to
