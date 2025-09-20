@@ -2724,21 +2724,21 @@ test_that("'make_expected_obs' works with Poisson, undercount data model", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_expected_obs'  with Poisson throws expected error with invalid data model", {
+test_that("'make_expected_obs'  with binom throws expected error with invalid data model", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  data$deaths <- round(0.5 * data$popn)
   formula <- deaths ~ age + time + sex
   mean <- data.frame(sex = c("F", "M"), mean = c(0.1, 0.2))
   sd <- data.frame(sex = c("F", "M"), sd = c(0.1, 0.2))
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
   datamod <- new_bage_datamod_noise(sd_sd = 0.3,
                                     sd_levels = "sd",
                                     sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
-                                                                               i = seq_len(120),
+                                                                             i = seq_len(120),
                                                                              j = rep(1, 120)),
                                     nms_by = c("age", "sex"),
                                     outcome_sd = 2)
@@ -3108,6 +3108,52 @@ test_that("'make_mod_outer' works with norm", {
   mu <- make_linpred_from_stored_draws(mod_inner, point = TRUE)
   expect_equal(mod_outer$outcome, mod$outcome - mu)
   expect_true(mod_outer$mean_disp > 0)
+})
+
+
+## 'make_sd_obs' --------------------------------------------------------------
+
+test_that("'make_sd_obs' works with Poisson, noise data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_noise(sd = 1)
+  ans_obtained <- make_sd_obs(mod)
+  ans_expected <- rep(1, times = nrow(data))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_sd_obs' works with Poisson, no data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_sd_obs(mod)
+  ans_expected <- NULL
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_sd_obs' works with binomial, no data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- round(0.5 * data$popn)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_binom(formula = formula,
+                  data = data,
+                  size = popn)
+  ans_obtained <- make_sd_obs(mod)
+  ans_expected <- NULL
+  expect_equal(ans_obtained, ans_expected)
 })
 
 

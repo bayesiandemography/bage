@@ -424,24 +424,6 @@ get_datamod_disp <- function(datamod) {
 
 
 ## HAS_TESTS
-#' Get Values for 'mean' for a Data Model
-#'
-#' @param datamod Object of class "bage_datamod"
-#' that has a 'mean' parameter
-#'
-#' @returns A numeric vector, the same length as 'outcome'
-#'
-#' @noRd
-get_datamod_mean <- function(datamod) {
-  mean_mean <- datamod$mean_mean
-  mean_matrix_outcome <- datamod$mean_matrix_outcome
-  mean <- mean_matrix_outcome %*% mean_mean
-  mean <- as.numeric(mean)
-  mean
-}
-
-
-## HAS_TESTS
 #' Get Values for 'prob' for a Data Model
 #'
 #' @param datamod Object of class "bage_datamod"

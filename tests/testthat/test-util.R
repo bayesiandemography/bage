@@ -58,6 +58,119 @@ test_that("works for x = 0 and x = size", {
 })
 
 
+## 'dskellam' -----------------------------------------------------------------
+
+test_that("'dskellam' degenerate cases: both mus are zero -> point mass at 0", {
+  ans_obtained <- dskellam(0, mu1 = 0, mu2 = 0)
+  ans_expected <- 1
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'dskellam' degenerate cases: one-sided Poisson when one mu is zero", {
+  mu1 <- rep(0, 5)
+  mu2 <- rep(3, 5)
+  x <- -5:(-1)
+  ans_obtained <- dskellam(x, mu1, mu2)
+  ans_expected <- dpois(5:1, 3)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'dskellam' degenerate cases: one-sided Poisson when one mu is zero", {
+  mu1 <- rep(3, 5)
+  mu2 <- rep(0, 5)
+  x <- 1:5
+  ans_obtained <- dskellam(x, mu1, mu2)
+  ans_expected <- dpois(1:5, 3)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'dskellam' basic properties: non-negativity and finite probabilities", {
+  set.seed(1)
+  x   <- sample(-50:50, size = 101, replace = TRUE)
+  mu1 <- runif(101, min = 0, max = 20)
+  mu2 <- runif(101, min = 0, max = 20)
+  p <- dskellam(x, mu1, mu2)
+  expect_true(all(is.finite(p)))
+  expect_true(all(p >= 0))
+  expect_true(all(p <= 1))
+})
+
+test_that("'dskellam' symmetry when mu1 == mu2", {
+  mu <- 2.5
+  x  <- -30:30
+  p1 <- dskellam(x,  mu, mu)
+  p2 <- dskellam(-x, mu, mu)
+  expect_equal(p1, p2, tolerance = 1e-12)
+})
+
+test_that("'dskellam' matches closed-form for small (exact) regime", {
+  # For small mu and moderate |x|, compare to Bessel-based formula
+  mu1 <- c(0.8, 1.2, 2.0)
+  mu2 <- c(0.7, 0.5, 2.5)
+  x   <- c(-3L, 0L, 4L)
+  # elementwise
+  v  <- 2 * sqrt(mu1 * mu2)
+  nu <- abs(x)
+  # Use scaled Bessel: I_nu(v) = besselI(v, nu, TRUE) * exp(v)
+  logp_ref <- -(mu1 + mu2) + 0.5 * x * (log(mu1) - log(mu2)) +
+              log(besselI(v, nu, expon.scaled = TRUE)) + v
+  pref <- exp(logp_ref)
+  p <- dskellam(x, mu1, mu2)
+  expect_equal(p, pref, tolerance = 1e-10)
+})
+
+test_that("'dskellam' vectorization: elementwise equals scalar calls", {
+  x   <- -5:5
+  mu1 <- rep(3, length(x))
+  mu2 <- rep(2, length(x))
+  p_vec <- dskellam(x, mu1, mu2)
+  p_sca <- vapply(seq_along(x),
+                  function(i) dskellam(x[i], mu1[i], mu2[i]),
+                  numeric(1))
+  expect_equal(p_vec, p_sca, tolerance = 0)  # exact identity expected
+})
+
+test_that("'dskellam' no NA/NaN around method-switch thresholds", {
+  # Around internal thresholds: mu1+mu2 ~ 5, |x| ~ 30
+  mu1 <- c(2.4, 2.6, 4.9, 5.1)
+  mu2 <- c(2.6, 2.4, 0.1, -0)  # non-negative, last zero
+  x   <- c(-31L, -29L, 30L, 31L)
+  p <- dskellam(x, mu1, mu2)
+  expect_true(all(is.finite(p)))
+  expect_true(all(p >= 0))
+})
+
+
+## 'dskellam_approx' -----------------------------------------------------------
+
+test_that("'dskellam_approx' works with large values", {
+  set.seed(0)
+  mu1 <- rep(30, 100)
+  mu2 <- rep(10, 100)
+  x <- rpois(n = 100, lambda = mu1) -
+    rpois(n = 100, lambda = mu2)
+  ans_obtained <- dskellam_approx(x = x, mu1 = mu1, mu2 = mu2)
+  ans_expected <- exp(-mu1 - mu2) * (mu1/mu2)^(x/2) * besselI(2*sqrt(mu1*mu2),
+                                                              abs(x))
+  expect_equal(ans_obtained, ans_expected, tolerance = 0.01)
+})
+
+
+## 'dskellam_exact' -----------------------------------------------------------
+
+test_that("'dskellam_exact' works with small values", {
+  set.seed(0)
+  mu1 <- rep(3, 100)
+  mu2 <- rep(0.5, 100)
+  x <- rpois(n = 100, lambda = mu1) -
+    rpois(n = 100, lambda = mu2)
+  ans_obtained <- dskellam_exact(x = x, mu1 = mu1, mu2 = mu2)
+  ans_expected <- exp(-mu1 - mu2) * (mu1/mu2)^(x/2) * besselI(2*sqrt(mu1*mu2),
+                                                              abs(x))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'draw_true_given_obs_pois_skellam ------------------------------------------
 
 test_that("'draw_true_given_obs_pois_skellam' returns single nonnegative integer", {
