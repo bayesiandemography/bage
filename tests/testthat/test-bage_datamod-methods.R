@@ -1237,7 +1237,8 @@ test_that("'get_datamod_transform_param' works with bage_datamod_miscount", {
                    c(rvec::qbeta_rvec(xx <- rvec::pnorm_rvec(x[1:4]), s1, s2),
                      rvec::qgamma_rvec(rvec::pnorm_rvec(x[5:7]),
                                                         shape,
-                                                        rate = rate)))
+                                       rate = rate)))
+  expect_error(fun(1), "Internal error: `x` is not an rvec.")
 })
 
 test_that("'get_datamod_transform_param' works with bage_datamod_overcount", {
@@ -1260,6 +1261,7 @@ test_that("'get_datamod_transform_param' works with bage_datamod_overcount", {
                                     shape = shape,
                                     rate = rate)
   expect_equal(ans_obtained, ans_expected)
+  expect_error(fun(1), "Internal error: `x` is not an rvec.")
 })
 
 test_that("'get_datamod_transform_param' works with bage_datamod_undercount", {
@@ -1280,6 +1282,7 @@ test_that("'get_datamod_transform_param' works with bage_datamod_undercount", {
   s2 <- (1 - prob_mean) / prob_disp
   ans_expected <- rvec::qbeta_rvec(rvec::pnorm_rvec(x), s1, s2)
   expect_equal(ans_obtained, ans_expected)
+  expect_error(fun(1), "Internal error: `x` is not an rvec.")
 })
 
 

@@ -367,6 +367,20 @@ test_that("'set_datamod_noise' works with numeric sd, poisson model", {
   expect_equal(mod$datamod$sd_sd, 0.2)
 })
 
+test_that("'set_datamod_noise' throws error with negative sd", {
+  set.seed(0)
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$deaths <- rpois(nrow(data), lambda = 10)
+  data$popn <- 100
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_disp(mean = 0)
+  expect_error(mod <- set_datamod_noise(mod, sd = -1),
+               "`sd` less than or equal to 0.")
+})
+
 test_that("'set_datamod_noise' throws correct error with non-normal, non-pois", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))

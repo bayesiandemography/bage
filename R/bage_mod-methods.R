@@ -556,7 +556,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod, quiet) {
     nm_offset_data_true <- paste0(".", nm_offset_data)
     if (!quiet) {
       cli::cli_alert_info(paste("Adding variable {.var {nm_offset_data_true}}",
-                                "with true values for ",
+                                "with true values for",
                                 "{.var {nm_offset_data}}."))
     }
     ans <- insert_after(df = ans,
@@ -742,6 +742,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, quiet) {
   ## observed offsets
   if (has_datamod_offset) {
     offset_obs <- draw_offset_obs_given_true(datamod = datamod,
+                                             components = components,
                                              offset_true = offset)
     if (!quiet)
       cli::cli_alert_info(paste("Overwriting existing values for",
@@ -1298,7 +1299,7 @@ forecast.bage_mod <- function(object,
     if (include_estimates) {
       if (is_not_testing_or_snapshot())
         cli::cli_progress_message("{.fun augment} for past values...") # nocov
-      augment_est <- augment(object)
+      augment_est <- augment(x = object, quiet = quiet)
       ans <- vctrs::vec_rbind(augment_est, ans)
     }
   }
