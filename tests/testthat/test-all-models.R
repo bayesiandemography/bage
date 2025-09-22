@@ -14,10 +14,25 @@ testthat::test_that("pois no disp", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components",
+                    include_estimates = TRUE)
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("pois no disp rr3", {
@@ -30,10 +45,27 @@ testthat::test_that("pois no disp rr3", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   quiet = TRUE,
+                   include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components",
+                    include_estimates = TRUE)
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("binom no disp", {
@@ -44,10 +76,35 @@ testthat::test_that("binom no disp", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components")
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("binom no disp rr3", {
@@ -60,10 +117,36 @@ testthat::test_that("binom no disp rr3", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE,
+                   quiet = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components",
+                    include_estimates = TRUE,
+                    quiet = TRUE)
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod, newdata = newdata)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 
@@ -77,10 +160,36 @@ testthat::test_that("pois has disp", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components",
+                    include_estimates = TRUE)
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                   include_estimates = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                   include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("pois has disp rr3", {
@@ -92,10 +201,38 @@ testthat::test_that("pois has disp rr3", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE,
+                   quiet = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components",
+                    include_estimates = TRUE)
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("binom has disp", {
@@ -106,10 +243,35 @@ testthat::test_that("binom has disp", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components",
+                    include_estimates = TRUE)
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("binom has disp rr3", {
@@ -121,10 +283,34 @@ testthat::test_that("binom has disp rr3", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE,
+                   quiet = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components")
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod, newdata = newdata, output = "components")
+  expect_s3_class(compfn, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("norm", {
@@ -135,13 +321,36 @@ testthat::test_that("norm", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod, quiet = TRUE)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod,
                     labels = 2026:2027,
                     output = "components",
                     quiet = TRUE)
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, wt = 100:104)
+  augfn <- forecast(mod, newdata = newdata)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE,
+                     quiet = TRUE)
+  expect_s3_class(compfn, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, wt = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE,
+                     quiet = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 
@@ -150,34 +359,77 @@ testthat::test_that("norm", {
 testthat::test_that("pois no disp - exposure datamod", {
   mod <- make_small_mod_pois() |>
     set_disp(mean = 0) |>
-    set_datamod_exposure(disp = 0.2)
+    set_datamod_exposure(disp = 0.0001)
   mod <- fit(mod)
   expect_s3_class(mod, "bage_mod_pois")
   aug <- augment(mod, quiet = TRUE)
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE,
+                   quiet = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components",
+                    include_estimates = TRUE)
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod, newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, wt = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("pois no disp rr3 - exposure datamod", {
   mod <- make_small_mod_pois() |>
     set_disp(mean = 0) |>
     set_confidential_rr3() |>
-    set_datamod_exposure(disp = 0.2)
+    set_datamod_exposure(disp = 0.002)
   mod <- fit(mod)
   expect_s3_class(mod, "bage_mod_pois")
   aug <- augment(mod, quiet = TRUE)
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE,
+                   quiet = TRUE)
   expect_s3_class(augf, "tbl_df")
-  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  compf <- forecast(mod,
+                    labels = 2026:2027,
+                    output = "components")
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, wt = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("pois no disp - miscount datamod", {
@@ -191,10 +443,24 @@ testthat::test_that("pois no disp - miscount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod,
+                   labels = 2026:2027,
+                   include_estimates = TRUE,
+                   quiet = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
+  newdata <- data.frame(age = 0:4, time = 2026, wt = 100:104)
+  augfn <- forecast(mod,
+                    newdata = newdata,
+                    include_estimates = TRUE,
+                    quiet = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compfn <- forecast(mod,
+                     newdata = newdata,
+                     output = "components",
+                     include_estimates = TRUE)
+  expect_s3_class(compfn, "tbl_df")
 })
 
 testthat::test_that("pois no disp rr3 - miscount datamod", {
@@ -209,7 +475,7 @@ testthat::test_that("pois no disp rr3 - miscount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -225,7 +491,7 @@ testthat::test_that("pois no disp - noise datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -242,7 +508,50 @@ testthat::test_that("pois no disp rr3 - noise datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  expect_s3_class(compf, "tbl_df")
+})
+
+testthat::test_that("pois no disp - noise datamod, small numbers", {
+  data <- expand.grid(age = 0:4, time = 2021:2025)
+  data$popn <- runif(nrow(data), min = 1, max = 10)
+  data$deaths <- rpois(nrow(data), lambda = 0.2 * data$popn)
+  mod <- mod_pois(deaths ~ age + time,
+                  data = data,
+                  exposure = popn) |>
+    set_disp(mean = 0) |>
+    set_datamod_noise(sd = 0.5)
+  mod <- fit(mod)
+  expect_s3_class(mod, "bage_mod_pois")
+  aug <- augment(mod, quiet = TRUE)
+  expect_s3_class(aug, "tbl_df")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
+  expect_s3_class(augf, "tbl_df")
+  compf <- forecast(mod, labels = 2026:2027, output = "components")
+  expect_s3_class(compf, "tbl_df")
+})
+
+testthat::test_that("pois no disp - noise datamod, rr3, small numbers", {
+  data <- expand.grid(age = 0:4, time = 2021:2025)
+  data$popn <- runif(nrow(data), min = 1, max = 10)
+  data$deaths <- 3 * rpois(nrow(data), lambda = 0.1 * data$popn)
+  mod <- mod_pois(deaths ~ age + time,
+                  data = data,
+                  exposure = popn) |>
+    set_disp(mean = 0) |>
+    set_datamod_noise(sd = 0.1) |>
+    set_confidential_rr3()
+  mod <- fit(mod)
+  expect_s3_class(mod, "bage_mod_pois")
+  aug <- augment(mod, quiet = TRUE)
+  expect_s3_class(aug, "tbl_df")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -258,7 +567,7 @@ testthat::test_that("pois no disp - overcount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -275,7 +584,7 @@ testthat::test_that("pois no disp rr3 - overcount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -291,7 +600,7 @@ testthat::test_that("pois no disp - undercount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -308,7 +617,7 @@ testthat::test_that("pois no disp rr3 - undercount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -324,7 +633,7 @@ testthat::test_that("binom no disp - undercount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -341,7 +650,7 @@ testthat::test_that("binom no disp rr3 - undercount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -360,7 +669,7 @@ testthat::test_that("pois has disp - miscount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -377,7 +686,7 @@ testthat::test_that("pois has disp rr3 - miscount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -392,7 +701,7 @@ testthat::test_that("pois has disp - overcount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -408,7 +717,7 @@ testthat::test_that("pois has disp rr3 - overcount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -423,7 +732,7 @@ testthat::test_that("pois has disp - undercount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -439,7 +748,7 @@ testthat::test_that("pois has disp rr3 - undercount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -454,7 +763,7 @@ testthat::test_that("binom has disp - undercount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -470,7 +779,7 @@ testthat::test_that("binom has disp rr3 - undercount datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components")
   expect_s3_class(compf, "tbl_df")
@@ -485,7 +794,7 @@ testthat::test_that("norm - noise datamod", {
   expect_s3_class(aug, "tbl_df")
   comp <- components(mod, quiet = TRUE)
   expect_s3_class(comp, "tbl_df")
-  augf <- forecast(mod, labels = 2026:2027)
+  augf <- forecast(mod, labels = 2026:2027, include_estimates = TRUE)
   expect_s3_class(augf, "tbl_df")
   compf <- forecast(mod, labels = 2026:2027, output = "components", quiet = TRUE)
   expect_s3_class(compf, "tbl_df")

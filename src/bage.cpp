@@ -409,17 +409,17 @@ Type log_dskellam(Type x, Type mu1, Type mu2) {
   // cases where mu1, mu2 <= 0
   const bool is_mu1_nonpos = !(mu1d > 0.0);
   if (is_mu1_nonpos) {
-    if (xd > 0.0)
-      return -std::numeric_limits<Type>::infinity();
-    else
-      return dpois(-x, mu2, true);
+    if (xd > 0.0) // # nocov
+      return -std::numeric_limits<Type>::infinity(); // # nocov
+    else 
+      return dpois(-x, mu2, true); // # nocov
   }
   const bool is_mu2_nonpos = !(mu2d > 0.0);
   if (is_mu2_nonpos) {
-    if (xd < 0.0)
-      return -std::numeric_limits<Type>::infinity();
+    if (xd < 0.0) // # nocov
+      return -std::numeric_limits<Type>::infinity(); // # nocov
     else
-      return dpois(x, mu1, true);
+      return dpois(x, mu1, true); // # nocov
   }
   // case where mu1, mu2 > 0
   bool mu_small = mu1d + mu2d < thresh_small_mu;

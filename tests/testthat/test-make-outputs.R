@@ -2826,7 +2826,7 @@ test_that("'make_term_covariates' works with covariates", {
 
 ## 'make_term_datamod' --------------------------------------------------------
 
-test_that("'make_term_datamod' works", {
+test_that("'make_term_datamod' works - has param", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -2840,6 +2840,23 @@ test_that("'make_term_datamod' works", {
   ans_expected <- "datamod"
   expect_identical(ans_obtained, ans_expected)                      
 })
+
+test_that("'make_term_datamod' works - no param", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex:time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_disp(mean = 0) |>
+    set_datamod_noise(sd = 1)
+  ans_obtained <- make_term_datamod(mod)
+  ans_expected <- character()
+  expect_identical(ans_obtained, ans_expected)                      
+})
+
 
 
 ## 'make_term_spline' ------------------------------------------------------------
@@ -3070,6 +3087,12 @@ test_that("'sort_components' raises correct effor with invalid component", {
                                 "sex",          "wrong",    "sd")
   expect_error(sort_components(components, mod = mod),
                "Internal error: \"wrong\" not a valid value for `component`.")
+  components <- tibble::tribble(~term,         ~component, ~level,
+                                "(Intercept)", "effect",   "(Intercept)",
+                                "time",         "season", "2000",
+                                "wrong",          "effect",    "sd")
+  expect_error(sort_components(components, mod = mod),
+               "Internal error: \"wrong\" not a valid value for `term`.")
 })
 
 
