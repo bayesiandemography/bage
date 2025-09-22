@@ -273,9 +273,10 @@ components.bage_mod <- function(object,
   is_norm <- inherits(object, "bage_mod_norm")
   check_has_no_dots(...)
   if (!quiet && is_norm && !original_scale)
-    cli::cli_alert_info(paste("Values for {.arg .fitted} are on a transformed scale.",
-                              "See the documentation for {.fun mod_norm} and {.fun components}",
-                              "for details."))
+    cli::cli_alert_info(paste("Values for {.arg .fitted} from",
+                              "{.fun components} are on a transformed scale.",
+                              "See the documentation for {.fun mod_norm} and",
+                              "{.fun components} for details."))
   if (is_fitted)
     ans <- draw_vals_components_fitted(object)
   else {
