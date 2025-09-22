@@ -1898,6 +1898,10 @@ make_lin_trend <- function(slope,
 ## HAS_TESTS
 #' Make Linear Predictor from Components
 #'
+#' Working with matrices rather than rvecs
+#' seems to reduce chance of hitting
+#' memory limits.
+#' 
 #' @param mod Object of class 'bage_mod'
 #' @param components Data frame with estimates for hyper-parameters
 #' @param data Data frame with raw data
@@ -1914,7 +1918,6 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
     data[["(Intercept)"]] <- "(Intercept)"
   n_draw <- rvec::n_draw(fitted)
   ans <- matrix(0, nrow = nrow(data), ncol = n_draw)
-  ans <- rvec::rvec_dbl(ans)
   for (i_term in seq_along(dimnames_terms)) {
     dimnames_term <- dimnames_terms[[i_term]]
     nm_split <- dimnames_to_nm_split(dimnames_term)
@@ -1926,6 +1929,7 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
     levels_data <- Reduce(paste_dot, data[nm_split])
     indices_term <- match(levels_data, levels_term)
     val_term_linpred <- val_term[indices_term]
+    vals_term_linpred <- as.matrix(val_term_linpred)
     ans <- ans + val_term_linpred
   }
   if (has_covariates(mod)) {
@@ -1936,9 +1940,11 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
     coef_covariates <- fitted[indices_covariates]
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
                                                 data = data)
+    coef_covariates <- as.matrix(coef_covariates)
     val_covariates_linpred <- matrix_covariates %*% coef_covariates
     ans <- ans + val_covariates_linpred
   }
+  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
