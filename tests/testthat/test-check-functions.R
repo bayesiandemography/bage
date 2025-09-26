@@ -222,7 +222,8 @@ test_that("'check_datamod_by_val' returns TRUE with valid inputs", {
   data <- expand.grid(reg = 1:2, age = 0:1, sex = c("f", "m"))
   expect_true(check_datamod_by_val(by_val = by_val,
                                    data = data,
-                                   nm_val = "prob"))
+                                   nm_val = "prob",
+                                   nm_data = "data"))
 })
 
 test_that("'check_datamod_by_val' throws correct error when by_val has extra variable", {
@@ -231,8 +232,9 @@ test_that("'check_datamod_by_val' throws correct error when by_val has extra var
   data <- expand.grid(reg = 1:2, age = 0:1, sex = c("f", "m"))
   expect_error(check_datamod_by_val(by_val = by_val,
                                     data = data,
-                                    nm_val = "prob"),
-               "Variable `wrong` from `prob` not found in `data`.")
+                                    nm_val = "prob",
+                                    nm_data = "df"),
+               "Variable `wrong` from `prob` not found in `df`.")
 })
 
 test_that("'check_datamod_by_val' throws correct error when by_val missing combination of by variables", {
@@ -241,7 +243,8 @@ test_that("'check_datamod_by_val' throws correct error when by_val missing combi
   data <- expand.grid(reg = 1:2, age = 0:3, sex = c("f", "m"))
   expect_error(check_datamod_by_val(by_val = by_val,
                                     data = data,
-                                    nm_val = "prob"),
+                                    nm_val = "prob",
+                                    nm_data = "df"),
                "`prob` does not include all combinations of 'by' variables.")
 })
 
@@ -251,7 +254,8 @@ test_that("'check_datamod_by_val' throws correct error when by_val missing singl
   data <- expand.grid(reg = 1:2, age = 0:3, sex = c("f", "m"))
   expect_error(check_datamod_by_val(by_val = by_val,
                                     data = data,
-                                    nm_val = "prob"),
+                                    nm_val = "prob",
+                                    nm_data = "df"),
                "`prob` does not include all levels of 'by' variable.")
 })
 

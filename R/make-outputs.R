@@ -443,6 +443,32 @@ get_datamod_prob <- function(datamod, components) {
 }
 
 
+get_datamod_prob_forecast <- function(datamod, components) {
+  prob <- datamod$prob_arg
+  nms_by <- datamod$nms_by
+  n_outcome <- nrow(components)
+  n_draw <- n_draw(components$.fitted)
+  nms_prob <- names(prob)
+  nms_by_prob <- intersect(nms_by, nms_prob)
+  by_val_prob <- prob[nms_by_prob]
+  data <- components[nms_by_prob]
+  check_datamod_by_val(by_val = by_val_prob,
+                       data = data,
+                       nm_val = "prob")
+  key_prob <- Reduce(paste_dot, by_val_prob)
+  key_comp <- Reduce(paste_dot, data)
+  i <- match(key_comp, key_prob)
+  prob_mean <- prob$mean[i]
+  prob_disp <- prob$disp[i]
+  shape1 <- prob_mean / prob_disp
+  shape2 <- (1 - prob_mean) / prob_disp
+  rvec::rbeta_rvec(n = n_outcome,
+                   shape1 = shape1,
+                   shape2 = shape2,
+                   n_draw = n_draw)
+}
+
+
 ## HAS_TESTS
 #' Get Values for 'rate' for a Data Model
 #'
