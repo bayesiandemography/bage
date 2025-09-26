@@ -1291,11 +1291,105 @@ test_that("'draw_outcome_true_given_obs' gives expected error with bage_datamod_
 
 ## 'forecast_outcome_obs_given_true' ------------------------------------------
 
+test_that("'forecast_outcome_obs_given_true' works with bage_datamod_miscount - prob has 'by'", {
+  prob_mean <- c(0.5, 0.2, 0.3, 0.4)
+  prob_disp <- (1:4)/10
+  prob_levels <- 2001:2004
+  prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  prob_arg <- data.frame(time = prob_levels, mean = prob_mean, disp = prob_disp)
+  set.seed(0)
+  rate_mean <- 0.9
+  rate_disp <- 0.4
+  rate_matrix_outcome <- Matrix::Matrix(matrix(1, 1, 12))
+  rate_arg <- data.frame(mean = rate_mean, disp = rate_disp)
+  datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = prob_levels,
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       prob_arg = prob_arg,
+                                       rate_mean = rate_mean,
+                                       rate_disp = rate_disp,
+                                       rate_levels = character(),
+                                       rate_matrix_outcome = rate_matrix_outcome,
+                                       rate_arg = rate_arg,
+                                       nms_by = "time")
+  data_forecast <- data.frame(time = rep(2003:2004, times = 4),
+                              age = rep(1:4, each = 2))
+  fitted <- rvec::rgamma_rvec(8, shape = 1, rate = 0.2, n_draw = 10)
+  outcome_true <- rvec::rpois_rvec(8, lambda = 5, n_draw = 10)
+  has_newdata <- TRUE
+  set.seed(1)
+  ans_obtained <- forecast_outcome_obs_given_true(datamod = datamod,
+                                                  data_forecast = data_forecast,
+                                                  fitted = fitted,
+                                                  outcome_true = outcome_true,
+                                                  has_newdata = has_newdata)
+  set.seed(1)
+  shape1 <- rep(prob_mean[3:4], 4) / rep(prob_disp[3:4], 4)
+  shape2 <- (1 - rep(prob_mean[3:4], 4)) / rep(prob_disp[3:4], 4)
+  prob <- rvec::rbeta_rvec(n = 8, shape1 = shape1, shape2 = shape2, n_draw = 10)
+  shape <- 1 / rate_disp
+  scale <- rate_disp * rate_mean
+  rate <- rvec::rgamma_rvec(n = 8, shape = shape, scale = scale, n_draw = 10)
+  u <- rvec::rbinom_rvec(n = 8, size = outcome_true, prob = prob)
+  v <- rvec::rpois_rvec(n = 8, lambda = rate * fitted)
+  ans_expected <- u + v
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_outcome_obs_given_true' works with bage_datamod_miscount - rate has 'by'", {
+  set.seed(0)
+  prob_mean <- 0.9
+  prob_disp <- 0.4
+  prob_matrix_outcome <- Matrix::Matrix(matrix(1, 1, 12))
+  prob_arg <- data.frame(mean = prob_mean, disp = prob_disp)
+  rate_mean <- c(0.5, 0.2, 0.3, 0.4)
+  rate_disp <- (1:4)/10
+  rate_levels <- 2001:2004
+  rate_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  rate_arg <- data.frame(time = rate_levels, mean = rate_mean, disp = rate_disp)
+  datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
+                                       prob_disp = prob_disp,
+                                       prob_levels = character(),
+                                       prob_matrix_outcome = prob_matrix_outcome,
+                                       prob_arg = prob_arg,
+                                       rate_mean = rate_mean,
+                                       rate_disp = rate_disp,
+                                       rate_levels = rate_levels,
+                                       rate_matrix_outcome = rate_matrix_outcome,
+                                       rate_arg = rate_arg,
+                                       nms_by = "time")
+  data_forecast <- data.frame(time = rep(2003:2004, times = 4),
+                              age = rep(1:4, each = 2))
+  fitted <- rvec::rgamma_rvec(8, shape = 1, rate = 0.2, n_draw = 10)
+  outcome_true <- rvec::rpois_rvec(8, lambda = 5, n_draw = 10)
+  has_newdata <- TRUE
+  set.seed(1)
+  ans_obtained <- forecast_outcome_obs_given_true(datamod = datamod,
+                                                  data_forecast = data_forecast,
+                                                  fitted = fitted,
+                                                  outcome_true = outcome_true,
+                                                  has_newdata = has_newdata)
+  set.seed(1)
+  shape1 <- prob_mean / prob_disp
+  shape2 <- (1 - prob_mean) / prob_disp
+  prob <- rvec::rbeta_rvec(n = 8, shape1 = shape1, shape2 = shape2, n_draw = 10)
+  shape <- rep(1 / rate_disp[3:4], times = 4)
+  scale <- rep(rate_disp[3:4] * rate_mean[3:4], times = 4)
+  rate <- rvec::rgamma_rvec(n = 8, shape = shape, scale = scale, n_draw = 10)
+  u <- rvec::rbinom_rvec(n = 8, size = outcome_true, prob = prob)
+  v <- rvec::rpois_rvec(n = 8, lambda = rate * fitted)
+  ans_expected <- u + v
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+
 test_that("'forecast_outcome_obs_given_true' works with bage_datamod_noise - has 'by', norm", {
   set.seed(0)
   sd_sd <- c(0.5, 0.2, 0.3, 0.4)
   sd_levels <- 2001:2004
-  rate_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  sd_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
   sd_arg <- data.frame(time = sd_levels, sd = sd_sd)
   datamod <- new_bage_datamod_noise(sd_sd = sd_sd,
                                     sd_levels = sd_levels,

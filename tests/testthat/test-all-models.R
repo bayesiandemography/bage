@@ -2,8 +2,6 @@
 ## All combinations of likelihood, data model, and confidentialization
 ## (but very small datasets and simple priors)
 
-testthat::skip("skipping!!!")
-
 ## No disp, no data models ----------------------------------------------------
 
 testthat::test_that("pois no disp", {
@@ -628,7 +626,7 @@ testthat::test_that("pois no disp - noise datamod, rr3, small numbers", {
                     labels = 2026:2027,
                     output = "components")
   expect_s3_class(compf, "tbl_df")
-  newdata <- data.frame(age = 0:4, time = 2026, popn = 100:104)
+  newdata <- data.frame(age = 0:4, time = 2026, popn = 1:5)
   augfn <- forecast(mod,
                     newdata = newdata,
                     include_estimates = TRUE,

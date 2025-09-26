@@ -1682,7 +1682,6 @@ test_that("'forecast' throws error when exposure specified via formula", {
 })
 
 
-
 ## 'forecast_augment' --------------------------------------------------------
 
 test_that("'forecast_augment' works - Poisson, has disp, no forecasted offset", {
@@ -1715,7 +1714,8 @@ test_that("'forecast_augment' works - Poisson, has disp, no forecasted offset", 
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1753,7 +1753,8 @@ test_that("'forecast_augment' works - Poisson, no offset", {
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1794,7 +1795,8 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset",
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1836,7 +1838,8 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset, 
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
 components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1880,7 +1883,8 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset, 
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1923,7 +1927,8 @@ test_that("'forecast_augment' works - binomial, no disp", {
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1960,7 +1965,8 @@ test_that("'forecast_augment' works - normal", {
                                                    dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1999,7 +2005,8 @@ test_that("'forecast_augment' works - normal, has forecasted offset", {
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -2038,7 +2045,8 @@ test_that("'forecast_augment' works - normal, no offset, no NA in outcome", {
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -2078,7 +2086,8 @@ test_that("'forecast_augment' works - normal, has offset, offset not in forecast
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -2119,7 +2128,8 @@ test_that("'forecast_augment' works - normal, estimated has imputed, has offset"
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -2160,7 +2170,8 @@ test_that("'forecast_augment' works - normal, estimated has imputed, no offset",
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
-                          linpred_forecast = linpred_forecast)
+                          linpred_forecast = linpred_forecast,
+                          has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -2835,6 +2846,30 @@ test_that("'make_expected_obs' works with Poisson, overcount data model", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'make_expected_obs' works with Poisson throws error with invalid data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 5)
+  formula <- deaths ~ age + time + sex
+  rate <- data.frame(time = 2000:2006, mean = 2, disp = c(0.5, 0.2, 0.3, 0.4, 0.2, 0.1, 0.1))
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_overcount(rate = rate)
+  components <- data.frame(term = c("(Intercept)", rep("datamod", 6)),
+                           component = c("(Intercept)", rep("rate", times = 6)),
+                           level = c("(Intercept)", 2000:2005),
+                           .fitted = rvec::runif_rvec(7, n_draw = 10))
+  expected <- rvec::runif_rvec(n = 120, n_draw = 10)
+  class(mod$datamod) <- "wrong"
+  expect_error(make_expected_obs(mod = mod,
+                                 components = components,
+                                 expected = expected),
+               "Internal error: Can't handle data model with class")
+})
+
+
 test_that("'make_expected_obs' works with Poisson, undercount data model", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
@@ -2965,6 +3000,7 @@ test_that("'make_expected_obs' with binomial throws expected error with invalid 
                                  expected = expected),
                "Internal error: Can't handle data model")
 })
+
 
 
 ## 'make_i_lik' ---------------------------------------------------------------
@@ -3344,12 +3380,12 @@ test_that("'print' works with mod_pois", {
                     data = data,
                     exposure = popn) |>
       set_confidential_rr3() |>
-      set_covariates(~ income)
+      set_covariates(~ income) |>
+      set_datamod_undercount(prob = data.frame(mean = 0.9, disp = 0.2))
     expect_snapshot(print(mod))
     ## don't use snapshot, since printed option includes timings, which can change
     capture.output(print(fit(mod)), file = NULL)
 })
-
 
 test_that("'print' works with mod_pois - inner-outer fitting method", {
     set.seed(0)
@@ -3381,6 +3417,7 @@ test_that("'replicate_data' works with mod_pois - has disp", {
                     data = data,
                     exposure = popn)
     mod <- fit(mod)
+    set.seed(1)
     ans <- replicate_data(mod)
     expect_identical(names(ans), c(".replicate", names(data)))
     expect_identical(nrow(ans), nrow(data) * 20L)
@@ -3388,6 +3425,9 @@ test_that("'replicate_data' works with mod_pois - has disp", {
     expect_true(var(tab) > 0)
     ans_fit <- replicate_data(mod, condition_on = "fitted")
     expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.01)
+    set.seed(1)
+    ans2 <- replicate_data(mod, condition_on = "expected")
+    expect_equal(ans, ans2)
 })
 
 test_that("'replicate_data' works with mod_pois - no disp", {
@@ -3431,6 +3471,50 @@ test_that("'replicate_data' works with mod_pois, rr3 confidential", {
     expect_true(all(ans_fit$deaths %% 3 == 0))
 })
 
+test_that("'replicate_data' works with mod_pois, exposure datamodel", {
+  set.seed(10)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.1 * data$popn)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_disp(mean = 0) |>
+    set_datamod_exposure(cv = 0.02) |>
+    fit()
+  ans <- replicate_data(mod)
+  expect_identical(names(ans), c(".replicate", names(data)))
+  expect_identical(nrow(ans), nrow(data) * 20L)
+  tab <- tapply(ans$deaths, ans$.replicate, sd)
+  expect_true(var(tab) > 0)
+  ans_fit <- replicate_data(mod, condition_on = "fitted")
+  expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.02)
+})
+
+
+test_that("'replicate_data' works with mod_pois, noise datamodel", {
+  set.seed(10)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.1 * data$popn)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_disp(mean = 0) |>
+    set_datamod_noise(sd = 2) |>
+    fit()
+  ans <- replicate_data(mod)
+  expect_identical(names(ans), c(".replicate", names(data)))
+  expect_identical(nrow(ans), nrow(data) * 20L)
+  tab <- tapply(ans$deaths, ans$.replicate, sd)
+  expect_true(var(tab) > 0)
+  ans_fit <- replicate_data(mod, condition_on = "fitted")
+  expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.02)
+})
+
+
 test_that("'replicate_data' works with mod_binom - has disp", {
     set.seed(0)
     data <- expand.grid(age = 0:29, time = 2000:2002, sex = c("F", "M"))
@@ -3441,6 +3525,7 @@ test_that("'replicate_data' works with mod_binom - has disp", {
                     data = data,
                     size = popn)
     mod <- fit(mod)
+    set.seed(1)
     ans <- replicate_data(mod)
     expect_identical(names(ans), c(".replicate", names(data)))
     expect_identical(nrow(ans), nrow(data) * 20L)
@@ -3448,6 +3533,9 @@ test_that("'replicate_data' works with mod_binom - has disp", {
     expect_true(var(tab) > 0)
     ans_fit <- replicate_data(mod, condition_on = "fitted")
     expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.01)
+    set.seed(1)
+    ans2 <- replicate_data(mod, condition_on = "expected")
+    expect_equal(ans, ans2)
 })
 
 test_that("'replicate_data' works with mod_binom - no disp", {
@@ -3468,7 +3556,7 @@ test_that("'replicate_data' works with mod_binom - no disp", {
     expect_true(var(tab) > 0)
 })
 
-test_that("'replicate_data' works with mod_binom, rr3 data model", {
+test_that("'replicate_data' works with mod_binom, rr3 ", {
     set.seed(0)
     data <- expand.grid(age = 0:29, time = 2000:2002, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -3489,7 +3577,27 @@ test_that("'replicate_data' works with mod_binom, rr3 data model", {
     expect_true(all(ans_fit$deaths %% 3 == 0))
 })
 
-test_that("'replicate_data' works with mod_binom, rr3 data model, disp 0", {
+test_that("'replicate_data' works with mod_binom, undercount data model ", {
+    set.seed(0)
+    data <- expand.grid(age = 0:29, time = 2000:2002, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_binom(formula = formula,
+                    data = data,
+                    size = popn) |>
+      set_datamod_undercount(prob = data.frame(mean = 0.9, disp = 0.001)) |>
+      fit()
+    ans <- replicate_data(mod)
+    expect_identical(names(ans), c(".replicate", names(data)))
+    expect_identical(nrow(ans), nrow(data) * 20L)
+    tab <- tapply(ans$deaths, ans$.replicate, mean)
+    expect_true(var(tab) > 0)
+    ans_fit <- replicate_data(mod, condition_on = "fitted")
+    expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.03)
+})
+
+test_that("'replicate_data' works with mod_binom, rr3, disp 0", {
     set.seed(0)
     data <- expand.grid(age = 0:29, time = 2000:2002, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -3510,7 +3618,6 @@ test_that("'replicate_data' works with mod_binom, rr3 data model, disp 0", {
     expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.03)
     expect_true(all(ans_fit$deaths %% 3 == 0))
 })
-
 
 test_that("'replicate_data' works with mod_norm", {
     set.seed(0)
@@ -3539,6 +3646,38 @@ test_that("'replicate_data' works with mod_norm", {
     expect_warning(replicate_data(mod, condition_on = "expected"),
                    "Ignoring value for `condition_on`.")
 })
+
+test_that("'replicate_data' works with mod_norm, noise data model", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$income <- rnorm(n = nrow(data), mean = 100, sd = 2)
+    data$w <- runif(n = nrow(data), min = 500, max = 1000)
+    formula <- income ~ age + sex + time
+    mod <- mod_norm(formula = formula,
+                    data = data,
+                    weights = w)
+    mod <- set_prior(mod, age ~ N())
+    mod <- set_prior(mod, time ~ N())
+    mod <- set_datamod_noise(mod, sd = 2)
+    mod <- fit(mod)
+    ans <- replicate_data(mod)
+    expect_identical(names(ans), c(".replicate", names(data)))
+    expect_identical(nrow(ans), nrow(data) * 20L)
+    expect_equal(ans$income[ans$.replicate == "Original"], data$income)
+    expect_equal(mean(ans$income[ans$.replicate == "Original"]),
+                 mean(ans$income[ans$.replicate == "Replicate 1"]),
+                 tolerance = 0.1)
+    expect_equal(mad(ans$income[ans$.replicate == "Original"]),
+                 mad(ans$income[ans$.replicate == "Replicate 1"]),
+                 tolerance = 0.2)
+    tab <- tapply(ans$income, ans$.replicate, mean)
+    expect_false(any(duplicated(tab)))
+    expect_warning(replicate_data(mod, condition_on = "expected"),
+                   "Ignoring value for `condition_on`.")
+})
+
+
+
 
 
 ## 'tidy' ---------------------------------------------------------------------
