@@ -173,57 +173,59 @@ set_covariates <- function(mod, formula) {
 #' Specify a data model for the exposure
 #' variable in a Poisson model. The data model assumes
 #' that, within each cell, observed exposure is drawn 
-#' from an Inverse-Gamma distribution, with
+#' from an Inverse-Gamma distribution. In this model,
 #'
-#' E\[expected exposure\] = true exposure
+#' E\[ expected exposure | true exposure \] = true exposure
 #'
 #' and
 #'
-#' var\[expected exposure\] = dispersion \eqn{\times}
-#'   (true exposure)^2
+#' sd\[ expected exposure | true exposure \] = `cv` \eqn{\times} true exposure
 #'
+#' where `cv` is a coefficient of variation parameter.
+#' 
 #' @details
 #'
-#' The model assumes that the exposure variable
+#' In the exposure data model, `cv`, the coefficient
+#' of variation, does not depend on
+#' true exposure. This implies that
+#' errors do not fall, in relative terms,
+#' as population rises. Unlike sampling errors,
+#' measurement errors do not get averaged away
+#' in large populations. 
+#'
+#' The exposure data model assumes that the exposure variable
 #' is unbiased. If there is in fact evidence
 #' of biases, then this evidence should be
 #' used to create a de-biased version of the
 #' variable (eg one where estimated biases
-#' have been subtracted), to supply to
+#' have been subtracted) to supply to
 #' [mod_pois()].
 #' 
-#' With the Inverse-Gamma distribution,
-#' the coefficient of variation for
-#' observed exposure (i.e. the standard
-#' deviation divided by the mean) is \eqn{\sqrt{\text{dispersion}}}).
-#' This implies that the average size of errors
-#' scales with the mean. It also implies that
-#' values for dispersion will typically be very small.
-#'
 #' `set_datamod_exposure()` can only be used
-#' with a Poisson model for rates in which dispersion
-#' in rates (as opposed to dispersion in observed
-#' exposure) is zero. Dispersion in
-#' rates can be set using [set_disp()],
+#' with a Poisson model for rates in which
+#' the dispersion in the rates has been set to zero.
+#' The dispersion in the rates can be set
+#' explicitly to zero using [set_disp()],
 #' though `set_datamod_exposure()` will also
 #' do so.
 #'
-#' @section The `disp` argument:
+#' @section The `cv` argument:
 #'
-#' `disp` can be a single number, in which
-#' case the same dispersion is used for all cells.
-#' `disp` can also be a data frame with a
-#' with a variable called `"disp"` and
+#' `cv` can be a single number, in which
+#' case the same value is used for all cells.
+#' `cv` can also be a data frame with a
+#' with a variable called `"cv"` and
 #' one or more columns with 'by' variables. 
-#' For instance, a  `disp` of
+#' For instance, a  `cv` of
 #' ```
 #' data.frame(sex = c("Female", "Male"),
-#'            disp = c(0.15, 0.12))
+#'            cv = c(0.01, 0.012))
 #'```
-#' implies that dispersion is 0.15 for
-#' females and 0.12 for males. See below
-#' for an example of dispersion varying
-#' with aggregated age groups.
+#' implies that the coefficient of variation
+#' is 0.01 for females and 0.012 for males.
+#'
+#' See below for an example where the coefficient
+#' of variation is based on aggregated age groups.
 #' 
 #' @section Mathematical details:
 #'
@@ -238,34 +240,36 @@ set_covariates <- function(mod, formula) {
 #' - \eqn{d_{g\lbrack i\rbrack }} is the value for dispersion
 #'   that is applied to cell \eqn{i}.
 #'
+#' `cv` is \eqn{\sqrt{d_g}}.
+#'
 #' @param mod An object of class `"bage_mod_pois"`,
 #' created with [mod_pois()].
-#' @param disp Dispersion of measurement errors.
+#' @param cv Coefficient of variation
+#' for measurement errors in exposure.
 #' A single number, or a data frame
-#' with a variable called `"disp"`,
+#' with a variable called `"cv"`
 #' and one or more 'by' variables.
 #'
 #' @returns A revised version of `mod`.
 #'
 #' @seealso
 #' - [mod_pois()] Specify a Poisson model
-#' - [set_disp()] Specify dispersion of rates, probabilities, or means
+#' - [set_disp()] Specify dispersion of rates
 #' - [augment()] Original data plus estimated values,
 #'   including estimates of true value for exposure
 #' - [datamods] Data models implemented in `bage`
 #' - [confidential] Confidentialization
-#'   processes modeled in `bage`
+#'   procedures modeled in `bage`
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
 #'   vignette
 #'
 #' @examples
-#' ## specify model, including setting
-#' ## dispersion for rates to zero
+#' ## specify model
 #' mod <- mod_pois(injuries ~ age * sex + year,
 #'                 data = nzl_injuries,
 #'                 exposure = popn) |>
 #'   set_disp(mean = 0) |>
-#'   set_datamod_exposure(disp = 0.00002)
+#'   set_datamod_exposure(cv = 0.025)
 #'
 #' ## fit the model
 #' mod <- mod |>
@@ -278,11 +282,11 @@ set_covariates <- function(mod, formula) {
 #' aug <- mod |>
 #'   augment()
 #'
-#' ## allow different dispersions for each sex
-#' disp_sex <- data.frame(sex = c("Female", "Male"),
-#'                        disp = c(0.00001, 0.00003))
+#' ## allow different cv's for each sex
+#' cv_sex <- data.frame(sex = c("Female", "Male"),
+#'                      cv = c(0.03, 0.02))
 #' mod <- mod |>
-#'   set_datamod_exposure(disp = disp_sex)
+#'   set_datamod_exposure(cv = cv_sex)
 #' mod
 #'
 #' ## our outcome variable is confidentialized,
@@ -292,30 +296,30 @@ set_covariates <- function(mod, formula) {
 #' mod
 #'
 #' ## now a model where everyone aged 0-49
-#' ## receives one value for dispersion,
-#' ## and everyone aged 50+ receives another
+#' ## receives one value for cv, and
+#' ## everyone aged 50+ receives another
 #' library(poputils) ## for 'age_upper()'
 #' library(dplyr, warn.conflicts = FALSE)
 #' nzl_injuries_age <- nzl_injuries |>
 #'   mutate(age_group = if_else(age_upper(age) < 50,
 #'                              "0-49",
 #'                              "50+"))
-#' disp_age <- data.frame(age_group = c("0-49", "50+"),
-#'                        disp = c(0.000025, 0.00001))
+#' cv_age <- data.frame(age_group = c("0-49", "50+"),
+#'                      cv = c(0.05, 0.01))
 #' mod <- mod_pois(injuries ~ age * sex + year,
-#'                 data = nzl_injuries_age, ## new
+#'                 data = nzl_injuries_age,
 #'                 exposure = popn) |>
 #'   set_disp(mean = 0) |>
-#'   set_datamod_exposure(disp = disp_age)
+#'   set_datamod_exposure(cv = cv_age)
 #' @export
-set_datamod_exposure <- function(mod, disp)  {
+set_datamod_exposure <- function(mod, cv)  {
   nm_offset_data <- mod$nm_offset_data
   nm_offset_mod <- get_nm_offset_mod(mod)
   error_offset_formula_used(nm_offset_data = nm_offset_data,
                             nm_offset_mod = nm_offset_mod,
                             nm_fun = "set_datamod_exposure")
   ## preliminaries
-  measure_vars_disp <- "disp"
+  measure_vars_cv <- "cv"
   check_bage_mod(x = mod, nm_x = "mod")
   model_descr <- model_descr(mod)
   nm_distn <- nm_distn(mod)
@@ -334,37 +338,40 @@ set_datamod_exposure <- function(mod, disp)  {
                                "with a model with exposure.")))
   }
   data <- mod$data
-  ## process 'disp'
-  if (is.numeric(disp)) {
-    check_number(x = disp, nm_x = "disp")
-    if (disp <= 0)
-      cli::cli_abort("{.arg disp} less than or equal to 0.")
-    disp <- data.frame(disp = disp)
+  ## process 'cv', and create 'disp' 
+  if (is.numeric(cv)) {
+    check_number(x = cv, nm_x = "cv")
+    if (cv <= 0)
+      cli::cli_abort("{.arg cv} less than or equal to 0.")
+    cv <- data.frame(cv = cv)
   }
-  check_datamod_val(x = disp,
-                    nm_x = "disp",
-                    measure_vars = measure_vars_disp)
-  nms_by_disp <- setdiff(names(disp), measure_vars_disp)
-  by_val_disp <- disp[nms_by_disp]
-  check_datamod_by_val(by_val = by_val_disp,
+  check_datamod_val(x = cv,
+                    nm_x = "cv",
+                    measure_vars = measure_vars_cv)
+  nms_by <- setdiff(names(cv), measure_vars_cv)
+  by_val_cv <- cv[nms_by]
+  check_datamod_by_val(by_val = by_val_cv,
                        data = data,
-                       nm_val = "disp")
-  check_positive(x = disp[[measure_vars_disp]],
-                 nm_x = measure_vars_disp,
-                 nm_df = "disp")
-  disp <- make_datamod_measure(data = data,
-                               by_val = by_val_disp,
-                               measure = disp[[measure_vars_disp]])
+                       nm_val = "cv",
+                       nm_data = "data")
+  check_positive(x = cv[[measure_vars_cv]],
+                 nm_x = measure_vars_cv,
+                 nm_df = "cv")
+  cv <- make_datamod_measure(data = data,
+                             by_val = by_val_cv,
+                             measure = cv[[measure_vars_cv]])
+  disp <- sqrt(cv)
   disp_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_disp,
+                                     by_val = by_val_cv,
                                      nm_component = "levels")
   disp_matrix_outcome <- make_matrix_val_outcome(data = data,
-                                                 by_val = by_val_disp)
+                                                 by_val = by_val_cv)
   ## construct datamod and add to 'mod'
   datamod <- new_bage_datamod_exposure(disp = disp,
                                        disp_levels = disp_levels,
                                        disp_matrix_outcome = disp_matrix_outcome,
-                                       nms_by = nms_by_disp)
+                                       cv_arg = cv,
+                                       nms_by = nms_by)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
     alert_replacing_existing_datamod(datamod_new = datamod,
@@ -504,7 +511,7 @@ set_datamod_exposure <- function(mod, disp)  {
 #'   data model
 #' - [datamods] All data models implemented in `bage`
 #' - [confidential] Confidentialization
-#'   processes modeled in `bage`
+#'   procedures modeled in `bage`
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
 #'   vignette
 #'
@@ -567,7 +574,8 @@ set_datamod_miscount <- function(mod, prob, rate) {
   by_val_prob <- prob[nms_by_prob]
   check_datamod_by_val(by_val = by_val_prob,
                        data = data,
-                       nm_val = "prob")
+                       nm_val = "prob",
+                       nm_data = "data")
   check_positive(x = prob$mean,
                  nm_x = "mean",
                  nm_df = "prob")
@@ -594,7 +602,8 @@ set_datamod_miscount <- function(mod, prob, rate) {
   by_val_rate <- rate[nms_by_rate]
   check_datamod_by_val(by_val = by_val_rate,
                        data = data,
-                       nm_val = "rate")
+                       nm_val = "rate",
+                       nm_data = "data")
   check_positive(x = rate$mean,
                  nm_x = "mean",
                  nm_df = "rate")
@@ -619,10 +628,12 @@ set_datamod_miscount <- function(mod, prob, rate) {
                                        prob_disp = prob_disp,
                                        prob_levels = prob_levels,
                                        prob_matrix_outcome = prob_matrix_outcome,
+                                       prob_arg = prob,
                                        rate_mean = rate_mean,
                                        rate_disp = rate_disp,
                                        rate_levels = rate_levels,
                                        rate_matrix_outcome = rate_matrix_outcome,
+                                       rate_arg = rate,
                                        nms_by = nms_by)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
@@ -836,7 +847,8 @@ set_datamod_noise <- function(mod, sd) {
   by_val_sd <- sd[nms_by_sd]
   check_datamod_by_val(by_val = by_val_sd,
                        data = data,
-                       nm_val = "sd")
+                       nm_val = "sd",
+                       nm_data = "data")
   check_positive(x = sd$sd,
                  nm_x = "sd",
                  nm_df = "sd")
@@ -853,6 +865,7 @@ set_datamod_noise <- function(mod, sd) {
   datamod <- new_bage_datamod_noise(sd_sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
+                                    sd_arg = sd,
                                     nms_by = nms_by_sd,
                                     outcome_sd = outcome_sd)
   if (has_datamod(mod)) {
@@ -939,7 +952,7 @@ set_datamod_noise <- function(mod, sd) {
 #'   data model
 #' - [datamods] All data models implemented in `bage`
 #' - [confidential] Confidentialization
-#'   processes modeled in `bage`
+#'   procedures modeled in `bage`
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
 #'   vignette
 #'
@@ -999,7 +1012,8 @@ set_datamod_overcount <- function(mod, rate) {
   by_val_rate <- rate[nms_by_rate]
   check_datamod_by_val(by_val = by_val_rate,
                        data = data,
-                       nm_val = "rate")
+                       nm_val = "rate",
+                       nm_data = "data")
   check_positive(x = rate$mean,
                  nm_x = "mean",
                  nm_df = "rate")
@@ -1024,6 +1038,7 @@ set_datamod_overcount <- function(mod, rate) {
                                         rate_disp = rate_disp,
                                         rate_levels = rate_levels,
                                         rate_matrix_outcome = rate_matrix_outcome,
+                                        rate_arg = rate,
                                         nms_by = nms_by)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
@@ -1118,7 +1133,7 @@ set_datamod_overcount <- function(mod, rate) {
 #'   data model
 #' - [datamods] All data models implemented in `bage`
 #' - [confidential] Confidentialization
-#'   processes modeled in `bage`
+#'   procedures modeled in `bage`
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
 #'   vignette
 #'
@@ -1178,7 +1193,8 @@ set_datamod_undercount <- function(mod, prob) {
   by_val_prob <- prob[nms_by_prob]
   check_datamod_by_val(by_val = by_val_prob,
                        data = data,
-                       nm_val = "prob")
+                       nm_val = "prob",
+                       nm_data = "data")
   check_positive(x = prob$mean,
                  nm_x = "mean",
                  nm_df = "prob")
@@ -1206,6 +1222,7 @@ set_datamod_undercount <- function(mod, prob) {
                                          prob_disp = prob_disp,
                                          prob_levels = prob_levels,
                                          prob_matrix_outcome = prob_matrix_outcome,
+                                         prob_arg = prob,
                                          nms_by = nms_by)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod

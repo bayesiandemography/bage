@@ -420,7 +420,7 @@ test_that("'draw_vals_augment_fitted' gives message if imputes exposure", {
                   data = data,
                   exposure = popn) |>
     set_disp(mean = 0) |>
-    set_datamod_exposure(disp = 0.0001)
+    set_datamod_exposure(cv = 0.01)
   mod_fitted <- fit(mod)
   expect_message(draw_vals_augment_fitted(mod_fitted, quiet = FALSE),
                  "Adding variable `.popn` with true values for `popn`.")
@@ -631,7 +631,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has datamod
                   exposure = popn)
   mod <- set_disp(mod, mean = 0)
   mod <- set_n_draw(mod, 10)
-  mod <- set_datamod_exposure(mod, disp = 0.2)
+  mod <- set_datamod_exposure(mod, cv = 0.2)
   suppressMessages(
     expect_message(
       ans_obtained <- draw_vals_augment_unfitted(mod, quiet = FALSE),
@@ -2495,7 +2495,7 @@ test_that("'has_datamod_outcome' works with valid inputs", {
       set_disp(mean = 0)
     expect_false(has_datamod_outcome(mod))
     mod <-
-      set_datamod_exposure(mod, disp = 0.1)
+      set_datamod_exposure(mod, cv = 0.1)
     expect_true(has_datamod(mod))
     suppressMessages(
     mod <- set_datamod_undercount(mod,
@@ -2642,12 +2642,12 @@ test_that("'make_disp_obs' works with Poisson, exposure data model", {
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 5)
   formula <- deaths ~ age + time + sex
-  disp <- data.frame(time = 2000:2006, disp = 2)
+  cv <- data.frame(time = 2000:2006, cv = 2)
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
     set_disp(mean = 0) |>
-    set_datamod_exposure(disp = disp)
+    set_datamod_exposure(cv = cv)
   ans_obtained <- make_disp_obs(mod = mod,
                                 components = NULL)
   d <- get_datamod_disp(mod$datamod)
@@ -2770,12 +2770,12 @@ test_that("'make_expected_obs' works with Poisson, exposure data model", {
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 5)
   formula <- deaths ~ age + time + sex
-  disp <- data.frame(time = 2000:2006, disp = 2)
+  cv <- data.frame(time = 2000:2006, cv = 2)
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
     set_disp(mean = 0) |>
-    set_datamod_exposure(disp)
+    set_datamod_exposure(cv)
   expected <- rvec::runif_rvec(n = 120, n_draw = 10)
   ans_obtained <- make_expected_obs(mod = mod,
                                     components = NULL,
@@ -2875,6 +2875,7 @@ test_that("'make_expected_obs'  with binom throws expected error with invalid da
                                     sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
                                                                              i = seq_len(120),
                                                                              j = rep(1, 120)),
+                                    sd_arg = sd,
                                     nms_by = c("age", "sex"),
                                     outcome_sd = 2)
   mod$datamod <- datamod
@@ -2950,6 +2951,7 @@ test_that("'make_expected_obs' with binomial throws expected error with invalid 
                                     sd_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 120),
                                                                              i = seq_len(120),
                                                                              j = rep(1, 120)),
+                                    sd_arg = sd,
                                     nms_by = c("age", "sex"),
                                     outcome_sd = 2)
   mod$datamod <- datamod

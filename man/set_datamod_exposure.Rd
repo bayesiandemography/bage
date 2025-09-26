@@ -4,15 +4,16 @@
 \alias{set_datamod_exposure}
 \title{Specify Exposure Data Model}
 \usage{
-set_datamod_exposure(mod, disp)
+set_datamod_exposure(mod, cv)
 }
 \arguments{
 \item{mod}{An object of class \code{"bage_mod_pois"},
 created with \code{\link[=mod_pois]{mod_pois()}}.}
 
-\item{disp}{Dispersion of measurement errors.
+\item{cv}{Coefficient of variation
+for measurement errors in exposure.
 A single number, or a data frame
-with a variable called \code{"disp"},
+with a variable called \code{"cv"}
 and one or more 'by' variables.}
 }
 \value{
@@ -22,58 +23,60 @@ A revised version of \code{mod}.
 Specify a data model for the exposure
 variable in a Poisson model. The data model assumes
 that, within each cell, observed exposure is drawn
-from an Inverse-Gamma distribution, with
+from an Inverse-Gamma distribution. In this model,
 
-E[expected exposure] = true exposure
+E[ expected exposure | true exposure ] = true exposure
 
 and
 
-var[expected exposure] = dispersion \eqn{\times}
-(true exposure)^2
+sd[ expected exposure | true exposure ] = \code{cv} \eqn{\times} true exposure
+
+where \code{cv} is a coefficient of variation parameter.
 }
 \details{
-The model assumes that the exposure variable
+In the exposure data model, \code{cv}, the coefficient
+of variation, does not depend on
+true exposure. This implies that
+errors do not fall, in relative terms,
+as population rises. Unlike sampling errors,
+measurement errors do not get averaged away
+in large populations.
+
+The exposure data model assumes that the exposure variable
 is unbiased. If there is in fact evidence
 of biases, then this evidence should be
 used to create a de-biased version of the
 variable (eg one where estimated biases
-have been subtracted), to supply to
+have been subtracted) to supply to
 \code{\link[=mod_pois]{mod_pois()}}.
 
-With the Inverse-Gamma distribution,
-the coefficient of variation for
-observed exposure (i.e. the standard
-deviation divided by the mean) is \eqn{\sqrt{\text{dispersion}}}).
-This implies that the average size of errors
-scales with the mean. It also implies that
-values for dispersion will typically be very small.
-
 \code{set_datamod_exposure()} can only be used
-with a Poisson model for rates in which dispersion
-in rates (as opposed to dispersion in observed
-exposure) is zero. Dispersion in
-rates can be set using \code{\link[=set_disp]{set_disp()}},
+with a Poisson model for rates in which
+the dispersion in the rates has been set to zero.
+The dispersion in the rates can be set
+explicitly to zero using \code{\link[=set_disp]{set_disp()}},
 though \code{set_datamod_exposure()} will also
 do so.
 }
-\section{The \code{disp} argument}{
+\section{The \code{cv} argument}{
 
 
-\code{disp} can be a single number, in which
-case the same dispersion is used for all cells.
-\code{disp} can also be a data frame with a
-with a variable called \code{"disp"} and
+\code{cv} can be a single number, in which
+case the same value is used for all cells.
+\code{cv} can also be a data frame with a
+with a variable called \code{"cv"} and
 one or more columns with 'by' variables.
-For instance, a  \code{disp} of
+For instance, a  \code{cv} of
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{data.frame(sex = c("Female", "Male"),
-           disp = c(0.15, 0.12))
+           cv = c(0.01, 0.012))
 }\if{html}{\out{</div>}}
 
-implies that dispersion is 0.15 for
-females and 0.12 for males. See below
-for an example of dispersion varying
-with aggregated age groups.
+implies that the coefficient of variation
+is 0.01 for females and 0.012 for males.
+
+See below for an example where the coefficient
+of variation is based on aggregated age groups.
 }
 
 \section{Mathematical details}{
@@ -91,16 +94,17 @@ where
 \item \eqn{d_{g\lbrack i\rbrack }} is the value for dispersion
 that is applied to cell \eqn{i}.
 }
+
+\code{cv} is \eqn{\sqrt{d_g}}.
 }
 
 \examples{
-## specify model, including setting
-## dispersion for rates to zero
+## specify model
 mod <- mod_pois(injuries ~ age * sex + year,
                 data = nzl_injuries,
                 exposure = popn) |>
   set_disp(mean = 0) |>
-  set_datamod_exposure(disp = 0.00002)
+  set_datamod_exposure(cv = 0.025)
 
 ## fit the model
 mod <- mod |>
@@ -113,11 +117,11 @@ mod
 aug <- mod |>
   augment()
 
-## allow different dispersions for each sex
-disp_sex <- data.frame(sex = c("Female", "Male"),
-                       disp = c(0.00001, 0.00003))
+## allow different cv's for each sex
+cv_sex <- data.frame(sex = c("Female", "Male"),
+                     cv = c(0.03, 0.02))
 mod <- mod |>
-  set_datamod_exposure(disp = disp_sex)
+  set_datamod_exposure(cv = cv_sex)
 mod
 
 ## our outcome variable is confidentialized,
@@ -127,31 +131,31 @@ mod <- mod |>
 mod
 
 ## now a model where everyone aged 0-49
-## receives one value for dispersion,
-## and everyone aged 50+ receives another
+## receives one value for cv, and
+## everyone aged 50+ receives another
 library(poputils) ## for 'age_upper()'
 library(dplyr, warn.conflicts = FALSE)
 nzl_injuries_age <- nzl_injuries |>
   mutate(age_group = if_else(age_upper(age) < 50,
                              "0-49",
                              "50+"))
-disp_age <- data.frame(age_group = c("0-49", "50+"),
-                       disp = c(0.000025, 0.00001))
+cv_age <- data.frame(age_group = c("0-49", "50+"),
+                     cv = c(0.05, 0.01))
 mod <- mod_pois(injuries ~ age * sex + year,
-                data = nzl_injuries_age, ## new
+                data = nzl_injuries_age,
                 exposure = popn) |>
   set_disp(mean = 0) |>
-  set_datamod_exposure(disp = disp_age)
+  set_datamod_exposure(cv = cv_age)
 }
 \seealso{
 \itemize{
 \item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
-\item \code{\link[=set_disp]{set_disp()}} Specify dispersion of rates, probabilities, or means
+\item \code{\link[=set_disp]{set_disp()}} Specify dispersion of rates
 \item \code{\link[=augment]{augment()}} Original data plus estimated values,
 including estimates of true value for exposure
 \item \link{datamods} Data models implemented in \code{bage}
 \item \link{confidential} Confidentialization
-processes modeled in \code{bage}
+procedures modeled in \code{bage}
 \item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
 vignette
 }

@@ -259,9 +259,11 @@ test_that("'get_datamod_disp' works", {
   disp <- c(0.5, 0.2, 0.3, 0.4)
   disp_levels <- 1:4
   disp_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  cv_arg <- data.frame(age = disp_levels, cv = sqrt(disp))
   datamod <- new_bage_datamod_exposure(disp = disp,
                                        disp_levels = disp_levels,
                                        disp_matrix_outcome = disp_matrix_outcome,
+                                       cv_arg = cv_arg,
                                        nms_by = c("age", "sex"))
   ans_obtained <- get_datamod_disp(datamod)
   ans_expected <- as.numeric(disp_matrix_outcome %*% disp)
@@ -276,11 +278,15 @@ test_that("'get_datamod_prob' works", {
   prob_disp <- c(0.3, 0.2, 0.3, 0.2)
   prob_levels <- 1:4
   prob_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  prob_arg <- data.frame(age = prob_levels,
+                         mean = prob_mean,
+                         disp = prob_disp)
   datamod <- new_bage_datamod_undercount(prob_mean = prob_mean,
                                          prob_disp = prob_disp,
                                          prob_levels = prob_levels,
                                          prob_matrix_outcome = prob_matrix_outcome,
-                                         nms_by = c("age", "sex"))
+                                         prob_arg = prob_arg,
+                                         nms_by = "age")
   components <- tibble::tibble(
     term = c("(Intercept)", rep("datamod", 4)),
     component = c("(Intercept)", rep("prob", 4)),
@@ -301,11 +307,15 @@ test_that("'get_datamod_rate' works", {
   rate_disp <- c(0.3, 0.2, 0.3, 0.2)
   rate_levels <- 1:4
   rate_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  rate_arg <- data.frame(age = rate_levels,
+                         mean = rate_mean,
+                         disp = rate_disp)
   datamod <- new_bage_datamod_overcount(rate_mean = rate_mean,
                                         rate_disp = rate_disp,
                                         rate_levels = rate_levels,
                                         rate_matrix_outcome = rate_matrix_outcome,
-                                        nms_by = c("age", "sex"))
+                                        rate_arg = rate_arg,
+                                        nms_by = "age")
   components <- tibble::tibble(
     term = c("(Intercept)", rep("datamod", 4)),
     component = c("(Intercept)", rep("rate", 4)),
@@ -322,16 +332,15 @@ test_that("'get_datamod_rate' works", {
 ## 'get_datamod_sd' ---------------------------------------------------------
 
 test_that("'get_datamod_sd' works", {
-  mean_mean <- c(0.1, 0.4, 0.2)
-  mean_levels <- 1:3
-  mean_matrix_outcome <- Matrix::Matrix(kronecker(diag(3), rep(1, 4)))
   sd_sd <- c(0.5, 0.2, 0.3, 0.4)
   sd_levels <- 1:4
   sd_matrix_outcome <- Matrix::Matrix(kronecker(rep(1, 3), diag(4)))
+  sd_arg <- data.frame(age = sd_levels, sd = sd_sd)
   datamod <- new_bage_datamod_noise(sd_sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = c("age", "sex"),
+                                    nms_by = "age",
+                                    sd_arg = sd_arg,
                                     outcome_sd = 2)
   ans_obtained <- get_datamod_sd(datamod)
   ans_expected <- as.numeric(sd_matrix_outcome %*% sd_sd)

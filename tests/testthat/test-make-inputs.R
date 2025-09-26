@@ -6,11 +6,15 @@ test_that("'alert_replacing_existing_datamod' works with valid inputs", {
                                              prob_disp = 0.1,
                                              prob_levels = "prob",
                                              prob_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5), i = 1:5, j = rep(1, 5)),
+                                             prob_arg = data.frame(mean = 1,
+                                                                   disp = 0.5),
                                              nms_by = character())
   datamod_old <- new_bage_datamod_overcount(rate_mean = 0.5,
                                              rate_disp = 0.1,
                                              rate_levels = "rate",
                                              rate_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5), i = 1:5, j = rep(1, 5)),
+                                             rate_arg = data.frame(mean = 1,
+                                                                   disp = 0.5),
                                             nms_by = character())
   expect_message(alert_replacing_existing_datamod(datamod_new = datamod_new,
                                                   datamod_old = datamod_old),

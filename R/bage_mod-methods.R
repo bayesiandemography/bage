@@ -1264,11 +1264,13 @@ forecast.bage_mod <- function(object,
   if (!has_newdata && !has_labels)
     cli::cli_abort("No value supplied for {.arg newdata} or for {.arg labels}.")
   if (has_newdata) {
-    data_forecast <- make_data_forecast_newdata(mod = object, newdata = newdata)
+    data_forecast <- make_data_forecast_newdata(mod = object,
+                                                newdata = newdata)
     labels <- unique(data_forecast[[var_time]])
   }
   if (has_labels)
-    data_forecast <- make_data_forecast_labels(mod = object, labels_forecast = labels)
+    data_forecast <- make_data_forecast_labels(mod = object,
+                                               labels_forecast = labels)
   seed_forecast_components <- object$seed_forecast_components
   if (is_not_testing_or_snapshot())
     cli::cli_progress_message("{.fun components} for future values...") # nocov
@@ -1295,6 +1297,7 @@ forecast.bage_mod <- function(object,
     set.seed(seed_forecast_augment) ## set pre-determined seed
     ans <- forecast_augment(mod = object,
                             data_forecast = data_forecast,
+                            components_forecast = comp_forecast,
                             linpred_forecast = linpred_forecast)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     if (include_estimates) {
@@ -1337,6 +1340,8 @@ forecast.bage_mod <- function(object,
 #' values for hyperparameters
 #' @param linpred_forecast Linear predictor for future
 #' time periods
+#' @param has_newdata Whether user supplied 'newdata'
+#' argument
 #'
 #' @returns A tibble.
 #'
@@ -1344,7 +1349,8 @@ forecast.bage_mod <- function(object,
 forecast_augment <- function(mod,
                              data_forecast,
                              components_forecast,
-                             linpred_forecast) {
+                             linpred_forecast,
+                             has_newdata) {
   UseMethod("forecast_augment")
 }
 
@@ -1353,7 +1359,8 @@ forecast_augment <- function(mod,
 forecast_augment.bage_mod <- function(mod,
                                       data_forecast,
                                       components_forecast,
-                                      linpred_forecast) {
+                                      linpred_forecast,
+                                      has_newdata) {
   ## extract values
   outcome_est <- mod$outcome
   datamod <- mod$datamod
@@ -1406,46 +1413,21 @@ forecast_augment.bage_mod <- function(mod,
                                       disp = NULL)
     if (has_datamod_outcome || has_confidential) {
       outcome <- outcome_true
-      if (has_datamod_outcome) {
-        nms_by <- datamod$nms_by
-        is_time_varying <- !is.null(var_time) && (var_time %in% nms_by)
-        if (is_time_varying) {
-          cli::cli_warn(c(paste("Forecasting of measurement errors",
-                                "is currently only implemented in cases",
-                                "where errors are non-time-varying."),
-                          i = paste("Forecast contains values for true outcome",
-                                    "{.var {nm_outcome_data_true}}",
-                                    "but not for reported outcome",
-                                    "{.var {nm_outcome_data}}.")))
-          ans[[nm_outcome_data]] <- blank
-        }
-        else {
-          outcome <- draw_outcome_obs_given_true(
-            datamod = datamod,
-            components = components_forecast,
-            outcome_true = outcome_true
-          )
-          if (has_confidential)
-            outcome <- draw_outcome_confidential(confidential = confidential,
-                                                 outcome_obs = outcome)
-          ans[[nm_outcome_data]] <- outcome
-        }
-        ans <- insert_after(df = ans,
-                            nm_after = nm_outcome_data,
-                            x = outcome_true,
-                            nm_x = nm_outcome_data_true)
-      }
-      else {
-        ## only has confidentialization
+      if (has_datamod_outcome)
+        outcome <-
+          forecast_outcome_obs_given_true(datamod = datamod,
+                                          data_forecast = data_forecast,
+                                          outcome_true = outcome_true,
+                                          has_newdata = has_newdata)
+      if (has_confidential)
         outcome <- draw_outcome_confidential(confidential = confidential,
                                              outcome_obs = outcome)
-        ans[[nm_outcome_data]] <- outcome
-        ans <- insert_after(df = ans,
-                            nm_after = nm_outcome_data,
-                            x = outcome_true,
-                            nm_x = nm_outcome_data_true)
-      }
-    } 
+      ans[[nm_outcome_data]] <- outcome
+      ans <- insert_after(df = ans,
+                          nm_after = nm_outcome_data,
+                          x = outcome_true,
+                          nm_x = nm_outcome_data_true)
+    }
     else {
       ## No data model or confidentialization
       if (has_missing_outcome_est) {
@@ -1486,7 +1468,8 @@ forecast_augment.bage_mod <- function(mod,
 forecast_augment.bage_mod_norm <- function(mod,
                                            data_forecast,
                                            components_forecast,
-                                           linpred_forecast) {
+                                           linpred_forecast,
+                                           has_newdata) {
   ## extract values
   outcome_est <- mod$outcome
   datamod <- mod$datamod
@@ -1525,27 +1508,12 @@ forecast_augment.bage_mod_norm <- function(mod,
                                       fitted = fitted_orig_scale,
                                       disp = disp_orig_scale)
     if (has_datamod_outcome) {
-      nms_by <- datamod$nms_by
-      is_time_varying <- !is.null(var_time) && (var_time %in% nms_by)
-      if (is_time_varying) {
-        cli::cli_warn(c(paste("Forecasting of measurement errors",
-                              "is currently only implemented in cases",
-                              "where errors are non-time-varying."),
-                        i = paste("Forecast contains values for true outcome",
-                                  "{.var {nm_outcome_data_true}}",
-                                  "but not for reported outcome",
-                                  "{.var {nm_outcome_data}}.")))
-        ans[[nm_outcome_data]] <- blank
-      }
-      else {
-        outcome_obs <- draw_outcome_obs_given_true(
-          datamod = datamod,
-          outcome_true = outcome_true,
-          offset = offset_forecast,
-          fitted = fitted_orig_scale
-        )
-        ans[[nm_outcome_data]] <- outcome_obs
-      }
+      outcome_obs <-
+        forecast_outcome_obs_given_true(datamod = datamod,
+                                        data_forecast = data_forecast,
+                                        outcome_true = outcome_true,
+                                        has_newdata = has_newdata)
+      ans[[nm_outcome_data]] <- outcome_obs
       ans <- insert_after(df = ans,
                           nm_after = nm_outcome_data,
                           x = outcome_true,
