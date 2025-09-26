@@ -664,7 +664,7 @@ forecast_outcome_obs_given_true <- function(datamod,
   UseMethod("forecast_outcome_obs_given_true")
 }
 
-
+## HAS_TESTS
 #' @export
 forecast_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
                                                                   data_forecast,
@@ -673,46 +673,66 @@ forecast_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
                                                                   has_newdata) {
   prob_arg <- datamod$prob_arg
   rate_arg <- datamod$rate_arg
-  nms_by <- datamod$nms_by
   n_outcome <- length(outcome_true)
   n_draw <- rvec::n_draw(outcome_true)
+  nm_data <- if (has_newdata) "newdata" else "data"
+  nms_by <- datamod$nms_by
   nms_prob <- names(prob_arg)
   nms_rate <- names(rate_arg)
   nms_by_prob <- intersect(nms_by, nms_prob)
   nms_by_rate <- intersect(nms_by, nms_rate)
-  by_val_prob <- prob_arg[nms_by_prob]
-  by_val_rate <- rate_arg[nms_by_rate]
-  data_prob <- data_forecast[nms_by_prob]
-  data_rate <- data_forecast[nms_by_rate]
-  nm_data <- if (has_newdata) "newdata" else "data"
-  check_datamod_by_val(by_val = by_val_prob,
-                       data = data_prob,
-                       nm_val = "prob",
-                       nm_data = nm_data)
-  check_datamod_by_val(by_val = by_val_rate,
-                       data = data_rate,
-                       nm_val = "rate",
-                       nm_data = nm_data)
-  key_prob <- Reduce(paste_dot, by_val_prob)
-  key_rate <- Reduce(paste_dot, by_val_rate)
-  key_data_prob <- Reduce(paste_dot, data_prob)
-  key_data_rate <- Reduce(paste_dot, data_rate)
-  i_prob <- match(key_data_prob, key_prob)
-  i_rate <- match(key_data_rate, key_rate)
-  rate_mean <- rate_arg$mean[i]
-  rate_disp <- rate_arg$disp[i]
+  has_by_prob <- length(nms_by_prob) > 0L
+  has_by_rate <- length(nms_by_rate) > 0L
+  if (has_by_prob) {
+    by_val_prob <- prob_arg[nms_by_prob]
+    data <- data_forecast[nms_by_prob]
+    check_datamod_by_val(by_val = by_val_prob,
+                         data = data,
+                         nm_val = "prob",
+                         nm_data = nm_data)
+    key_prob <- Reduce(paste_dot, by_val_prob)
+    key_data <- Reduce(paste_dot, data)
+    i_prob <- match(key_data, key_prob)
+  }
+  else
+    i_prob <- 1L
+  if (has_by_rate) {
+    by_val_rate <- rate_arg[nms_by_rate]
+    data <- data_forecast[nms_by_rate]
+    check_datamod_by_val(by_val = by_val_rate,
+                         data = data,
+                         nm_val = "rate",
+                         nm_data = nm_data)
+    key_rate <- Reduce(paste_dot, by_val_rate)
+    key_data <- Reduce(paste_dot, data)
+    i_rate <- match(key_data, key_rate)
+  }
+  else
+    i_rate <- 1L
+  prob_mean <- prob_arg$mean[i_prob]
+  prob_disp <- prob_arg$disp[i_prob]
+  rate_mean <- rate_arg$mean[i_rate]
+  rate_disp <- rate_arg$disp[i_rate]
+  shape1 <- prob_mean / prob_disp
+  shape2 <- (1 - prob_mean) / prob_disp
   shape <- 1 / rate_disp
   scale <- rate_disp * rate_mean
+  prob <- rvec::rbeta_rvec(n = n_outcome,
+                           shape1 = shape1,
+                           shape2 = shape2,
+                           n_draw = n_draw)
   rate <- rvec::rgamma_rvec(n = n_outcome,
                             shape = shape,
                             scale = scale,
                             n_draw = n_draw)
-  error <- rate * fitted
-  outcome_true + error
+  observed_true <- rbinom_guarded(size = outcome_true,
+                                  prob = prob)
+  observed_false <- rpois_guarded(lambda = rate * fitted)
+  observed_true + observed_false
 }    
 
 
-
+## HAS_TESTS
 #' @export
 forecast_outcome_obs_given_true.bage_datamod_noise <- function(datamod,
                                                                data_forecast,

@@ -1298,7 +1298,8 @@ forecast.bage_mod <- function(object,
     ans <- forecast_augment(mod = object,
                             data_forecast = data_forecast,
                             components_forecast = comp_forecast,
-                            linpred_forecast = linpred_forecast)
+                            linpred_forecast = linpred_forecast,
+                            has_newdata = has_newdata)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     if (include_estimates) {
       if (is_not_testing_or_snapshot())
@@ -1417,6 +1418,7 @@ forecast_augment.bage_mod <- function(mod,
         outcome <-
           forecast_outcome_obs_given_true(datamod = datamod,
                                           data_forecast = data_forecast,
+                                          fitted <- fitted,
                                           outcome_true = outcome_true,
                                           has_newdata = has_newdata)
       if (has_confidential)
@@ -1511,6 +1513,7 @@ forecast_augment.bage_mod_norm <- function(mod,
       outcome_obs <-
         forecast_outcome_obs_given_true(datamod = datamod,
                                         data_forecast = data_forecast,
+                                        fitted = fitted,
                                         outcome_true = outcome_true,
                                         has_newdata = has_newdata)
       ans[[nm_outcome_data]] <- outcome_obs
@@ -3016,7 +3019,7 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
   sd <- disp_orig_scale / sqrt(offset_orig_scale)
   y_rep <- rvec::rnorm_rvec(n = n_obs, mean = fitted, sd = sd)
   if (has_datamod) {
-    components <- components(x)
+    components <- components(x, quiet = TRUE)
     y_rep <- draw_outcome_obs_given_true(datamod = datamod,
                                          components = components,
                                          outcome_true = y_rep,

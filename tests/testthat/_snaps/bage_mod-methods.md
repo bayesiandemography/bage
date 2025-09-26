@@ -9,6 +9,7 @@
          deaths ~ age + sex + time
       
                        exposure: popn
+                     data model: undercount
             confidentialization: rr3
       
               term  prior along n_par n_par_free
