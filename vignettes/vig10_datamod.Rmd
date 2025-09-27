@@ -1,0 +1,233 @@
+---
+title: "10. Data Models"
+output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    fig_caption: yes
+    toc: true
+    toc_depth: 2
+    number_sections: true
+pkgdown:
+  as_is: true
+vignette: >
+  %\VignetteIndexEntry{10. Data Models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, include = FALSE}
+library(bage)
+library(dplyr)
+births <- kor_births |>
+  filter(region == "Ulsan",
+         time == 2023) |>
+  select(age, births, popn)
+```
+
+# Introduction
+
+
+# Menu of data models
+
+## Base model
+
+```{r}
+library(bage)
+library(poputils)
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+```
+
+
+```{r}
+births
+```
+
+```{r}
+mod_base <- mod_pois(births ~ age,
+                     data = births,
+                     exposure = popn) |>
+  fit()
+mod_base
+```
+
+
+```{r, fig.width = 6, fig.height = 3, echo = FALSE}
+aug_base <- mod_base |>
+  augment() |>
+  mutate(draws_ci(.fitted))
+
+p_rate <- ggplot(aug_base, aes(x = age_mid(age))) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+
+p_count <- ggplot(aug_base, aes(x = age_mid(age))) +
+  geom_point(aes(y = births),
+             color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+
+p_rate + p_count
+```
+
+## Undercount model
+
+\begin{align}
+  y_i^{\text{obs}} & \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\
+  \pi_g & \sim \text{Beta}\left( \frac{m_g}{d_g}, \frac{1-m_g}{d_g} \right)
+\end{align}
+
+
+```{r}
+prob_under <- data.frame(mean = 0.8, disp = 0.02)
+```
+
+```{r, messages = FALSE}
+mod_under <- mod_base |>
+  set_datamod_undercount(prob = prob_under) |>
+  fit()
+mod_under
+```
+
+```{r, messages = FALSE}
+mod_under |>
+  augment()
+```
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, messages = FALSE}
+aug_under <- mod_under |>
+  augment() |>
+  mutate(draws_ci(.births)) |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Undercount = aug_under,
+                  .id = "model") |>
+  mutate(.births.mid = if_else(is.na(.births.mid), births, .births.mid))
+
+p_rate <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+
+p_count <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .births.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .births.lower,
+                     ymax = .births.upper),
+		  color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+
+p_rate / p_count
+```
+
+## Overcount model
+
+
+\begin{align}
+  y_i^{\text{obs}} & = y_i^{\text{true}} + \epsilon_i \\
+  \epsilon_i & \sim \text{Poisson}( \alpha_{g[i]}  \gamma_i w_i) \\
+  \alpha_{g[i]} & \sim \text{Gamma}\left(\frac{1}{d_g}, \frac{1}{m_g d_g} \right)
+\end{align}
+
+
+```{r}
+rate_over <- data.frame(mean = 0.1, disp = 0.05)
+```
+
+```{r}
+mod_over <- mod_base |>
+  set_datamod_overcount(rate = rate_over)
+```
+
+```{r, include = FALSE, message = FALSE, warning = FALSE, results = 'hide'}
+mod_over <- mod_over |>
+  fit()
+```
+
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 3, message = FALSE}
+aug_over <- mod_over |>
+  augment(quiet = TRUE) |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Overcount = aug_over,
+                  .id = "model")
+
+ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  geom_point(aes(y = .observed),
+            color = "red") +
+  xlab("Age") +
+  ylab("Rate")
+```
+
+
+## Miscount model
+
+
+\begin{align}
+  y_i^{\text{obs}} & = u_i + v_i \\
+  u_i & \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\
+  v_i & = y_i^{\text{true}} + \epsilon_i \\
+  \epsilon_i & \sim \text{Poisson}( \alpha_{g[i]}  \gamma_i w_i) \\
+  \alpha_{g[i]} & \sim \text{Gamma}\left(\frac{1}{d_g}, \frac{1}{m_g d_g} \right)
+\end{align}
+
+```{r, message = FALSE}
+mod_mis <- mod_base |>
+  set_datamod_miscount(prob = prob_under,
+                       rate = rate_over)
+```
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 3, message = FALSE}
+mod_mis <- mod_mis |>
+  fit()
+
+aug_mis <- mod_mis |>
+  augment() |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Miscount = aug_mis,
+                  .id = "model")
+
+ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  geom_point(aes(y = .observed),
+            color = "red") +
+  xlab("Age") +
+  ylab("Rate")
+```

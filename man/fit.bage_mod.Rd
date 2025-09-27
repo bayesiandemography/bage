@@ -124,7 +124,7 @@ with original data
 \item \code{\link[=report_sim]{report_sim()}} Simulation study of a model
 \item \code{\link[=unfit]{unfit()}} Reset a model
 \item \code{\link[=is_fitted]{is_fitted()}} Check if a model has been fitted
-\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette
 }
 }

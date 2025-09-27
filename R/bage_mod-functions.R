@@ -260,7 +260,7 @@ set_covariates <- function(mod, formula) {
 #' - [datamods] Data models implemented in `bage`
 #' - [confidential] Confidentialization
 #'   procedures modeled in `bage`
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples
@@ -512,7 +512,7 @@ set_datamod_exposure <- function(mod, cv)  {
 #' - [datamods] All data models implemented in `bage`
 #' - [confidential] Confidentialization
 #'   procedures modeled in `bage`
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples
@@ -754,7 +754,7 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #' - [augment()] Original data plus estimated values,
 #'   including estimates of true value for outcome
 #' - [datamods] Data models implemented in `bage`
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples
@@ -953,7 +953,7 @@ set_datamod_noise <- function(mod, sd) {
 #' - [datamods] All data models implemented in `bage`
 #' - [confidential] Confidentialization
 #'   procedures modeled in `bage`
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples
@@ -1134,7 +1134,7 @@ set_datamod_overcount <- function(mod, rate) {
 #' - [datamods] All data models implemented in `bage`
 #' - [confidential] Confidentialization
 #'   procedures modeled in `bage`
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples

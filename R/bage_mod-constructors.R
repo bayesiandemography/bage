@@ -97,7 +97,7 @@
 #' - [forecast()] Forecast parameters and outcomes
 #' - [report_sim()] Check model using a simulation study
 #' - [replicate_data()] Check model using replicate data
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   Detailed description of models
 #'
 #' @examples
@@ -269,7 +269,7 @@ mod_pois <- function(formula,
 #' - [forecast()] Forecast parameters and outcomes
 #' - [report_sim()] Check model using simulation study
 #' - [replicate_data()] Check model using replicate data
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   Detailed descriptions of models
 #'
 #' @examples
@@ -444,7 +444,7 @@ mod_binom <- function(formula, data, size) {
 #' - [report_sim()] Check model using a simulation study
 #' - [replicate_data()] Check model using replicate data
 #'   data for a model
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   Detailed description of models
 #'
 #' @examples

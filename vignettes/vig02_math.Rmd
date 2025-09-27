@@ -1130,7 +1130,7 @@ models <- tibble(
     ),
     paste(
       "$$",
-      "w_i^{\\text{obs}} \\sim \\text{InvGamma}(2 + \\delta_{g[i]}^{-1}, [1 + \\delta_{g[i]}^{-1}] w_i^{\\text{true}})",
+      "w_i^{\\text{obs}} \\sim \\text{InvGamma}(2 + d_{g[i]}^{-1}, [1 + d_{g[i]}^{-1}] w_i^{\\text{true}})",
       "$$"
     ),
     paste(

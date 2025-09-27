@@ -89,7 +89,7 @@ Binomial models are specified with function `mod_binom()` and normal models with
 The resulting model has the following structure:
 
 ```{r, echo=FALSE, out.width="90%"}
-knitr::include_graphics("vig1_dag.png")
+knitr::include_graphics("vig01_dag.png")
 ```
 
 The number of injuries occurring within each combination of age, sex, ethnicity, and time reflects (i) the population at risk and (ii) an underlying rate that in `bage` is referred to as `.fitted`. The expected value for `.fitted` is obtained by summing up values for the intercept, age effect, sex effect, and so forth. The actual value of `.fitted` can diverge from `.expected`: the amount of divergence is governed by the `disp` (dispersion) parameter.

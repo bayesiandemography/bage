@@ -324,8 +324,8 @@ draw_outcome_obs_given_true.bage_datamod_overcount <- function(datamod,
                            components = components)
   rate <- as.numeric(rate)
   lambda <- rate[is_ok] * fitted[is_ok] * offset[is_ok]
-  obs_false <- rpois_guarded(lambda)
-  ans[is_ok] <- outcome_true[is_ok] + obs_false
+  error <- rpois_guarded(lambda)
+  ans[is_ok] <- outcome_true[is_ok] + error
   ans <- matrix(ans, nrow = n_outcome, ncol = n_draw)
   ans <- rvec::rvec_dbl(ans)
   ans
@@ -660,6 +660,7 @@ forecast_outcome_obs_given_true <- function(datamod,
                                             data_forecast,
                                             fitted, 
                                             outcome_true,
+                                            offset,
                                             has_newdata) {
   UseMethod("forecast_outcome_obs_given_true")
 }
@@ -670,6 +671,7 @@ forecast_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
                                                                   data_forecast,
                                                                   fitted, 
                                                                   outcome_true,
+                                                                  offset,
                                                                   has_newdata) {
   prob_arg <- datamod$prob_arg
   rate_arg <- datamod$rate_arg
@@ -727,7 +729,8 @@ forecast_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
                             n_draw = n_draw)
   observed_true <- rbinom_guarded(size = outcome_true,
                                   prob = prob)
-  observed_false <- rpois_guarded(lambda = rate * fitted)
+  lambda <- rate * fitted * offset
+  observed_false <- rpois_guarded(lambda)
   observed_true + observed_false
 }    
 
@@ -738,6 +741,7 @@ forecast_outcome_obs_given_true.bage_datamod_noise <- function(datamod,
                                                                data_forecast,
                                                                fitted,
                                                                outcome_true,
+                                                               offset,
                                                                has_newdata) {
   sd_arg <- datamod$sd_arg
   outcome_sd <- datamod$outcome_sd
@@ -782,6 +786,7 @@ forecast_outcome_obs_given_true.bage_datamod_overcount <- function(datamod,
                                                                    data_forecast,
                                                                    fitted, 
                                                                    outcome_true,
+                                                                   offset,
                                                                    has_newdata) {
   rate_arg <- datamod$rate_arg
   n_outcome <- length(outcome_true)
@@ -812,7 +817,8 @@ forecast_outcome_obs_given_true.bage_datamod_overcount <- function(datamod,
                             shape = shape,
                             scale = scale,
                             n_draw = n_draw)
-  error <- rpois_guarded(rate * fitted)
+  lambda <- rate * fitted * offset
+  error <- rpois_guarded(lambda)
   outcome_true + error
 }    
 
@@ -822,6 +828,7 @@ forecast_outcome_obs_given_true.bage_datamod_undercount <- function(datamod,
                                                                     data_forecast,
                                                                     fitted,
                                                                     outcome_true,
+                                                                    offset,
                                                                     has_newdata) {
   prob_arg <- datamod$prob_arg
   nms_by <- datamod$nms_by

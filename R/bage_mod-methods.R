@@ -1010,7 +1010,7 @@ generics::fit
 #' - [report_sim()] Simulation study of a model
 #' - [unfit()] Reset a model
 #' - [is_fitted()] Check if a model has been fitted
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples
@@ -1101,7 +1101,7 @@ generics::forecast
 #'   or `weights = 1` in the original call to
 #'   [mod_pois()] or [mod_norm()]).
 #'
-#' [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #' gives more details on the internal calculations in forecasting.
 #'
 #' @section Output format:
@@ -1174,7 +1174,7 @@ generics::forecast
 #'   probabilities, or means, together
 #'   with original data
 #' - [components()] Extract values for hyper-parameters
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples
@@ -1420,6 +1420,7 @@ forecast_augment.bage_mod <- function(mod,
                                           data_forecast = data_forecast,
                                           fitted <- fitted,
                                           outcome_true = outcome_true,
+                                          offset = offset_forecast,
                                           has_newdata = has_newdata)
       if (has_confidential)
         outcome <- draw_outcome_confidential(confidential = confidential,
@@ -1515,6 +1516,7 @@ forecast_augment.bage_mod_norm <- function(mod,
                                         data_forecast = data_forecast,
                                         fitted = fitted,
                                         outcome_true = outcome_true,
+                                        offset = offset_forecast,
                                         has_newdata = has_newdata)
       ans[[nm_outcome_data]] <- outcome_obs
       ans <- insert_after(df = ans,
@@ -2799,7 +2801,7 @@ print.bage_mod <- function(x, ...) {
 #' - [components()] Extract values for hyper-parameters
 #' - [forecast()] Forecast, based on a model
 #' - [report_sim()] Simulation study of model.
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples
