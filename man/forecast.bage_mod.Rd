@@ -67,7 +67,7 @@ or \code{weights = 1} in the original call to
 \code{\link[=mod_pois]{mod_pois()}} or \code{\link[=mod_norm]{mod_norm()}}).
 }
 
-\href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 gives more details on the internal calculations in forecasting.
 }
 
@@ -179,7 +179,7 @@ mod_births |>
 probabilities, or means, together
 with original data
 \item \code{\link[=components]{components()}} Extract values for hyper-parameters
-\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette
 }
 }

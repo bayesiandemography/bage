@@ -1317,12 +1317,14 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_miscount - 
                               age = rep(1:4, each = 2))
   fitted <- rvec::rgamma_rvec(8, shape = 1, rate = 0.2, n_draw = 10)
   outcome_true <- rvec::rpois_rvec(8, lambda = 5, n_draw = 10)
+  offset <- rpois(8, lambda = 100) + 1
   has_newdata <- TRUE
   set.seed(1)
   ans_obtained <- forecast_outcome_obs_given_true(datamod = datamod,
                                                   data_forecast = data_forecast,
                                                   fitted = fitted,
                                                   outcome_true = outcome_true,
+                                                  offset = offset,
                                                   has_newdata = has_newdata)
   set.seed(1)
   shape1 <- rep(prob_mean[3:4], 4) / rep(prob_disp[3:4], 4)
@@ -1332,7 +1334,7 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_miscount - 
   scale <- rate_disp * rate_mean
   rate <- rvec::rgamma_rvec(n = 8, shape = shape, scale = scale, n_draw = 10)
   u <- rvec::rbinom_rvec(n = 8, size = outcome_true, prob = prob)
-  v <- rvec::rpois_rvec(n = 8, lambda = rate * fitted)
+  v <- rvec::rpois_rvec(n = 8, lambda = rate * fitted * offset)
   ans_expected <- u + v
   expect_equal(ans_obtained, ans_expected)
 })
@@ -1363,12 +1365,14 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_miscount - 
                               age = rep(1:4, each = 2))
   fitted <- rvec::rgamma_rvec(8, shape = 1, rate = 0.2, n_draw = 10)
   outcome_true <- rvec::rpois_rvec(8, lambda = 5, n_draw = 10)
+  offset <- rpois(8, lambda = 100) + 1
   has_newdata <- TRUE
   set.seed(1)
   ans_obtained <- forecast_outcome_obs_given_true(datamod = datamod,
                                                   data_forecast = data_forecast,
                                                   fitted = fitted,
                                                   outcome_true = outcome_true,
+                                                  offset = offset,
                                                   has_newdata = has_newdata)
   set.seed(1)
   shape1 <- prob_mean / prob_disp
@@ -1378,12 +1382,10 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_miscount - 
   scale <- rep(rate_disp[3:4] * rate_mean[3:4], times = 4)
   rate <- rvec::rgamma_rvec(n = 8, shape = shape, scale = scale, n_draw = 10)
   u <- rvec::rbinom_rvec(n = 8, size = outcome_true, prob = prob)
-  v <- rvec::rpois_rvec(n = 8, lambda = rate * fitted)
+  v <- rvec::rpois_rvec(n = 8, lambda = rate * fitted * offset)
   ans_expected <- u + v
   expect_equal(ans_obtained, ans_expected)
 })
-
-
 
 test_that("'forecast_outcome_obs_given_true' works with bage_datamod_noise - has 'by', norm", {
   set.seed(0)
@@ -1401,12 +1403,14 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_noise - has
                               age = rep(1:4, each = 2))
   fitted <- rvec::rnorm_rvec(8, mean = 1, sd = 0.2, n_draw = 10)
   outcome_true <- rvec::rnorm_rvec(8, mean = 5, sd = 2, n_draw = 10)
+  offset <- rpois(8, lambda = 100) + 1
   has_newdata <- TRUE
   set.seed(1)
   ans_obtained <- forecast_outcome_obs_given_true(datamod = datamod,
                                                   data_forecast = data_forecast,
                                                   fitted = fitted,
                                                   outcome_true = outcome_true,
+                                                  offset = offset,
                                                   has_newdata = has_newdata)
   set.seed(1)
   error <- rvec::rnorm_rvec(n = 8, sd = rep(sd_sd[3:4], times = 4), n_draw = 10)
@@ -1414,7 +1418,7 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_noise - has
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_outcome_obs_given_true' works with bage_datamod_overcount - no 'by', pois", {
+test_that("'forecast_outcome_obs_given_true' works with bage_datamod_noise - no 'by', pois", {
   set.seed(0)
   sd_sd <- 0.2
   sd_levels <- character()
@@ -1430,12 +1434,14 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_overcount -
                               times = rep(2025:2026, each = 4))
   fitted <- rvec::rnorm_rvec(8, mean = 1, sd = 0.2, n_draw = 10)
   outcome_true <- rvec::rnorm_rvec(8, sd = 5, n_draw = 10)
+  offset <- rpois(8, lambda = 100) + 1
   has_newdata <- TRUE
   set.seed(1)
   ans_obtained <- forecast_outcome_obs_given_true(datamod = datamod,
                                                   data_forecast = data_forecast,
                                                   fitted = fitted,
                                                   outcome_true = outcome_true,
+                                                  offset = offset,
                                                   has_newdata = has_newdata)
   set.seed(1)
   mu <- 0.5 * sd_sd^2
@@ -1461,6 +1467,7 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_overcount -
   data_forecast <- data.frame(time = rep(2003:2004, times = 4),
                               age = rep(1:4, each = 2))
   fitted <- rvec::rgamma_rvec(8, shape = 1, rate = 0.2, n_draw = 10)
+  offset <- rpois(8, lambda = 100) + 1
   outcome_true <- rvec::rpois_rvec(8, lambda = 5, n_draw = 10)
   has_newdata <- TRUE
   set.seed(1)
@@ -1468,12 +1475,13 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_overcount -
                                                   data_forecast = data_forecast,
                                                   fitted = fitted,
                                                   outcome_true = outcome_true,
+                                                  offset = offset,
                                                   has_newdata = has_newdata)
   set.seed(1)
   shape <- rep(1 / rate_disp[3:4], times = 4)
   scale <- rep(rate_disp[3:4] * rate_mean[3:4], times = 4)
   rate <- rvec::rgamma_rvec(n = 8, shape = shape, scale = scale, n_draw = 10)
-  lambda <- rate * fitted
+  lambda <- rate * fitted * offset
   ans_expected <- rvec::rpois_rvec(n = 8, lambda = lambda) + outcome_true
   expect_equal(ans_obtained, ans_expected)
 })
@@ -1495,18 +1503,20 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_overcount -
                               times = rep(2025:2026, each = 4))
   fitted <- rvec::rgamma_rvec(8, shape = 1, rate = 0.2, n_draw = 10)
   outcome_true <- rvec::rpois_rvec(8, lambda = 5, n_draw = 10)
+  offset <- rpois(8, lambda = 100) + 1
   has_newdata <- TRUE
   set.seed(1)
   ans_obtained <- forecast_outcome_obs_given_true(datamod = datamod,
                                                   data_forecast = data_forecast,
                                                   fitted = fitted,
                                                   outcome_true = outcome_true,
+                                                  offset = offset,
                                                   has_newdata = has_newdata)
   set.seed(1)
   shape <- 1 / rate_disp
   scale <- rate_disp * rate_mean
   rate <- rvec::rgamma_rvec(n = 8, shape = shape, scale = scale, n_draw = 10)
-  error <- rvec::rpois_rvec(n = 8, lambda = rate * fitted)
+  error <- rvec::rpois_rvec(n = 8, lambda = rate * fitted * offset)
   ans_expected <- outcome_true + error
   expect_equal(ans_obtained, ans_expected)
 })
@@ -1528,12 +1538,14 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_undercount 
                               times = rep(2025:2026, each = 4))
   fitted <- rvec::rgamma_rvec(8, shape = 1, rate = 0.2, n_draw = 10)
   outcome_true <- rvec::rpois_rvec(8, lambda = 5, n_draw = 10)
+  offset <- rpois(8, lambda = 100) + 1
   has_newdata <- TRUE
   set.seed(1)
   ans_obtained <- forecast_outcome_obs_given_true(datamod = datamod,
                                                   data_forecast = data_forecast,
                                                   fitted = fitted,
                                                   outcome_true = outcome_true,
+                                                  offset = offset,
                                                   has_newdata = has_newdata)
   set.seed(1)
   shape1 <- rep(prob_mean, 2) / rep(prob_disp, 2)
@@ -1559,6 +1571,7 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_undercount 
   data_forecast <- data.frame(age = rep(1:4, 2),
                               times = rep(2025:2026, each = 4))
   fitted <- rvec::rgamma_rvec(8, shape = 1, rate = 0.2, n_draw = 10)
+  offset <- rpois(8, lambda = 100) + 1
   outcome_true <- rvec::rpois_rvec(8, lambda = 5, n_draw = 10)
   has_newdata <- TRUE
   set.seed(1)
@@ -1566,6 +1579,7 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_undercount 
                                                   data_forecast = data_forecast,
                                                   fitted = fitted,
                                                   outcome_true = outcome_true,
+                                                  offset = offset,
                                                   has_newdata = has_newdata)
   set.seed(1)
   shape1 <- rep(prob_mean, 8) / rep(prob_disp, 8)
@@ -1574,10 +1588,6 @@ test_that("'forecast_outcome_obs_given_true' works with bage_datamod_undercount 
   ans_expected <- rvec::rbinom_rvec(n = 8, prob = prob, size = outcome_true)
   expect_equal(ans_obtained, ans_expected)
 })
-
-
-
-
 
 
 ## 'get_datamod_transform_param' ----------------------------------------------

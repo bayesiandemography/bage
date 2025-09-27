@@ -172,7 +172,7 @@ mod <- mod_pois(deaths ~ month,
 \item \code{\link[=augment]{augment()}} Original data plus estimated values,
 including estimates of true value for outcome
 \item \link{datamods} Data models implemented in \code{bage}
-\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette
 }
 }

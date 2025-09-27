@@ -27,7 +27,7 @@ knitr::opts_chunk$set(
 
 Simulation studies can be used to assess the performance of a model. The basic idea is to generate some parameter values, use these parameters to generate some data, use the data to try to infer the original parameter values, and then see how close the inferred parameter values are to the actual parameter values.
 ```{r, echo=FALSE, out.width="50%", fig.cap = "Simulation study of a model"}
-knitr::include_graphics("vig7_fig.png")
+knitr::include_graphics("vig07_fig.png")
 ```
 Function `report_sim()` automates the process of doing a simulation study. We are still experimenting with `report_sim()`, and the interface may change. Suggestions are welcome, ideally through raising an issue [here](https://github.com/bayesiandemography/bage/issues).
 

@@ -130,7 +130,7 @@ data model
 \item \link{datamods} All data models implemented in \code{bage}
 \item \link{confidential} Confidentialization
 procedures modeled in \code{bage}
-\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette
 }
 }
