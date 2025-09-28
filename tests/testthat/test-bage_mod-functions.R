@@ -155,7 +155,7 @@ test_that("'set_datamod_exposure' works with 1 by variable", {
   mod <- set_datamod_exposure(mod, cv = cv)
   expect_s3_class(mod$datamod, "bage_datamod_exposure")
   expect_identical(mod$datamod$nms_by, "age")
-  expect_equal(mod$datamod$disp, sqrt((1:3)/10))
+  expect_equal(mod$datamod$disp, ((1:3)/10)^2)
 })
 
 test_that("'set_datamod_exposure' works with numeric disp", {
@@ -171,7 +171,7 @@ test_that("'set_datamod_exposure' works with numeric disp", {
   mod <- set_datamod_exposure(mod, cv = cv)
   expect_s3_class(mod$datamod, "bage_datamod_exposure")
   expect_identical(mod$datamod$nms_by, character())
-  expect_equal(mod$datamod$disp, sqrt(0.1))
+  expect_equal(mod$datamod$disp, 0.01)
 })
 
 test_that("'set_datamod_exposure' throws correct error with non-Poisson", {

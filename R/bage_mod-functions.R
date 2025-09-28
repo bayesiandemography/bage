@@ -360,7 +360,7 @@ set_datamod_exposure <- function(mod, cv)  {
   cv <- make_datamod_measure(data = data,
                              by_val = by_val_cv,
                              measure = cv[[measure_vars_cv]])
-  disp <- sqrt(cv)
+  disp <- cv^2
   disp_levels <- make_datamod_levels(data = data,
                                      by_val = by_val_cv,
                                      nm_component = "levels")
