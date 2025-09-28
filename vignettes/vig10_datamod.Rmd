@@ -35,9 +35,7 @@ births <- kor_births |>
 # Introduction
 
 
-# Menu of data models
 
-## Base model
 
 ```{r}
 library(bage)
@@ -52,6 +50,15 @@ library(patchwork)
 births
 ```
 
+```{r, echo = FALSE, fig.width = 3, fig.height = 3}
+ggplot(births, aes(x = age_mid(age))) +
+  geom_point(aes(y = births),
+             color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+```
+
+
 ```{r}
 mod_base <- mod_pois(births ~ age,
                      data = births,
@@ -60,13 +67,12 @@ mod_base <- mod_pois(births ~ age,
 mod_base
 ```
 
-
-```{r, fig.width = 6, fig.height = 3, echo = FALSE}
+```{r, fig.width = 3, fig.height = 3, echo = FALSE, message = FALSE}
 aug_base <- mod_base |>
   augment() |>
   mutate(draws_ci(.fitted))
 
-p_rate <- ggplot(aug_base, aes(x = age_mid(age))) +
+ggplot(aug_base, aes(x = age_mid(age))) +
   geom_ribbon(aes(ymin = .fitted.lower,
                   ymax = .fitted.upper),
               fill = "lightblue") +
@@ -74,15 +80,22 @@ p_rate <- ggplot(aug_base, aes(x = age_mid(age))) +
             color = "darkblue") +
   xlab("Age") +
   ylab("Birth rate")
-
-p_count <- ggplot(aug_base, aes(x = age_mid(age))) +
-  geom_point(aes(y = births),
-             color = "darkblue") +
-  xlab("Age") +
-  ylab("Birth count")
-
-p_rate + p_count
 ```
+
+# Current menu of data models
+
+## Overview
+
+| **Model**  | **Assumptions about measurement error**       | **Poisson** | **Binomial** | **Normal** |
+|:-----------|:----------------------------------------------|:---------|:----------|:---------|
+| Miscount   | Reported outcome has undercount and overcount | Yes | No | No |
+| Undercount | Reported outcome has undercount               | Yes | Yes | No |
+| Overcount  | Reported outcome has overcount                | Yes | No | No |
+| Noise      | Reported outcome unbiased, but with positive and negative measurement errors | Yes* | No | Yes |
+| Exposure   | Reported exposure unbiased, but with positive and negative measurement errors | Yes* | No | No |
+
+*Models with no dispersion term for rates.
+
 
 ## Undercount model
 
@@ -96,7 +109,7 @@ p_rate + p_count
 prob_under <- data.frame(mean = 0.8, disp = 0.02)
 ```
 
-```{r, messages = FALSE}
+```{r, message = FALSE}
 mod_under <- mod_base |>
   set_datamod_undercount(prob = prob_under) |>
   fit()
@@ -108,7 +121,7 @@ mod_under |>
   augment()
 ```
 
-```{r, echo = FALSE, fig.width = 6, fig.height = 6, messages = FALSE}
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE, warning = FALSE}
 aug_under <- mod_under |>
   augment() |>
   mutate(draws_ci(.births)) |>
@@ -135,20 +148,28 @@ p_count <- ggplot(data, aes(x = age_mid(age))) +
              color = "darkblue") +
   geom_linerange(aes(ymin = .births.lower,
                      ymax = .births.upper),
-		  color = "darkblue") +
+		 data = filter(data, model == "Undercount"),
+	         color = "darkblue") +
   xlab("Age") +
   ylab("Birth count")
 
 p_rate / p_count
 ```
 
+```{r}
+mod_under |>
+  components() |>
+  filter(term == "datamod")
+```
+
+
 ## Overcount model
 
 
 \begin{align}
   y_i^{\text{obs}} & = y_i^{\text{true}} + \epsilon_i \\
-  \epsilon_i & \sim \text{Poisson}( \alpha_{g[i]}  \gamma_i w_i) \\
-  \alpha_{g[i]} & \sim \text{Gamma}\left(\frac{1}{d_g}, \frac{1}{m_g d_g} \right)
+  \epsilon_i & \sim \text{Poisson}( \kappa_{g[i]}  \gamma_i w_i) \\
+  \kappa_g & \sim \text{Gamma}\left(\frac{1}{d_g}, \frac{1}{m_g d_g} \right)
 \end{align}
 
 
@@ -161,34 +182,49 @@ mod_over <- mod_base |>
   set_datamod_overcount(rate = rate_over)
 ```
 
-```{r, include = FALSE, message = FALSE, warning = FALSE, results = 'hide'}
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE}
 mod_over <- mod_over |>
   fit()
-```
 
-
-```{r, echo = FALSE, fig.width = 6, fig.height = 3, message = FALSE}
 aug_over <- mod_over |>
   augment(quiet = TRUE) |>
+  mutate(draws_ci(.births)) |>
   mutate(draws_ci(.fitted))
 
 data <- bind_rows(Base = aug_base, 
                   Overcount = aug_over,
-                  .id = "model")
+                  .id = "model") |>
+  mutate(.births.mid = if_else(is.na(.births.mid), births, .births.mid))
 
-ggplot(data, aes(x = age_mid(age))) +
+p_rate <- ggplot(data, aes(x = age_mid(age))) +
   facet_wrap(vars(model)) +
   geom_ribbon(aes(ymin = .fitted.lower,
                   ymax = .fitted.upper),
               fill = "lightblue") +
   geom_line(aes(y = .fitted.mid),
             color = "darkblue") +
-  geom_point(aes(y = .observed),
-            color = "red") +
   xlab("Age") +
-  ylab("Rate")
+  ylab("Birth rate")
+
+p_count <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .births.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .births.lower,
+                     ymax = .births.upper),
+		 data = filter(data, model == "Overcount"),
+	         color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+
+p_rate / p_count
 ```
 
+```{r}
+mod_over |>
+  components() |>
+  filter(term == "datamod")
+```
 
 ## Miscount model
 
@@ -196,9 +232,9 @@ ggplot(data, aes(x = age_mid(age))) +
 \begin{align}
   y_i^{\text{obs}} & = u_i + v_i \\
   u_i & \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\
-  v_i & = y_i^{\text{true}} + \epsilon_i \\
-  \epsilon_i & \sim \text{Poisson}( \alpha_{g[i]}  \gamma_i w_i) \\
-  \alpha_{g[i]} & \sim \text{Gamma}\left(\frac{1}{d_g}, \frac{1}{m_g d_g} \right)
+  v_i & \sim \text{Poisson}( \kappa_{h[i]}  \gamma_i w_i) \\
+  \pi_g & \sim \text{Beta}\left( \frac{m_g}{d_g}, \frac{1-m_g}{d_g} \right) \\
+  \kappa_h & \sim \text{Gamma}\left(\frac{1}{d_h}, \frac{1}{m_h d_h} \right)
 \end{align}
 
 ```{r, message = FALSE}
@@ -207,27 +243,181 @@ mod_mis <- mod_base |>
                        rate = rate_over)
 ```
 
-```{r, echo = FALSE, fig.width = 6, fig.height = 3, message = FALSE}
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE}
 mod_mis <- mod_mis |>
   fit()
 
 aug_mis <- mod_mis |>
-  augment() |>
+  augment(quiet = TRUE) |>
+  mutate(draws_ci(.births)) |>
   mutate(draws_ci(.fitted))
 
 data <- bind_rows(Base = aug_base, 
                   Miscount = aug_mis,
-                  .id = "model")
+                  .id = "model") |>
+  mutate(.births.mid = if_else(is.na(.births.mid), births, .births.mid))
 
-ggplot(data, aes(x = age_mid(age))) +
+p_rate <- ggplot(data, aes(x = age_mid(age))) +
   facet_wrap(vars(model)) +
   geom_ribbon(aes(ymin = .fitted.lower,
                   ymax = .fitted.upper),
               fill = "lightblue") +
   geom_line(aes(y = .fitted.mid),
             color = "darkblue") +
-  geom_point(aes(y = .observed),
-            color = "red") +
   xlab("Age") +
-  ylab("Rate")
+  ylab("Birth rate")
+
+p_count <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .births.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .births.lower,
+                     ymax = .births.upper),
+		 data = filter(data, model == "Miscount"),
+	         color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+
+p_rate / p_count
 ```
+
+```{r}
+mod_mis |>
+  components() |>
+  filter(term == "datamod")
+```
+
+
+## Noise model
+
+
+\begin{equation}
+  y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i
+\end{equation}
+
+\begin{equation}
+  \epsilon_i \sim \text{N}(0, s_{g[i]}^2)
+\end{equation}
+\begin{equation}
+  \epsilon_i \sim \text{Skellam}(m_{g[i]}, m_{g[i]})
+\end{equation}
+where $m_{g[i]} = \frac{1}{2} s^2$.
+
+
+If $x_1 \sim \text{Poisson}{\mu_1}$, $x_2 \sim \text{Poisson}(\mu_2)$, and $y = x_1 + x_2$, then
+\begin{equation}
+  y \sim \text{Skellam}(\mu_1, \mu_2)
+\end{equation}
+
+If $\mu_1 = \mu_2 = \mu$, then $\text{E}[y] = 0$ and $\text{var}[y] = 2 \mu$.
+
+
+
+```{r, message = FALSE}
+mod_noise <- mod_base |>
+  set_disp(mean = 0) |>
+  set_datamod_noise(s = 50)
+```
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE}
+mod_noise <- mod_noise |>
+  fit()
+
+aug_noise <- mod_noise |>
+  augment(quiet = TRUE) |>
+  mutate(draws_ci(.births)) |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Noise = aug_noise,
+                  .id = "model") |>
+  mutate(.births.mid = if_else(is.na(.births.mid), births, .births.mid))
+
+p_rate <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+
+p_count <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .births.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .births.lower,
+                     ymax = .births.upper),
+		 data = filter(data, model == "Noise"),
+	         color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+
+p_rate / p_count
+```
+
+
+
+## Exposure model
+
+
+\begin{equation}
+  w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g[i]}^{-1}, [1 + d_{g[i]}^{-1}] w_i^{\text{true}})
+\end{equation}
+
+
+Note that
+\begin{align}
+  E[w_i^{\text{obs}} \mid w_i^{\text{true}}] & =  w_i^{\text{true}} \\
+  \text{var}[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = d_{g[i]} ( w_i^{\text{true}})^2 \\
+  \text{cv}[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = \sqrt{d_{g[i]}}
+\end{align}
+
+
+```{r, message = FALSE}
+mod_expose <- mod_base |>
+  set_disp(mean = 0) |>
+  set_datamod_exposure(cv = 0.01)
+```
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE}
+mod_expose <- mod_expose |>
+  fit()
+
+aug_expose <- mod_expose |>
+  augment(quiet = TRUE) |>
+  mutate(draws_ci(.popn)) |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Expose = aug_expose,
+                  .id = "model") |>
+  mutate(.popn.mid = if_else(is.na(.popn.mid), popn, .popn.mid))
+
+p_rate <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+
+p_popn <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .popn.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .popn.lower,
+                     ymax = .popn.upper),
+		 data = filter(data, model == "Expose"),
+	         color = "darkblue") +
+  xlab("Age") +
+  ylab("Population")
+
+p_rate / p_popn
+```
+
+
+
