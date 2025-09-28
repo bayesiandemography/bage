@@ -3149,6 +3149,7 @@ test_that("'make_mod_disp' works with binom - large dataset", {
   mod$draws_effectfree  <- 1 ## to fool 'is_fitted'
   mod_disp <- make_mod_disp(mod)
   expect_true(identical(nrow(mod_disp$data), 10000L))
+  expect_identical(mod_disp$nm_offset_data, "offset_inner_outer")
 })
 
 test_that("'make_mod_disp' works with norm", {
@@ -3167,6 +3168,7 @@ test_that("'make_mod_disp' works with norm", {
   expect_equal(mod_disp$outcome, mod$outcome - mu)
   expect_true(mod_disp$mean_disp > 0)
   expect_identical(length(mod_disp$dimnames_terms), 1L)
+  expect_identical(mod_disp$nm_offset_data, "offset_inner_outer")
 })
 
 test_that("'make_mod_disp' works with norm - large dataset", {
@@ -3181,6 +3183,7 @@ test_that("'make_mod_disp' works with norm - large dataset", {
   mod$point_effectfree <- rnorm(1 + 6001 + 2)
   mod_disp <- make_mod_disp(mod)
   expect_true(identical(nrow(mod_disp$data), 10000L))
+  expect_identical(mod_disp$nm_offset_data, "offset_inner_outer")
 })
 
 
@@ -3239,6 +3242,7 @@ test_that("'make_mod_outer' works with pois", {
   mu <- exp(make_linpred_from_stored_draws(mod_inner, point = TRUE))
   expect_equal(mod_outer$offset, mod$offset * mu)
   expect_equal(mod_outer$mean_disp, 0)
+  expect_identical(mod_outer$nm_offset_data, "offset_inner_outer")
 })
 
 test_that("'make_mod_outer' works with binom", {
@@ -3260,6 +3264,7 @@ test_that("'make_mod_outer' works with binom", {
   expect_s3_class(mod_outer$priors[["age"]], "bage_prior_known")
   expect_equal(mod_outer$offset, mod$offset)
   expect_equal(mod_outer$mean_disp, 0)
+  expect_identical(mod_outer$nm_offset_data, "offset_inner_outer")
 })
 
 test_that("'make_mod_outer' works with norm", {
@@ -3281,6 +3286,7 @@ test_that("'make_mod_outer' works with norm", {
   mu <- make_linpred_from_stored_draws(mod_inner, point = TRUE)
   expect_equal(mod_outer$outcome, mod$outcome - mu)
   expect_true(mod_outer$mean_disp > 0)
+  expect_identical(mod_outer$nm_offset_data, "offset_inner_outer")
 })
 
 

@@ -2283,6 +2283,7 @@ make_mod_disp.bage_mod_pois <- function(mod) {
   }
   mu <- exp(linpred)
   ans$offset <- ans$offset * mu
+  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2302,6 +2303,7 @@ make_mod_disp.bage_mod_binom <- function(mod) {
     ans$outcome <- ans$outcome[i_keep]
     ans$offset <- ans$offset[i_keep]
   }
+  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2322,6 +2324,7 @@ make_mod_disp.bage_mod_norm <- function(mod) {
     linpred <- linpred[i_keep]
   }
   ans$outcome <- ans$outcome - linpred
+  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2382,6 +2385,7 @@ make_mod_outer.bage_mod_pois <- function(mod, mod_inner, use_term) {
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
   ans$offset <- ans$offset * mu_inner
   ans$mean_disp <- 0
+  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2391,6 +2395,7 @@ make_mod_outer.bage_mod_binom <- function(mod, mod_inner, use_term) {
   point_est_inner <- make_point_est_effects(mod_inner)
   ans <- set_priors_known(mod = mod, prior_values = point_est_inner)
   ans$mean_disp <- 0
+  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2401,6 +2406,7 @@ make_mod_outer.bage_mod_norm <- function(mod, mod_inner, use_term) {
   use_term <- !use_term
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
   ans$outcome <- ans$outcome - linpred_inner
+  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
