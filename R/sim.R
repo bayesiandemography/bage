@@ -1133,7 +1133,7 @@ perform_aug <- function(est,
   nms_vars <- intersect(names(sim), nms_vars)
   for (nm in nms_vars) {
     i_nm <- match(nm, names(sim))
-    sim[[i_nm]] <- as.matrix(sim[[i_nm]])[, i_sim]
+    sim[[i_nm]] <- rvec::extract_draw(sim[[i_nm]], i = i_sim)
   }
   ans <- vector(mode = "list", length = length(nms_vars))
   names(ans) <- nms_vars
@@ -1186,7 +1186,7 @@ perform_comp <- function(est,
                          widths) {
   names(est)[match(".fitted", names(est))] <- ".fitted_est"
   names(sim)[match(".fitted", names(sim))] <- ".fitted_sim"
-  sim[[".fitted_sim"]] <- as.matrix(sim[[".fitted_sim"]])[, i_sim]  
+  sim[[".fitted_sim"]] <- rvec::extract_draw(sim[[".fitted_sim"]], i = i_sim)  
   merged <- merge(est, sim, sort = FALSE)
   prior_class <- merge(prior_class_est, prior_class_sim, by = "term")
   prior_class$is_class_diff <- prior_class$class.x != prior_class$class.y
@@ -1326,7 +1326,7 @@ report_sim <- function(mod_est,
   mod_sim$n_draw <- n_sim
   comp_sim <- components(mod_sim, quiet = TRUE)
   aug_sim <- augment(mod_sim, quiet = TRUE)
-  nm_outcome_obs <- get_nm_outcome_obs(mod_sim)
+  nm_outcome_obs <- get_nm_outcome_data(mod_sim)
   outcome_obs_sim <- aug_sim[[nm_outcome_obs]]
   outcome_obs_sim <- as.matrix(outcome_obs_sim)
   prior_class_est <- make_prior_class(mod_est)

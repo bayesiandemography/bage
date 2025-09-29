@@ -2429,24 +2429,6 @@ test_that("'get_nm_outcome_data' works with 'bage_mod_pois'", {
 })
 
 
-## 'get_nm_outcome_obs' -------------------------------------------------------
-
-test_that("'get_nm_outcome_obs' works with 'bage_mod_pois'", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$deaths <- 3 * rpois(n = nrow(data), lambda = 10)
-  data$popn <- rpois(n = nrow(data), lambda = 30)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  expect_identical(get_nm_outcome_obs(mod), "deaths")
-  mod <- set_confidential_rr3(mod)
-  expect_identical(get_nm_outcome_obs(mod), ".deaths")
-})
-
-
 ## 'has_confidential' ---------------------------------------------------------
 
 test_that("'has_confidential' works with valid inputs", {
