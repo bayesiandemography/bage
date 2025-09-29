@@ -1,4 +1,29 @@
 
+## 'chr_to_int' ---------------------------------------------------------------
+
+test_that("'chr_to_int' works with valid inputs", {
+  df <- data.frame(a = 1,
+                   b = "1",
+                   c = "a",
+                   d = factor("a"),
+                   e = factor("-1"))
+  ans_obtained <- chr_to_int(df)
+  ans_expected <- data.frame(a = 1,
+                             b = 1L,
+                             c = "a",
+                             d = factor("a"),
+                             e = -1L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'chr_to_int' works with empty df", {
+  df <- data.frame()
+  ans_obtained <- chr_to_int(df)
+  ans_expected <- df
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'dbetabinom' ---------------------------------------------------------------
 
 test_that("basic correctness for known value", {

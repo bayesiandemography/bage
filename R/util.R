@@ -1,4 +1,28 @@
 
+#' Convert Integer-ish Character Vectors
+#' in a Data Frame to Integer
+#'
+#' @param df A data frame
+#'
+#' @returns A data frame
+#'
+#' @noRd
+chr_to_int <- function(df) {
+  for (i in seq_along(df)) {
+    var <- df[[i]]
+    if (is.character(var) || is.factor(var)) {
+      if (is.factor(var))
+        var <- as.character(var)
+      var_int <- suppressWarnings(as.integer(var))
+      no_new_na <- identical(is.na(var_int), is.na(var))
+      if (no_new_na)
+        df[[i]] <- var_int
+    }
+  }
+  df
+}
+ 
+
 ## HAS_TESTS
 #' Density for Beta-Binomial Distribution
 #'
