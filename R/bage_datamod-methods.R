@@ -638,45 +638,35 @@ draw_outcome_true_given_obs.bage_datamod_undercount <- function(datamod,
 }
 
 
-## 'forecast_outcome_obs_given_obs' ------------------------------------------
+## 'forecast_datamod_param' ---------------------------------------------------
 
-#' Forecast Values for Observed Outcome, Given True Outcome,
-#' Based on Data Model
-#'
+#' Forecast Values for Data Model Parameters
 #'
 #' @param datamod Object of class 'bage_datamod'
 #' @param data_forecast Data frame with components.
-#' @param fitted Predicted rates, probabilities, means
-#' An rvec.
-#' @param outcome_true True value for outcome.
-#' An rvec.
+#' @param n_draw Number of posterior draws
 #' @param has_newdata Whether user supplied
 #' value for 'newdata'.
 #'
 #' @returns An rvec
 #'
 #' @noRd
-forecast_outcome_obs_given_true <- function(datamod,
-                                            data_forecast,
-                                            fitted, 
-                                            outcome_true,
-                                            offset,
-                                            has_newdata) {
-  UseMethod("forecast_outcome_obs_given_true")
+forecast_datamod_param <- function(datamod,
+                                   data_forecast,
+                                   n_draw,
+                                   has_newdata) {
+  UseMethod("forecast_datamod_param")
 }
+
 
 ## HAS_TESTS
 #' @export
-forecast_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
-                                                                  data_forecast,
-                                                                  fitted, 
-                                                                  outcome_true,
-                                                                  offset,
-                                                                  has_newdata) {
+forecast_datamod_param.bage_datamod_miscount <- function(datamod,
+                                                         data_forecast,
+                                                         n_draw,
+                                                         has_newdata) {
   prob_arg <- datamod$prob_arg
   rate_arg <- datamod$rate_arg
-  n_outcome <- length(outcome_true)
-  n_draw <- rvec::n_draw(outcome_true)
   nm_data <- if (has_newdata) "newdata" else "data"
   nms_by <- datamod$nms_by
   nms_prob <- names(prob_arg)
@@ -694,10 +684,10 @@ forecast_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
                          nm_data = nm_data)
     key_prob <- Reduce(paste_dot, by_val_prob)
     key_data <- Reduce(paste_dot, data)
-    i_prob <- match(key_data, key_prob)
+    is_keep_prob <- key_prob %in% key_data
   }
   else
-    i_prob <- 1L
+    is_keep_prob <- TRUE
   if (has_by_rate) {
     by_val_rate <- rate_arg[nms_by_rate]
     data <- data_forecast[nms_by_rate]
@@ -707,26 +697,219 @@ forecast_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
                          nm_data = nm_data)
     key_rate <- Reduce(paste_dot, by_val_rate)
     key_data <- Reduce(paste_dot, data)
-    i_rate <- match(key_data, key_rate)
+    is_keep_rate <- key_rate %in% key_data
   }
   else
-    i_rate <- 1L
-  prob_mean <- prob_arg$mean[i_prob]
-  prob_disp <- prob_arg$disp[i_prob]
-  rate_mean <- rate_arg$mean[i_rate]
-  rate_disp <- rate_arg$disp[i_rate]
+    is_keep_rate <- TRUE
+  prob_mean <- prob_arg$mean[is_keep_prob]
+  prob_disp <- prob_arg$disp[is_keep_prob]
+  rate_mean <- rate_arg$mean[is_keep_rate]
+  rate_disp <- rate_arg$disp[is_keep_rate]
   shape1 <- prob_mean / prob_disp
   shape2 <- (1 - prob_mean) / prob_disp
   shape <- 1 / rate_disp
   scale <- rate_disp * rate_mean
-  prob <- rvec::rbeta_rvec(n = n_outcome,
+  n_keep_prob <- sum(is_keep_prob)
+  n_keep_rate <- sum(is_keep_rate)
+  prob <- rvec::rbeta_rvec(n = n_keep_prob,
                            shape1 = shape1,
                            shape2 = shape2,
                            n_draw = n_draw)
-  rate <- rvec::rgamma_rvec(n = n_outcome,
+  rate <- rvec::rgamma_rvec(n = n_keep_rate,
                             shape = shape,
                             scale = scale,
                             n_draw = n_draw)
+  .fitted <- c(prob, rate) 
+  component <- make_datamod_comp(datamod)
+  level <- make_level_datamod(datamod)
+  is_keep <- c(is_keep_prob, is_keep_rate)
+  component <- component[is_keep]
+  level <- level[is_keep]
+  tibble::tibble(term = "datamod",
+                 component = component,
+                 level = level,
+                 .fitted = .fitted) 
+}    
+
+
+## HAS_TESTS
+#' @export
+forecast_datamod_param.bage_datamod_overcount <- function(datamod,
+                                                          data_forecast,
+                                                          n_draw,
+                                                          has_newdata) {
+  rate_arg <- datamod$rate_arg
+  nms_by <- datamod$nms_by
+  has_by <- length(nms_by) > 0L
+  if (has_by) {
+    nms_rate <- names(rate_arg)
+    nms_by_rate <- intersect(nms_by, nms_rate)
+    by_val_rate <- rate_arg[nms_by_rate]
+    data <- data_forecast[nms_by_rate]
+    nm_data <- if (has_newdata) "newdata" else "data"
+    check_datamod_by_val(by_val = by_val_rate,
+                         data = data,
+                         nm_val = "rate",
+                         nm_data = nm_data)
+    key_rate <- Reduce(paste_dot, by_val_rate)
+    key_data <- Reduce(paste_dot, data)
+    is_keep <- key_rate %in% key_data
+  }
+  else
+    is_keep <- TRUE
+  rate_mean <- rate_arg$mean[is_keep]
+  rate_disp <- rate_arg$disp[is_keep]
+  shape <- 1 / rate_disp
+  scale <- rate_mean * rate_disp
+  n_keep <- sum(is_keep)
+  .fitted <- rvec::rgamma_rvec(n = n_keep,
+                               shape = shape,
+                               scale = scale,
+                               n_draw = n_draw)
+  component <- make_datamod_comp(datamod)
+  level <- make_level_datamod(datamod)
+  component <- component[is_keep]
+  level <- level[is_keep]
+  tibble::tibble(term = "datamod",
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_datamod_param.bage_datamod_undercount <- function(datamod,
+                                                           data_forecast,
+                                                           n_draw,
+                                                           has_newdata) {
+  prob_arg <- datamod$prob_arg
+  nms_by <- datamod$nms_by
+  has_by <- length(nms_by) > 0L
+  if (has_by) {
+    nms_prob <- names(prob_arg)
+    nms_by_prob <- intersect(nms_by, nms_prob)
+    by_val_prob <- prob_arg[nms_by_prob]
+    data <- data_forecast[nms_by_prob]
+    nm_data <- if (has_newdata) "newdata" else "data"
+    check_datamod_by_val(by_val = by_val_prob,
+                         data = data,
+                         nm_val = "prob",
+                         nm_data = nm_data)
+    key_prob <- Reduce(paste_dot, by_val_prob)
+    key_data <- Reduce(paste_dot, data)
+    is_keep <- key_prob %in% key_data
+  }
+  else
+    is_keep <- TRUE
+  prob_mean <- prob_arg$mean[is_keep]
+  prob_disp <- prob_arg$disp[is_keep]
+  shape1 <- prob_mean / prob_disp
+  shape2 <- (1 - prob_mean) / prob_disp
+  n_keep <- sum(is_keep)
+  .fitted <- rvec::rbeta_rvec(n = n_keep,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              n_draw = n_draw)
+  component <- make_datamod_comp(datamod)
+  level <- make_level_datamod(datamod)
+  component <- component[is_keep]
+  level <- level[is_keep]
+  tibble::tibble(term = "datamod",
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
+}
+
+
+## 'forecast_outcome_obs_given_obs' ------------------------------------------
+
+#' Forecast Values for Observed Outcome, Given True Outcome,
+#' Based on Data Model
+#'
+#'
+#' @param datamod Object of class 'bage_datamod'
+#' @param components_forecast Data frame with
+#' future values for components (including parameters
+#' for data models)
+#' @param data_forecast Data frame with future data
+#' @param fitted Predicted rates, probabilities, means
+#' An rvec.
+#' @param outcome_true True value for outcome.
+#' An rvec.
+#' @param has_newdata Whether user supplied
+#' value for 'newdata'.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_outcome_obs_given_true <- function(datamod,
+                                            components_forecast,
+                                            data_forecast,
+                                            fitted,
+                                            outcome_true,
+                                            offset,
+                                            has_newdata) {
+  UseMethod("forecast_outcome_obs_given_true")
+}
+
+## HAS_TESTS
+#' @export
+forecast_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
+                                                                  components_forecast,
+                                                                  data_forecast,
+                                                                  fitted,
+                                                                  outcome_true,
+                                                                  offset,
+                                                                  has_newdata) {
+  is_prob <- (components_forecast$term == "datamod"
+    & components_forecast$component == "prob")
+  prob <- components_forecast$.fitted[is_prob]
+  level_prob <- components_forecast$level[is_prob]
+  is_rate <- (components_forecast$term == "datamod"
+    & components_forecast$component == "rate")
+  rate <- components_forecast$.fitted[is_rate]
+  level_rate <- components_forecast$level[is_rate]
+  n_outcome <- length(outcome_true)
+  nm_data <- if (has_newdata) "newdata" else "data"
+  nms_by <- datamod$nms_by
+  prob_arg <- datamod$prob_arg
+  rate_arg <- datamod$rate_arg
+  nms_prob <- names(prob_arg)
+  nms_rate <- names(rate_arg)
+  nms_by_prob <- intersect(nms_by, nms_prob)
+  nms_by_rate <- intersect(nms_by, nms_rate)
+  has_by_prob <- length(nms_by_prob) > 0L
+  has_by_rate <- length(nms_by_rate) > 0L
+  if (has_by_prob) {
+    by_val_prob <- prob_arg[nms_by_prob]
+    data <- data_forecast[nms_by_prob]
+    check_datamod_by_val(by_val = by_val_prob,
+                         data = data,
+                         nm_val = "prob",
+                         nm_data = nm_data)
+    key_prob <- Reduce(paste_dot, by_val_prob)
+    key_data <- Reduce(paste_dot, data)
+    key_prob <- intersect(key_prob, level_prob)
+    i_prob <- match(key_data, key_prob)
+  }
+  else
+    i_prob <- rep(1L, times = n_outcome)
+  if (has_by_rate) {
+    by_val_rate <- rate_arg[nms_by_rate]
+    data <- data_forecast[nms_by_rate]
+    check_datamod_by_val(by_val = by_val_rate,
+                         data = data,
+                         nm_val = "rate",
+                         nm_data = nm_data)
+    key_rate <- Reduce(paste_dot, by_val_rate)
+    key_data <- Reduce(paste_dot, data)
+    key_rate <- intersect(key_rate, level_rate)
+    i_rate <- match(key_data, key_rate)
+  }
+  else
+    i_rate <- rep(1L, times = n_outcome)
+  prob <- prob[i_prob]
+  rate <- rate[i_rate]
   observed_true <- rbinom_guarded(size = outcome_true,
                                   prob = prob)
   lambda <- rate * fitted * offset
@@ -738,6 +921,7 @@ forecast_outcome_obs_given_true.bage_datamod_miscount <- function(datamod,
 ## HAS_TESTS
 #' @export
 forecast_outcome_obs_given_true.bage_datamod_noise <- function(datamod,
+                                                               components_forecast,
                                                                data_forecast,
                                                                fitted,
                                                                outcome_true,
@@ -765,7 +949,7 @@ forecast_outcome_obs_given_true.bage_datamod_noise <- function(datamod,
     i <- match(key_data, key_sd)
   }
   else
-    i <- 1L
+    i <- rep(1L, times = n_outcome)
   sd <- sd_arg$sd[i]
   if (is_skellam) {
     mu <- 0.5 * sd^2
@@ -783,15 +967,18 @@ forecast_outcome_obs_given_true.bage_datamod_noise <- function(datamod,
 ## HAS_TESTS
 #' @export
 forecast_outcome_obs_given_true.bage_datamod_overcount <- function(datamod,
+                                                                   components_forecast,
                                                                    data_forecast,
-                                                                   fitted, 
+                                                                   fitted,
                                                                    outcome_true,
                                                                    offset,
                                                                    has_newdata) {
-  rate_arg <- datamod$rate_arg
-  n_outcome <- length(outcome_true)
-  n_draw <- rvec::n_draw(outcome_true)
+  is_rate <- (components_forecast$term == "datamod"
+    & components_forecast$component == "rate")
+  rate <- components_forecast$.fitted[is_rate]
+  level_rate <- components_forecast$level[is_rate]
   nms_by <- datamod$nms_by
+  rate_arg <- datamod$rate_arg
   has_by <- length(nms_by) > 0L
   if (has_by) {
     nms_rate <- names(rate_arg)
@@ -805,35 +992,34 @@ forecast_outcome_obs_given_true.bage_datamod_overcount <- function(datamod,
                          nm_data = nm_data)
     key_rate <- Reduce(paste_dot, by_val_rate)
     key_data <- Reduce(paste_dot, data)
+    key_rate <- intersect(key_rate, level_rate)
     i <- match(key_data, key_rate)
   }
-  else
-    i <- 1L
-  rate_mean <- rate_arg$mean[i]
-  rate_disp <- rate_arg$disp[i]
-  shape <- 1 / rate_disp
-  scale <- rate_disp * rate_mean
-  rate <- rvec::rgamma_rvec(n = n_outcome,
-                            shape = shape,
-                            scale = scale,
-                            n_draw = n_draw)
+  else {
+    n_outcome <- length(outcome_true)
+    i <- rep(1L, times = n_outcome)
+  }
+  rate <- rate[i]
   lambda <- rate * fitted * offset
   error <- rpois_guarded(lambda)
   outcome_true + error
-}    
+}
 
 ## HAS_TESTS
 #' @export
 forecast_outcome_obs_given_true.bage_datamod_undercount <- function(datamod,
+                                                                    components_forecast,
                                                                     data_forecast,
                                                                     fitted,
                                                                     outcome_true,
                                                                     offset,
                                                                     has_newdata) {
+  is_prob <- (components_forecast$term == "datamod"
+    & components_forecast$component == "prob")
+  prob <- components_forecast$.fitted[is_prob]
+  level_prob <- components_forecast$level[is_prob]
   prob_arg <- datamod$prob_arg
   nms_by <- datamod$nms_by
-  n_outcome <- length(outcome_true)
-  n_draw <- rvec::n_draw(outcome_true)
   has_by <- length(nms_by) > 0L
   if (has_by) {
     nms_prob <- names(prob_arg)
@@ -847,27 +1033,17 @@ forecast_outcome_obs_given_true.bage_datamod_undercount <- function(datamod,
                          nm_data = nm_data)
     key_prob <- Reduce(paste_dot, by_val_prob)
     key_data <- Reduce(paste_dot, data)
+    key_prob <- intersect(key_prob, level_prob)
     i <- match(key_data, key_prob)
   }
-  else
-    i <- 1L
-  prob_mean <- prob_arg$mean[i]
-  prob_disp <- prob_arg$disp[i]
-  shape1 <- prob_mean / prob_disp
-  shape2 <- (1 - prob_mean) / prob_disp
-  prob <- rvec::rbeta_rvec(n = n_outcome,
-                           shape1 = shape1,
-                           shape2 = shape2,
-                           n_draw = n_draw)
+  else {
+    n_outcome <- length(outcome_true)
+    i <- rep(1L, times = n_outcome)
+  }
+  prob <- prob[i]
   rbinom_guarded(size = outcome_true,
                  prob = prob)
 }
-
-
-
-
-
-
 
 
 ## 'get_datamod_transform_param' ----------------------------------------------

@@ -15,8 +15,8 @@ also referred to as measurement error models.
    \code{\link[=set_datamod_miscount]{set_datamod_miscount()}} \tab Reported outcome has undercount and overcount \tab Yes \tab No \tab No \cr
    \code{\link[=set_datamod_undercount]{set_datamod_undercount()}} \tab Reported outcome has undercount \tab Yes \tab Yes \tab No \cr
    \code{\link[=set_datamod_overcount]{set_datamod_overcount()}} \tab Reported outcome has overcount \tab Yes \tab No \tab No \cr
-   \code{\link[=set_datamod_noise]{set_datamod_noise()}} \tab Reported outcome unbiased, but with measurement errors in both directions \tab Yes* \tab No \tab Yes \cr
-   \code{\link[=set_datamod_exposure]{set_datamod_exposure()}} \tab Reported exposure unbiased, but with measurement errors in both directions \tab Yes* \tab No \tab No \cr
+   \code{\link[=set_datamod_noise]{set_datamod_noise()}} \tab Reported outcome unbiased, but with positive and negative measurement errors \tab Yes* \tab No \tab Yes \cr
+   \code{\link[=set_datamod_exposure]{set_datamod_exposure()}} \tab Reported exposure unbiased, but with positive and negative measurement errors \tab Yes* \tab No \tab No \cr
 }
 
 

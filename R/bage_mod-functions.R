@@ -363,7 +363,7 @@ set_datamod_exposure <- function(mod, cv)  {
   disp <- cv^2
   disp_levels <- make_datamod_levels(data = data,
                                      by_val = by_val_cv,
-                                     nm_component = "levels")
+                                     nm_component = "cv")
   disp_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                  by_val = by_val_cv)
   ## construct datamod and add to 'mod'

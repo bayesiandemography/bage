@@ -1278,7 +1278,9 @@ forecast.bage_mod <- function(object,
   set.seed(seed_forecast_components) ## set pre-determined seed
   comp_forecast <- forecast_components(mod = object,
                                        components_est = comp_est,
-                                       labels_forecast = labels)
+                                       data_forecast = data_forecast,
+                                       labels_forecast = labels,
+                                       has_newdata = has_newdata)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   dn_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
                                                     var_time = var_time,
@@ -1418,6 +1420,7 @@ forecast_augment.bage_mod <- function(mod,
         outcome <-
           forecast_outcome_obs_given_true(datamod = datamod,
                                           data_forecast = data_forecast,
+                                          components_forecast = components_forecast,
                                           fitted <- fitted,
                                           outcome_true = outcome_true,
                                           offset = offset_forecast,
@@ -1514,7 +1517,8 @@ forecast_augment.bage_mod_norm <- function(mod,
       outcome_obs <-
         forecast_outcome_obs_given_true(datamod = datamod,
                                         data_forecast = data_forecast,
-                                        fitted = fitted,
+                                        components_forecast = components_forecast,
+                                        fitted = fitted_orig_scale,
                                         outcome_true = outcome_true,
                                         offset = offset_forecast,
                                         has_newdata = has_newdata)

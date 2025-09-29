@@ -378,7 +378,7 @@ Note that
 ```{r, message = FALSE}
 mod_expose <- mod_base |>
   set_disp(mean = 0) |>
-  set_datamod_exposure(cv = 0.01)
+  set_datamod_exposure(cv = 0.05)
 ```
 
 ```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE}
@@ -413,11 +413,150 @@ p_popn <- ggplot(data, aes(x = age_mid(age))) +
                      ymax = .popn.upper),
 		 data = filter(data, model == "Expose"),
 	         color = "darkblue") +
+  ylim(0, NA) +	 
   xlab("Age") +
   ylab("Population")
 
 p_rate / p_popn
 ```
+
+
+# More complicated error specifications
+
+```{r, include = FALSE}
+births_time <- kor_births |>
+  filter(region == "Ulsan",
+         time %in% 2021:2023) |>
+  select(age, time, births, popn)
+```
+
+```{r}
+births_time
+```
+
+```{r}
+prob_under_time <- data.frame(time = c(2021, 2022, 2023),
+                              mean = c(0.99, 0.8, 0.99),
+			      disp = c(0.01, 0.02, 0.01))
+```
+
+
+```{r}
+mod_timeconst <- mod_pois(births ~ age + time,
+                          data = births_time,
+			  exposure = popn) |>
+  set_datamod_undercount(prob = prob_under)
+
+mod_timevarying <- mod_timeconst |>
+  set_datamod_undercount(prob = prob_under_time)
+```
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE, warning = FALSE}
+aug_timeconst <- mod_timeconst |>
+  fit() |>
+  augment() |>
+  mutate(draws_ci(.fitted))
+
+aug_timevarying <- mod_timevarying |>
+  fit() |>
+  augment() |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Constant = aug_timeconst, 
+                  Varying = aug_timevarying,
+                  .id = "model")
+
+ggplot(data, aes(x = age_mid(age))) +
+  facet_grid(vars(model), vars(time)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+```
+
+
+```{r}
+births_time <- births_time |>
+  mutate(agegp = if_else(age %in% c("35-39", "40-44",
+                                    "45-49", "50-54"),
+                         "35+", "10-34"))
+
+prob_under_agetime <- data.frame(
+  time =  c(2021,    2022,    2023,    2021,  2022,  2023),
+  agegp = c("10-34", "10-34", "10-34", "35+", "35+", "35+"),
+  mean =  c(0.99,    0.99,    0.99,    0.99,  0.5,  0.99),
+  disp =  c(0.01,    0.01,    0.01,    0.01,  0.1,  0.01))
+
+mod_agetime <- mod_pois(births ~ age + time,
+                        data = births_time,
+			exposure = popn) |>
+  set_datamod_undercount(prob = prob_under_agetime)
+```
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 3, message = FALSE, warning = FALSE}
+aug_agetime <- mod_agetime |>
+  fit() |>
+  augment() |>
+  mutate(draws_ci(.fitted))
+
+ggplot(aug_agetime, aes(x = age_mid(age))) +
+  facet_wrap(vars(time)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+```
+  
+
+# Forecasting with data models
+
+## Data model constant over time
+
+```{r}
+mod_timeconst |>
+  fit() |>
+  forecast(label = 2024)
+```
+
+```{r}
+newdata_births <- data.frame(
+  age = c("10-14", "15-19", "20-24", "25-29", "30-34",
+          "35-39", "40-44", "45-49", "50-54"),
+  time = rep(2024, 9),
+  popn = c(27084, 25322, 23935, 28936, 30964,
+           31611, 44567, 41774, 51312))
+
+mod_timeconst |>
+  fit() |>
+  forecast(newdata = newdata_births)
+```
+
+
+
+
+
+
+
+
+
+# Simulation and replicate data with data models
+
+
+# Confidentialization with data models
+
+
+# Specialised data models
+
+
+
+
+
 
 
 
