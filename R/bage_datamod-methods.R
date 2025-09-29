@@ -719,12 +719,15 @@ forecast_datamod_param.bage_datamod_miscount <- function(datamod,
                             shape = shape,
                             scale = scale,
                             n_draw = n_draw)
-  .fitted <- c(prob, rate) 
-  component <- make_datamod_comp(datamod)
-  level <- make_level_datamod(datamod)
-  is_keep <- c(is_keep_prob, is_keep_rate)
-  component <- component[is_keep]
-  level <- level[is_keep]
+  .fitted <- c(prob, rate)
+  comp_prob <- rep("prob", times = n_keep_prob)
+  comp_rate <- rep("rate", times = n_keep_rate)
+  comp <- c(comp_prob, comp_rate)
+  level_prob <- if (has_by_prob) key_prob[is_keep_prob] else "prob"
+  level_rate <- if (has_by_rate) key_rate[is_keep_rate] else "rate"
+  component <- c(comp_prob, comp_rate)
+  level <- c(level_prob, level_rate)
+  level <- as.character(level)
   tibble::tibble(term = "datamod",
                  component = component,
                  level = level,
@@ -766,10 +769,9 @@ forecast_datamod_param.bage_datamod_overcount <- function(datamod,
                                shape = shape,
                                scale = scale,
                                n_draw = n_draw)
-  component <- make_datamod_comp(datamod)
-  level <- make_level_datamod(datamod)
-  component <- component[is_keep]
-  level <- level[is_keep]
+  component <- "rate"
+  level <- if (has_by) key_rate[is_keep] else "rate"
+  level <- as.character(level)
   tibble::tibble(term = "datamod",
                  component = component,
                  level = level,
@@ -810,10 +812,9 @@ forecast_datamod_param.bage_datamod_undercount <- function(datamod,
                               shape1 = shape1,
                               shape2 = shape2,
                               n_draw = n_draw)
-  component <- make_datamod_comp(datamod)
-  level <- make_level_datamod(datamod)
-  component <- component[is_keep]
-  level <- level[is_keep]
+  component <- "prob"
+  level <- if (has_by) key_prob[is_keep] else "prob"
+  level <- as.character(level)
   tibble::tibble(term = "datamod",
                  component = component,
                  level = level,

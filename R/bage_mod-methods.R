@@ -721,7 +721,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, quiet) {
     if (!quiet)
       cli::cli_alert_info(paste("Overwriting existing values for",
                                 "{.var {nm_outcome_data}}."))
-    outcome_denom_observed <- outcome
+    ans[[nm_outcome_data]] <- outcome
     nm_outcome_data_true <- paste0(".", nm_outcome_data)
     if (!quiet)
       cli::cli_alert_info(paste("Adding variable {.var {nm_outcome_data_true}}",
@@ -1796,36 +1796,6 @@ get_nm_outcome_data.bage_mod <- function(mod) {
   formula <- mod$formula
   ans <- formula[[2L]]
   ans <- deparse1(ans)
-  ans
-}
-
-
-## 'get_nm_outcome_obs' --------------------------------------------------------
-
-#' Get the Name of the Variable with Observed Values
-#' for the Outcome Variable
-#'
-#' Gives identical result to 'get_nm_outcome' when
-#' 'mod' does not have a data model for outcomes
-#' or confidentialization.
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A string
-#'
-#' @noRd
-get_nm_outcome_obs <- function(mod) {
-    UseMethod("get_nm_outcome_obs")
-}
-
-## HAS_TESTS
-#' @export
-get_nm_outcome_obs.bage_mod <- function(mod) {
-  has_datamod_outcome <- has_datamod_outcome(mod)
-  has_confidential <- has_confidential(mod)
-  ans <- get_nm_outcome_data(mod)
-  if (has_datamod_outcome || has_confidential)
-    ans <- paste0(".", ans)
   ans
 }
 

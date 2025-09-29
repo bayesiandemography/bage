@@ -63,6 +63,8 @@ ggplot(births, aes(x = age_mid(age))) +
 mod_base <- mod_pois(births ~ age,
                      data = births,
                      exposure = popn) |>
+  set_prior(age ~ SVD(HFD)) |>
+  set_disp(mean = 0) |>
   fit()
 mod_base
 ```
@@ -516,7 +518,7 @@ ggplot(aug_agetime, aes(x = age_mid(age))) +
 
 # Forecasting with data models
 
-## Data model constant over time
+## Data model parameters constant over time
 
 ```{r}
 mod_timeconst |>
@@ -538,20 +540,65 @@ mod_timeconst |>
 ```
 
 
+## Data model parameters vary over time
+
+```{r}
+prob_under_time_ext <- rbind(
+  prob_under_time,
+  data.frame(time = 2024,
+             mean = 0.95,
+             disp = 0.05))
+prob_under_time_ext
+```	     
+
+```{r, message = FALSE}
+mod_under_time_ext <- mod_pois(births ~ age + time,
+                               data = births_time,
+                               exposure = popn) |>
+  set_datamod_undercount(prob = prob_under_time_ext) |>
+  fit()
+```
+
+```{r}
+mod_under_time_ext |>
+  forecast(labels = 2024)
+```
 
 
+```{r, message = FALSE}
+mod_under_time_ext |>
+  forecast(labels = 2024,
+           output = "components") |>
+  filter(term == "datamod")	   
+```
 
+# Replicate data tests with data models
 
+```{r}
+repdata <- replicate_data(mod_timeconst)
+repdata
+```
 
-
-
-# Simulation and replicate data with data models
-
+```{r}
+ggplot(repdata, aes(x = age_mid(age), y = births, col = factor(time))) +
+  facet_wrap(vars(.replicate)) +
+  geom_line()
+```
 
 # Confidentialization with data models
 
+```{r}
+births_rr3 <- births |>
+  mutate(births = rr3(births))
 
-# Specialised data models
+mod_under_rr3 <- mod_pois(births ~ age,
+                          data = births_rr3,
+			  exposure = popn) |>
+  set_confidential_rr3()
+```
+
+
+# Future developments: specialised data models
 
 
 
