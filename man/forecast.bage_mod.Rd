@@ -103,6 +103,21 @@ covariates are supplied via the \code{newdata} argument.
 }
 }
 
+\section{Forecasting with data models}{
+
+
+Models that contain \link[=datamods]{data models} can be used
+in forecasts, provided that
+\itemize{
+\item the data models have no time-varying parameters, or
+\item future values for time-varying parameters are supplied
+when the data model is first specified.
+}
+
+For examples, see the \href{https://bayesiandemography.github.io/bage/articles/vig10_datamod.html}{Data Models}
+vignette.
+}
+
 \section{Fitted and unfitted models}{
 
 

@@ -1,13 +1,23 @@
 
-make_small_mod_pois <- function() {
+make_small_mod_pois <- function(use_exposure) {
   data <- expand.grid(age = 0:4, time = 2021:2025,
                       KEEP.OUT.ATTRS = FALSE)
-  data$popn <- runif(n = nrow(data), min = 1, max = 100)
-  data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.2 * data$popn)
-  mod_pois(deaths ~ age + time,
-           data = data,
-           exposure = popn) |>
+  if (use_exposure) {
+    data$popn <- runif(n = nrow(data), min = 1, max = 100)
+    data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.2 * data$popn)
+    ans <- mod_pois(deaths ~ age + time,
+                    data = data,
+                    exposure = popn)
+  }
+  else {
+    data$deaths <- 3 * rpois(n = nrow(data), lambda = 20)
+    ans <- mod_pois(deaths ~ age + time,
+                    data = data,
+                    exposure = 1)
+  }
+  ans <- ans |>
     set_prior(time ~ RW(s = 0.05))
+  ans
 }
 
 make_small_mod_binom <- function() {
@@ -22,17 +32,25 @@ make_small_mod_binom <- function() {
     set_prior(time ~ RW(s = 0.05))
 }
 
-make_small_mod_norm <- function() {
+make_small_mod_norm <- function(use_weights) {
   data <- expand.grid(age = 0:4, time = 2021:2025,
                       KEEP.OUT.ATTRS = FALSE)
-  data$wt <- runif(n = nrow(data), min = 1, max = 100)
   data$income <- rnorm(nrow(data), mean = 1000, sd = 100)
-  mod_norm(income ~ age + time,
-           data = data,
-           weights = wt) |>
+  if (use_weights) {
+    data$wt <- runif(n = nrow(data), min = 1, max = 100)
+    ans <- mod_norm(income ~ age + time,
+                    data = data,
+                    weights = wt)
+  }
+  else {
+    ans <- mod_norm(income ~ age + time,
+                    data = data,
+                    weights = 1)
+  }
+  ans <- ans |>
     set_prior(time ~ RW(s = 0.05))
+  ans
 }
-
 
 sim_ssvd <- function() {
   data <- data.frame(type = c("total", "joint", "indep"))

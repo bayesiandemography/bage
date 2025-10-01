@@ -1064,6 +1064,17 @@ generics::forecast
 #'   are time-varying, then future values for these
 #'   covariates are supplied via the `newdata` argument.
 #'
+#' @section Forecasting with data models:
+#'
+#' Models that contain [data models][datamods] can be used
+#' in forecasts, provided that
+#' - the data models have no time-varying parameters, or
+#' - future values for time-varying parameters are supplied
+#'   when the data model is first specified.
+#'
+#' For examples, see the [Data Models](https://bayesiandemography.github.io/bage/articles/vig10_datamod.html)
+#'   vignette.
+#'
 #' @section Fitted and unfitted models:
 #'
 #' `forecast()` is typically used with a
@@ -1217,7 +1228,7 @@ forecast.bage_mod <- function(object,
   }
   else
     has_offset_forecast <- FALSE
-  has_datamod_outcome <- has_datamod_outcome(mod)
+  has_datamod_outcome <- has_datamod_outcome(object)
   is_forecast_obs <- has_offset_forecast && has_datamod_outcome
   comp_forecast <- forecast_components(mod = object,
                                        components_est = comp_est,
