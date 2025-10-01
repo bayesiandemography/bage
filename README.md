@@ -38,7 +38,7 @@ mod
 #> 
 #>    injuries ~ age:sex + ethnicity + year
 #> 
-#>   exposure = popn
+#>                  exposure: popn
 #> 
 #>         term  prior along n_par n_par_free std_dev
 #>  (Intercept) NFix()     -     1          1       -
@@ -52,7 +52,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.68     0.69      0.55   11      TRUE   relative convergence (4)
+#>        1.75     0.79      0.54   13      TRUE   relative convergence (4)
 ```
 
 Extract model-based and direct estimates
