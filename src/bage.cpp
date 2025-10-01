@@ -11,7 +11,6 @@ using namespace tmbutils;
 
 constexpr double LOG_ONE_THIRD  = -1.0986122886681098;
 constexpr double LOG_TWO_THIRDS = -0.4054651081081644;
-constexpr double PI = 3.14159265358979323846;
 
 
 // Alias for dynamic matrix ---------------------------------------------------
@@ -394,7 +393,7 @@ Type log_dskellam_approx(Type x, Type mu1, Type mu2) {
   Type s_inv = Type(1.0) / s;
   Type K = mu1 * (s - Type(1.0)) + mu2 * (s_inv - Type(1.0));
   Type K2 = mu1 * s + mu2 * s_inv;
-  return -Type(0.5) * log(Type(2.0) * Type(PI))
+  return -Type(0.5) * log(Type(2.0) * Type(M_PI))
     - Type(0.5) * log(K2)
     + K - t * x;
 }
