@@ -602,6 +602,7 @@ testthat::test_that("pois no disp - noise datamod, small numbers", {
 })
 
 testthat::test_that("pois no disp - noise datamod, rr3, small numbers", {
+  set.seed(78)
   data <- expand.grid(age = 0:4, time = 2021:2025)
   data$popn <- runif(nrow(data), min = 1, max = 10)
   data$deaths <- 3 * rpois(nrow(data), lambda = 0.1 * data$popn)
@@ -609,6 +610,7 @@ testthat::test_that("pois no disp - noise datamod, rr3, small numbers", {
                   data = data,
                   exposure = popn) |>
     set_disp(mean = 0) |>
+    set_prior(time ~ RW(s = 0.05)) |>
     set_datamod_noise(sd = 0.1) |>
     set_confidential_rr3()
   mod <- fit(mod)

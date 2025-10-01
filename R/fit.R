@@ -445,7 +445,8 @@ make_fit_parameters <- function(mod) {
 ## HAS_TESTS
 #' Make 'random' argument to MakeADFun function
 #'
-#' Return value always includes "effectfree".
+#' Need to make sure there are at least
+#' some fixed effects
 #'
 #' @param mod Object of class "bage_mod"
 #'
@@ -458,20 +459,16 @@ make_fit_random <- function(mod) {
   has_hyperrandfree <- any(vapply(priors, has_hyperrandfree, FALSE))
   has_covariates <- has_covariates(mod)
   has_datamod_param <- has_datamod_param(mod)
-  if (!has_hyper
-      && !has_hyperrandfree
-      && !has_covariates
-      && !has_datamod_param)
-    ans <- NULL
-  else {
+  if (has_hyper)
     ans <- "effectfree"
-    if (has_hyperrandfree)
-      ans <- c(ans, "hyperrandfree")
-    if (has_covariates)
-      ans <- c(ans, "coef_covariates")
-    if (has_datamod_param)
-      ans <- c(ans, "datamod_param")
-  }
+  else
+    ans <- NULL
+  if (has_hyperrandfree)
+    ans <- c(ans, "hyperrandfree")
+  if (has_covariates)
+    ans <- c(ans, "coef_covariates")
+  if (has_datamod_param)
+    ans <- c(ans, "datamod_param")
   ans
 }
 

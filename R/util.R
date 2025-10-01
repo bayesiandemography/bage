@@ -441,6 +441,7 @@ draw_true_given_obs_pois_skellam_approx <- function(y_obs,
                                                     p0_thresh) {
   mu_post  <- lambda + (lambda / (lambda + 2 * m)) * (y_obs - lambda)
   var_post <- (lambda * 2 * m) / (lambda + 2 * m)
+  var_post <- max(var_post, .Machine$double.eps)
   sd_post  <- sqrt(var_post)
   ## heuristics for choosing discrete window vs truncnorm + rounding
   near_boundary <- (mu_post < 3 * sd_post)
@@ -453,6 +454,8 @@ draw_true_given_obs_pois_skellam_approx <- function(y_obs,
     u <- stats::runif(n = 1L)
     alpha <- (0 - mu_post) / sd_post
     p0_trunc <- stats::pnorm(alpha)
+    eps <- 1e-15
+    p0_trunc <- min(max(p0_trunc, eps), 1 - eps)
     z <- stats::qnorm(p0_trunc + (1 - p0_trunc) * u)
     ans <- floor(mu_post + sd_post * z + 0.5)
     ans <- max(ans, 0L)
@@ -462,12 +465,17 @@ draw_true_given_obs_pois_skellam_approx <- function(y_obs,
     L <- floor(mu_post - window_sd * sd_post)
     L <- max(0L, L)
     R <- ceiling(mu_post + window_sd * sd_post)
-    R <- max(L, R)
-    y_trues <- L:R
-    lw <- stats::dnorm(y_trues, mean = mu_post, sd = sd_post, log = TRUE)
-    M <- max(lw)
-    prob <- exp(lw - M)
-    ans <- sample(y_trues, size = 1L, prob = prob)
+    R <- max(L + 1L, R)
+    y_trues <- seq.int(from = L, to = R)
+    ## draw from within window
+    log_wt <- stats::dnorm(y_trues, mean = mu_post, sd = sd_post, log = TRUE)
+    M <- max(log_wt)
+    prob <- exp(log_wt - M)
+    is_degenerate <- !any(is.finite(prob)) || (sum(prob) == 0)
+    if (is_degenerate)
+      ans <- as.integer(round(max(0, mu_post)))
+    else
+      ans <- sample(y_trues, size = 1L, prob = prob)
   }
   ans
 }
@@ -477,8 +485,6 @@ draw_true_given_obs_pois_skellam_approx <- function(y_obs,
 #' Draw from Posterior Distribution of True Values
 #' Given Observed Values, for Poisson plus Symmetric Skellam
 #' - Exact, Small Sample
-#'
-#' Assume lambda and m both less than 50
 #'
 #' @param y_obs Observed value
 #' @param lambda Expected value
@@ -492,10 +498,8 @@ draw_true_given_obs_pois_skellam_exact <- function(y_obs,
                                                    lambda,
                                                    m,
                                                    window_sd) {
-  ## --- Choose a fixed window around y_obs ---
-  ## rough posterior scale: Var(y_obs) \approx lambda + 2 * m
-  sd_y_obs <- sqrt(lambda + 2 * m)
   ## window boundaries
+  sd_y_obs <- sqrt(lambda + 2 * m)
   L <- floor(y_obs - window_sd * sd_y_obs)
   L <- max(0L, L)
   R <- max(y_obs + window_sd * sd_y_obs,
@@ -503,14 +507,23 @@ draw_true_given_obs_pois_skellam_exact <- function(y_obs,
   R <- ceiling(R)
   R <- max(L + 1L, R)
   y_trues <- L:R
-  ## stable log Bessel I_{|y_obs - y_true|}(2m): scaled besselI + 2m
+  ## log skellam (symmetric)
   nu <- abs(y_obs - y_trues)
-  logI <- log(besselI(2 * m, nu = nu, expon.scaled = TRUE)) + 2 * m
-  ## Unnormalized log posterior weights
-  logw <- y_trues * log(lambda) - lgamma(y_trues + 1) + logI
+  log_skellam <- log_skellam_safe(x = nu,
+                                  m = m,
+                                  threshold = 200L)
+  is_inf <- is.infinite(log_skellam)
+  if (any(is_inf))
+    log_skellam[is_inf] <- log_skellam_safe(x = nu[is_inf],
+                                            m = m,
+                                            threshold = 50L)
+  ## log pois
+  log_pois <- stats::dpois(y_trues, lambda = lambda, log = TRUE)
+  ## unnormalized log posterior weights
+  log_wt <- log_skellam + log_pois
   ## subtract max before exponentiating
-  M <- max(logw)
-  prob <- exp(logw - M)
+  M <- max(log_wt)
+  prob <- exp(log_wt - M)
   # draw single value of y_true
   sample(y_trues, size = 1L, prob = prob)
 }
@@ -602,11 +615,37 @@ dskellam_exact <- function(x, mu1, mu2) {
 }
 
 
-
-
-
-
-
+#' Safe Calculation of Log Density of Symmetric Skellam
+#'
+#' @param x Values where density required
+#' @param m 'mu' parameter for symmetric skellam
+#' @param threshold Threshold for switching to
+#' approximation of besselI
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+log_skellam_safe <- function(x, m, threshold) {
+  use_bessel <- x <= threshold
+  n <- length(x)
+  if (m > 0) {
+    ans <- rep(-Inf, times = n)
+    if (any(use_bessel)) {
+      x_bessel <- x[use_bessel]
+      ans[use_bessel] <- suppressWarnings(
+        log(besselI(2 * m, nu = x_bessel, expon.scaled = TRUE))
+      )
+    }
+    if (any(!use_bessel)) {
+      x_approx <- x[!use_bessel]
+      ans[!use_bessel] <- -2 * m + x_approx * log(m) - lgamma(x_approx + 1)
+    }
+    ans[!is.finite(ans)] <- -Inf
+  }
+  else
+    ans <- ifelse(x == 0, 0, -Inf)
+  ans
+}
 
 
 ## HAS_TESTS

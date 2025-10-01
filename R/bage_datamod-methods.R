@@ -648,7 +648,7 @@ draw_outcome_true_given_obs.bage_datamod_undercount <- function(datamod,
 #' @param has_newdata Whether user supplied
 #' value for 'newdata'.
 #'
-#' @returns An rvec
+#' @returns An rvec or NULL
 #'
 #' @noRd
 forecast_datamod_param <- function(datamod,

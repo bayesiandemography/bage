@@ -6,7 +6,8 @@ make_small_mod_pois <- function() {
   data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.2 * data$popn)
   mod_pois(deaths ~ age + time,
            data = data,
-           exposure = popn)
+           exposure = popn) |>
+    set_prior(time ~ RW(s = 0.05))
 }
 
 make_small_mod_binom <- function() {
@@ -17,7 +18,8 @@ make_small_mod_binom <- function() {
                       data$popn)
   mod_binom(deaths ~ age + time,
             data = data,
-            size = popn)
+            size = popn) |>
+    set_prior(time ~ RW(s = 0.05))
 }
 
 make_small_mod_norm <- function() {
@@ -27,7 +29,8 @@ make_small_mod_norm <- function() {
   data$income <- rnorm(nrow(data), mean = 1000, sd = 100)
   mod_norm(income ~ age + time,
            data = data,
-           weights = wt)
+           weights = wt) |>
+    set_prior(time ~ RW(s = 0.05))
 }
 
 
