@@ -1,4 +1,29 @@
 
+## 'chr_to_int' ---------------------------------------------------------------
+
+test_that("'chr_to_int' works with valid inputs", {
+  df <- data.frame(a = 1,
+                   b = "1",
+                   c = "a",
+                   d = factor("a"),
+                   e = factor("-1"))
+  ans_obtained <- chr_to_int(df)
+  ans_expected <- data.frame(a = 1,
+                             b = 1L,
+                             c = "a",
+                             d = factor("a"),
+                             e = -1L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'chr_to_int' works with empty df", {
+  df <- data.frame()
+  ans_obtained <- chr_to_int(df)
+  ans_expected <- df
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'dbetabinom' ---------------------------------------------------------------
 
 test_that("basic correctness for known value", {
@@ -56,6 +81,511 @@ test_that("works for x = 0 and x = size", {
   expect_gt(p0, 0)
   expect_gt(pN, 0)
 })
+
+
+## 'dskellam' -----------------------------------------------------------------
+
+test_that("'dskellam' degenerate cases: both mus are zero -> point mass at 0", {
+  ans_obtained <- dskellam(0, mu1 = 0, mu2 = 0)
+  ans_expected <- 1
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'dskellam' degenerate cases: one-sided Poisson when one mu is zero", {
+  mu1 <- rep(0, 5)
+  mu2 <- rep(3, 5)
+  x <- -5:(-1)
+  ans_obtained <- dskellam(x, mu1, mu2)
+  ans_expected <- dpois(5:1, 3)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'dskellam' degenerate cases: one-sided Poisson when one mu is zero", {
+  mu1 <- rep(3, 5)
+  mu2 <- rep(0, 5)
+  x <- 1:5
+  ans_obtained <- dskellam(x, mu1, mu2)
+  ans_expected <- dpois(1:5, 3)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'dskellam' basic properties: non-negativity and finite probabilities", {
+  set.seed(1)
+  x   <- sample(-50:50, size = 101, replace = TRUE)
+  mu1 <- runif(101, min = 0, max = 20)
+  mu2 <- runif(101, min = 0, max = 20)
+  p <- dskellam(x, mu1, mu2)
+  expect_true(all(is.finite(p)))
+  expect_true(all(p >= 0))
+  expect_true(all(p <= 1))
+})
+
+test_that("'dskellam' symmetry when mu1 == mu2", {
+  mu <- 2.5
+  x  <- -30:30
+  p1 <- dskellam(x,  mu, mu)
+  p2 <- dskellam(-x, mu, mu)
+  expect_equal(p1, p2, tolerance = 1e-12)
+})
+
+test_that("'dskellam' matches closed-form for small (exact) regime", {
+  # For small mu and moderate |x|, compare to Bessel-based formula
+  mu1 <- c(0.8, 1.2, 2.0)
+  mu2 <- c(0.7, 0.5, 2.5)
+  x   <- c(-3L, 0L, 4L)
+  # elementwise
+  v  <- 2 * sqrt(mu1 * mu2)
+  nu <- abs(x)
+  # Use scaled Bessel: I_nu(v) = besselI(v, nu, TRUE) * exp(v)
+  logp_ref <- -(mu1 + mu2) + 0.5 * x * (log(mu1) - log(mu2)) +
+              log(besselI(v, nu, expon.scaled = TRUE)) + v
+  pref <- exp(logp_ref)
+  p <- dskellam(x, mu1, mu2)
+  expect_equal(p, pref, tolerance = 1e-10)
+})
+
+test_that("'dskellam' vectorization: elementwise equals scalar calls", {
+  x   <- -5:5
+  mu1 <- rep(3, length(x))
+  mu2 <- rep(2, length(x))
+  p_vec <- dskellam(x, mu1, mu2)
+  p_sca <- vapply(seq_along(x),
+                  function(i) dskellam(x[i], mu1[i], mu2[i]),
+                  numeric(1))
+  expect_equal(p_vec, p_sca, tolerance = 0)  # exact identity expected
+})
+
+test_that("'dskellam' no NA/NaN around method-switch thresholds", {
+  # Around internal thresholds: mu1+mu2 ~ 5, |x| ~ 30
+  mu1 <- c(2.4, 2.6, 4.9, 5.1)
+  mu2 <- c(2.6, 2.4, 0.1, -0)  # non-negative, last zero
+  x   <- c(-31L, -29L, 30L, 31L)
+  p <- dskellam(x, mu1, mu2)
+  expect_true(all(is.finite(p)))
+  expect_true(all(p >= 0))
+})
+
+
+## 'dskellam_approx' -----------------------------------------------------------
+
+test_that("'dskellam_approx' works with large values", {
+  set.seed(0)
+  mu1 <- rep(30, 100)
+  mu2 <- rep(10, 100)
+  x <- rpois(n = 100, lambda = mu1) -
+    rpois(n = 100, lambda = mu2)
+  ans_obtained <- dskellam_approx(x = x, mu1 = mu1, mu2 = mu2)
+  ans_expected <- exp(-mu1 - mu2) * (mu1/mu2)^(x/2) * besselI(2*sqrt(mu1*mu2),
+                                                              abs(x))
+  expect_equal(ans_obtained, ans_expected, tolerance = 0.01)
+})
+
+
+## 'dskellam_exact' -----------------------------------------------------------
+
+test_that("'dskellam_exact' works with small values", {
+  set.seed(0)
+  mu1 <- rep(3, 100)
+  mu2 <- rep(0.5, 100)
+  x <- rpois(n = 100, lambda = mu1) -
+    rpois(n = 100, lambda = mu2)
+  ans_obtained <- dskellam_exact(x = x, mu1 = mu1, mu2 = mu2)
+  ans_expected <- exp(-mu1 - mu2) * (mu1/mu2)^(x/2) * besselI(2*sqrt(mu1*mu2),
+                                                              abs(x))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'draw_true_given_obs_pois_skellam ------------------------------------------
+
+test_that("'draw_true_given_obs_pois_skellam' returns single nonnegative integer", {
+  set.seed(1)
+  ans <- draw_true_given_obs_pois_skellam(y_obs = 10, lambda = 12, m = 15)
+  expect_length(ans, 1L)
+  expect_true(is.finite(ans))
+  expect_true(is.integer(ans) || (is.numeric(ans) && ans == as.integer(ans)))
+  expect_gte(ans, 0L)
+})
+
+test_that("'draw_true_given_obs_pois_skellam' chooses exact method when both lambda and m below threshold", {
+  set.seed(2)
+  lambda <- 10
+  m <- 20
+  y_obs <- 8L
+  set.seed(0)
+  ans_dispatch <- draw_true_given_obs_pois_skellam(y_obs, lambda, m)
+  set.seed(0)
+  ans_exact <- draw_true_given_obs_pois_skellam_exact(y_obs, lambda, m, window_sd = 8L)
+  expect_identical(ans_dispatch, ans_exact)
+})
+
+test_that("'draw_true_given_obs_pois_skellam' chooses approx method when either lambda or m above threshold", {
+  set.seed(3)
+  # Make lambda large so approx branch is used
+  lambda <- 100
+  m <- 20
+  y_obs <- 60L
+  set.seed(0)
+  ans_dispatch <- draw_true_given_obs_pois_skellam(y_obs, lambda, m)
+  set.seed(0)
+  ans_approx <- draw_true_given_obs_pois_skellam_approx(y_obs, lambda, m,
+                                                        window_sd = 8L, p0_thresh = 0.01)
+  expect_identical(ans_dispatch, ans_approx)
+})
+
+test_that("draw_true_given_obs_pois_skellam - negative y_obs handled correctly by truncation", {
+  set.seed(4)
+  # Negative observed value: final draw should always be >= 0
+  ans <- draw_true_given_obs_pois_skellam(y_obs = -5, lambda = 10, m = 20)
+  expect_gte(ans, 0L)
+})
+
+
+## 'draw_true_given_obs_pois_skellam_approx' ----------------------------------
+
+test_that("'draw_true_given_obs_pois_skellam_approx' returns one nonnegative integer", {
+  set.seed(1)
+  ans <- draw_true_given_obs_pois_skellam_approx(
+    y_obs = 37, lambda = 40, m = 20, window_sd = 6L, p0_thresh = 0.01
+  )
+  expect_length(ans, 1L)
+  expect_true(is.finite(ans))
+  expect_true(is.integer(ans) || (is.numeric(ans) && ans == as.integer(ans)))
+  expect_gte(ans, 0L)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' works when far from boundary", {
+  set.seed(0)
+  y_obs <- 1000
+  lambda <- 1000
+  m <- 800
+  mu_post <- lambda + (lambda / (lambda + 2*m)) * (y_obs - lambda)
+  sd_post <- sqrt((lambda * 2*m) / (lambda + 2*m))
+  draws <- replicate(200,
+    draw_true_given_obs_pois_skellam_approx(y_obs, lambda, m, window_sd = 6L, p0_thresh = 0.01)
+  )
+  expect_true(all(draws >= 0))
+  expect_lt(mean(draws == 0L), 0.01)
+  expect_lt(abs(mean(draws) - mu_post), 0.2 * sd_post)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' works near boundary (mu_post small) or high p0", {
+  set.seed(4)
+  # Make mu_post small: lambda small, y not too large
+  y_obs <- 2
+  lambda <- 4
+  m <- 20
+  # Here mu_post ~ lambda + lambda/(lambda+2m)*(y-lambda) is small, near boundary
+  draws <- replicate(400,
+    draw_true_given_obs_pois_skellam_approx(y_obs, lambda, m, window_sd = 8L, p0_thresh = 0.05)
+  )
+  expect_true(all(draws >= 0))
+  # Substantial mass near 0 expected
+  expect_gt(mean(draws <= 1L), 0.1)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' empirical mean tracks Gaussian posterior mean (moderate case)", {
+  skip_on_cran()  # Monte Carlo
+  set.seed(5)
+  y_obs <- 120
+  lambda <- 100
+  m <- 60
+  mu_post <- lambda + (lambda / (lambda + 2*m)) * (y_obs - lambda)
+  sd_post <- sqrt((lambda * 2*m) / (lambda + 2*m))
+  n <- 5000
+  draws <- replicate(n,
+    draw_true_given_obs_pois_skellam_approx(y_obs, lambda, m, window_sd = 6L, p0_thresh = 0.01)
+  )
+  # Sampling error ~ sd / sqrt(n); allow a modest multiple
+  tol <- 3 * sd_post / sqrt(n)
+  expect_lt(abs(mean(draws) - mu_post), max(tol, 0.15))  # floor tolerance a bit for discreteness
+})
+
+test_that("draw_true_given_obs_pois_skellam_approx does not return NA/NaN/Inf in a few edge-y settings", {
+  set.seed(6)
+  params <- list(
+    list(y = 0,   lam = 0.1, m = 0.1),
+    list(y = 20,  lam = 5,   m = 40),
+    list(y = 200, lam = 150, m = 10),
+    list(y = 10,  lam = 300, m = 200)
+  )
+  for (p in params) {
+    ans <- draw_true_given_obs_pois_skellam_approx(
+      y_obs = p$y, lambda = p$lam, m = p$m, window_sd = 6L, p0_thresh = 0.02
+    )
+    expect_true(is.finite(ans))
+    expect_gte(ans, 0L)
+  }
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' degenerate branch triggers with tiny sd and integer mean", {
+  set.seed(1)
+  y_obs <- 10L
+  lambda <- 9.9                 # makes mu_post approx y_obs when m is tiny
+  m <- 1e-30                    # makes var_post approx 0 (after epsilon floor)
+  window_sd <- 8L
+  p0_thresh <- 0.01
+  # Run several times; if the window branch were non-degenerate it might sample
+  # different integers, but in the degenerate case it always returns round(mu_post).
+  out <- replicate(20, draw_true_given_obs_pois_skellam_approx(
+    y_obs = y_obs, lambda = lambda, m = m,
+    window_sd = window_sd, p0_thresh = p0_thresh
+  ))
+  # Compute the implied mu_post for the same inputs (mirrors the function)
+  denom <- lambda + 2 * m
+  mu_post  <- lambda + (lambda / denom) * (y_obs - lambda)
+  expect_true(all(out == as.integer(round(max(0, mu_post)))),
+              info = "Should always fall back to rounded mu_post in degenerate case")
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' non-degenerate typical case samples around mu_post", {
+  set.seed(2)
+  y_obs <- 50L
+  lambda <- 60
+  m <- 40                        # gives a reasonable sd_post
+  window_sd <- 8L
+  p0_thresh <- 0.01
+  out <- replicate(200, draw_true_given_obs_pois_skellam_approx(
+    y_obs = y_obs, lambda = lambda, m = m,
+    window_sd = window_sd, p0_thresh = p0_thresh
+  ))
+  expect_true(length(unique(out)) > 1,
+              info = "Should not be degenerate; expect variability in draws")
+  # sanity: outputs are non-negative integers and near mu_post
+  denom <- lambda + 2 * m
+  mu_post  <- lambda + (lambda / denom) * (y_obs - lambda)
+  var_post <- (lambda * 2 * m) / denom
+  sd_post  <- sqrt(max(var_post, .Machine$double.eps))
+  expect_true(all(out >= 0))
+  expect_true(median(out) >= mu_post - 2 * sd_post &&
+              median(out) <= mu_post + 2 * sd_post)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' extreme tiny sd but non-integer mean still degenerates", {
+  set.seed(3)
+  # Make sd_post approx eps by taking lambda tiny and m tiny relative to lambda,
+  # but keep mu_post extremely close to an integer + small offset.
+  y_obs <- 10L
+  lambda <- 10 - 1e-8            
+  m <- 1e-30
+  window_sd <- 8L
+  p0_thresh <- 0.01
+  out <- draw_true_given_obs_pois_skellam_approx(
+    y_obs = y_obs, lambda = lambda, m = m,
+    window_sd = window_sd, p0_thresh = p0_thresh
+  )
+  denom <- lambda + 2 * m
+  mu_post  <- lambda + (lambda / denom) * (y_obs - lambda)
+  expect_identical(out, round(max(0, mu_post)),
+                   info = "Degenerate guard returns rounded mu_post")
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' edge guards produce valid integer for m==0 or lambda<=0", {
+  set.seed(4)
+  y_obs <- 7L
+  window_sd <- 8L
+  p0_thresh <- 0.01
+  out1 <- draw_true_given_obs_pois_skellam_approx(
+    y_obs, lambda = 5, m = 0, window_sd, p0_thresh)
+  out2 <- draw_true_given_obs_pois_skellam_approx(
+    y_obs, lambda = 0, m = 3, window_sd, p0_thresh)
+  expect_true(out1 %in% c(0L, y_obs))
+  expect_true(out2 %in% c(0L, y_obs))
+})
+
+
+## 'draw_true_given_obs_pois_skellam_exact' -----------------------------------
+
+test_that("'draw_true_given_obs_pois_skellam_exact' returns one nonnegative integer", {
+  set.seed(1)
+  ans <- draw_true_given_obs_pois_skellam_exact(
+    y_obs = 7, lambda = 12, m = 6, window_sd = 8L
+  )
+  expect_length(ans, 1L)
+  expect_true(is.finite(ans))
+  expect_true(is.integer(ans) || (is.numeric(ans) && ans == as.integer(ans)))
+  expect_gte(ans, 0L)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_exact' - empirical posterior mean matches exact posterior mean (small/moderate case)", {
+  set.seed(4)
+  y_obs  <- 8L
+  lambda <- 10
+  m      <- 6
+  # Build an exact posterior pmf over a generous finite window
+  sdY <- sqrt(lambda + 2*m)
+  L   <- max(0L, floor(y_obs - 8 * sdY))
+  R   <- max(L + 1L, ceiling(max(y_obs + 8 * sdY, lambda + 8 * sqrt(lambda + 1))))
+  xs  <- L:R
+  # Unnormalized log weights:
+  #   log w(x) = x log λ - log(x!) + log I_{|y-x|}(2m)
+  nu   <- abs(y_obs - xs)
+  logI <- log(besselI(2 * m, nu = nu, expon.scaled = TRUE)) + 2 * m
+  logw <- xs * log(lambda) - lgamma(xs + 1) + logI
+  M    <- max(logw)
+  w    <- exp(logw - M)
+  p    <- w / sum(w)
+  exact_mean <- sum(xs * p)
+  # Draw a bunch and compare means
+  n <- 8000
+  draws <- replicate(n, draw_true_given_obs_pois_skellam_exact(y_obs, lambda, m, window_sd = 8L))
+  # MC standard error ~ sd/sqrt(n); set a practical tolerance with floor for discreteness
+  tol <- max(sd(draws) / sqrt(n) * 4, 0.1)
+  expect_lt(abs(mean(draws) - exact_mean), tol)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_exact' - probability mass function is respected for a tiny case (enumeration check)", {
+  set.seed(5)
+  y_obs  <- 3L
+  lambda <- 2
+  m      <- 1
+  # Build exact posterior over 0..K where K is modest (manual enumeration feasible)
+  K  <- 20L
+  xs <- 0:K
+  nu <- abs(y_obs - xs)
+  logI <- log(besselI(2 * m, nu = nu, expon.scaled = TRUE)) + 2 * m
+  logw <- xs * log(lambda) - lgamma(xs + 1) + logI
+  p <- exp(logw - max(logw)); p <- p / sum(p)
+  # Empirical frequencies
+  n <- 20000
+  draws <- replicate(n, draw_true_given_obs_pois_skellam_exact(y_obs, lambda, m, window_sd = 8L))
+  tab <- table(factor(draws, levels = xs)) / n
+  # Compare over the bulk support (exclude far tail where p is tiny)
+  keep <- p > 1e-4
+  expect_lt(max(abs(tab[keep] - p[keep])), 0.02)  # 2% sup error over bulk is reasonable
+})
+
+test_that("'draw_true_given_obs_pois_skellam_exact' - no NA/NaN/Inf returned for a handful of edge-ish inputs", {
+  set.seed(6)
+  params <- list(
+    list(y = 0L,  lam = 0.1, m = 0.1),
+    list(y = 15L, lam = 4,   m = 10),
+    list(y = 25L, lam = 12,  m = 6),
+    list(y = 5L,  lam = 40,  m = 35)
+  )
+  for (p in params) {
+    ans <- draw_true_given_obs_pois_skellam_exact(
+      y_obs = p$y, lambda = p$lam, m = p$m, window_sd = 8L
+    )
+    expect_true(is.finite(ans))
+    expect_gte(ans, 0L)
+  }
+})
+
+
+## 'draw_true_given_obs_pois_skellam_exact' vs 'draw_true_given_obs_pois_skellam_approx' -----
+
+# Helper: draw n samples from a 1-draw function
+.draw_n <- function(fun, n, ...) {
+  v <- integer(n)
+  for (i in seq_len(n)) v[i] <- fun(...)
+  v
+}
+
+# Helper: empirical CDF at integer grid
+.emp_cdf <- function(x, grid = sort(unique(x))) {
+  fx <- ecdf(x)
+  fx(grid)
+}
+
+test_that("approx vs exact agree: moderate counts, near mean", {
+  skip_on_cran()
+  set.seed(101)
+  y_obs  <- 28L
+  lambda <- 30
+  m      <- 20
+  n      <- 4000
+  approx_draws <- .draw_n(draw_true_given_obs_pois_skellam_approx, n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 6L, p0_thresh = 0.01)
+  exact_draws  <- .draw_n(draw_true_given_obs_pois_skellam_exact,  n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L)
+  # Validity
+  expect_true(all(is.finite(approx_draws) & approx_draws >= 0))
+  expect_true(all(is.finite(exact_draws)  & exact_draws  >= 0))
+  # Means close (allow for MC noise + discreteness)
+  tol_mean <- 0.15 + 3 * sd(exact_draws) / sqrt(n)
+  expect_lt(abs(mean(approx_draws) - mean(exact_draws)), tol_mean)
+  # Empirical CDF sup distance (on shared grid)
+  grid <- sort(unique(c(approx_draws, exact_draws)))
+  d_sup <- max(abs(.emp_cdf(approx_draws, grid) - .emp_cdf(exact_draws, grid)))
+  expect_lt(d_sup, 0.06)   # 6% KS-like distance is tight for n=4000
+})
+
+test_that("approx vs exact agree: large counts", {
+  skip_on_cran()
+  set.seed(202)
+  y_obs  <- 110L
+  lambda <- 100
+  m      <- 80
+  n      <- 4000
+  approx_draws <- .draw_n(draw_true_given_obs_pois_skellam_approx, n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 6L, p0_thresh = 0.01)
+  exact_draws  <- .draw_n(draw_true_given_obs_pois_skellam_exact,  n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L)
+  expect_true(all(approx_draws >= 0L & exact_draws >= 0L))
+  tol_mean <- 0.2 + 3 * sd(exact_draws) / sqrt(n)
+  expect_lt(abs(mean(approx_draws) - mean(exact_draws)), tol_mean)
+  grid <- sort(unique(c(approx_draws, exact_draws)))
+  d_sup <- max(abs(.emp_cdf(approx_draws, grid) - .emp_cdf(exact_draws, grid)))
+  expect_lt(d_sup, 0.04)   # tighter with large counts
+})
+
+test_that("approx vs exact agree: boundary-ish (small mu_post, nontrivial mass at 0)", {
+  skip_on_cran()
+  set.seed(303)
+  y_obs  <- 2L
+  lambda <- 8
+  m      <- 20
+  n      <- 6000
+  approx_draws <- .draw_n(draw_true_given_obs_pois_skellam_approx, n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L, p0_thresh = 0.05)
+  exact_draws  <- .draw_n(draw_true_given_obs_pois_skellam_exact,  n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L)
+  expect_true(all(approx_draws >= 0L & exact_draws >= 0L))
+  # Compare mass at a few small points explicitly (0,1,2)
+  for (k in 0:2) {
+    p_a <- mean(approx_draws == k)
+    p_e <- mean(exact_draws  == k)
+    expect_lt(abs(p_a - p_e), 0.03)  # 3% absolute difference
+  }
+  # Mean tolerance a bit looser near boundary due to truncation/rounding
+  tol_mean <- 0.25 + 4 * sd(exact_draws) / sqrt(n)
+  expect_lt(abs(mean(approx_draws) - mean(exact_draws)), tol_mean)
+  # Distribution closeness
+  grid <- sort(unique(c(approx_draws, exact_draws)))
+  d_sup <- max(abs(.emp_cdf(approx_draws, grid) - .emp_cdf(exact_draws, grid)))
+  expect_lt(d_sup, 0.07)
+})
+
+test_that("approx vs exact agree: symmetric case around zero (uses windowing path)", {
+  skip_on_cran()
+  set.seed(404)
+  # Symmetric Skellam with y near lambda gives mu_post near lambda
+  y_obs  <- 15L
+  lambda <- 15
+  m      <- 15
+  n      <- 5000
+  approx_draws <- .draw_n(draw_true_given_obs_pois_skellam_approx, n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 7L, p0_thresh = 0.02)
+  exact_draws  <- .draw_n(draw_true_given_obs_pois_skellam_exact,  n,
+                          y_obs = y_obs, lambda = lambda, m = m,
+                          window_sd = 8L)
+  expect_true(all(approx_draws >= 0L & exact_draws >= 0L))
+  tol_mean <- 0.2 + 3 * sd(exact_draws) / sqrt(n)
+  expect_lt(abs(mean(approx_draws) - mean(exact_draws)), tol_mean)
+  grid <- sort(unique(c(approx_draws, exact_draws)))
+  d_sup <- max(abs(.emp_cdf(approx_draws, grid) - .emp_cdf(exact_draws, grid)))
+  expect_lt(d_sup, 0.05)
+})
+
+
 
 
 ## 'insert_after' -------------------------------------------------------
@@ -153,6 +683,82 @@ test_that("'is_same_class' returns TRUE when classes same", {
 test_that("'is_same_class' returns FALSE when classes different", {
     expect_false(is_same_class(AR1(), N()))
     expect_false(is_same_class(1L, FALSE))
+})
+
+
+## 'log_skellam_safe' ---------------------------------------------------------
+
+test_that("'log_skellam_safe' gives correct answer with valid inputs", {
+  ref_log_skellam <- function(k, m) {
+    # Symmetric Skellam: P(U=k) = exp(-2m) I_|k|(2m)
+    # Using scaled Bessel: log P = log( I_nu(2m) * exp(-2m) )
+    if (m == 0) {
+      return(ifelse(k == 0, 0, -Inf))
+    }
+    nu <- abs(as.integer(k))
+    val <- log(besselI(2 * m, nu = nu, expon.scaled = TRUE))
+    # Replace non-finite with -Inf (true probability zero)
+    val[!is.finite(val)] <- -Inf
+    val
+  }
+  m <- 3
+  k <- 0:30
+  thr <- 1000L # ensure bessel branch is used entirely
+  ans_obtained <- log_skellam_safe(x = k, m = m, threshold = thr)
+  ans_expected <- vapply(k, ref_log_skellam, numeric(1), m = m)
+  expect_length(ans_obtained, length(k))
+  expect_true(all(is.finite(ans_obtained)))  # all finite for m>0 on scaled-bessel
+  expect_equal(ans_obtained, ans_expected, tolerance = 1e-12)
+})
+
+test_that("log_skellam_safe is symmetric in k", {
+  m <- 2.5
+  k <- -30:30
+  thr <- 1000L
+  ans_expected <- log_skellam_safe(x = abs(k), m = m, threshold = thr)
+  ans_obtained <- log_skellam_safe(x = k, m = m, threshold = thr)
+  expect_equal(ans_obtained, ans_expected, tolerance = 1e-12)
+})
+
+test_that("no NaN produced; only -Inf for true zero-prob cases", {
+  m <- 0.7
+  k <- c(0:10, 100, 500, 1000)
+  thr <- 50L
+  got <- log_skellam_safe(x = k, m = m, threshold = thr)
+  expect_false(any(is.nan(got)))
+  # For m>0, scaled-bessel/approx should be finite (not -Inf),
+  # though extreme cases may return very negative but finite values.
+  expect_true(all(is.finite(got)))
+})
+
+test_that("handles m = 0 edge case as point mass at k = 0", {
+  m <- 0
+  k <- -5:5
+  thr <- 10L
+  # Expect log pmf is 0 at k=0, -Inf otherwise
+  got <- log_skellam_safe(x = k, m = m, threshold = thr)
+  expect_equal(got[k == 0], 0)
+  expect_true(all(is.infinite(got[k != 0]) & got[k != 0] < 0))
+})
+
+test_that("vectorization and length are correct", {
+  m <- 4
+  k <- sample(-100:100, size = 37)
+  thr <- 25L
+  got <- log_skellam_safe(x = k, m = m, threshold = thr)
+  expect_length(got, length(k))
+  # symmetry per-element
+  got_sym <- log_skellam_safe(x = -k, m = m, threshold = thr)
+  expect_equal(got, got_sym, tolerance = 0.01)
+})
+
+test_that("monotonic decrease away from 0 (unimodality check)", {
+  m <- 3
+  k <- 0:50
+  thr <- 1000L
+  g0 <- log_skellam_safe(x = k, m = m, threshold = thr)
+  # non-increasing as k grows from 0
+  expect_true(all(diff(g0) <= 1e-6))
 })
 
 

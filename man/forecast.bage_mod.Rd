@@ -10,6 +10,7 @@
   labels = NULL,
   output = c("augment", "components"),
   include_estimates = FALSE,
+  quiet = FALSE,
   ...
 )
 }
@@ -28,6 +29,9 @@ future periods.}
 \item{include_estimates}{Whether to
 include historical estimates along
 with the forecasts. Default is \code{FALSE}.}
+
+\item{quiet}{Whether to suppress messages.
+Default is \code{FALSE}.}
 
 \item{...}{Not currently used.}
 }
@@ -63,7 +67,7 @@ or \code{weights = 1} in the original call to
 \code{\link[=mod_pois]{mod_pois()}} or \code{\link[=mod_norm]{mod_norm()}}).
 }
 
-\href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 gives more details on the internal calculations in forecasting.
 }
 
@@ -97,6 +101,21 @@ from historical data via \code{\link[=fit]{fit()}}, and
 are time-varying, then future values for these
 covariates are supplied via the \code{newdata} argument.
 }
+}
+
+\section{Forecasting with data models}{
+
+
+Models that contain \link[=datamods]{data models} can be used
+in forecasts, provided that
+\itemize{
+\item the data models have no time-varying parameters, or
+\item future values for time-varying parameters are supplied
+when the data model is first specified.
+}
+
+For examples, see the \href{https://bayesiandemography.github.io/bage/articles/vig10_datamod.html}{Data Models}
+vignette.
 }
 
 \section{Fitted and unfitted models}{
@@ -175,7 +194,7 @@ mod_births |>
 probabilities, or means, together
 with original data
 \item \code{\link[=components]{components()}} Extract values for hyper-parameters
-\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette
 }
 }

@@ -2,38 +2,29 @@
 ## HAS_TESTS
 #' Create New Data Model for Exposures
 #'
-#' @param ratio_ratio Expected ratio of reported exposure
-#' to true exposure. Numeric vector.
-#' @param ratio_levels Levels of 'by' variables for
-#' which there are potentially distinct values of 'ratio_ratio'.
-#' A character vector.
-#' @param ratio_matrix_outcome Sparse matrix mapping
-#' ratio to outcome
-#' @param disp_mean Mean for exponential
-#' prior for dispersion. Numeric vector
+#' @param disp Dispersion. Numeric vector
 #' @param disp_levels Levels of 'by' variables for
-#' which there are potentially distinct values of 'disp_mean'.
+#' which there are potentially distinct values of 'disp'.
 #' A character vector.
 #' @param disp_matrix_outcome Sparse matrix mapping
-#' disp_mean to outcome
-#' @param nms_by Names of by variables for ratio, disp
+#' disp to outcome
+#' @param cv_arg The original 'cv' argument
+#' passed by the user (converted to a
+#' data frame if original a number.)
+#' @param nms_by Names of by variables for disp
 #'
 #' @returns Object of class 'bage_datamod_exposure'
 #'
 #' @noRd
-new_bage_datamod_exposure <- function(ratio_ratio,
-                                      ratio_levels,
-                                      ratio_matrix_outcome,
-                                      disp_mean,
+new_bage_datamod_exposure <- function(disp,
                                       disp_levels,
                                       disp_matrix_outcome,
+                                      cv_arg,
                                       nms_by) {
-  ans <- list(ratio_ratio = ratio_ratio,
-              ratio_levels = ratio_levels,
-              ratio_matrix_outcome = ratio_matrix_outcome,
-              disp_mean = disp_mean,
+  ans <- list(disp = disp,
               disp_levels = disp_levels,
               disp_matrix_outcome = disp_matrix_outcome,
+              cv_arg = cv_arg,
               nms_by = nms_by)
   class(ans) <- c("bage_datamod_exposure",
                   "bage_datamod_offset",
@@ -53,6 +44,9 @@ new_bage_datamod_exposure <- function(ratio_ratio,
 #' A character vector.
 #' @param prob_matrix_outcome Sparse matrix mapping
 #' prob to outcome
+#' @param prob_arg The original
+#' 'prob'  argument
+#' passed by the user.
 #' @param rate_mean,rate_disp Parameters for
 #' gamma prior for 'rate'. Numeric vector.
 #' @param rate_levels Levels of 'by' variables for
@@ -61,6 +55,9 @@ new_bage_datamod_exposure <- function(ratio_ratio,
 #' A character vector.
 #' @param rate_matrix_outcome Sparse matrix mapping
 #' rate to outcome
+#' @param rate_arg The original
+#' 'rate'  argument
+#' passed by the user.
 #' @param nms_by Names of by variables for prob, rate
 #' 
 #' @returns Object of class 'bage_datamod_miscount'
@@ -70,19 +67,23 @@ new_bage_datamod_miscount <- function(prob_mean,
                                       prob_disp,
                                       prob_levels,
                                       prob_matrix_outcome,
+                                      prob_arg,
                                       rate_mean,
                                       rate_disp,
                                       rate_levels,
                                       rate_matrix_outcome,
+                                      rate_arg,
                                       nms_by) {
   ans <- list(prob_mean = prob_mean,
               prob_disp = prob_disp,
               prob_levels = prob_levels,
               prob_matrix_outcome = prob_matrix_outcome,
+              prob_arg = prob_arg,
               rate_mean = rate_mean,
               rate_disp = rate_disp,
               rate_levels = rate_levels,
               rate_matrix_outcome = rate_matrix_outcome,
+              rate_arg = rate_arg,
               nms_by = nms_by)
   class(ans) <- c("bage_datamod_miscount",
                   "bage_datamod_outcome",
@@ -94,37 +95,34 @@ new_bage_datamod_miscount <- function(prob_mean,
 ## HAS_TESTS
 #' Create New Random Error Data Model for Outcomes
 #'
-#' @param mean_mean Mean of errors. Numeric vector.
-#' @param mean_levels Levels of 'by' variables for
-#' which there are potentially distinct values
-#' of 'mean_mean'. A character vector.
-#' @param mean_matrix_outcome Sparse matrix mapping
-#' mean to outcome
 #' @param sd_sd Standard devation of errors Numeric vector
 #' @param sd_levels Levels of 'by' variables for
 #' which there are potentially distinct values
 #' of 'sd_sd'. A character vector.
 #' @param sd_matrix_outcome Sparse matrix mapping
 #' sd to outcome
-#' @param nms_by Names of by variables for mean, sd
+#' @param sd_arg The original 'sd' argument
+#' passed by the user (converted to a
+#' data frame if original a number.)
+#' @param nms_by Names of by variables for sd
+#' @param outcome_sd Standard deviation of
+#' the original, unscaled outcome
 #' 
 #' @returns Object of class 'bage_datamod_noise'
 #'
 #' @noRd
-new_bage_datamod_noise <- function(mean_mean,
-                                   mean_levels,
-                                   mean_matrix_outcome,
-                                   sd_sd,
+new_bage_datamod_noise <- function(sd_sd,
                                    sd_levels,
                                    sd_matrix_outcome,
-                                   nms_by) {
-  ans <- list(mean_mean = mean_mean,
-              mean_levels = mean_levels,
-              mean_matrix_outcome = mean_matrix_outcome,
-              sd_sd = sd_sd,
+                                   sd_arg,
+                                   nms_by,
+                                   outcome_sd) {
+  ans <- list(sd_sd = sd_sd,
               sd_levels = sd_levels,
               sd_matrix_outcome = sd_matrix_outcome,
-              nms_by = nms_by)
+              sd_arg = sd_arg,
+              nms_by = nms_by,
+              outcome_sd = outcome_sd)
   class(ans) <- c("bage_datamod_noise",
                   "bage_datamod_outcome",
                   "bage_datamod")
@@ -142,6 +140,8 @@ new_bage_datamod_noise <- function(mean_mean,
 #' of 'rate_mean', and 'rate_disp'. A character vector.
 #' @param rate_matrix_outcome Sparse matrix mapping
 #' rate to outcome
+#' @param rate_arg The original 'rate' argument
+#' passed by the user.
 #' @param nms_by Names of by variables for rate
 #' 
 #' @returns Object of class 'bage_datamod_over'
@@ -151,11 +151,13 @@ new_bage_datamod_overcount <- function(rate_mean,
                                        rate_disp,
                                        rate_levels,
                                        rate_matrix_outcome,
+                                       rate_arg,
                                        nms_by) {
   ans <- list(rate_mean = rate_mean,
               rate_disp = rate_disp,
               rate_levels = rate_levels,
               rate_matrix_outcome = rate_matrix_outcome,
+              rate_arg = rate_arg,
               nms_by = nms_by)
   class(ans) <- c("bage_datamod_overcount",
                   "bage_datamod_outcome",
@@ -174,6 +176,8 @@ new_bage_datamod_overcount <- function(rate_mean,
 #' of 'prob_mean', and 'prob_disp'. A character vector.
 #' @param prob_matrix_outcome Sparse matrix mapping
 #' prob to outcome
+#' @param prob_arg The original 'prob' argument
+#' passed by the user.
 #' @param nms_by Names of by variables for prob
 #' 
 #' @returns Object of class 'bage_datamod_undercount'
@@ -183,11 +187,13 @@ new_bage_datamod_undercount <- function(prob_mean,
                                         prob_disp,
                                         prob_levels,
                                         prob_matrix_outcome,
+                                        prob_arg,
                                         nms_by) {
   ans <- list(prob_mean = prob_mean,
               prob_disp = prob_disp,
               prob_levels = prob_levels,
               prob_matrix_outcome = prob_matrix_outcome,
+              prob_arg = prob_arg,
               nms_by = nms_by)
   class(ans) <- c("bage_datamod_undercount",
                   "bage_datamod_outcome",

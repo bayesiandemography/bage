@@ -139,7 +139,7 @@ together with original data
 \item \code{\link[=forecast]{forecast()}} Forecast parameters and outcomes
 \item \code{\link[=report_sim]{report_sim()}} Check model using a simulation study
 \item \code{\link[=replicate_data]{replicate_data()}} Check model using replicate data
-\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 Detailed description of models
 }
 }

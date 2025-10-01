@@ -98,22 +98,35 @@ forecast_ar_svd <- function(prior,
 #' @param mod Object of class 'bage_mod'
 #' @param components_est Tibble with results
 #' of call to 'components'.
+#' @param data_forecast Data for future periods.
+#' A data frame.
 #' @param labels_forecast Vector
 #' with labels for future time periods.
+#' @param has_newdata Whether user supplied
+#' data for future periods
+#' @param is_forecast_obs Whether the forecast
+#' includes future observed values for the
+#' outcome variable
 #'
 #' @returns A tibble
 #'
 #' @noRd
 forecast_components <- function(mod,
                                 components_est,
-                                labels_forecast) {
+                                data_forecast,
+                                labels_forecast,
+                                has_newdata,
+                                is_forecast_obs) {
   priors <- mod$priors
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
+  datamod <- mod$datamod
+  n_draw <- n_draw(mod)
   is_time_varying <- vapply(dimnames_terms,
                             function(x) var_time %in% names(x), TRUE)
+  has_datamod_param <- has_datamod_param(mod)
   ans <- .mapply(forecast_term,
                  dots = list(prior = priors[is_time_varying],
                              dimnames_term = dimnames_terms[is_time_varying]),
@@ -122,6 +135,21 @@ forecast_components <- function(mod,
                                  var_sexgender = var_sexgender,
                                  components = components_est,
                                  labels_forecast = labels_forecast))
+  if (has_datamod_param) {
+    val <- tryCatch(
+      forecast_datamod_param(datamod = datamod,
+                             data_forecast = data_forecast,
+                             n_draw = n_draw,
+                             has_newdata = has_newdata),
+      error = function(e) e
+    )
+    if (inherits(val, "error")) {
+      if (is_forecast_obs)
+        stop(val)
+    }
+    else
+      ans <- c(ans, list(val))
+  }
   ans <- vctrs::vec_rbind(!!!ans)
   ans <- sort_components(ans, mod = mod)
   ans
@@ -456,6 +484,7 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
   ans <- lapply(data[vars], unique)
   ans[[var_time]] <- labels_forecast
   ans <- vctrs::vec_expand_grid(!!!ans)
+  ans <- chr_to_int(ans)
   ans <- vctrs::vec_rbind(data, ans)
   i_original <- seq_len(nrow(data))
   ans <- ans[-i_original, , drop = FALSE]

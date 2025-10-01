@@ -1,0 +1,667 @@
+---
+title: "10. Data Models"
+output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    fig_caption: yes
+    toc: true
+    toc_depth: 2
+    number_sections: true
+pkgdown:
+  as_is: true
+vignette: >
+  %\VignetteIndexEntry{10. Data Models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, include = FALSE}
+library(bage)
+library(dplyr)
+library(poputils)
+library(ggplot2)
+library(patchwork)
+births <- kor_births |>
+  filter(region == "Ulsan",
+         time == 2023) |>
+  select(age, births, popn)
+```
+
+# Introduction
+
+By default, the Poisson, binomial, and normal models in `bage` assume that any measurement errors in the input data are small enough to be ignored. These models can, however, be extended to accommodate various types of measurement error. This is done by adding a "data model"---also referred to as a "measurement error model"---to the base model. The data models that have been implemented so far in `bage` are fairly generic: they aim to perform reasonably well on a wide range of applications, rather than performing optimally on any particular application. Future versions of `bage` will add some more specialised data models.
+
+This vignette begins with an overview of the current menu of data models. It then shows how the simple models presented in the overview can be extended to deal with more complicated situations, and discusses forecasting and confidentialization.
+
+The overview will use a model of births in a single Korean province in a single year. The input data is:
+
+
+```{r}
+births
+```
+
+```{r, echo = FALSE, fig.width = 3, fig.height = 3}
+ggplot(births, aes(x = age_mid(age))) +
+  geom_point(aes(y = births),
+             color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+```
+
+Our base model treats the input data as error free. We specify and fit the base model as follows.
+
+```{r}
+library(bage)
+library(dplyr)
+mod_base <- mod_pois(births ~ age,
+                     data = births,
+                     exposure = popn) |>
+  fit()
+mod_base
+```
+
+The base model yields the following estimates for birth rates: 
+
+```{r, fig.width = 3, fig.height = 3, echo = FALSE, message = FALSE}
+aug_base <- mod_base |>
+  augment() |>
+  mutate(draws_ci(.fitted))
+
+ggplot(aug_base, aes(x = age_mid(age))) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+```
+
+# Current menu of data models
+
+## Overview
+
+`bage` currently implements five generic data models:
+
+| **Model**  | **Assumptions about measurement error**       | **Poisson** | **Binomial** | **Normal** |
+|:-----------|:----------------------------------------------|:---------|:----------|:---------|
+| Miscount   | Reported outcome has undercount and overcount | Yes | No | No |
+| Undercount | Reported outcome has undercount               | Yes | Yes | No |
+| Overcount  | Reported outcome has overcount                | Yes | No | No |
+| Noise      | Reported outcome unbiased, but with positive and negative measurement errors | Yes* | No | Yes |
+| Exposure   | Reported exposure unbiased, but with positive and negative measurement errors | Yes* | No | No |
+
+*Models with no dispersion term for rates.
+
+
+## Undercount model
+
+The undercount data model assumes that each event or person in the target population has a non-zero chance of being left out of the reported total. In other words, inclusion probabilities are less than 1. The user supplies a prior for inclusion probabilities, which is parameterized using means and dispersions, with means restricted to values between 0 and 1.
+
+More precisely, the undercount data model is
+\begin{align}
+  y_i^{\text{obs}} & \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\
+  \pi_g & \sim \text{Beta}\left( \frac{m_g}{d_g}, \frac{1-m_g}{d_g} \right)
+\end{align}
+where
+
+- $y_i^{\text{obs}}$ is the observed value for the outcome variable in cell $i$;
+- $y_i^{\text{true}}$ is the true value for the outcome variable in cell $i$;
+- $\pi_{g[i]}$ is the inclusion probability for cell $i$ (which may be shared across multiple cells);
+- $m_g$ is the mean for the prior governing $\pi_g$; and
+- $d_g$ is the dispersion for the prior governing $\pi_g$.
+
+
+We assume, for the moment, that all cells share the same coverage probability, which is drawn from a distribution with mean 0.8 and dispersion 0.02.
+
+```{r}
+prob_under <- data.frame(mean = 0.8, disp = 0.02)
+```
+
+We use function `set_datamod_undercount to add an 'undercount' data model to our original base model, and then fit the new combined model
+
+```{r, message = FALSE}
+mod_under <- mod_base |>
+  set_datamod_undercount(prob = prob_under) |>
+  fit()
+mod_under
+```
+Calling `augment()` on the fitted model yields the usual estimates of the birth rate, shown in the `.fitted` and `.expected` columns, but also estimates of true births, in the `.births` column:
+
+```{r, messages = FALSE}
+mod_under |>
+  augment()
+```
+
+Estimated birth rates from the undercount model are higher than estimated birth rates from the base model, since the undercount model assumes that reported births understate true births.
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 3, message = FALSE, warning = FALSE}
+aug_under <- mod_under |>
+  augment() |>
+  mutate(draws_ci(.births)) |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Undercount = aug_under,
+                  .id = "model") |>
+  mutate(.births.mid = if_else(is.na(.births.mid), births, .births.mid))
+
+ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+```
+
+Here are the estimates of births underlying the baseline and undercount models:
+```{r, echo = FALSE, fig.width = 6, fig.height = 3, message = FALSE, warning = FALSE}
+ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .births.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .births.lower,
+                     ymax = .births.upper),
+		 data = filter(data, model == "Undercount"),
+	         color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+```
+
+The estimated coverage probability can be extracted using function `components()`:
+```{r}
+mod_under |>
+  components() |>
+  filter(term == "datamod")
+```
+
+
+## Overcount model
+
+The overcount data model assumes that reported outcomes include counts of people or events that do not in fact come from the true population, or that have been double-counted. The expected size of the overcount equals the expected size of the true count, multiplied by an overcoverage rate.
+
+More precisely,
+\begin{align}
+  y_i^{\text{obs}} & = y_i^{\text{true}} + \epsilon_i \\
+  \epsilon_i & \sim \text{Poisson}( \kappa_{g[i]}  \gamma_i w_i) \\
+  \kappa_g & \sim \text{Gamma}\left(\frac{1}{d_g}, \frac{1}{m_g d_g} \right)
+\end{align}
+where
+
+- $y_i^{\text{obs}}$ is the observed value for the outcome variable in cell $i$;
+- $y_i^{\text{true}}$ is the true value for the outcome variable in cell $i$;
+- $\gamma_i$ is the underlying rate for outcome $y_i^{\text{true}}$;
+- $w_i$ is exposure in cell $i$;
+- $\kappa_{g[i]}$ is the overcoverage rate for cell $i$ (which may be shared across multiple cells);
+- $m_g$ is the mean for the prior governing $\kappa_g$; and
+- $d_g$ is the dispersion for the prior governing $\kappa_g$.
+
+For the moment, we assume that all cells have the same overcoverage rate, which is drawn from a distribution with mean 0.1 and dispersion 0.05.
+
+```{r}
+rate_over <- data.frame(mean = 0.1, disp = 0.05)
+```
+
+We specify the overcount model using function `set_datamod_overcount()`.
+
+```{r}
+mod_over <- mod_base |>
+  set_datamod_overcount(rate = rate_over)
+```
+
+Adding an overcount data model produces birth rate estimates that are lower than those of the base model, since the reported birth counts are assumed to be too high.
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE}
+mod_over <- mod_over |>
+  fit()
+
+aug_over <- mod_over |>
+  augment(quiet = TRUE) |>
+  mutate(draws_ci(.births)) |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Overcount = aug_over,
+                  .id = "model") |>
+  mutate(.births.mid = if_else(is.na(.births.mid), births, .births.mid))
+
+p_rate <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+
+p_count <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .births.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .births.lower,
+                     ymax = .births.upper),
+		 data = filter(data, model == "Overcount"),
+	         color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+
+p_rate / p_count
+```
+
+
+## Miscount model
+
+The miscount data model is a combination of the undercount and overcount models. It assumes that the reported outcome includes some undercount, and some overcount. The model is
+\begin{align}
+  y_i^{\text{obs}} & = u_i + v_i \\
+  u_i & \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\
+  v_i & \sim \text{Poisson}( \kappa_{h[i]}  \gamma_i w_i) \\
+  \pi_g & \sim \text{Beta}\left( \frac{m_g}{d_g}, \frac{1-m_g}{d_g} \right) \\
+  \kappa_h & \sim \text{Gamma}\left(\frac{1}{d_h}, \frac{1}{m_h d_h} \right)
+\end{align}
+where the variables have the same definitions as they do in the undercount and overcount models.
+
+We need to specify priors for inclusion probabilities and overcoverage rates. We re-use the priors from the previous models.
+
+```{r, message = FALSE}
+mod_mis <- mod_base |>
+  set_datamod_miscount(prob = prob_under,
+                       rate = rate_over)
+```
+
+Our choice of priors implies more undercoverage than overcoverage, so our estimated birth rates, and estimated birth counts, are higher than those of the baseline model.
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE}
+mod_mis <- mod_mis |>
+  fit()
+
+aug_mis <- mod_mis |>
+  augment(quiet = TRUE) |>
+  mutate(draws_ci(.births)) |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Miscount = aug_mis,
+                  .id = "model") |>
+  mutate(.births.mid = if_else(is.na(.births.mid), births, .births.mid))
+
+p_rate <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+
+p_count <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .births.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .births.lower,
+                     ymax = .births.upper),
+		 data = filter(data, model == "Miscount"),
+	         color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+
+p_rate / p_count
+```
+
+We use `components()` to extract estimates of the inclusion probability and overcount rate.
+
+```{r}
+mod_mis |>
+  components() |>
+  filter(term == "datamod")
+```
+
+
+## Noise model
+
+The noise model assumes that the reported outcome equals the true outcome plus some noise,
+
+\begin{equation}
+  y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i.
+\end{equation}
+
+The noise is assumed have an expected value of zero. Its distribution depends on the base model the noise data model is being applied to. If the base model is normal, then the noise is assumed to have a normal distribution,
+\begin{equation}
+  \epsilon_i \sim \text{N}(0, s_{g[i]}^2)
+\end{equation}
+
+If the base model is Poisson, then the noise is assumed to have a symmetric Skellam distribution,
+\begin{equation}
+  \epsilon_i \sim \text{Skellam}(m_{g[i]}, m_{g[i]})
+\end{equation}
+where $m_g = \frac{1}{2} s_g^2$.
+
+The Skellam distribution is derived from the Poisson distribution. If $x_1 \sim \text{Poisson}(\mu_1)$, $x_2 \sim \text{Poisson}(\mu_2)$, and $y = x_1 + x_2$, then $y \sim \text{Skellam}(\mu_1, \mu_2)$. If the two Poisson variates have the same expected value, than the Skellam distribution is symmetric, with single parameter $\mu$, $\text{E}[y] = 0$ and $\text{var}[y] = 2 \mu$.
+
+Note that unlike the undercount, overcount, and miscount data models, the noise data model has no unknown parameters.
+
+To use the noise data model with a Poisson model, we need to set dispersion in the Poisson model to 0. Function `set_datamod_noise()` will do this for us, but it is good practice to make the change explicit:
+```{r, message = FALSE}
+mod_noise <- mod_base |>
+  set_disp(mean = 0) |>
+  set_datamod_noise(s = 50)
+```
+
+Fitting this model yields the following estimates.
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE}
+mod_noise <- mod_noise |>
+  fit()
+
+aug_noise <- mod_noise |>
+  augment(quiet = TRUE) |>
+  mutate(draws_ci(.births)) |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Noise = aug_noise,
+                  .id = "model") |>
+  mutate(.births.mid = if_else(is.na(.births.mid), births, .births.mid))
+
+p_rate <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+
+p_count <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .births.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .births.lower,
+                     ymax = .births.upper),
+		 data = filter(data, model == "Noise"),
+	         color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth count")
+
+p_rate / p_count
+```
+
+If the outcome variable is subject to known biases, then measurement errors cannot be assumed to have mean zero. Before the noise data model can be used, the outcome variable must be de-biased, by subtracting estimates of the bias.
+
+
+## Exposure model
+
+In some applications, the exposure variable has bigger measurement errors than the outcome variable. `bage` has an exposure data model to be used with Poisson base models. 
+
+The model is
+
+\begin{equation}
+  w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g[i]}^{-1}, [1 + d_{g[i]}^{-1}] w_i^{\text{true}})
+\end{equation}
+
+where
+- $w_i^{\text{obs}}$ is the observed value for exposure in cell $i$;
+- $w_i^{\text{true}}$ is the true value for exposure in cell $i$;
+- $w_i$ is exposure in cell $i$; and
+- $d_{g[i]}$ is the dispersion parameter for cell $i$ (which may be shared across multiple cells).
+
+The model contains no unknown parameters. Under the model
+\begin{align}
+  E[w_i^{\text{obs}} \mid w_i^{\text{true}}] & =  w_i^{\text{true}} \\
+  \text{var}[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = d_{g[i]} ( w_i^{\text{true}})^2 \\
+  \text{cv}[w_i^{\text{obs}} \mid w_i^{\text{true}}] & = \sqrt{d_{g[i]}}
+\end{align}
+where 'cv' is the coefficient of variation, defined as the standard deviation, divided by the mean. 
+
+The exposure data model is specified using the cv. As with the noise data model, dispersion in the base model must be set to 0. 
+
+```{r, message = FALSE}
+mod_expose <- mod_base |>
+  set_disp(mean = 0) |>
+  set_datamod_exposure(cv = 0.05)
+```
+
+Along with estimates of birth rates, the model also yields estimates of the true population.
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE}
+mod_expose <- mod_expose |>
+  fit()
+
+aug_expose <- mod_expose |>
+  augment(quiet = TRUE) |>
+  mutate(draws_ci(.popn)) |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Base = aug_base, 
+                  Expose = aug_expose,
+                  .id = "model") |>
+  mutate(.popn.mid = if_else(is.na(.popn.mid), popn, .popn.mid))
+
+p_rate <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+
+p_popn <- ggplot(data, aes(x = age_mid(age))) +
+  facet_wrap(vars(model)) +
+  geom_point(aes(y = .popn.mid),
+             color = "darkblue") +
+  geom_linerange(aes(ymin = .popn.lower,
+                     ymax = .popn.upper),
+		 data = filter(data, model == "Expose"),
+	         color = "darkblue") +
+  ylim(0, NA) +	 
+  xlab("Age") +
+  ylab("Population")
+
+p_rate / p_popn
+```
+
+
+# More complicated error specifications
+
+In full-sized applications, we generally want inclusion probabilities, coverage rates, standard deviations, and coefficients of variation to vary across dimensions such as age, sex, and time. The data models implemented in `bage` allow this sort of variation.
+
+We illustrate the use of varying data model parameters using a slightly extended version of our births model. We use a new dataset that includes a time variable:
+
+```{r, include = FALSE}
+births_time <- kor_births |>
+  filter(region == "Ulsan",
+         time %in% 2021:2023) |>
+  select(age, time, births, popn)
+```
+
+```{r}
+births_time
+```
+
+We create a new prior for inclusion probabilities where the mean and dispersion vary over time:
+
+```{r}
+prob_under_time <- data.frame(time = c(2021, 2022, 2023),
+                              mean = c(0.99, 0.8,  0.99),
+			                        disp = c(0.01, 0.02, 0.01))
+```
+
+We implement one model with the old time-constant prior, and one with the new time-varying prior. 
+
+```{r}
+mod_timeconst <- mod_pois(births ~ age + time,
+                          data = births_time,
+			                    exposure = popn) |>
+  set_datamod_undercount(prob = prob_under)
+
+mod_timevarying <- mod_timeconst |>
+  set_datamod_undercount(prob = prob_under_time)
+```
+
+As we would expect, these two models give different results.
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 6, message = FALSE, warning = FALSE}
+aug_timeconst <- mod_timeconst |>
+  fit() |>
+  augment() |>
+  mutate(draws_ci(.fitted))
+
+aug_timevarying <- mod_timevarying |>
+  fit() |>
+  augment() |>
+  mutate(draws_ci(.fitted))
+
+data <- bind_rows(Constant = aug_timeconst, 
+                  Varying = aug_timevarying,
+                  .id = "model")
+
+ggplot(data, aes(x = age_mid(age))) +
+  facet_grid(vars(model), vars(time)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+```
+
+Data model parameters can vary across more than one dimension. We set up a prior that varies across age and time. Rather than using different inclusion probabilities for every age group, however, we use one set for people aged 10-34, and one for people aged 35+. To implement this, we need to create a new, aggregated age group.
+
+```{r}
+births_time <- births_time |>
+  mutate(agegp = if_else(age %in% c("10-14", "15-19",
+                                    "20-24", "25-29",
+                                    "30-34"),
+                         "10-34",
+                         "35+"))                             
+
+prob_under_agetime <- data.frame(
+  time =  c(2021,    2022,    2023,    2021,  2022,  2023),
+  agegp = c("10-34", "10-34", "10-34", "35+", "35+", "35+"),
+  mean =  c(0.95,    0.95,    0.95,    0.95,  0.5,  0.95),
+  disp =  c(0.01,    0.01,    0.01,    0.01,  0.1,  0.01))
+
+mod_agetime <- mod_pois(births ~ age + time,
+                        data = births_time,
+			                  exposure = popn) |>
+  set_datamod_undercount(prob = prob_under_agetime)
+```
+
+The model assumes that births for women aged 35+ in 2022 were subject to an unusual degree of under-reporting. The results reflect that assumption.
+
+```{r, echo = FALSE, fig.width = 6, fig.height = 3, message = FALSE, warning = FALSE}
+aug_agetime <- mod_agetime |>
+  fit() |>
+  augment() |>
+  mutate(draws_ci(.fitted))
+
+ggplot(aug_agetime, aes(x = age_mid(age))) +
+  facet_wrap(vars(time)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  xlab("Age") +
+  ylab("Birth rate")
+```
+  
+
+# Forecasting with data models
+
+## Data model parameters constant over time
+
+Data models can be used in forecasting applications. Implementation is easiest with the data model does not contain any time-varying parameters, like the `mod_timeconst` constructed above:
+
+```{r}
+mod_timeconst |>
+  fit() |>
+  forecast(label = 2024)
+```
+
+If future values for population are supplied, then the forecast will include true and reported values for the outcome variable:
+
+```{r}
+newdata_births <- data.frame(
+  age = c("10-14", "15-19", "20-24", "25-29", "30-34",
+          "35-39", "40-44", "45-49", "50-54"),
+  time = rep(2024, 9),
+  popn = c(27084, 25322, 23935, 28936, 30964,
+           31611, 44567, 41774, 51312))
+
+mod_timeconst |>
+  fit() |>
+  forecast(newdata = newdata_births)
+```
+
+
+## Data model parameters vary over time
+
+When the data model contains parameters that vary over time, future values for these parameters must be specified. This is done when the data model is first created. Here, for, instance, we create a version of the `prob_under_time` prior that includes values for 2024.
+
+```{r}
+prob_under_time_ext <- rbind(
+  prob_under_time,
+  data.frame(time = 2024,
+             mean = 0.95,
+             disp = 0.05))
+prob_under_time_ext
+```	     
+
+Our dataset only contains values up to 2023. When we fit our model, `bage` only uses prior values for the data model up to 2023. But when we forecast, `bage` uses the prior values for 2024.
+
+```{r, message = FALSE}
+mod_under_time_ext <- mod_pois(births ~ age + time,
+                               data = births_time,
+                               exposure = popn) |>
+  set_datamod_undercount(prob = prob_under_time_ext) |>
+  fit() |>
+  forecast(labels = 2024)
+```
+
+
+# Confidentialization with data models
+
+`bage` allows for the possibility that the outcome variable has been subject to measurement errors *and* has been confidentialized. The following model assumes that births have been under-reported, and have been randomly rounded to multiples of 3.
+
+```{r}
+births_rr3 <- births |>
+  mutate(births = rr3(births))
+
+mod_under_rr3 <- mod_pois(births ~ age,
+                          data = births_rr3,
+			  exposure = popn) |>
+  set_datamod_undercount(prob = prob_under) |>
+  set_confidential_rr3()
+```
+
+
+# Future developments: specialised data models
+
+The undercount, overcount, miscount, noise, and exposure data models allow analysts to account for general types of measurement error commonly encountered in applied demography. Like all models in `bage`, the data models are designed to be fast, even with large datasets. 
+
+As `bage` develops further, we would like to complement the existing suite of data models with additional, more specialized models. We would, for instance, like to add a special model for data, such as births data, where there are gaps between the date of occurrence and the date of registration. We welcome suggestions for specialised models.
+
+
+
+
+
+
+
+

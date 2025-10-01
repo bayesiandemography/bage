@@ -12,6 +12,7 @@ following columns:
 \item \code{age} 5-year age groups, with open age
 group of 85+
 \item \code{year} 2003, 2005, 2007, and 2011
+\item \code{value} Expenditures, in Euros
 }
 }
 \source{

@@ -155,7 +155,7 @@ check_covariates_formula <- function(formula, mod) {
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_datamod_by_val <- function(by_val, data, nm_val) {
+check_datamod_by_val <- function(by_val, data, nm_val, nm_data) {
   nms_by <- names(by_val)
   nms_data <- names(data)
   nm_in_data <- nms_by %in% nms_data
@@ -163,7 +163,7 @@ check_datamod_by_val <- function(by_val, data, nm_val) {
   if (i_not_in_data > 0L) {
     nm_nomatch <- nms_by[[i_not_in_data]]
     cli::cli_abort(paste("Variable {.var {nm_nomatch}} from {.arg {nm_val}}",
-                         "not found in {.arg data}."))
+                         "not found in {.arg {nm_data}}."))
   }
   key_by <- Reduce(paste_dot, by_val)
   key_data <- Reduce(paste_dot, data[nms_by])
@@ -177,12 +177,12 @@ check_datamod_by_val <- function(by_val, data, nm_val) {
     if (n_by > 1L)
       cli::cli_abort(c(paste("{.arg {nm_val}} does not include all",
                              "combinations of 'by' variables."),
-                       i = paste0("{.arg data} has ", levels,
+                       i = paste0("{.arg {nm_data}} has ", levels,
                                   ", but {.arg {nm_val}} does not.")))
     else
       cli::cli_abort(c(paste("{.arg {nm_val}} does not include all",
                              "levels of 'by' variable."),
-                       i = paste0("{.arg data} has ", levels,
+                       i = paste0("{.arg {nm_data}} has ", levels,
                                   ", but {.arg {nm_val}} does not.")))
   }
   invisible(TRUE)
@@ -1202,6 +1202,30 @@ check_response_nonneg <- function(formula, data, nm_distn) {
     cli::cli_abort(c(paste("Model uses {nm_distn} distribution but response variable",
                            "has negative {cli::qty(n_neg)}  value{?s}."),
                      i = "Response variable: {.var {nm_response}}."))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that Response Variable in Formula is
+#' Does Not Involve a Function Call
+#'
+#' @param formula A formula
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_response_not_call <- function(formula) {
+  response <- formula[[2L]]
+  if (is.call(response)) {
+    str_resp <- deparse1(response)
+    nm_fun <- deparse1(response[[1L]])
+    cli::cli_abort(c("Response includes function call.",
+                     i = "Response: {.var {str_resp}}.",
+                     i = paste("Use function {.fun {nm_fun}} to create a",
+                               "new variable in {.arg data} and use",
+                               "that as the response?")))
+  }
   invisible(TRUE)
 }
         

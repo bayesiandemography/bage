@@ -1,4 +1,28 @@
 
+#' Convert Integer-ish Character Vectors
+#' in a Data Frame to Integer
+#'
+#' @param df A data frame
+#'
+#' @returns A data frame
+#'
+#' @noRd
+chr_to_int <- function(df) {
+  for (i in seq_along(df)) {
+    var <- df[[i]]
+    if (is.character(var) || is.factor(var)) {
+      if (is.factor(var))
+        var <- as.character(var)
+      var_int <- suppressWarnings(as.integer(var))
+      no_new_na <- identical(is.na(var_int), is.na(var))
+      if (no_new_na)
+        df[[i]] <- var_int
+    }
+  }
+  df
+}
+ 
+
 ## HAS_TESTS
 #' Density for Beta-Binomial Distribution
 #'
@@ -133,7 +157,6 @@ is_not_testing_or_snapshot <- function() {
 #' @noRd
 is_same_class <- function(x, y)
   identical(class(x)[[1L]], class(y)[[1L]])
-
 
 ## HAS_TESTS
 #' Use a precision matrix to construct scaled eigen vectors
@@ -366,6 +389,266 @@ rpois_guarded <- function(lambda) {
 
 
 ## HAS_TESTS
+#' Draw from Posterior Distribution of True Values
+#' Given Observed Values, for Poisson plus Symmetric Skellam
+#'
+#' @param y_obs Observed value
+#' @param lambda Expected value
+#' @param m Mu for symmetric Skellam
+#'
+#' @returns A single draw
+#'
+#' @noRd
+draw_true_given_obs_pois_skellam <- function(y_obs, lambda, m) {
+  threshold <- 50
+  window_sd <- 8L
+  p0_thresh <- 0.01
+  if ((lambda < threshold) && (m < threshold))
+    draw_true_given_obs_pois_skellam_exact(y_obs = y_obs,
+                                           lambda = lambda,
+                                           m = m,
+                                           window_sd = window_sd)
+  else
+    draw_true_given_obs_pois_skellam_approx(y_obs = y_obs,
+                                            lambda = lambda,
+                                            m = m,
+                                            window_sd = window_sd,
+                                            p0_thresh = p0_thresh)
+}
+
+
+## HAS_TESTS
+#' Draw from Posterior Distribution of True Values
+#' Given Observed Values, for Poisson plus Symmetric Skellam -
+#' approx version
+#
+# Gaussian posterior from linear-Gaussian approximation:
+#' X ~ N(lambda, lambda), U ~ N(0, 2m), Y = X + U
+#' 
+#' @param y_obs Observed value
+#' @param lambda Expected value
+#' @param m Mu for symmetric Skellam
+#' @param window_sd Width of window, in SDs
+#' @param p0_thresh If approx Pr(y_true=0) > p0_threshold, use windowing
+#'
+#' @returns A single draw
+#'
+#' @noRd
+draw_true_given_obs_pois_skellam_approx <- function(y_obs,
+                                                    lambda,
+                                                    m,
+                                                    window_sd,
+                                                    p0_thresh) {
+  mu_post  <- lambda + (lambda / (lambda + 2 * m)) * (y_obs - lambda)
+  var_post <- (lambda * 2 * m) / (lambda + 2 * m)
+  var_post <- max(var_post, .Machine$double.eps)
+  sd_post  <- sqrt(var_post)
+  ## heuristics for choosing discrete window vs truncnorm + rounding
+  near_boundary <- (mu_post < 3 * sd_post)
+  p0_approx <- stats::pnorm(0.5, mean = mu_post, sd = sd_post) -
+    stats::pnorm(-0.5, mean = mu_post, sd = sd_post)
+  p0_above_threshold <- p0_approx > p0_thresh
+  need_window <- near_boundary || p0_above_threshold
+  if (!need_window) {
+    # truncnorm + rounding
+    u <- stats::runif(n = 1L)
+    alpha <- (0 - mu_post) / sd_post
+    p0_trunc <- stats::pnorm(alpha)
+    eps <- 1e-15
+    p0_trunc <- min(max(p0_trunc, eps), 1 - eps)
+    z <- stats::qnorm(p0_trunc + (1 - p0_trunc) * u)
+    ans <- floor(mu_post + sd_post * z + 0.5)
+    ans <- max(ans, 0L)
+  }
+  else {
+    ## window around mean
+    L <- floor(mu_post - window_sd * sd_post)
+    L <- max(0L, L)
+    R <- ceiling(mu_post + window_sd * sd_post)
+    R <- max(L + 1L, R)
+    y_trues <- seq.int(from = L, to = R)
+    ## draw from within window
+    log_wt <- stats::dnorm(y_trues, mean = mu_post, sd = sd_post, log = TRUE)
+    M <- max(log_wt)
+    prob <- exp(log_wt - M)
+    is_degenerate <- !any(is.finite(prob)) || (sum(prob) == 0) 
+    if (is_degenerate)                                         
+      ans <- as.integer(round(max(0, mu_post)))                # nocov
+    else
+      ans <- sample(y_trues, size = 1L, prob = prob)
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Draw from Posterior Distribution of True Values
+#' Given Observed Values, for Poisson plus Symmetric Skellam
+#' - Exact, Small Sample
+#'
+#' @param y_obs Observed value
+#' @param lambda Expected value
+#' @param m Mu for symmetric Skellam
+#' @param window_sd Width of window, in SDs
+#'
+#' @returns A single draw
+#'
+#' @noRd
+draw_true_given_obs_pois_skellam_exact <- function(y_obs,
+                                                   lambda,
+                                                   m,
+                                                   window_sd) {
+  ## window boundaries
+  sd_y_obs <- sqrt(lambda + 2 * m)
+  L <- floor(y_obs - window_sd * sd_y_obs)
+  L <- max(0L, L)
+  R <- max(y_obs + window_sd * sd_y_obs,
+           lambda + window_sd * sqrt(lambda + 1))
+  R <- ceiling(R)
+  R <- max(L + 1L, R)
+  y_trues <- L:R
+  ## log skellam (symmetric)
+  nu <- abs(y_obs - y_trues)
+  log_skellam <- log_skellam_safe(x = nu,
+                                  m = m,
+                                  threshold = 200L)
+  is_inf <- is.infinite(log_skellam)
+  if (any(is_inf))
+    log_skellam[is_inf] <- log_skellam_safe(x = nu[is_inf],  # nocov
+                                            m = m,           # nocov
+                                            threshold = 50L) # nocov
+  ## log pois
+  log_pois <- stats::dpois(y_trues, lambda = lambda, log = TRUE)
+  ## unnormalized log posterior weights
+  log_wt <- log_skellam + log_pois
+  ## subtract max before exponentiating
+  M <- max(log_wt)
+  prob <- exp(log_wt - M)
+  # draw single value of y_true
+  sample(y_trues, size = 1L, prob = prob)
+}
+
+
+## HAS_TESTS
+#' Skellam Density
+#'
+#' Uses approximation when numbers large.
+#'
+#' @param x Counts. Interish vector.
+#' @param mu1, mu2 Skellam parameters.
+#' Positive numeric vectors the same length as x.
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+dskellam <- function(x, mu1, mu2) {
+  thresh_small_mu <- 5.0
+  thresh_small_x  <- 30.0
+  n <- length(x)
+  ans <- rep(NA_real_, times = n)
+  is_na <- is.na(x)
+  is_mu1_zero <- mu1 == 0
+  is_mu2_zero <- mu2 == 0
+  both <- !is_na & is_mu1_zero & is_mu2_zero
+  first <- !is_na & is_mu1_zero & !is_mu2_zero
+  second <- !is_na & !is_mu1_zero & is_mu2_zero
+  neither <- !is_na & !is_mu1_zero & !is_mu2_zero
+  ans[both] <- 1
+  ans[first] <- stats::dpois(-x[first], mu2[first])
+  ans[second] <- stats::dpois(x[second], mu1[second])
+  mu_small <- (mu1 + mu2) < thresh_small_mu
+  x_small  <- abs(x) < thresh_small_x
+  use_exact <- neither & mu_small & x_small
+  use_approx <- neither & !use_exact
+  ans[use_exact] <- dskellam_exact(x = x[use_exact],
+                                   mu1 = mu1[use_exact],
+                                   mu2 = mu2[use_exact])
+  ans[use_approx] <- dskellam_approx(x = x[use_approx],
+                                     mu1 = mu1[use_approx],
+                                     mu2 = mu2[use_approx])
+  ans
+}
+
+
+## HAS_TESTS
+#' Skellam Density Calculated Via Saddle Point Approximation
+#'
+#' @param x Counts. Interish vector.
+#' @param mu1, mu2 Skellam parameters.
+#' Positive numeric vectors the same length as x.
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+dskellam_approx <- function(x, mu1, mu2) {
+  s <- (x + sqrt(x * x + 4 * mu1 * mu2)) / (2 * mu1)
+  t <- log(s)
+  s_inv <- 1 / s
+  K <- mu1 * (s - 1) + mu2 * (s_inv - 1)
+  K2 <- mu1 * s + mu2 * s_inv
+  logp <- -0.5 * log(2 * pi) - 0.5 * log(K2) + K - t * x
+  exp(logp)
+}
+
+
+## HAS_TESTS
+#' Skellam Density Calculated Via Bessel I
+#'
+#' This gives the exact density,
+#' but is slow, and has numerical
+#' problems with large numbers.
+#'
+#' @param x Counts. Interish vector.
+#' @param mu1, mu2 Skellam parameters.
+#' Positive numeric vectors the same length as x.
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+dskellam_exact <- function(x, mu1, mu2) {
+  v  <- 2 * sqrt(mu1 * mu2)
+  nu <- abs(x)
+  logp <- -(mu1 + mu2) +
+          0.5 * x * (log(mu1) - log(mu2)) +
+          log(besselI(v, nu, expon.scaled = TRUE)) + v
+  exp(logp)
+}
+
+
+#' Safe Calculation of Log Density of Symmetric Skellam
+#'
+#' @param x Values where density required
+#' @param m 'mu' parameter for symmetric skellam
+#' @param threshold Threshold for switching to
+#' approximation of besselI
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+log_skellam_safe <- function(x, m, threshold) {
+  use_bessel <- x <= threshold
+  n <- length(x)
+  if (m > 0) {
+    ans <- rep(-Inf, times = n)
+    if (any(use_bessel)) {
+      x_bessel <- x[use_bessel]
+      ans[use_bessel] <- suppressWarnings(
+        log(besselI(2 * m, nu = x_bessel, expon.scaled = TRUE))
+      )
+    }
+    if (any(!use_bessel)) {
+      x_approx <- x[!use_bessel]
+      ans[!use_bessel] <- -2 * m + x_approx * log(m) - lgamma(x_approx + 1)
+    }
+    ans[!is.finite(ans)] <- -Inf
+  }
+  else
+    ans <- ifelse(x == 0, 0, -Inf)
+  ans
+}
+
+
+## HAS_TESTS
 #' Convert Rvec Columns to Numeric Columns by Taking Means
 #'
 #' @param data A data frame
@@ -378,7 +661,6 @@ rvec_to_mean <- function(data) {
   data[is_rvec] <- lapply(data[is_rvec], rvec::draws_mean)
   data
 }
-
 
 
 ## HAS_TESTS

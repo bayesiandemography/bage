@@ -204,15 +204,119 @@ test_that("'forecast_components' works", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
+  data_forecast <- expand.grid(labels_forecast,
+                               age = 0:9,
+                               sex = c("F", "M"),
+                               KEEP.OUT.ATTRS = FALSE)
   set.seed(1)
   ans <- forecast_components(mod = mod,
                              components_est = components_est,
-                             labels_forecast = labels_forecast)
+                             data_forecast = data_forecast,
+                             labels_forecast = labels_forecast,
+                             has_newdata = TRUE,
+                             is_forecast_obs = FALSE)
   expect_setequal(2006:2008,
                   ans$level[ans$term == "time"])
   expect_setequal(c(paste("F", 2006:2008, sep = "."),
                     paste("M", 2006:2008, sep = ".")),
                   ans$level[ans$term == "sex:time"])
+})
+
+test_that("'forecast_components' works - includes data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 10000)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1) |>
+    set_n_draw(n = 10) |>
+    set_datamod_undercount(prob = data.frame(mean = 0.9, disp = 0.1)) |>
+    fit()
+  components_est <- components(mod)
+  labels_forecast <- 2006:2008
+  data_forecast <- expand.grid(time = labels_forecast,
+                               age = 0:9,
+                               sex = c("F", "M"),
+                               KEEP.OUT.ATTRS = FALSE)
+  set.seed(1)
+  ans <- forecast_components(mod = mod,
+                             components_est = components_est,
+                             data_forecast = data_forecast,
+                             labels_forecast = labels_forecast,
+                             has_newdata = TRUE,
+                             is_forecast_obs = TRUE)
+  expect_setequal(2006:2008,
+                  ans$level[ans$term == "time"])
+  expect_setequal(c(paste("F", 2006:2008, sep = "."),
+                    paste("M", 2006:2008, sep = ".")),
+                  ans$level[ans$term == "sex:time"])
+  expect_equal(nrow(subset(ans, term == "datamod")), 1L)
+})
+
+test_that("'forecast_components' throws error if can't forecast data model and is_forecast_obs is TRUE", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 10000)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1) |>
+    set_n_draw(n = 10) |>
+    set_datamod_undercount(prob = data.frame(time = 2000:2005,
+                                             mean = 0.9,
+                                             disp = 0.1)) |>
+    fit()
+  components_est <- components(mod)
+  labels_forecast <- 2006:2008
+  data_forecast <- expand.grid(time = labels_forecast,
+                               age = 0:9,
+                               sex = c("F", "M"),
+                               KEEP.OUT.ATTRS = FALSE)
+  set.seed(1)
+  expect_error(
+    forecast_components(mod = mod,
+                        components_est = components_est,
+                        data_forecast = data_forecast,
+                        labels_forecast = labels_forecast,
+                        has_newdata = TRUE,
+                        is_forecast_obs = TRUE),
+    "`prob` does not include all levels of")
+})
+
+
+test_that("'forecast_components' ignore data model if can't forecast is and is_forecast_obs is FALSE", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 10000)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1) |>
+    set_n_draw(n = 10) |>
+    set_datamod_undercount(prob = data.frame(time = 2000:2005,
+                                             mean = 0.9,
+                                             disp = 0.1)) |>
+    fit()
+  components_est <- components(mod)
+  labels_forecast <- 2006:2008
+  data_forecast <- expand.grid(time = labels_forecast,
+                               age = 0:9,
+                               sex = c("F", "M"),
+                               KEEP.OUT.ATTRS = FALSE)
+  set.seed(1)
+  ans <- forecast_components(mod = mod,
+                             components_est = components_est,
+                             data_forecast = data_forecast,
+                             labels_forecast = labels_forecast,
+                             has_newdata = TRUE,
+                             is_forecast_obs = FALSE)
+  expect_setequal(2006:2008,
+                  ans$level[ans$term == "time"])
+  expect_setequal(c(paste("F", 2006:2008, sep = "."),
+                    paste("M", 2006:2008, sep = ".")),
+                  ans$level[ans$term == "sex:time"])
+  expect_false("datamod" %in% ans$term)
 })
 
 

@@ -123,7 +123,7 @@ Statistical Science. 11 (2): 89–121.
 main effect, or interaction
 \item \code{\link[splines:bs]{splines::bs()}} Function used by \strong{bage} to construct
 spline basis functions
-\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette
 }
 }

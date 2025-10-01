@@ -216,7 +216,7 @@ SVD_RW2(HMD, indep = FALSE)
 \itemize{
 \item For details of the construction of
 scaled SVDS see the
-\item \href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{Mathematical Details}
+\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette
 }
 }
