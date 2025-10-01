@@ -15,7 +15,7 @@ for a model."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,15 +26,16 @@ for a model."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/vig1_intro.html">1. Overview</a></li>
-    <li><a class="dropdown-item" href="../articles/vig2_math.html">2. Mathematical Details</a></li>
-    <li><a class="dropdown-item" href="../articles/vig3_priors.html">3. Priors</a></li>
-    <li><a class="dropdown-item" href="../articles/vig4_svd.html">4. Singular Value Decomposition</a></li>
-    <li><a class="dropdown-item" href="../articles/vig5_bdef.html">5. Examples from BDEF Book</a></li>
-    <li><a class="dropdown-item" href="../articles/vig6_mortality.html">6. Modelling Mortality</a></li>
-    <li><a class="dropdown-item" href="../articles/vig7_simulation.html">7. Simulation</a></li>
-    <li><a class="dropdown-item" href="../articles/vig8_workflow.html">8. Bayesian Workflow</a></li>
-    <li><a class="dropdown-item" href="../articles/vig9_covariates.html">9. Covariates</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/vig01_intro.html">1. Overview</a></li>
+    <li><a class="dropdown-item" href="../articles/vig02_math.html">2. Mathematical Details</a></li>
+    <li><a class="dropdown-item" href="../articles/vig03_priors.html">3. Priors</a></li>
+    <li><a class="dropdown-item" href="../articles/vig04_svd.html">4. Singular Value Decomposition</a></li>
+    <li><a class="dropdown-item" href="../articles/vig05_bdef.html">5. Examples from BDEF Book</a></li>
+    <li><a class="dropdown-item" href="../articles/vig06_mortality.html">6. Modelling Mortality</a></li>
+    <li><a class="dropdown-item" href="../articles/vig07_simulation.html">7. Simulation</a></li>
+    <li><a class="dropdown-item" href="../articles/vig08_workflow.html">8. Bayesian Workflow</a></li>
+    <li><a class="dropdown-item" href="../articles/vig09_covariates.html">9. Covariates</a></li>
+    <li><a class="dropdown-item" href="../articles/vig10_datamod.html">10. Data Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -104,8 +105,7 @@ is <code>"multi"</code>. See below for details.</p></dd>
 
 
 <dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
-<dd><p>Whether to suppress warnings and
-progress messages from the optimizer.
+<dd><p>Whether to suppress messages.
 Default is <code>TRUE</code>.</p></dd>
 
 
@@ -173,7 +173,7 @@ with original data</p></li>
 <li><p><code><a href="report_sim.html">report_sim()</a></code> Simulation study of a model</p></li>
 <li><p><code><a href="unfit.html">unfit()</a></code> Reset a model</p></li>
 <li><p><code><a href="is_fitted.html">is_fitted()</a></code> Check if a model has been fitted</p></li>
-<li><p><a href="https://bayesiandemography.github.io/bage/articles/vig2_math.html">Mathematical Details</a>
+<li><p><a href="https://bayesiandemography.github.io/bage/articles/vig02_math.html">Mathematical Details</a>
 vignette</p></li>
 </ul></div>
     </div>
@@ -192,7 +192,7 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   exposure = popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  exposure: popn</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along n_par n_par_free</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -     1          1</span>
@@ -219,7 +219,7 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   exposure = popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  exposure: popn</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along n_par n_par_free std_dev</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -     1          1       -</span>
@@ -233,7 +233,7 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    1000     year     age           sex    nlminb</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_max time_draw iter converged                    message</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        0.25     0.11      0.11   13      TRUE   relative convergence (4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        0.26     0.11      0.12   13      TRUE   relative convergence (4)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## extract rates</span></span></span>
@@ -261,16 +261,16 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 37 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    term        component level                   .fitted</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)    -2.5 (-4, -0.76)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4            -2.5 (-4, -0.89)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9           -3.8 (-5.4, -2.2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14         -3.4 (-4.9, -1.7)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19       -1.6 (-3.2, -0.019)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24           -1.5 (-3, 0.14)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29       -1.6 (-3.2, -0.026)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34        -1.7 (-3.2, -0.13)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39        -1.7 (-3.3, -0.13)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44        -1.7 (-3.3, -0.12)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)  -2.5 (-4.1, -0.83)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4          -2.5 (-4.3, -0.93)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9           -3.8 (-5.6, -2.2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14         -3.3 (-5.2, -1.7)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19       -1.6 (-3.4, -0.076)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24        -1.5 (-3.3, 0.099)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29       -1.6 (-3.4, -0.053)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34        -1.7 (-3.5, -0.12)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39        -1.7 (-3.5, -0.12)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44        -1.7 (-3.5, -0.14)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 27 more rows</span></span>
 </code></pre></div>
     </div>

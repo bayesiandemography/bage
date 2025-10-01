@@ -15,7 +15,7 @@ other model parameters."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,15 +26,16 @@ other model parameters."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/vig1_intro.html">1. Overview</a></li>
-    <li><a class="dropdown-item" href="../articles/vig2_math.html">2. Mathematical Details</a></li>
-    <li><a class="dropdown-item" href="../articles/vig3_priors.html">3. Priors</a></li>
-    <li><a class="dropdown-item" href="../articles/vig4_svd.html">4. Singular Value Decomposition</a></li>
-    <li><a class="dropdown-item" href="../articles/vig5_bdef.html">5. Examples from BDEF Book</a></li>
-    <li><a class="dropdown-item" href="../articles/vig6_mortality.html">6. Modelling Mortality</a></li>
-    <li><a class="dropdown-item" href="../articles/vig7_simulation.html">7. Simulation</a></li>
-    <li><a class="dropdown-item" href="../articles/vig8_workflow.html">8. Bayesian Workflow</a></li>
-    <li><a class="dropdown-item" href="../articles/vig9_covariates.html">9. Covariates</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/vig01_intro.html">1. Overview</a></li>
+    <li><a class="dropdown-item" href="../articles/vig02_math.html">2. Mathematical Details</a></li>
+    <li><a class="dropdown-item" href="../articles/vig03_priors.html">3. Priors</a></li>
+    <li><a class="dropdown-item" href="../articles/vig04_svd.html">4. Singular Value Decomposition</a></li>
+    <li><a class="dropdown-item" href="../articles/vig05_bdef.html">5. Examples from BDEF Book</a></li>
+    <li><a class="dropdown-item" href="../articles/vig06_mortality.html">6. Modelling Mortality</a></li>
+    <li><a class="dropdown-item" href="../articles/vig07_simulation.html">7. Simulation</a></li>
+    <li><a class="dropdown-item" href="../articles/vig08_workflow.html">8. Bayesian Workflow</a></li>
+    <li><a class="dropdown-item" href="../articles/vig09_covariates.html">9. Covariates</a></li>
+    <li><a class="dropdown-item" href="../articles/vig10_datamod.html">10. Data Models</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -67,6 +68,7 @@ other model parameters.</p>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"augment"</span>, <span class="st">"components"</span><span class="op">)</span>,</span>
 <span>  include_estimates <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  quiet <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -100,6 +102,11 @@ include historical estimates along
 with the forecasts. Default is <code>FALSE</code>.</p></dd>
 
 
+<dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
+<dd><p>Whether to suppress messages.
+Default is <code>FALSE</code>.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Not currently used.</p></dd>
 
@@ -127,7 +134,7 @@ rates, probabilities or means.</p></li>
 size, or weights variable (except if <code>exposure = 1</code>
 or <code>weights = 1</code> in the original call to
 <code><a href="mod_pois.html">mod_pois()</a></code> or <code><a href="mod_norm.html">mod_norm()</a></code>).</p></li>
-</ul><p><a href="https://bayesiandemography.github.io/bage/articles/vig2_math.html">Mathematical Details</a>
+</ul><p><a href="https://bayesiandemography.github.io/bage/articles/vig02_math.html">Mathematical Details</a>
 gives more details on the internal calculations in forecasting.</p>
     </div>
     <div class="section level2">
@@ -160,6 +167,18 @@ from historical data via <code><a href="https://generics.r-lib.org/reference/fit
 are time-varying, then future values for these
 covariates are supplied via the <code>newdata</code> argument.</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="forecasting-with-data-models">Forecasting with data models<a class="anchor" aria-label="anchor" href="#forecasting-with-data-models"></a></h2>
+
+
+
+<p>Models that contain <a href="datamods.html">data models</a> can be used
+in forecasts, provided that</p><ul><li><p>the data models have no time-varying parameters, or</p></li>
+<li><p>future values for time-varying parameters are supplied
+when the data model is first specified.</p></li>
+</ul><p>For examples, see the <a href="https://bayesiandemography.github.io/bage/articles/vig10_datamod.html">Data Models</a>
+vignette.</p>
+    </div>
     <div class="section level2">
     <h2 id="fitted-and-unfitted-models">Fitted and unfitted models<a class="anchor" aria-label="anchor" href="#fitted-and-unfitted-models"></a></h2>
 
@@ -194,7 +213,7 @@ choosing an appropriate model.</p>
 probabilities, or means, together
 with original data</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> Extract values for hyper-parameters</p></li>
-<li><p><a href="https://bayesiandemography.github.io/bage/articles/vig2_math.html">Mathematical Details</a>
+<li><p><a href="https://bayesiandemography.github.io/bage/articles/vig02_math.html">Mathematical Details</a>
 vignette</p></li>
 </ul></div>
     </div>
@@ -215,7 +234,7 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age * sex + ethnicity + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   exposure = popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  exposure: popn</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along n_par n_par_free std_dev</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -     1          1       -</span>
@@ -231,7 +250,7 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    1000     year     age           sex    nlminb</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_max time_draw iter converged                    message</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        0.53     0.23      0.24   14      TRUE   relative convergence (4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        0.59     0.27      0.26   15      TRUE   relative convergence (4)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## forecasts</span></span></span>
@@ -289,12 +308,12 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   term  component level            .fitted</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> year  effect    2019  -2.1 (-3.9, -0.34)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> year  effect    2020  -2.2 (-3.9, -0.33)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> year  effect    2021    -2.2 (-4, -0.31)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> year  effect    2022     -2.2 (-4, -0.3)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> year  effect    2023    -2.1 (-4, -0.31)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> year  effect    2024    -2.1 (-4, -0.33)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> year  effect    2019  -2.1 (-3.9, -0.38)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> year  effect    2020  -2.1 (-3.9, -0.37)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> year  effect    2021  -2.1 (-3.9, -0.39)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> year  effect    2022  -2.1 (-3.9, -0.35)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> year  effect    2023  -2.1 (-3.9, -0.32)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> year  effect    2024  -2.1 (-3.9, -0.35)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## hold back some data and forecast</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
@@ -320,13 +339,13 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>016    8 (3, 15) <span style="text-decoration: underline;">41</span>220        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>016     2 (0, 6) <span style="text-decoration: underline;">43</span>230        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>016     2 (0, 6) <span style="text-decoration: underline;">37</span>640        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>016   12 (6, 21) <span style="text-decoration: underline;">36</span>040        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>016   10 (4, 18) <span style="text-decoration: underline;">33</span>760        <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>016   12 (5, 21) <span style="text-decoration: underline;">36</span>040        <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>016   10 (4, 19) <span style="text-decoration: underline;">33</span>760        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>016    8 (3, 15) <span style="text-decoration: underline;">30</span>530        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>016    6 (2, 12) <span style="text-decoration: underline;">24</span>480        <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>016    6 (1, 11) <span style="text-decoration: underline;">24</span>480        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>016    6 (2, 11) <span style="text-decoration: underline;">23</span>170        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 40-44 Female Maori      <span style="text-decoration: underline;">2</span>016    6 (2, 12) <span style="text-decoration: underline;">23</span>940        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>016    6 (1, 12) <span style="text-decoration: underline;">23</span>580        <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>016    6 (2, 12) <span style="text-decoration: underline;">23</span>580        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 134 more rows</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 2 more variables: .fitted &lt;rdbl&lt;1000&gt;&gt;, .expected &lt;rdbl&lt;1000&gt;&gt;</span></span>
 <span class="r-in"><span></span></span>
