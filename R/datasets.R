@@ -97,6 +97,7 @@
 #' - `age` 5-year age groups, with open age
 #' group of 85+
 #' - `year` 2003, 2005, 2007, and 2011
+#' - `value` Expenditures, in Euros
 #'
 #' @source Calculated from data in table
 #' "Expenditure by disease, age and gender under the System

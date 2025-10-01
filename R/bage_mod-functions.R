@@ -36,7 +36,7 @@
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @seealso
 #' - [confidential] Overview of confidentialization procedures
@@ -168,84 +168,209 @@ set_covariates <- function(mod, formula) {
 
 #' Specify Exposure Data Model
 #'
-#' @param mod An object of class `"bage_mod"`,
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param ratio A data frame with 'by' variables
-#' and a variable called `"ratio"`.
-#' @param disp A data frame with 'by' variables
-#' and a variable called `"mean"`.
+#' @description
+#' 
+#' Specify a data model for the exposure
+#' variable in a Poisson model. The data model assumes
+#' that, within each cell, observed exposure is drawn 
+#' from an Inverse-Gamma distribution. In this model,
 #'
-#' @returns A modified version of `mod`.
+#' E\[ expected exposure | true exposure \] = true exposure
 #'
-#' @noRd
-set_datamod_exposure <- function(mod, ratio, disp)  {
+#' and
+#'
+#' sd\[ expected exposure | true exposure \] = `cv` \eqn{\times} true exposure
+#'
+#' where `cv` is a coefficient of variation parameter.
+#' 
+#' @details
+#'
+#' In the exposure data model, `cv`, the coefficient
+#' of variation, does not depend on
+#' true exposure. This implies that
+#' errors do not fall, in relative terms,
+#' as population rises. Unlike sampling errors,
+#' measurement errors do not get averaged away
+#' in large populations. 
+#'
+#' The exposure data model assumes that the exposure variable
+#' is unbiased. If there is in fact evidence
+#' of biases, then this evidence should be
+#' used to create a de-biased version of the
+#' variable (eg one where estimated biases
+#' have been subtracted) to supply to
+#' [mod_pois()].
+#' 
+#' `set_datamod_exposure()` can only be used
+#' with a Poisson model for rates in which
+#' the dispersion in the rates has been set to zero.
+#' The dispersion in the rates can be set
+#' explicitly to zero using [set_disp()],
+#' though `set_datamod_exposure()` will also
+#' do so.
+#'
+#' @section The `cv` argument:
+#'
+#' `cv` can be a single number, in which
+#' case the same value is used for all cells.
+#' `cv` can also be a data frame with a
+#' with a variable called `"cv"` and
+#' one or more columns with 'by' variables. 
+#' For instance, a  `cv` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            cv = c(0.01, 0.012))
+#'```
+#' implies that the coefficient of variation
+#' is 0.01 for females and 0.012 for males.
+#'
+#' See below for an example where the coefficient
+#' of variation is based on aggregated age groups.
+#' 
+#' @section Mathematical details:
+#'
+#' The model for observed exposure is
+#'
+#' \deqn{w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g \lbrack i \rbrack }^{-1}, (1 + d_{g \lbrack i\rbrack }^{-1}) w_i^{\text{true}})}
+#'
+#' where
+#' - \eqn{w_i^{\text{obs}}} is observed exposure for cell \eqn{i}
+#'   (the `exposure` argument to [mod_pois()]);
+#' - \eqn{w_i^{\text{true}}} is true exposure for cell \eqn{i}; and
+#' - \eqn{d_{g\lbrack i\rbrack }} is the value for dispersion
+#'   that is applied to cell \eqn{i}.
+#'
+#' `cv` is \eqn{\sqrt{d_g}}.
+#'
+#' @param mod An object of class `"bage_mod_pois"`,
+#' created with [mod_pois()].
+#' @param cv Coefficient of variation
+#' for measurement errors in exposure.
+#' A single number, or a data frame
+#' with a variable called `"cv"`
+#' and one or more 'by' variables.
+#'
+#' @returns A revised version of `mod`.
+#'
+#' @seealso
+#' - [mod_pois()] Specify a Poisson model
+#' - [set_disp()] Specify dispersion of rates
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for exposure
+#' - [datamods] Data models implemented in `bage`
+#' - [confidential] Confidentialization
+#'   procedures modeled in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   vignette
+#'
+#' @examples
+#' ## specify model
+#' mod <- mod_pois(injuries ~ age * sex + year,
+#'                 data = nzl_injuries,
+#'                 exposure = popn) |>
+#'   set_disp(mean = 0) |>
+#'   set_datamod_exposure(cv = 0.025)
+#'
+#' ## fit the model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#'
+#' ## examine results - note the new variable
+#' ## '.popn' with estimates of the true
+#' ## population
+#' aug <- mod |>
+#'   augment()
+#'
+#' ## allow different cv's for each sex
+#' cv_sex <- data.frame(sex = c("Female", "Male"),
+#'                      cv = c(0.03, 0.02))
+#' mod <- mod |>
+#'   set_datamod_exposure(cv = cv_sex)
+#' mod
+#'
+#' ## our outcome variable is confidentialized,
+#' ## so we recognize that in the model too
+#' mod <- mod |>
+#'   set_confidential_rr3()
+#' mod
+#'
+#' ## now a model where everyone aged 0-49
+#' ## receives one value for cv, and
+#' ## everyone aged 50+ receives another
+#' library(poputils) ## for 'age_upper()'
+#' library(dplyr, warn.conflicts = FALSE)
+#' nzl_injuries_age <- nzl_injuries |>
+#'   mutate(age_group = if_else(age_upper(age) < 50,
+#'                              "0-49",
+#'                              "50+"))
+#' cv_age <- data.frame(age_group = c("0-49", "50+"),
+#'                      cv = c(0.05, 0.01))
+#' mod <- mod_pois(injuries ~ age * sex + year,
+#'                 data = nzl_injuries_age,
+#'                 exposure = popn) |>
+#'   set_disp(mean = 0) |>
+#'   set_datamod_exposure(cv = cv_age)
+#' @export
+set_datamod_exposure <- function(mod, cv)  {
   nm_offset_data <- mod$nm_offset_data
   nm_offset_mod <- get_nm_offset_mod(mod)
   error_offset_formula_used(nm_offset_data = nm_offset_data,
                             nm_offset_mod = nm_offset_mod,
                             nm_fun = "set_datamod_exposure")
   ## preliminaries
-  measure_vars_ratio <- "ratio"
-  measure_vars_disp <- "mean"
+  measure_vars_cv <- "cv"
   check_bage_mod(x = mod, nm_x = "mod")
+  model_descr <- model_descr(mod)
   nm_distn <- nm_distn(mod)
   if (nm_distn != "pois") {
-    model_descr <- model_descr(mod)
-    cli::cli_abort(c(paste("An exposure data model can only be used",
-                           "with a Poisson model."),
-                     i = "{.arg mod} is a {model_descr} model."))
+    cli::cli_abort(c("{.arg mod} is a {model_descr} model.",
+                     i = paste("An exposure data model can only be used",
+                               "with a Poisson model.")))
+  }
+  if (has_disp(mod)) {
+    cli::cli_alert("Setting dispersion to zero. (Required for exposure data model.)")
+    mod <- set_disp(mod, mean = 0)
+  }
+  if (!has_varying_offset(mod)) {
+    cli::cli_abort(c("{.arg mod} does not include exposure.",
+                     i = paste("An exposure data model can only be used",
+                               "with a model with exposure.")))
   }
   data <- mod$data
-  ## process 'ratio'
-  check_datamod_val(x = ratio,
-                    nm_x = "ratio",
-                    measure_vars = measure_vars_ratio)
-  nms_by_ratio <- setdiff(names(ratio), measure_vars_ratio)
-  by_val_ratio <- ratio[nms_by_ratio]
-  check_datamod_by_val(by_val = by_val_ratio,
+  ## process 'cv', and create 'disp' 
+  if (is.numeric(cv)) {
+    check_number(x = cv, nm_x = "cv")
+    if (cv <= 0)
+      cli::cli_abort("{.arg cv} less than or equal to 0.")
+    cv <- data.frame(cv = cv)
+  }
+  check_datamod_val(x = cv,
+                    nm_x = "cv",
+                    measure_vars = measure_vars_cv)
+  nms_by <- setdiff(names(cv), measure_vars_cv)
+  by_val_cv <- cv[nms_by]
+  check_datamod_by_val(by_val = by_val_cv,
                        data = data,
-                       nm_val = "ratio")
-  check_positive(x = ratio$ratio,
-                 nm_x = "ratio",
-                 nm_df = "ratio")
-  ratio_ratio <- make_datamod_measure(data = data,
-                                      by_val = by_val_ratio,
-                                      measure = ratio$ratio)
-  ratio_levels <- make_datamod_levels(data = data,
-                                      by_val = by_val_ratio,
-                                      nm_component = "ratio")
-  ratio_matrix_outcome <- make_matrix_val_outcome(data = data,
-                                                  by_val = by_val_ratio)
-  ## process 'disp'
-  check_datamod_val(x = disp,
-                    nm_x = "disp",
-                    measure_vars = measure_vars_disp)
-  nms_by_disp <- setdiff(names(disp), measure_vars_disp)
-  by_val_disp <- disp[nms_by_disp]
-  check_datamod_by_val(by_val = by_val_disp,
-                       data = data,
-                       nm_val = "disp")
-  check_positive(x = disp$mean,
-                 nm_x = "mean",
-                 nm_df = "disp")
-  disp_mean <- make_datamod_measure(data = data,
-                                    by_val = by_val_disp,
-                                    measure = disp$mean)
+                       nm_val = "cv",
+                       nm_data = "data")
+  check_positive(x = cv[[measure_vars_cv]],
+                 nm_x = measure_vars_cv,
+                 nm_df = "cv")
+  cv <- make_datamod_measure(data = data,
+                             by_val = by_val_cv,
+                             measure = cv[[measure_vars_cv]])
+  disp <- cv^2
   disp_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_disp,
-                                     nm_component = "levels")
+                                     by_val = by_val_cv,
+                                     nm_component = "cv")
   disp_matrix_outcome <- make_matrix_val_outcome(data = data,
-                                                 by_val = by_val_disp)
-  ## construct 'nms_by'
-  nms_by <- union(nms_by_ratio, nms_by_disp)
+                                                 by_val = by_val_cv)
   ## construct datamod and add to 'mod'
-  datamod <- new_bage_datamod_exposure(ratio_ratio = ratio_ratio,
-                                       ratio_levels = ratio_levels,
-                                       ratio_matrix_outcome = ratio_matrix_outcome,
-                                       disp_mean = disp_mean,
+  datamod <- new_bage_datamod_exposure(disp = disp,
                                        disp_levels = disp_levels,
                                        disp_matrix_outcome = disp_matrix_outcome,
+                                       cv_arg = cv,
                                        nms_by = nms_by)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
@@ -262,19 +387,172 @@ set_datamod_exposure <- function(mod, ratio, disp)  {
 
 #' Specify Miscount Data Model
 #'
-#' @param mod An object of class `"bage_mod"`,
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param rate A data frame with 'by' variables,
-#' a variable called `"mean"`, and a variable
-#' called `"disp"`
-#' @param prob A data frame with 'by' variables,
-#' a variable called `"mean"`, and a variable
-#' called `"disp"`
+#' Specify a data model for the outcome
+#' in a Poisson model, where the outcome
+#' is subject to undercount and
+#' overcount.
 #'
-#' @returns A modified version of `mod`.
+#' The miscount data model is essentially a combination
+#' of the [undercount][set_datamod_undercount()]
+#' and [overcount][set_datamod_overcount()]
+#' data models. It assumes that
+#' reported outcome is the sum of two quantities:
 #'
-#' @noRd
+#' 1. *Units from target population, undercounted*
+#'   People or events belonging
+#'   to the target population, in which
+#'   each unit's inclusion probability
+#'   is less than 1.
+#' 2. *Overcount* People or events
+#'   that do not belong to target population,
+#'   or that are counted more than once.
+#'    
+#' If, for instance, a census
+#' enumerates 91 people from a true population
+#' of 100, but also mistakenly enumerates
+#' a further 6 people, then
+#' 
+#' - the true value for the outcome variable is 100
+#' - the value for the undercounted target population is 91,
+#' - the value for the overcount is 6, and
+#' - the observed value for the outcome variable is 91 + 6 = 97.
+#'
+#' @section The `prob` argument:
+#'
+#' The `prob` argument specifies a prior
+#' distribution for the probability
+#' that a person or event in the target
+#' population is included in the
+#' reported outcome. `prob` is a
+#' data frame with a variable called `"mean"`,
+#' a variable called `"disp"`, and, optionally,
+#' one or more 'by' variables.
+#' For instance, a  `prob` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            mean = c(0.95, 0.92),
+#'            disp = c(0.02, 0.015))
+#'```
+#' implies that the expected value for
+#' the inclusion probability is 0.95 for females
+#' and 0.92 for males, with slightly more
+#' uncertainty for females than for males.
+#'
+#' @section The `rate` argument:
+#'
+#' The `rate` argument specifies a prior
+#' distribution for the overcoverage
+#' rate. `rate` is a
+#' data frame with a variable called `"mean"`,
+#' a variable called `"disp"`, and, optionally,
+#' one or more 'by' variables.
+#' For instance, a  `rate` of
+#' ```
+#' data.frame(mean = 0.03, disp = 0.1)
+#'```
+#' implies that the expected value for
+#' the overcoverage rate is 0.03,
+#' with a dispersion of 0.1. Since no 'by'
+#' variables are included, the same
+#' mean and dispersion values are
+#' applied to all cells.
+#' 
+#' @section Mathematical details:
+#'
+#' The model for the observed outcome is
+#'
+#' \deqn{y_i^{\text{obs}} = u_i + v_i}
+#' \deqn{u_i \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]})}
+#' \deqn{v_i \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i)}
+#' \deqn{\pi_g \sim \text{Beta}(m_g^{(\pi)} / d_g^{(\pi)}, (1-m_g^{(\pi)}) / d_g^{(\pi)})}
+#' \deqn{\kappa_h \sim \text{Gamma}(1/d_h^{(\kappa)}, 1/(d_h^{(\kappa)} m_h^{(\kappa)}))}
+#'
+#' where
+#' - \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+#' - \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+#' - \eqn{\gamma_i} is the rate for cell \eqn{i};
+#' - \eqn{w_i} is exposure for cell \eqn{i};
+#' - \eqn{\pi_{g[i]}} is the probability that a member of the
+#'     target population in cell \eqn{i} is correctly enumerated in that cell;
+#' - \eqn{\kappa_{h[i]}} is the overcoverage rate for cell \eqn{i};
+#' - \eqn{m_g^{(\pi)}} is the expected value for \eqn{\pi_g}
+#'   (specified via `prob`);
+#' - \eqn{d_g^{(\pi)}} is disperson for \eqn{\pi_g} (specified via `prob`);
+#' - \eqn{m_h^{(\kappa)}} is the expected value for \eqn{\kappa_h}
+#'   (specified via `rate`); and
+#' - \eqn{d_h^{(\kappa)}} is disperson for \eqn{\kappa_h} (specified via `rate`).
+#'
+#' @param mod An object of class `"bage_mod_pois"`,
+#' created with [mod_pois()].
+#' @param prob The prior for the probability
+#' that a person or event in the target
+#' population will correctly enumerated.
+#' A data frame with a variable
+#' called `"mean"`, a variable called `"disp"`,
+#' and, optionally, one or more 'by' variables.
+#' @param rate The prior for the overcoverage rate.
+#' A data frame with a variable
+#' called `"mean"`, a variable called `"disp"`,
+#' and, optionally, one or more 'by' variables.
+#'
+#' @returns A revised version of `mod`.
+#'
+#' @seealso
+#' - [mod_pois()] Specify a Poisson model
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for
+#'   the outcome variable
+#' - [components()] Estimated values for
+#'   model parameters, including inclusion
+#'   probabilities and overcount rates
+#' - [set_datamod_undercount()] An undercount-only
+#'   data model
+#' - [set_datamod_overcount()] An overcount-only
+#'   data model
+#' - [datamods] All data models implemented in `bage`
+#' - [confidential] Confidentialization
+#'   procedures modeled in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   vignette
+#'
+#' @examples
+#' ## specify 'prob' and 'rate'
+#' prob <- data.frame(sex = c("Female", "Male"),
+#'                    mean = c(0.95, 0.97),
+#'                    disp = c(0.05, 0.05))
+#' rate <- data.frame(mean = 0.03, disp = 0.15)
+#'
+#' ## specify model
+#' mod <- mod_pois(divorces ~ age * sex + time,
+#'                 data = nzl_divorces,
+#'                 exposure = population) |>
+#'   set_datamod_miscount(prob = prob, rate = rate)
+#' mod
+#'
+#' ## fit model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#'
+#' ## original data, plus imputed values for outcome
+#' mod |>
+#'   augment()
+#'
+#' ## parameter estimates
+#' library(dplyr)
+#' mod |>
+#'   components() |>
+#'   filter(term == "datamod")
+#'
+#' ## the data have in fact been confidentialized,
+#' ## so we account for that, in addition
+#' ## to accounting for undercoverage and
+#' ## overcoverage
+#' mod <- mod |>
+#'  set_confidential_rr3() |>
+#'  fit()
+#' mod
+#' @export
 set_datamod_miscount <- function(mod, prob, rate) {
   ## preliminaries
   measure_vars_prob <- c("mean", "disp")
@@ -296,7 +574,8 @@ set_datamod_miscount <- function(mod, prob, rate) {
   by_val_prob <- prob[nms_by_prob]
   check_datamod_by_val(by_val = by_val_prob,
                        data = data,
-                       nm_val = "prob")
+                       nm_val = "prob",
+                       nm_data = "data")
   check_positive(x = prob$mean,
                  nm_x = "mean",
                  nm_df = "prob")
@@ -323,7 +602,8 @@ set_datamod_miscount <- function(mod, prob, rate) {
   by_val_rate <- rate[nms_by_rate]
   check_datamod_by_val(by_val = by_val_rate,
                        data = data,
-                       nm_val = "rate")
+                       nm_val = "rate",
+                       nm_data = "data")
   check_positive(x = rate$mean,
                  nm_x = "mean",
                  nm_df = "rate")
@@ -346,12 +626,14 @@ set_datamod_miscount <- function(mod, prob, rate) {
   ## construct datamod and add to 'mod'
   datamod <- new_bage_datamod_miscount(prob_mean = prob_mean,
                                        prob_disp = prob_disp,
-                                       prob_levels = levels,
+                                       prob_levels = prob_levels,
                                        prob_matrix_outcome = prob_matrix_outcome,
+                                       prob_arg = prob,
                                        rate_mean = rate_mean,
                                        rate_disp = rate_disp,
                                        rate_levels = rate_levels,
                                        rate_matrix_outcome = rate_matrix_outcome,
+                                       rate_arg = rate,
                                        nms_by = nms_by)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
@@ -368,51 +650,196 @@ set_datamod_miscount <- function(mod, prob, rate) {
 
 #' Specify Noise Data Model
 #'
+#' @description 
+#' Specify a data model in which
+#'
+#' `observed outcome = true outcome + error`,
+#'
+#' where the error has a symmetric distribution
+#' with mean 0.
+#'
+#' If the true outcome has a normal
+#' distribution, then the error has a
+#' normal distribution. If the
+#' true outcome has a Poisson distribution,
+#' then the error has a symmetric Skellam
+#' distribution.
+#'
+#' @details
+#'
+#' The model assumes that the outcome variable
+#' is unbiased. If there is in fact evidence
+#' of biases, then this evidence should be
+#' used to create a de-biased version of the
+#' outcome variable in `data`, and this de-biased
+#' version should be used by [mod_norm()] or
+#' [mod_pois()].
+#'
+#' If `set_datamod_noise()` is used with a Poisson
+#' model, then the dispersion term for
+#' the Poisson rates must be set to zero.
+#' This can be done using [set_disp()],
+#' though `set_datamod_noise()` will also
+#' do so.
+#'
+#' @section The Skellam distribution:
+#'
+#' The [Skellam](https://en.wikipedia.org/wiki/Skellam_distribution)
+#' distribution is confined to integers,
+#' but can take positive and negative values.
+#'
+#' If
+#'
+#' \deqn{X_1 \sim \text{Poisson}(\mu_1)}
+#' \deqn{X_2 \sim \text{Poisson}(\mu_2)}
+#'
+#' then
+#'
+#' \deqn{Y = X_1 - X_2}
+#'
+#' has a \eqn{\text{Skellam}(\mu_1, \mu_2)} distribution.
+#' If \eqn{\mu_1 = \mu_2}, then the distribution
+#' is symmetric.
+#'
+#' @section The `sd` argument:
+#'
+#' `sd` can be a single number, in which
+#' case the same standard deviation
+#' is used for all cells.
+#' `sd` can also be a data frame with a
+#' with a variable called `"sd"` and
+#' one or more columns with 'by' variables. 
+#' For instance, a  `sd` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            sd = c(330, 240))
+#'```
+#' implies that measurement errors
+#' have standard deviation 330 for females
+#' and 240 for males.
+#' 
+#' @section Mathematical details:
+#'
+#' The model for the observed outcome is
+#'
+#' \deqn{y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i}
+#'
+#' with
+#'
+#' \deqn{\epsilon_i \sim \text{N}(0, s_{g[i]}^2)}
+#'
+#' if \eqn{y_i^{\text{true}}} has a normal distribution, and
+#'
+#' \deqn{\epsilon_i \sim \text{Skellam}(0.5 s_{g[i]}^2, 0.5 s_{g[i]}^2)}
+#'
+#' if \eqn{y_i^{\text{true}}} has a Poisson distribution, where
+#' 
+#' - \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+#' - \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+#' - \eqn{\epsilon_i} is the measurement error for cell \eqn{i}; and
+#' - \eqn{s_{g\lbrack i\rbrack }} is the standard deviation of
+#'   the measurement error for cell \eqn{i}.
+#'
 #' @param mod An object of class `"bage_mod"`,
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param mean A data frame with 'by' variables
-#' and a variable called `"mean"`.
-#' @param prob A data frame with 'by' variables
-#' and a variable called `"prob"`.
+#' created with [mod_norm()] or [mod_pois()].
+#' @param sd Standard deviation of measurement errors.
+#' A single number, or a data frame
+#' with 'by' variables.
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
-#' @noRd
-set_datamod_noise <- function(mod, mean, sd) {
+#' @seealso
+#' - [mod_norm()] Specify a normal model
+#' - [mod_pois()] Specify a Poisson model
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for outcome
+#' - [datamods] Data models implemented in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   vignette
+#'
+#' @examples
+#' ## Normal model ------------------------------
+#' 
+#' ## prepare outcome variable
+#' library(dplyr, warn.conflicts = FALSE)
+#' spend <- nld_expenditure |>
+#'   mutate(log_spend = log(value + 1))
+#'
+#' ## specify model
+#' mod <- mod_norm(log_spend ~ age * diag + year,
+#'                 data = spend,
+#'                 weights = 1) |>
+#'   set_datamod_noise(sd = 0.1)
+#' 
+#' ## fit model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#' 
+#' ## create new aggregated diagnositic
+#' ## group variable
+#' library(dplyr, warn.conflicts = FALSE)
+#' spend <- spend |>
+#'   mutate(diag_ag = case_when(
+#'     diag == "Neoplasms" ~ diag,
+#'     diag == "Not allocated" ~ diag,
+#'     TRUE ~ "Other"
+#'   ))
+#'
+#' ## assume size of measurement errors
+#' ## varies across these aggregated groups
+#' sd_diag <- data.frame(diag_ag = c("Neoplasms",
+#'                                   "Not allocated",
+#'                                   "Other"),
+#'                       sd = c(0.05, 0.2, 0.1))
+#'
+#' ## fit model that uses diagnostic-specific
+#' ## standard deviations
+#' mod <- mod_norm(log_spend ~ age * diag + year,
+#'                 data = spend,
+#'                 weights = 1) |>
+#'   set_datamod_noise(sd = sd_diag)
+#'
+#'
+#' ## Poisson model -----------------------------
+#'
+#' mod <- mod_pois(deaths ~ month,
+#'                 data = usa_deaths,
+#'                 exposure = 1) |>
+#'   set_datamod_noise(sd = 200)
+#' @export
+set_datamod_noise <- function(mod, sd) {
   ## preliminaries
-  measure_vars_mean <- "mean"
   measure_vars_sd <- "sd"
   check_bage_mod(x = mod, nm_x = "mod")
+  model_descr <- model_descr(mod)
   nm_distn <- nm_distn(mod)
-  if (nm_distn != "norm") {
-    model_descr <- model_descr(mod)
-    cli::cli_abort(c(paste("A noise data model can only be used",
-                           "with a normal model."),
-                     i = "{.arg mod} is a {model_descr} model."))
+  if (!(nm_distn %in% c("pois", "norm"))) {
+    cli::cli_abort(c("{.arg mod} is a {model_descr} model.",
+                     i = paste("A noise data model can only be used",
+                               "with Poisson or normal models.")))
   }
   data <- mod$data
-  outcome_mean <- mod$outcome_mean
-  outcome_sd <- mod$outcome_sd
-  ## process 'mean'
-  check_datamod_val(x = mean,
-                    nm_x = "mean",
-                    measure_vars = measure_vars_mean)
-  nms_by_mean <- setdiff(names(mean), measure_vars_mean)
-  by_val_mean <- mean[nms_by_mean]
-  check_datamod_by_val(by_val = by_val_mean,
-                       data = data,
-                       nm_val = "mean")
-  mean_mean <- mean$mean
-  mean_mean <- make_datamod_measure(data = data,
-                                    by_val = by_val_mean,
-                                    measure = mean_mean)
-  mean_levels <- make_datamod_levels(data = data,
-                                     by_val = by_val_mean,
-                                     nm_component = "mean")
-  mean_matrix_outcome <- make_matrix_val_outcome(data = data,
-                                                 by_val = by_val_mean)
+  ## model-specific processing
+  if (nm_distn == "pois") {
+    if (has_disp(mod)) {
+      cli::cli_alert(paste("Setting dispersion to zero. (Required when using",
+                           "noise data model with Poisson rates model.)"))
+      mod <- set_disp(mod, mean = 0)
+    }
+    outcome_sd <- NULL
+  }
+  else if (nm_distn == "norm")
+    outcome_sd <- mod$outcome_sd
+  else
+    cli::cli_abort("Internal error: {.val {nm_distn}} is not a valid valud for {.arg distn}.") # nocov
   ## process 'sd'
+  if (is.numeric(sd)) {
+    check_number(x = sd, nm_x = "sd")
+    if (sd <= 0)
+      cli::cli_abort("{.arg sd} less than or equal to 0.")
+    sd <- data.frame(sd = sd)
+  }
   check_datamod_val(x = sd,
                     nm_x = "sd",
                     measure_vars = measure_vars_sd)
@@ -420,7 +847,8 @@ set_datamod_noise <- function(mod, mean, sd) {
   by_val_sd <- sd[nms_by_sd]
   check_datamod_by_val(by_val = by_val_sd,
                        data = data,
-                       nm_val = "sd")
+                       nm_val = "sd",
+                       nm_data = "data")
   check_positive(x = sd$sd,
                  nm_x = "sd",
                  nm_df = "sd")
@@ -433,16 +861,13 @@ set_datamod_noise <- function(mod, mean, sd) {
                                    nm_component = "sd")
   sd_matrix_outcome <- make_matrix_val_outcome(data = data,
                                                by_val = by_val_sd)
-  ## construct 'nms_by'
-  nms_by <- union(nms_by_mean, nms_by_sd)
   ## construct datamod and add to 'mod'
-  datamod <- new_bage_datamod_noise(mean_mean = mean_mean,
-                                    mean_levels = levels,
-                                    mean_matrix_outcome = mean_matrix_outcome,
-                                    sd_sd = sd_sd,
+  datamod <- new_bage_datamod_noise(sd_sd = sd_sd,
                                     sd_levels = sd_levels,
                                     sd_matrix_outcome = sd_matrix_outcome,
-                                    nms_by = nms_by)
+                                    sd_arg = sd,
+                                    nms_by = nms_by_sd,
+                                    outcome_sd = outcome_sd)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
     alert_replacing_existing_datamod(datamod_new = datamod,
@@ -458,11 +883,115 @@ set_datamod_noise <- function(mod, mean, sd) {
 
 #' Specify Overcount Data Model
 #'
+#' Specify a data model for the outcome
+#' in a Poisson model, where the outcome
+#' is subject to overcount
+#'
+#' The overcount data model assumes that
+#' reported values for the outcome overstate
+#' the actual values. The reported values
+#' might be affected by double-counting,
+#' for instance, or might include some
+#' people or events that are not in the target
+#' population.
+#' 
+#' @section The `rate` argument:
+#'
+#' The `rate` argument specifies a prior
+#' distribution for the overcoverage
+#' rate. `rate` is a
+#' data frame with a variable called `"mean"`,
+#' a variable called `"disp"`, and, optionally,
+#' one or more 'by' variables.
+#' For instance, a  `rate` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            mean = c(0.05, 0.03),
+#'            disp = c(0.1, 0.15))
+#'```
+#' implies that the reported value
+#' for the outcome is expected to
+#' overstate the true value by about 5%
+#' for females, and about 3% for females,
+#' with greater unceratinty for males than females.
+#'
+#' @section Mathematical details:
+#'
+#' The model for the observed outcome is
+#'
+#' \deqn{y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i}
+#' \deqn{\epsilon_i \sim \text{Poisson}(\kappa_{g[i]} \gamma_i w_i)}
+#' \deqn{\kappa_g \sim \text{Gamma}(1/d_g, 1/(d_g m_g))}
+#'
+#' where
+#' - \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+#' - \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+#' - \eqn{\epsilon_i} overcount in cell \eqn{i};
+#' - \eqn{\gamma_i} is the rate for cell \eqn{i};
+#' - \eqn{w_i} is exposure for cell \eqn{i};
+#' - \eqn{\kappa_{g[i]}} is the overcoverage rate for cell \eqn{i};
+#' - \eqn{m_g} is the expected value for \eqn{\kappa_g}
+#'   (specified via `rate`); and
+#' - \eqn{d_g} is disperson for \eqn{\kappa_g} (specified via `rate`).
+#'
 #' @inheritParams set_datamod_miscount
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
-#' @noRd
+#' @seealso
+#' - [mod_pois()] Specify a Poisson model
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for
+#'   the outcome variable
+#' - [components()] Estimated values for
+#'   model parameters, including inclusion
+#'   probabilities and overcount rates
+#' - [set_datamod_undercount()] An undercount-only
+#'   data model
+#' - [set_datamod_miscount()] An undercount-and-overcount
+#'   data model
+#' - [datamods] All data models implemented in `bage`
+#' - [confidential] Confidentialization
+#'   procedures modeled in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   vignette
+#'
+#' @examples
+#' ## specify 'rate'
+#' rate <- data.frame(sex = c("Female", "Male"),
+#'                    mean = c(0.1, 0.13),
+#'                    disp = c(0.2, 0.2))
+#'
+#' ## specify model
+#' mod <- mod_pois(divorces ~ age * sex + time,
+#'                 data = nzl_divorces,
+#'                 exposure = population) |>
+#'   set_datamod_overcount(rate)
+#' mod
+#'
+#' ## fit model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#'
+#' ## original data, plus imputed values for outcome
+#' mod |>
+#'   augment()
+#'
+#' ## parameter estimates
+#' library(dplyr)
+#' mod |>
+#'   components() |>
+#'   filter(term == "datamod")
+#'
+#' ## the data have in fact been confidentialized,
+#' ## so we account for that, in addition
+#' ## to accounting for overcoverage
+#' mod <- mod |>
+#'  set_confidential_rr3() |>
+#'  fit()
+#' mod
+#' @export
 set_datamod_overcount <- function(mod, rate) {
   ##  preliminaries
   measure_vars_rate <- c("mean", "disp")
@@ -483,7 +1012,8 @@ set_datamod_overcount <- function(mod, rate) {
   by_val_rate <- rate[nms_by_rate]
   check_datamod_by_val(by_val = by_val_rate,
                        data = data,
-                       nm_val = "rate")
+                       nm_val = "rate",
+                       nm_data = "data")
   check_positive(x = rate$mean,
                  nm_x = "mean",
                  nm_df = "rate")
@@ -508,6 +1038,7 @@ set_datamod_overcount <- function(mod, rate) {
                                         rate_disp = rate_disp,
                                         rate_levels = rate_levels,
                                         rate_matrix_outcome = rate_matrix_outcome,
+                                        rate_arg = rate,
                                         nms_by = nms_by)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
@@ -524,11 +1055,124 @@ set_datamod_overcount <- function(mod, rate) {
 
 #' Specify Undercount Data Model
 #'
-#' @inheritParams set_datamod_miscount
+#' Specify a data model for the outcome
+#' in a Poisson or binomial model,
+#' where the outcome
+#' is subject to undercount.
 #'
-#' @returns A modified version of `mod`.
+#' The undercount data model assumes that
+#' reported values for the outcome variable
+#' understate the true values, because
+#' the reported values miss some people
+#' or events in the target population.
+#' In other words, the probability that
+#' any given unit in the target population
+#' will be included in the reported outcome
+#' is less than 1.
 #'
-#' @noRd
+#' @section The `prob` argument:
+#'
+#' The `prob` argument specifies a prior
+#' distribution for the probability
+#' that a person or event in the target
+#' population is included in the
+#' reported outcome. `prob` is a
+#' data frame with a variable called `"mean"`,
+#' a variable called `"disp"`, and, optionally,
+#' one or more 'by' variables.
+#' For instance, a  `prob` of
+#' ```
+#' data.frame(sex = c("Female", "Male"),
+#'            mean = c(0.95, 0.92),
+#'            disp = c(0.02, 0.015))
+#'```
+#' implies that the expected value for
+#' the inclusion probability is 0.95 for females
+#' and 0.92 for males, with slightly more
+#' uncertainty for females than for males.
+#'
+#' @section Mathematical details:
+#'
+#' The model for the observed outcome is
+#'
+#' \deqn{y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]})}
+#' \deqn{\pi_g \sim \text{Beta}(m_g^{(\pi)} / d_g^{(\pi)}, (1-m_g^{(\pi)}) / d_g^{(\pi)})}
+#'
+#' where
+#' - \eqn{y_i^{\text{obs}}} is the observed outcome for cell \eqn{i};
+#' - \eqn{y_i^{\text{true}}} is the true outcome for cell \eqn{i};
+#' - \eqn{\pi_{g[i]}} is the probability that a member of the
+#'     target population in cell \eqn{i} is correctly enumerated in that cell;
+#' - \eqn{m_g} is the expected value for \eqn{\pi_g}
+#'   (specified via `prob`); and
+#' - \eqn{d_g} is disperson for \eqn{\pi_g} (specified via `prob`).
+#'
+#' @param mod An object of class `"bage_mod"`,
+#' created with [mod_pois()] or [mod_binom()].
+#' @param prob The prior for the probability
+#' that a person or event in the target
+#' population will correctly enumerated.
+#' A data frame with a variable
+#' called `"mean"`, a variable called `"disp"`,
+#' and, optionally, one or more 'by' variables.
+#'
+#' @returns A revised version of `mod`.
+#'
+#' @seealso
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_binom()] Specify a binomial model
+#' - [augment()] Original data plus estimated values,
+#'   including estimates of true value for
+#'   the outcome variable
+#' - [components()] Estimated values for
+#'   model parameters, including inclusion
+#'   probabilities and overcount rates
+#' - [set_datamod_overcount()] An overcount-only
+#'   data model
+#' - [set_datamod_miscount()] An undercount-and-overcount
+#'   data model
+#' - [datamods] All data models implemented in `bage`
+#' - [confidential] Confidentialization
+#'   procedures modeled in `bage`
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   vignette
+#'
+#' @examples
+#' ## specify 'prob'
+#' prob <- data.frame(sex = c("Female", "Male"),
+#'                    mean = c(0.95, 0.97),
+#'                    disp = c(0.05, 0.05))
+#'
+#' ## specify model
+#' mod <- mod_pois(divorces ~ age * sex + time,
+#'                 data = nzl_divorces,
+#'                 exposure = population) |>
+#'   set_datamod_undercount(prob)
+#' mod
+#'
+#' ## fit model
+#' mod <- mod |>
+#'   fit()
+#' mod
+#'
+#' ## original data, plus imputed values for outcome
+#' mod |>
+#'   augment()
+#'
+#' ## parameter estimates
+#' library(dplyr)
+#' mod |>
+#'   components() |>
+#'   filter(term == "datamod")
+#'
+#' ## the data have in fact been confidentialized,
+#' ## so we account for that, in addition
+#' ## to accounting for undercoverage
+#' mod <- mod |>
+#'  set_confidential_rr3() |>
+#'  fit()
+#' mod
+#' @export
 set_datamod_undercount <- function(mod, prob) {
   ##  preliminaries
   measure_vars_prob <- c("mean", "disp")
@@ -549,7 +1193,8 @@ set_datamod_undercount <- function(mod, prob) {
   by_val_prob <- prob[nms_by_prob]
   check_datamod_by_val(by_val = by_val_prob,
                        data = data,
-                       nm_val = "prob")
+                       nm_val = "prob",
+                       nm_data = "data")
   check_positive(x = prob$mean,
                  nm_x = "mean",
                  nm_df = "prob")
@@ -577,6 +1222,7 @@ set_datamod_undercount <- function(mod, prob) {
                                          prob_disp = prob_disp,
                                          prob_levels = prob_levels,
                                          prob_matrix_outcome = prob_matrix_outcome,
+                                         prob_arg = prob,
                                          nms_by = nms_by)
   if (has_datamod(mod)) {
     datamod_old <- mod$datamod
@@ -605,7 +1251,7 @@ set_datamod_undercount <- function(mod, prob) {
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @examples
 #' ## 'injuries' variable in 'nzl_injuries' dataset
@@ -754,6 +1400,8 @@ set_n_draw <- function(mod, n_draw = 1000L) {
         mod$draws_coef_covariates <- mod$draws_coef_covariates[, s, drop = FALSE]        
       if (has_disp(mod))
         mod$draws_disp <- mod$draws_disp[s]
+      if (has_datamod_param(mod))
+        mod$draws_datamod_param <- mod$draws_datamod_param[, s, drop = FALSE]
     }
   }
   mod
@@ -866,7 +1514,7 @@ set_prior <- function(mod, formula) {
 #' `"seed_augment"`, `"seed_forecast_components"`,
 #' and `"seed_forecast_augment"`.
 #'
-#' @returns A modified version of `mod`.
+#' @returns A revised version of `mod`.
 #'
 #' @seealso
 #' - [report_sim()] Do a simulation study. (`report_sim()`
@@ -1146,11 +1794,13 @@ unfit <- function(mod) {
   mod["draws_hyperrandfree"] <- list(NULL)
   mod["draws_coef_covariates"] <- list(NULL)
   mod["draws_disp"] <- list(NULL)
+  mod["draws_datamod_param"] <- list(NULL)
   mod["point_effectfree"] <- list(NULL)
   mod["point_hyper"] <- list(NULL)
   mod["point_hyperrandfree"] <- list(NULL)
   mod["point_coef_covariates"] <- list(NULL)
   mod["point_disp"] <- list(NULL)
+  mod["point_datamod_param"] <- list(NULL)
   mod["computations"] <- list(NULL)
   mod["oldpar"] <- list(NULL)
   mod
@@ -1227,4 +1877,6 @@ set_var_inner <- function(mod, name, var) {
   ## return
   mod
 }
+
+
 

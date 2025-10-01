@@ -304,6 +304,14 @@ infer_var_time <- function(formula) {
 }
 
 
+#' Initial Value for Standard Deviation Hyperparameter
+#'
+#' @returns A double
+#'
+#' @noRd
+init_val_sd <- function() log(0.05)
+
+
 ## HAS_TESTS
 #' Test Whether Row of 'data' is Included in Likelihood
 #'
@@ -319,7 +327,6 @@ get_is_in_lik <- function(mod) {
     & get_is_in_lik_offset(mod)
     & get_is_in_lik_outcome(mod))
 }
-
 
 
 #' Test Whether Row of 'data' is Included in Likelihood
@@ -622,6 +629,16 @@ make_dimnames_terms <- function(formula, data) {
       data_term <- data[nms_vars_term]
       data_term <- lapply(data_term, to_factor)
       dimnames <- lapply(data_term, levels)
+      lengths <- lengths(dimnames)
+      i_length_1 <- match(1L, lengths, nomatch = 0L)
+      if (i_length_1 > 0L) {
+        nm <- nms_vars_term[[i_length_1]]
+        val <- data[[nm]][[1L]]
+        cli::cli_abort(c("{.arg formula} includes variable with single value.",
+                         i = "Variable: {.var {nm}}.",
+                         i = "Value: {.val {val}}.",
+                         i = "Formula: {.code {deparse1(formula)}}."))
+      }
       ans_terms[[i_term]] <- dimnames
     }
     names(ans_terms) <- nms_terms
@@ -683,12 +700,10 @@ make_effectfree <- function(mod) {
 #'
 #' @noRd
 make_hyper <- function(mod) {
-    priors <- mod$priors
-    ans <- rep(0, times = length(priors))
-    names(ans) <- names(priors)
-    lengths <- make_lengths_hyper(mod)
-    ans <- rep(ans, times = lengths)
-    ans
+  priors <- mod$priors
+  ans <- lapply(priors, make_param_hyper)
+  ans <- unlist(ans)
+  ans
 }
 
 
@@ -1207,13 +1222,17 @@ make_offsets_effectfree_effect <- function(mod) {
 #'
 #' @noRd
 make_outcome <- function(formula, data) {
-    nm_response <- deparse1(formula[[2L]])
-    nms_data <- names(data)
-    ans <- data[[match(nm_response, nms_data)]]
-    ans <- as.double(ans)
-    check_inf(x = ans, nm_x = nm_response)
-    check_nan(x = ans, nm_x = nm_response)
-    ans
+  nm_response <- deparse1(formula[[2L]])
+  nms_data <- names(data)
+  i_response <- match(nm_response, nms_data, nomatch = 0L)
+  if (i_response == 0L)
+    cli::cli_abort(paste("Internal error: response {.val {nm_response}}",
+                         "not found in {.arg data}."))
+  ans <- data[[i_response]]
+  ans <- as.double(ans)
+  check_inf(x = ans, nm_x = nm_response)
+  check_nan(x = ans, nm_x = nm_response)
+  ans
 }
 
 

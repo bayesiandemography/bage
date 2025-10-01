@@ -297,8 +297,6 @@ test_that("'fit_default' gives same answer with and without aggregation - norm, 
 })
 
 
-
-
 ## 'fit_inner_outer' ----------------------------------------------------------
 
 test_that("'fit_inner_outer' works with with pois", {
@@ -421,6 +419,53 @@ test_that("'fit_inner_outer' throws error when 'start_oldpar' is TRUE", {
                "`start_oldpar` must be FALSE when using \"inner-outer\" method.")
 })
 
+test_that("'fit_inner_outer' throws error when model has covariates", {
+  set.seed(0)
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2003,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$wt <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
+  data$wealth <- rnorm(n = nrow(data))
+  formula <- income ~ age * sex + region * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt) |>
+    set_covariates(~ wealth)  
+  set.seed(0)
+  expect_error(fit_inner_outer(mod,
+                               optimizer = "BFGS",
+                               quiet = TRUE,
+                               start_oldpar = FALSE,
+                               vars_inner = c("age", "sex")),
+               "\"inner-outer\" method cannot be used with models that include covariates.")
+})
+
+test_that("'fit_inner_outer' throws error when model has data model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2003,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$wt <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
+  formula <- income ~ age * sex + region * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt) |>
+    set_datamod_noise(sd = 0.3)
+  set.seed(0)
+  expect_error(fit_inner_outer(mod,
+                               optimizer = "BFGS",
+                               quiet = TRUE,
+                               start_oldpar = FALSE,
+                               vars_inner = c("age", "sex")),
+               "\"inner-outer\" method cannot be used with models that include a data model.")
+})
+
+
+
 
 ## 'make_f_new' ---------------------------------------------------------------
 
@@ -470,10 +515,9 @@ test_that("'make_f_new' works", {
 })
 
 
-
 ## 'make_fit_data' ------------------------------------------------------------
 
-test_that("'make_fit_data' works - no covariates", {
+test_that("'make_fit_data' works - no covariates, no data model", {
   set.seed(10)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -506,8 +550,103 @@ test_that("'make_fit_data' works - with covariates", {
   expect_identical(ncol(ans_nonag$matrix_covariates), 5L)
 })
 
+test_that("'make_fit_data' works - with data model", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_undercount(prob = data.frame(mean = 0.9, disp = 0.2))
+  ans_ag <- make_fit_data(mod = mod, aggregate = TRUE)
+  expect_true(is.list(ans_ag))
+  ans_nonag <- make_fit_data(mod = mod, aggregate = FALSE)
+  expect_true(is.list(ans_nonag))
+})
 
-## 'make_fit_map' -----------------------------------------------------------------
+
+## 'make_fit_datamod_consts' --------------------------------------------------
+
+test_that("'make_fit_datamod_consts' works with valid inputs", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(make_fit_datamod_consts(mod), double())
+  mod <- mod |>
+    set_datamod_undercount(prob = data.frame(mean = 0.5, disp = 0.2))
+  expect_identical(make_fit_datamod_consts(mod),
+                   c(0.5, 0.2))
+})
+
+
+## 'make_fit_datamod_matrices' ------------------------------------------------
+
+test_that("'make_fit_datamod_matrices' works with valid inputs", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(make_fit_datamod_matrices(mod), list())
+  mod <- mod |>
+    set_datamod_undercount(prob = data.frame(mean = 0.5, disp = 0.2))
+  expect_identical(make_fit_datamod_matrices(mod),
+                   list(mod$datamod$prob_matrix_outcome))
+})
+
+
+## 'make_fit_datamod_param' ---------------------------------------------------
+
+test_that("'make_fit_datamod_param' works with valid inputs", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(make_fit_datamod_param(mod), double())
+  mod <- mod |>
+    set_datamod_undercount(prob = data.frame(mean = 0.5, disp = 0.2))
+  expect_identical(make_fit_datamod_param(mod),
+                   0)
+})
+
+
+## 'make_fit_i_datamod' -------------------------------------------------------
+
+test_that("'make_fit_i_datamod' with valid inputs", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(make_fit_i_datamod(mod), 0L)
+  mod <- mod |>
+    set_datamod_undercount(prob = data.frame(mean = 0.5, disp = 0.2))
+  expect_identical(make_fit_i_datamod(mod), 5000L)
+})
+
+
+## 'make_fit_map' -------------------------------------------------------------
 
 test_that("'make_fit_map' works with no parameters fixed", {
     set.seed(0)
@@ -616,7 +755,7 @@ test_that("'make_fit_parameters' works - no covariates", {
   ans <- make_fit_parameters(mod)
   expect_true(is.list(ans))
   expect_identical(names(ans), c("effectfree", "hyper", "hyperrandfree", "log_disp",
-                                 "coef_covariates"))
+                                 "coef_covariates", "datamod_param"))
 })
 
 test_that("'make_fit_parameters' works - has covariates", {
@@ -633,8 +772,25 @@ test_that("'make_fit_parameters' works - has covariates", {
   ans <- make_fit_parameters(mod)
   expect_true(is.list(ans))
   expect_identical(names(ans), c("effectfree", "hyper", "hyperrandfree", "log_disp",
-                                 "coef_covariates"))
+                                 "coef_covariates", "datamod_param"))
   expect_identical(ans$coef_covariates, c(income = 0))
+})
+
+test_that("'make_fit_parameters' works - has datamod", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_datamod_overcount(rate = data.frame(mean = 0.2, disp = 0.5))
+  ans <- make_fit_parameters(mod)
+  expect_true(is.list(ans))
+  expect_identical(names(ans), c("effectfree", "hyper", "hyperrandfree", "log_disp",
+                                 "coef_covariates", "datamod_param"))
+  expect_identical(ans$datamod_param, 0)
 })
 
 
@@ -690,6 +846,27 @@ test_that("'make_fit_random' works when hyper, hyperrand, covariates", {
   expect_identical(make_fit_random(mod), c("effectfree", "hyperrandfree", "coef_covariates"))
 })
 
+test_that("'make_fit_random' works when hyper, hyperrand, covariates, data model", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_prior(age ~ Lin()) |>
+    set_covariates(~income) |>
+    set_datamod_undercount(prob = data.frame(mean = 0.8, disp = 0.2))
+  expect_identical(make_fit_random(mod),
+                   c("effectfree",
+                     "hyperrandfree",
+                     "coef_covariates",
+                     "datamod_param"))
+})
+
+
 
 ## 'make_fit_times' -----------------------------------------------------------
 
@@ -706,8 +883,7 @@ test_that("'make_fit_times' works", {
                        time_max = 25,
                        time_draw = 10)
   expect_identical(ans_obtained, ans_expected)
-})  
-
+})
 
 
 ## 'optimize_adfun' -----------------------------------------------------------

@@ -97,7 +97,7 @@
 #' - [forecast()] Forecast parameters and outcomes
 #' - [report_sim()] Check model using a simulation study
 #' - [replicate_data()] Check model using replicate data
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   Detailed description of models
 #'
 #' @examples
@@ -135,6 +135,8 @@ mod_pois <- function(formula,
                         data = data,
                         nm_distn = "Poisson")
   ## process 'exposure'
+  if (!methods::hasArg(exposure))
+    cli::cli_abort("Argument {.arg exposure} is missing, with no default.")
   exposure <- deparse1(substitute(exposure))
   exposure <- gsub("^\\\"|\\\"$", "", exposure)
   is_offset_specified <- !identical(exposure, "1")
@@ -267,7 +269,7 @@ mod_pois <- function(formula,
 #' - [forecast()] Forecast parameters and outcomes
 #' - [report_sim()] Check model using simulation study
 #' - [replicate_data()] Check model using replicate data
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   Detailed descriptions of models
 #'
 #' @examples
@@ -297,6 +299,8 @@ mod_binom <- function(formula, data, size) {
                         data = data,
                         nm_distn = "Binomial")
   ## process 'size'
+  if (!methods::hasArg(size))
+    cli::cli_abort("Argument {.arg size} is missing, with no default.")
   size <- deparse1(substitute(size))
   size <- gsub("^\\\"|\\\"$", "", size)
   nm_offset_data <- size
@@ -440,7 +444,7 @@ mod_binom <- function(formula, data, size) {
 #' - [report_sim()] Check model using a simulation study
 #' - [replicate_data()] Check model using replicate data
 #'   data for a model
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig2_math.html)
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   Detailed description of models
 #'
 #' @examples
@@ -466,6 +470,8 @@ mod_norm <- function(formula, data, weights) {
                      data = data,
                      n_draw = 1000L)
   ## process 'weights'
+  if (!methods::hasArg(weights))
+    cli::cli_abort("Argument {.arg weights} is missing, with no default.")
   weights <- deparse1(substitute(weights))
   weights <- gsub("^\\\"|\\\"$", "", weights)
   is_offset_specified <- !identical(weights, "1")
@@ -530,6 +536,7 @@ mod_helper <- function(formula, data, n_draw) {
   ## check individual inputs
   check_is_formula(formula)
   check_formula_has_response(formula)
+  check_response_not_call(formula)
   check_formula_has_intercept(formula)
   check_is_dataframe(x = data, nm_x = "data")
   ## check consistency between inputs
@@ -572,13 +579,15 @@ mod_helper <- function(formula, data, n_draw) {
        draws_effectfree = NULL,
        draws_hyper = NULL,
        draws_hyperrandfree = NULL,
-       draws_coef_covariates = NULL,
        draws_disp = NULL,
+       draws_coef_covariates = NULL,
+       draws_datamod_param = NULL,
        point_effectfree = NULL,
        point_hyper = NULL,
        point_hyperrandfree = NULL,
-       point_coef_covariates = NULL,
        point_disp = NULL,
+       point_coef_covariates = NULL,
+       point_datamod_param = NULL,
        seed_components = seed_components,
        seed_augment = seed_augment,
        seed_forecast_components = seed_forecast_components,

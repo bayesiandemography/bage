@@ -6,11 +6,15 @@ test_that("'alert_replacing_existing_datamod' works with valid inputs", {
                                              prob_disp = 0.1,
                                              prob_levels = "prob",
                                              prob_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5), i = 1:5, j = rep(1, 5)),
+                                             prob_arg = data.frame(mean = 1,
+                                                                   disp = 0.5),
                                              nms_by = character())
   datamod_old <- new_bage_datamod_overcount(rate_mean = 0.5,
                                              rate_disp = 0.1,
                                              rate_levels = "rate",
                                              rate_matrix_outcome = Matrix::sparseMatrix(x = rep(1, 5), i = 1:5, j = rep(1, 5)),
+                                             rate_arg = data.frame(mean = 1,
+                                                                   disp = 0.5),
                                             nms_by = character())
   expect_message(alert_replacing_existing_datamod(datamod_new = datamod_new,
                                                   datamod_old = datamod_old),
@@ -552,6 +556,12 @@ test_that("'get_is_in_lik_outcome' works with NAs", {
 })
 
 
+## 'init_val_sd' --------------------------------------------------------------
+
+test_that("'init_val_sd' works", {
+  expect_identical(init_val_sd(), log(0.05))
+})
+
 
 ## 'make_agesex' --------------------------------------------------------------
 
@@ -773,6 +783,20 @@ test_that("'make_dimnames_terms' works - no intercept", {
     expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_dimnames_terms' throws error when variable has single value", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        time = 2000:2005,
+                        sex = "F")
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + time
+    expect_error(make_dimnames_terms(data = data, formula = formula),
+                 "`formula` includes variable with single value.")
+})
+
+
+
 
 ## 'make_effectfree' ----------------------------------------------------------
 
@@ -824,7 +848,7 @@ test_that("'make_hyper' works with valid inputs", {
                   data = data,
                   exposure = popn)
   ans_obtained <- make_hyper(mod)
-  ans_expected <- c(agegp = 0, "agegp:SEX" = 0)
+  ans_expected <- c(agegp = log(0.05), "agegp:SEX" = log(0.05))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1428,6 +1452,15 @@ test_that("'make_outcome' works with valid inputs", {
                                  data = data)
     ans_expected <- as.double(data$deaths)
     expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_outcome' throws error when variable not found", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- seq_len(nrow(data))
+    formula <- wrong ~ age:sex + time
+    expect_error(make_outcome(formula = formula,
+                              data = data),
+                 "Internal error: response \"wrong\" not found in `data`.")
 })
 
 
