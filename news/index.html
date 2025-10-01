@@ -54,12 +54,16 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.9.6" id="bage-096">bage 0.9.6<a class="anchor" aria-label="anchor" href="#bage-096"></a></h2>
 <div class="section level3">
+<h3 id="data-models-0-9-6">Data models<a class="anchor" aria-label="anchor" href="#data-models-0-9-6"></a></h3>
+<ul><li>Added data models, also known as measurement error models. The main user-visible functions are <code><a href="../reference/set_datamod_exposure.html">set_datamod_exposure()</a></code>, <code><a href="../reference/set_datamod_miscount.html">set_datamod_miscount()</a></code>, <code><a href="../reference/set_datamod_noise.html">set_datamod_noise()</a></code>, <code>set_datamod_over()</code>, and <code>set_datamod_under()</code>. In introduction to data models is given in vignette 10.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="interface-0-9-6">Interface<a class="anchor" aria-label="anchor" href="#interface-0-9-6"></a></h3>
 <ul><li>Extra checking of inputs for model constructor functions, eg checking that factors have at least two levels.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="data-models-0-9-6">Data models<a class="anchor" aria-label="anchor" href="#data-models-0-9-6"></a></h3>
-<ul><li>Added data models, also known as measurement error models. The main user-visible functions are <code><a href="../reference/set_datamod_exposure.html">set_datamod_exposure()</a></code>, <code><a href="../reference/set_datamod_miscount.html">set_datamod_miscount()</a></code>, <code><a href="../reference/set_datamod_noise.html">set_datamod_noise()</a></code>, <code>set_datamod_over()</code>, and <code>set_datamod_under()</code>. In introduction to data models is given in vignette 10.</li>
+<h3 id="changes-to-internal-calculations-0-9-6">Changes to internal calculations<a class="anchor" aria-label="anchor" href="#changes-to-internal-calculations-0-9-6"></a></h3>
+<ul><li>Improved efficiency of some C++ code in the TMB template, through greater use of call by reference.</li>
 </ul></div>
 </div>
     <div class="section level2">
@@ -79,10 +83,6 @@
 <h3 id="bug-fixes-0-9-5">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-9-5"></a></h3>
 <ul><li>Fixed bug in RR3, where values for rates were being calculated from confidentialized values of the outcome variable, rather than (imputed) true values.</li>
 <li>Fixed bug in aggregation of exposure for Poisson where <code>exposure =   1</code>, and aggregation of weights in normal models where <code>weights = 1</code>.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="changes-to-internal-calculations-0-9-5">Changes to internal calculations<a class="anchor" aria-label="anchor" href="#changes-to-internal-calculations-0-9-5"></a></h3>
-<ul><li>Improved efficiency of some C++ code in the TMB template, through greater use of call by reference.</li>
 </ul></div>
 </div>
     <div class="section level2">
