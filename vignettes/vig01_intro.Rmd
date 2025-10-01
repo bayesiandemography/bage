@@ -381,6 +381,24 @@ ggplot(data_plot_mis, aes(x = year)) +
 If the value for exposure, size, or weights is missing, then the associated row from `data` is omitted from the likelihood, and no imputations for that row are made. Missing values for classifying variables are skipped over in the same way.
 
 
+# Data models
+
+Many datasets in applied demography have some sort of measurement error: units within the target population are missed, for instance, or are double-counted. In `bage`, measurement error can be explicitly incorporated into the analysis by adding a "data model" (also known as a measurement error model) to the base model.
+
+Consider, for example, as dataset where, because of errors in the data collection process, responses for females are expected to be inflated by 5% and responses for males are expected to be inflated by 6%. We might extend our base model as follows:
+
+```{r, eval = FALSE}
+prob_under <- data.frame(sex =  c("Female", "Male"),
+                         mean = c(0.05,     0.06),
+			 disp = c(0.02,     0.02))
+
+mod_under <- mod_base |>
+  set_datamod_undercount(prob = prob_under) 
+```
+
+The current choice of data models in `bage` can be views by calling `help(datamod)`.
+
+
 # Confidentialization
 
 Data producers often confidentialize their data before they make it publicly available. The `nzl_injuries` dataset is one example. Statistics New Zealand has randomly-rounded the counts of injuries to multiples of 3. 
@@ -471,14 +489,12 @@ mod |>
   components()
 ```
 
-
 # Future development of bage
 
 ## Future features
 
 `bage` is a new package, and still under very active development. Some features that are next on the list are:
 
-- **Data models** Additional data models, eg models that allow for under-reporting of events, or errors in the exposure variable.
 - **Priors** More options for priors, eg a damped linear trend.
 - **Sets of priors** Pre-specified collections of priors for specific purposes such as modelling fertility rates
 - **Documentation** More vignettes and examples.
@@ -486,7 +502,7 @@ mod |>
 
 ## Experimental status
 
-`bage` currently has an [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) life cycle badge, to warn users that some features of the `bage` interface, such as function arguments, are still evolving. We hope to graduate from experimental status during 2025.
+`bage` currently has an [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) life cycle badge, to warn users that some features of the `bage` interface, such as function arguments, are still evolving. We hope to graduate from experimental status by the end of 2025.
 
 ## Bug reports and feature requests
 

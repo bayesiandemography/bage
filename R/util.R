@@ -471,9 +471,9 @@ draw_true_given_obs_pois_skellam_approx <- function(y_obs,
     log_wt <- stats::dnorm(y_trues, mean = mu_post, sd = sd_post, log = TRUE)
     M <- max(log_wt)
     prob <- exp(log_wt - M)
-    is_degenerate <- !any(is.finite(prob)) || (sum(prob) == 0)
-    if (is_degenerate)
-      ans <- as.integer(round(max(0, mu_post)))
+    is_degenerate <- !any(is.finite(prob)) || (sum(prob) == 0) 
+    if (is_degenerate)                                         
+      ans <- as.integer(round(max(0, mu_post)))                # nocov
     else
       ans <- sample(y_trues, size = 1L, prob = prob)
   }
@@ -514,9 +514,9 @@ draw_true_given_obs_pois_skellam_exact <- function(y_obs,
                                   threshold = 200L)
   is_inf <- is.infinite(log_skellam)
   if (any(is_inf))
-    log_skellam[is_inf] <- log_skellam_safe(x = nu[is_inf],
-                                            m = m,
-                                            threshold = 50L)
+    log_skellam[is_inf] <- log_skellam_safe(x = nu[is_inf],  # nocov
+                                            m = m,           # nocov
+                                            threshold = 50L) # nocov
   ## log pois
   log_pois <- stats::dpois(y_trues, lambda = lambda, log = TRUE)
   ## unnormalized log posterior weights

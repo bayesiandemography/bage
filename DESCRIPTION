@@ -1,7 +1,7 @@
 Package: bage
 Type: Package
 Title: Bayesian Estimation and Forecasting of Age-Specific Rates
-Version: 0.9.5
+Version: 0.9.6
 Authors@R: 
     c(person(given = "John",
              family = "Bryant",
@@ -40,6 +40,7 @@ Suggests:
     dplyr,
     ggplot2,
     knitr,
+    patchwork,
     rmarkdown,
     rlang,
     testthat (>= 3.0.0),
