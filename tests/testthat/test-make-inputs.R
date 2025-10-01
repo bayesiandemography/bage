@@ -783,6 +783,20 @@ test_that("'make_dimnames_terms' works - no intercept", {
     expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_dimnames_terms' throws error when variable has single value", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        time = 2000:2005,
+                        sex = "F")
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + time
+    expect_error(make_dimnames_terms(data = data, formula = formula),
+                 "`formula` includes variable with single value.")
+})
+
+
+
 
 ## 'make_effectfree' ----------------------------------------------------------
 

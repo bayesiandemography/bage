@@ -104,6 +104,9 @@ forecast_ar_svd <- function(prior,
 #' with labels for future time periods.
 #' @param has_newdata Whether user supplied
 #' data for future periods
+#' @param is_forecast_obs Whether the forecast
+#' includes future observed values for the
+#' outcome variable
 #'
 #' @returns A tibble
 #'
@@ -112,7 +115,8 @@ forecast_components <- function(mod,
                                 components_est,
                                 data_forecast,
                                 labels_forecast,
-                                has_newdata) {
+                                has_newdata,
+                                is_forecast_obs) {
   priors <- mod$priors
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
@@ -132,11 +136,19 @@ forecast_components <- function(mod,
                                  components = components_est,
                                  labels_forecast = labels_forecast))
   if (has_datamod_param) {
-    datamod_param <- forecast_datamod_param(datamod = datamod,
-                                            data_forecast = data_forecast,
-                                            n_draw = n_draw,
-                                            has_newdata = has_newdata)
-    ans <- c(ans, list(datamod_param))
+    val <- tryCatch(
+      forecast_datamod_param(datamod = datamod,
+                             data_forecast = data_forecast,
+                             n_draw = n_draw,
+                             has_newdata = has_newdata),
+      error = function(e) e
+    )
+    if (inherits(val, "error")) {
+      if (is_forecast_obs)
+        stop(val)
+    }
+    else
+      ans <- c(ans, list(val))
   }
   ans <- vctrs::vec_rbind(!!!ans)
   ans <- sort_components(ans, mod = mod)

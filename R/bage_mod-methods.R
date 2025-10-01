@@ -855,72 +855,6 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod, quiet) {
 }
 
 
-## 'draw_vals_fitted' ---------------------------------------------------------
-
-#' Draw Values for '.fitted' Variable in 'augment'
-#' when 'disp' non-NULL
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param vals_expected Backtransformed linear predictor. An rvec.
-#' @param vals_disp Dispersion. An rvec.
-#' @param outcome Values for outcome. A vector or NULL.
-#' @param offset Values for offset. NULL iff 'outcome' is NULL;
-#' otherwise a vector.
-#'
-#' @returns An rvec.
-#'
-#' @noRd
-draw_vals_fitted <- function(mod,
-                             vals_expected,
-                             vals_disp,
-                             outcome,
-                             offset) {
-    UseMethod("draw_vals_fitted")
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_fitted.bage_mod_pois <- function(mod,
-                                           vals_expected,
-                                           vals_disp,
-                                           outcome,
-                                           offset) {
-  if (is.null(outcome)) {
-    outcome <- 0
-    offset <- 0
-  }
-  else {
-    is_na <- is.na(outcome) | is.na(offset)
-    outcome[is_na] <- 0
-    offset[is_na] <- 0
-  }
-  rvec::rgamma_rvec(n = length(vals_expected),
-                    shape = outcome + 1 / vals_disp,
-                    rate = offset + 1 / (vals_disp * vals_expected))
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_fitted.bage_mod_binom <- function(mod,
-                                            vals_expected,
-                                            vals_disp,
-                                            outcome,
-                                            offset) {
-  if (is.null(outcome)) {
-    outcome <- 0
-    offset <- 0
-  }
-  else {
-    is_na <- is.na(outcome) | is.na(offset)
-    outcome[is_na] <- 0
-    offset[is_na] <- 0
-  }
-  rvec::rbeta_rvec(n = length(vals_expected),
-                   shape1 = outcome + vals_expected / vals_disp,
-                   shape2 = offset - outcome + (1 - vals_expected) / vals_disp)
-}
-
-
 ## 'equation' -----------------------------------------------------------------
 
 ## #' @importFrom generics equation
@@ -1271,16 +1205,26 @@ forecast.bage_mod <- function(object,
   if (has_labels)
     data_forecast <- make_data_forecast_labels(mod = object,
                                                labels_forecast = labels)
+  nms_data_forecast <- names(data_forecast)
   seed_forecast_components <- object$seed_forecast_components
   if (is_not_testing_or_snapshot())
     cli::cli_progress_message("{.fun components} for future values...") # nocov
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_forecast_components) ## set pre-determined seed
+  if (!is.null(nm_offset_data) && (nm_offset_data %in% nms_data_forecast)) {
+    offset_forecast <- data_forecast[[nm_offset_data]]
+    has_offset_forecast <- !all(is.na(offset_forecast))
+  }
+  else
+    has_offset_forecast <- FALSE
+  has_datamod_outcome <- has_datamod_outcome(mod)
+  is_forecast_obs <- has_offset_forecast && has_datamod_outcome
   comp_forecast <- forecast_components(mod = object,
                                        components_est = comp_est,
                                        data_forecast = data_forecast,
                                        labels_forecast = labels,
-                                       has_newdata = has_newdata)
+                                       has_newdata = has_newdata,
+                                       is_forecast_obs = is_forecast_obs)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   dn_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
                                                     var_time = var_time,
@@ -1301,6 +1245,7 @@ forecast.bage_mod <- function(object,
                             data_forecast = data_forecast,
                             components_forecast = comp_forecast,
                             linpred_forecast = linpred_forecast,
+                            has_offset_forecast,
                             has_newdata = has_newdata)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     if (include_estimates) {
@@ -1343,6 +1288,8 @@ forecast.bage_mod <- function(object,
 #' values for hyperparameters
 #' @param linpred_forecast Linear predictor for future
 #' time periods
+#' @param has_offset_forecast Whether user supplied offset
+#' for future values
 #' @param has_newdata Whether user supplied 'newdata'
 #' argument
 #'
@@ -1353,6 +1300,7 @@ forecast_augment <- function(mod,
                              data_forecast,
                              components_forecast,
                              linpred_forecast,
+                             has_offset_forecast,
                              has_newdata) {
   UseMethod("forecast_augment")
 }
@@ -1363,13 +1311,13 @@ forecast_augment.bage_mod <- function(mod,
                                       data_forecast,
                                       components_forecast,
                                       linpred_forecast,
+                                      has_offset_forecast,
                                       has_newdata) {
   ## extract values
   outcome_est <- mod$outcome
   datamod <- mod$datamod
   confidential <- mod$confidential
   seed_augment <- mod$seed_augment
-  nms_data_forecast <- names(data_forecast)
   nm_distn <- nm_distn(mod)
   nm_outcome_data <- get_nm_outcome_data(mod)
   nm_outcome_data_true <- paste0(".", nm_outcome_data)
@@ -1383,12 +1331,6 @@ forecast_augment.bage_mod <- function(mod,
   has_confidential <- has_confidential(mod)
   has_datamod_outcome <- has_datamod_outcome(mod)
   has_missing_outcome_est <- anyNA(outcome_est)
-  if (!is.null(nm_offset_data) && (nm_offset_data %in% nms_data_forecast)) {
-    offset_forecast <- data_forecast[[nm_offset_data]]
-    has_offset_forecast <- !all(is.na(offset_forecast))
-  }
-  else
-    has_offset_forecast <- FALSE
   blank <- rep(NA_real_, times = nrow(data_forecast))
   ans <- data_forecast
   ## prepare seeds
@@ -1410,6 +1352,7 @@ forecast_augment.bage_mod <- function(mod,
   ## Note that offset cannot be supplied
   ## if there is a data model for the offset.
   if (has_offset_forecast) {
+    offset_forecast <- data_forecast[[nm_offset_data]]
     outcome_true <- draw_outcome_true(nm_distn = nm_distn,
                                       offset = offset_forecast,
                                       fitted = fitted,
@@ -1475,6 +1418,7 @@ forecast_augment.bage_mod_norm <- function(mod,
                                            data_forecast,
                                            components_forecast,
                                            linpred_forecast,
+                                           has_offset_forecast,
                                            has_newdata) {
   ## extract values
   outcome_est <- mod$outcome
@@ -1492,13 +1436,6 @@ forecast_augment.bage_mod_norm <- function(mod,
   has_datamod_outcome <- has_datamod(mod)
   has_imputed_outcome_est <- anyNA(outcome_est)
   blank <- rep(NA_real_, times = nrow(data_forecast))
-  nms_data_forecast <- names(data_forecast)
-  if (!is.null(nm_offset_data) && (nm_offset_data %in% nms_data_forecast)) {
-    offset_forecast <- data_forecast[[nm_offset_data]]
-    has_offset_forecast <- !all(is.na(offset_forecast))
-  }
-  else
-    has_offset_forecast <- FALSE
   ans <- data_forecast
   ## prepare seeds
   seed_restore <- make_seed() ## create randomly-generated seed
@@ -1507,6 +1444,7 @@ forecast_augment.bage_mod_norm <- function(mod,
   fitted_orig_scale <- fun_orig_scale_linpred(linpred_forecast)
   ## if offset present, forecast outcome
   if (has_offset_forecast)  {
+    offset_forecast <- data_forecast[[nm_offset_data]]
     disp <- get_disp(mod)
     disp_orig_scale <- fun_orig_scale_disp(disp)
     outcome_true <- draw_outcome_true(nm_distn = nm_distn,

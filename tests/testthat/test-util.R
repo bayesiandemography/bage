@@ -318,6 +318,81 @@ test_that("draw_true_given_obs_pois_skellam_approx does not return NA/NaN/Inf in
   }
 })
 
+test_that("'draw_true_given_obs_pois_skellam_approx' degenerate branch triggers with tiny sd and integer mean", {
+  set.seed(1)
+  y_obs <- 10L
+  lambda <- 9.9                 # makes mu_post approx y_obs when m is tiny
+  m <- 1e-30                    # makes var_post approx 0 (after epsilon floor)
+  window_sd <- 8L
+  p0_thresh <- 0.01
+  # Run several times; if the window branch were non-degenerate it might sample
+  # different integers, but in the degenerate case it always returns round(mu_post).
+  out <- replicate(20, draw_true_given_obs_pois_skellam_approx(
+    y_obs = y_obs, lambda = lambda, m = m,
+    window_sd = window_sd, p0_thresh = p0_thresh
+  ))
+  # Compute the implied mu_post for the same inputs (mirrors the function)
+  denom <- lambda + 2 * m
+  mu_post  <- lambda + (lambda / denom) * (y_obs - lambda)
+  expect_true(all(out == as.integer(round(max(0, mu_post)))),
+              info = "Should always fall back to rounded mu_post in degenerate case")
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' non-degenerate typical case samples around mu_post", {
+  set.seed(2)
+  y_obs <- 50L
+  lambda <- 60
+  m <- 40                        # gives a reasonable sd_post
+  window_sd <- 8L
+  p0_thresh <- 0.01
+  out <- replicate(200, draw_true_given_obs_pois_skellam_approx(
+    y_obs = y_obs, lambda = lambda, m = m,
+    window_sd = window_sd, p0_thresh = p0_thresh
+  ))
+  expect_true(length(unique(out)) > 1,
+              info = "Should not be degenerate; expect variability in draws")
+  # sanity: outputs are non-negative integers and near mu_post
+  denom <- lambda + 2 * m
+  mu_post  <- lambda + (lambda / denom) * (y_obs - lambda)
+  var_post <- (lambda * 2 * m) / denom
+  sd_post  <- sqrt(max(var_post, .Machine$double.eps))
+  expect_true(all(out >= 0))
+  expect_true(median(out) >= mu_post - 2 * sd_post &&
+              median(out) <= mu_post + 2 * sd_post)
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' extreme tiny sd but non-integer mean still degenerates", {
+  set.seed(3)
+  # Make sd_post approx eps by taking lambda tiny and m tiny relative to lambda,
+  # but keep mu_post extremely close to an integer + small offset.
+  y_obs <- 10L
+  lambda <- 10 - 1e-8            
+  m <- 1e-30
+  window_sd <- 8L
+  p0_thresh <- 0.01
+  out <- draw_true_given_obs_pois_skellam_approx(
+    y_obs = y_obs, lambda = lambda, m = m,
+    window_sd = window_sd, p0_thresh = p0_thresh
+  )
+  denom <- lambda + 2 * m
+  mu_post  <- lambda + (lambda / denom) * (y_obs - lambda)
+  expect_identical(out, round(max(0, mu_post)),
+                   info = "Degenerate guard returns rounded mu_post")
+})
+
+test_that("'draw_true_given_obs_pois_skellam_approx' edge guards produce valid integer for m==0 or lambda<=0", {
+  set.seed(4)
+  y_obs <- 7L
+  window_sd <- 8L
+  p0_thresh <- 0.01
+  out1 <- draw_true_given_obs_pois_skellam_approx(
+    y_obs, lambda = 5, m = 0, window_sd, p0_thresh)
+  out2 <- draw_true_given_obs_pois_skellam_approx(
+    y_obs, lambda = 0, m = 3, window_sd, p0_thresh)
+  expect_true(out1 %in% c(0L, y_obs))
+  expect_true(out2 %in% c(0L, y_obs))
+})
+
 
 ## 'draw_true_given_obs_pois_skellam_exact' -----------------------------------
 
@@ -611,16 +686,80 @@ test_that("'is_same_class' returns FALSE when classes different", {
 })
 
 
+## 'log_skellam_safe' ---------------------------------------------------------
 
-## 'log_dskellam_R' -----------------------------------------------------------
+test_that("'log_skellam_safe' gives correct answer with valid inputs", {
+  ref_log_skellam <- function(k, m) {
+    # Symmetric Skellam: P(U=k) = exp(-2m) I_|k|(2m)
+    # Using scaled Bessel: log P = log( I_nu(2m) * exp(-2m) )
+    if (m == 0) {
+      return(ifelse(k == 0, 0, -Inf))
+    }
+    nu <- abs(as.integer(k))
+    val <- log(besselI(2 * m, nu = nu, expon.scaled = TRUE))
+    # Replace non-finite with -Inf (true probability zero)
+    val[!is.finite(val)] <- -Inf
+    val
+  }
+  m <- 3
+  k <- 0:30
+  thr <- 1000L # ensure bessel branch is used entirely
+  ans_obtained <- log_skellam_safe(x = k, m = m, threshold = thr)
+  ans_expected <- vapply(k, ref_log_skellam, numeric(1), m = m)
+  expect_length(ans_obtained, length(k))
+  expect_true(all(is.finite(ans_obtained)))  # all finite for m>0 on scaled-bessel
+  expect_equal(ans_obtained, ans_expected, tolerance = 1e-12)
+})
 
-log_dskellam_call_ <- function(k, mu1, mu2, x_thresh = 700) {
-  .Call("C_log_dskellam_R",
-        as.integer(k),
-        as.numeric(mu1),
-        as.numeric(mu2),
-        as.numeric(x_thresh))
-}
+test_that("log_skellam_safe is symmetric in k", {
+  m <- 2.5
+  k <- -30:30
+  thr <- 1000L
+  ans_expected <- log_skellam_safe(x = abs(k), m = m, threshold = thr)
+  ans_obtained <- log_skellam_safe(x = k, m = m, threshold = thr)
+  expect_equal(ans_obtained, ans_expected, tolerance = 1e-12)
+})
+
+test_that("no NaN produced; only -Inf for true zero-prob cases", {
+  m <- 0.7
+  k <- c(0:10, 100, 500, 1000)
+  thr <- 50L
+  got <- log_skellam_safe(x = k, m = m, threshold = thr)
+  expect_false(any(is.nan(got)))
+  # For m>0, scaled-bessel/approx should be finite (not -Inf),
+  # though extreme cases may return very negative but finite values.
+  expect_true(all(is.finite(got)))
+})
+
+test_that("handles m = 0 edge case as point mass at k = 0", {
+  m <- 0
+  k <- -5:5
+  thr <- 10L
+  # Expect log pmf is 0 at k=0, -Inf otherwise
+  got <- log_skellam_safe(x = k, m = m, threshold = thr)
+  expect_equal(got[k == 0], 0)
+  expect_true(all(is.infinite(got[k != 0]) & got[k != 0] < 0))
+})
+
+test_that("vectorization and length are correct", {
+  m <- 4
+  k <- sample(-100:100, size = 37)
+  thr <- 25L
+  got <- log_skellam_safe(x = k, m = m, threshold = thr)
+  expect_length(got, length(k))
+  # symmetry per-element
+  got_sym <- log_skellam_safe(x = -k, m = m, threshold = thr)
+  expect_equal(got, got_sym, tolerance = 0.01)
+})
+
+test_that("monotonic decrease away from 0 (unimodality check)", {
+  m <- 3
+  k <- 0:50
+  thr <- 1000L
+  g0 <- log_skellam_safe(x = k, m = m, threshold = thr)
+  # non-increasing as k grows from 0
+  expect_true(all(diff(g0) <= 1e-6))
+})
 
 
 ## 'make_scaled_eigen' --------------------------------------------------------

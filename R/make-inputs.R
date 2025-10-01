@@ -629,6 +629,16 @@ make_dimnames_terms <- function(formula, data) {
       data_term <- data[nms_vars_term]
       data_term <- lapply(data_term, to_factor)
       dimnames <- lapply(data_term, levels)
+      lengths <- lengths(dimnames)
+      i_length_1 <- match(1L, lengths, nomatch = 0L)
+      if (i_length_1 > 0L) {
+        nm <- nms_vars_term[[i_length_1]]
+        val <- data[[nm]][[1L]]
+        cli::cli_abort(c("{.arg formula} includes variable with single value.",
+                         i = "Variable: {.var {nm}}.",
+                         i = "Value: {.val {val}}.",
+                         i = "Formula: {.code {deparse1(formula)}}."))
+      }
       ans_terms[[i_term]] <- dimnames
     }
     names(ans_terms) <- nms_terms

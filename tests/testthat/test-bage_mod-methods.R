@@ -562,9 +562,10 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp, h
   outcome_obs <- poputils::rr3(outcome_true)
   ans_expected <- tibble::as_tibble(data)
   ans_expected$.deaths <- outcome_true
+  ans_expected$deaths <- outcome_obs
   ans_expected <- ans_expected[c("age", "time", "sex", "deaths",
                                  ".deaths", "popn")]
-  ans_expected$.observed <- data$deaths / data$popn
+  ans_expected$.observed <- outcome_obs / data$popn
   ans_expected$.fitted <- fitted
   expect_equal(ans_obtained, ans_expected)
   expect_identical(names(augment(fit(mod), quiet = TRUE)), names(ans_obtained))
@@ -609,9 +610,10 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - no disp, ha
                                              fitted = fitted)
   ans_expected <- tibble::as_tibble(data)
   ans_expected$.deaths <- outcome_true
+  ans_expected$deaths <- outcome_obs
   ans_expected <- ans_expected[c("age", "time", "sex", "deaths",
                                  ".deaths", "popn")]
-  ans_expected$.observed <- data$deaths / data$popn
+  ans_expected$.observed <- outcome_obs / data$popn
   ans_expected$.fitted <- fitted
   expect_equal(ans_obtained, ans_expected)
   expect_identical(names(augment(fit(mod), quiet = TRUE)), names(ans_obtained))
@@ -808,177 +810,6 @@ test_that("'draw_fitted_given_outcome' works with 'bage_mod_binom'", {
   ans_expected <- rvec::rbeta_rvec(n = nrow(data),
                                    shape1 = d + expected / disp,
                                    shape2 = p - d  + (1 - expected) / disp)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
-## 'draw_vals_fitted' ---------------------------------------------------------
-
-test_that("'draw_vals_fitted' works with 'bage_mod_pois' - no outcome", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  vals_disp <- draw_vals_disp(mod, n_sim = n_sim)
-  components <- draw_vals_components_unfitted(mod = mod,
-                                              n_sim = n_sim)
-  vals_expected <- exp(make_linpred_from_components(mod = mod,
-                                                    components = components,
-                                                    data = mod$data,
-                                                    dimnames_term = mod$dimnames_terms))
-  set.seed(1)
-  ans_obtained <- draw_vals_fitted(mod,
-                                   vals_expected = vals_expected,
-                                   vals_disp = vals_disp,
-                                   outcome = NULL,
-                                   offset = NULL)
-  set.seed(1)
-  ans_expected <- rvec::rgamma_rvec(n = nrow(data),
-                                    shape = 1 / vals_disp,
-                                    rate = 1 / (vals_disp * vals_expected))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_fitted' works with bage_mod_pois - has outcome, no NAs", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age + time + sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  outcome <- data$deaths
-  vals_expected <- rvec::rpois_rvec(n = 120, lambda = outcome, n_draw = 5)
-  vals_disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.5, n_draw = 5)
-  set.seed(0)
-  ans_obtained <- draw_vals_fitted(mod,
-                                   vals_expected = vals_expected,
-                                   vals_disp = vals_disp,
-                                   outcome = data$deaths,
-                                   offset = data$popn)
-  set.seed(0)
-  ans_expected <- rvec::rgamma_rvec(n = length(vals_expected),
-                                    data$deaths + 1/vals_disp,
-                                    data$popn + 1/(vals_disp*vals_expected))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_fitted' works with bage_mod_pois - has outcome, has NAs", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  data$popn[1] <- NA
-  data$deaths[2] <- NA
-  formula <- deaths ~ age + time + sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  vals_expected <- rvec::rpois_rvec(n = 120, lambda = 100, n_draw = 5)
-  vals_disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.5, n_draw = 5)
-  set.seed(0)
-  ans_obtained <- draw_vals_fitted(mod,
-                                vals_expected = vals_expected,
-                                vals_disp = vals_disp,
-                                outcome = data$deaths,
-                                offset = data$popn)
-  set.seed(0)
-  data$popn[1:2] <- 0
-  data$deaths[1:2] <- 0
-  ans_expected <- rvec::rgamma_rvec(n = length(vals_expected),
-                                    data$deaths + 1/vals_disp,
-                                    data$popn + 1/(vals_disp*vals_expected))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_fitted' works with 'bage_mod_binom' - no outcome", {
-  set.seed(0)
-  n_sim <- 10
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  vals_disp <- draw_vals_disp(mod, n_sim = n_sim)
-  components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim)
-  invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_from_components(mod = mod,
-                                                         components = components,
-                                                         data = mod$data,
-                                                         dimnames_term = mod$dimnames_terms))
-  set.seed(1)
-  ans_obtained <- draw_vals_fitted(mod,
-                                   vals_expected = vals_expected,
-                                   vals_disp = vals_disp,
-                                   outcome = NULL,
-                                   offset = NULL)
-  set.seed(1)
-  ans_expected <- rvec::rbeta_rvec(n = nrow(data),
-                                   shape1 = vals_expected / vals_disp,
-                                   shape2 = (1 - vals_expected) / vals_disp)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_fitted' works with bage_mod_binom - has outcome, no NA", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-  formula <- deaths ~ age + time + sex
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  vals_expected <- rvec::runif_rvec(n = 120, n_draw = 5)
-  vals_disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.8, n_draw = 5)
-  set.seed(0)
-  ans_obtained <- draw_vals_fitted(mod,
-                                vals_expected = vals_expected,
-                                vals_disp = vals_disp,
-                                outcome = data$deaths,
-                                offset = data$popn)
-  set.seed(0)
-  ans_expected <- rvec::rbeta_rvec(n = length(vals_expected),
-                                   data$deaths + vals_expected/vals_disp,
-                                   data$popn - data$deaths + (1 - vals_expected)/vals_disp)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_fitted' works with bage_mod_binom - has outcome, has NAs", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-  data$popn[1] <- NA
-  data$deaths[2] <- NA
-  formula <- deaths ~ age + time + sex
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  outcome <- data$deaths
-  offset <- data$popn
-  vals_expected <- rvec::runif_rvec(n = 120, n_draw = 5)
-  vals_disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.8, n_draw = 5)
-  set.seed(0)
-  ans_obtained <- draw_vals_fitted(mod,
-                                vals_expected = vals_expected,
-                                vals_disp = vals_disp,
-                                outcome = data$deaths,
-                                offset = data$popn)
-  set.seed(0)
-  data$popn[1:2] <- 0
-  data$deaths[1:2] <- 0
-  ans_expected <- rvec::rbeta_rvec(n = length(vals_expected),
-                                   data$deaths + vals_expected/vals_disp,
-                                   data$popn - data$deaths + (1 - vals_expected)/vals_disp)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1715,6 +1546,7 @@ test_that("'forecast_augment' works - Poisson, has disp, no forecasted offset", 
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = FALSE,
                           has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -1754,6 +1586,7 @@ test_that("'forecast_augment' works - Poisson, no offset", {
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = FALSE,
                           has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -1796,6 +1629,7 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset",
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = TRUE,
                           has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -1839,6 +1673,7 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset, 
                           data_forecast = data_forecast,
 components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = TRUE,
                           has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -1884,6 +1719,7 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset, 
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = TRUE,
                           has_newdata = FALSE)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -1928,6 +1764,7 @@ test_that("'forecast_augment' works - binomial, no disp", {
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = FALSE,
                           has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -1966,6 +1803,7 @@ test_that("'forecast_augment' works - normal", {
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = FALSE,
                           has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -2006,6 +1844,7 @@ test_that("'forecast_augment' works - normal, has forecasted offset", {
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = TRUE,
                           has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -2046,6 +1885,7 @@ test_that("'forecast_augment' works - normal, no offset, no NA in outcome", {
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = FALSE,
                           has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -2087,6 +1927,7 @@ test_that("'forecast_augment' works - normal, has offset, offset not in forecast
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = FALSE,
                           has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -2129,6 +1970,7 @@ test_that("'forecast_augment' works - normal, estimated has imputed, has offset"
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = TRUE,
                           has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -2171,6 +2013,7 @@ test_that("'forecast_augment' works - normal, estimated has imputed, no offset",
                           data_forecast = data_forecast,
                           components_forecast = components_forecast,
                           linpred_forecast = linpred_forecast,
+                          has_offset_forecast = FALSE,
                           has_newdata = has_newdata)
   aug_est <- augment(mod, quiet = TRUE)
   expect_setequal(ans$age, aug_est$age)
@@ -2180,7 +2023,6 @@ test_that("'forecast_augment' works - normal, estimated has imputed, no offset",
   expect_true(all(is.na(ans$.income)))
   expect_true(all(is.na(ans$income)))
 })
-
 
 
 ## 'get_fun_ag_offset' --------------------------------------------------------

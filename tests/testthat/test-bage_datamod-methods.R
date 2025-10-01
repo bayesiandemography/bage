@@ -1413,7 +1413,7 @@ test_that("'forecast_datamod_param' works with bage_datamod_overcount - has 'by'
   fitted <- rvec::rgamma_rvec(n = 2, shape = shape, scale = scale, n_draw = 10)
   ans_expected <- tibble::tibble(term = "datamod",
                                  component = "rate",
-                                 level = 2025:2026,
+                                 level = as.character(2025:2026),
                                  .fitted = fitted)
   expect_equal(ans_obtained, ans_expected)
 })
@@ -1479,7 +1479,7 @@ test_that("'forecast_datamod_param' works with bage_datamod_undercount - has 'by
   fitted <- rvec::rbeta_rvec(n = 2, shape1, shape2 = shape2, n_draw = 10)
   ans_expected <- tibble::tibble(term = "datamod",
                                  component = "prob",
-                                 level = 2025:2026,
+                                 level = as.character(2025:2026),
                                  .fitted = fitted)
   expect_equal(ans_obtained, ans_expected)
 })
