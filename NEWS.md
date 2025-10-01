@@ -1,11 +1,6 @@
 
 # bage 0.9.6
 
-## Interface
-
-* Extra checking of inputs for model constructor functions, eg
-  checking that factors have at least two levels.
-
 
 ## Data models
 
@@ -14,6 +9,17 @@
   `set_datamod_miscount()`, `set_datamod_noise()`,
   `set_datamod_over()`, and `set_datamod_under()`. In introduction to
   data models is given in vignette 10. 
+
+## Interface
+
+* Extra checking of inputs for model constructor functions, eg
+  checking that factors have at least two levels.
+
+## Changes to internal calculations
+
+* Improved efficiency of some C++ code in the TMB template, through
+  greater use of call by reference.
+
 
 
 # bage 0.9.5
@@ -47,11 +53,6 @@
 * Fixed bug in aggregation of exposure for Poisson where `exposure =
   1`, and aggregation of weights in normal models where `weights = 1`.
   
-## Changes to internal calculations
-
-* Improved efficiency of some C++ code in the TMB template, through
-  greater use of call by reference.
-
 
 # bage 0.9.4
 
