@@ -23,7 +23,11 @@ test_that("'draw_vals_and_record' works", {
   out <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi", random = random, map = map,
                         is_test_nonconv = FALSE)
   est_prec <- extract_est_prec(f = out$f, has_random_effects = TRUE)
-  ans <- draw_vals_and_record(mod = mod, est = est_prec$est, prec = est_prec$prec, map = map)
+  ans <- draw_vals_and_record(mod = mod,
+                              est = est_prec$est,
+                              prec = est_prec$prec,
+                              map = map,
+                              max_jitter = max_jitter)
   expect_identical(ncol(ans$draws_effectfree), 1000L)
   expect_identical(length(ans$point_effectfree), nrow(ans$draws_effectfree))
 })
@@ -71,7 +75,11 @@ test_that("'fit_default' works with pois, optimzier is 'multi'", {
     set_prior(age ~ AR()) |>
     set_prior(age:sex ~ RW2(sd = 0)) |>
     set_prior(age:sex:time ~ AR())
-  ans_obtained <- fit_default(mod, optimizer = "multi", quiet = TRUE, aggregate = TRUE,
+  ans_obtained <- fit_default(mod,
+                              optimizer = "multi",
+                              quiet = TRUE,
+                              aggregate = TRUE,
+                              max_jitter = 1e-4,
                               start_oldpar = FALSE)
   expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -85,7 +93,11 @@ test_that("'fit_default' works with pois, optimzier is 'nlminb'", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  ans_obtained <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+  ans_obtained <- fit_default(mod,
+                              optimizer = "nlminb",
+                              quiet = TRUE,
+                              aggregate = TRUE,
+                              max_jitter = 1e-4,
                               start_oldpar = FALSE)
   expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -101,7 +113,11 @@ test_that("'fit_default' works with pois - start_oldpar", {
                   exposure = popn)
   mod <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
                      start_oldpar = FALSE)
-  ans_obtained <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+  ans_obtained <- fit_default(mod,
+                              optimizer = "nlminb",
+                              quiet = TRUE,
+                              aggregate = TRUE,
+                              max_jitter = 1e-4,
                               start_oldpar = TRUE)
   expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -115,7 +131,11 @@ test_that("'fit_default' gives error with 'start_oldpar' if model fitted", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  expect_error(fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+  expect_error(fit_default(mod,
+                           optimizer = "nlminb",
+                           quiet = TRUE,
+                           aggregate = TRUE,
+                           max_jitter = 1e-4,
                            start_oldpar = TRUE),
                "`start_oldpar` is TRUE but model has not been fitted.")
 })
@@ -136,11 +156,13 @@ test_that("'fit_default' gives same answer with and without aggregation - Poisso
                         optimizer = "multi",
                         quiet = TRUE,
                         aggregate = TRUE,
+                        max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
                            optimizer = "multi",
                            quiet = TRUE,
                            aggregate = FALSE,
+                           max_jitter = 1e-4,
                            start_oldpar = FALSE)
   disp_ag <- mod_ag |>
     components() |>
@@ -170,11 +192,13 @@ test_that("'fit_default' gives same answer with and without aggregation - Poisso
                         optimizer = "multi",
                         quiet = TRUE,
                         aggregate = TRUE,
+                        max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
                            optimizer = "multi",
                            quiet = TRUE,
                            aggregate = FALSE,
+                           max_jitter = 1e-4,
                            start_oldpar = FALSE)
   disp_ag <- mod_ag |>
     components() |>
@@ -205,11 +229,13 @@ test_that("'fit_default' gives same answer with and without aggregation - binomi
                         optimizer = "multi",
                         quiet = TRUE,
                         aggregate = TRUE,
+                        max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
                            optimizer = "multi",
                            quiet = TRUE,
                            aggregate = FALSE,
+                           max_jitter = 1e-4,
                            start_oldpar = FALSE)
   disp_ag <- mod_ag |>
     components() |>
@@ -241,11 +267,13 @@ test_that("'fit_default' gives same answer with and without aggregation - norm, 
                         optimizer = "multi",
                         quiet = TRUE,
                         aggregate = TRUE,
+                        max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
                            optimizer = "multi",
                            quiet = TRUE,
                            aggregate = FALSE,
+                           max_jitter = 1e-4,
                            start_oldpar = FALSE)
   disp_ag <- mod_ag |>
     components(original_scale = TRUE, quiet = TRUE) |>
@@ -277,11 +305,13 @@ test_that("'fit_default' gives same answer with and without aggregation - norm, 
                         optimizer = "multi",
                         quiet = TRUE,
                         aggregate = TRUE,
+                        max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
                            optimizer = "multi",
                            quiet = TRUE,
                            aggregate = FALSE,
+                           max_jitter = 1e-4,
                            start_oldpar = FALSE)
   disp_ag <- mod_ag |>
     components(original_scale = TRUE, quiet = TRUE) |>
@@ -322,12 +352,13 @@ test_that("'fit_inner_outer' works with with pois", {
                              optimizer = "nlminb",
                              quiet = TRUE,
                              start_oldpar = FALSE,
+                             max_jitter = 1e-4,
                              aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
-  augment()
+    augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
   aug_default <- ans_default |>
-  augment()
+    augment()
   fit_default <- rvec::draws_median(aug_default$.fitted)
   expect_true(cor(fit_inner_outer, fit_default) > 0.98)
 })
@@ -355,12 +386,13 @@ test_that("'fit_inner_outer' works with with binom", {
                              optimizer = "nlminb",
                              quiet = TRUE,
                              start_oldpar = FALSE,
+                             max_jitter = 1e-4,
                              aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
-  augment()
+    augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
   aug_default <- ans_default |>
-  augment()
+    augment()
   fit_default <- rvec::draws_median(aug_default$.fitted)
   expect_true(cor(fit_inner_outer, fit_default) > 0.98)
 })
@@ -388,6 +420,7 @@ test_that("'fit_inner_outer' works with with norm", {
                              optimizer = "BFGS",
                              quiet = TRUE,
                              start_oldpar = FALSE,
+                             max_jitter = 1e-4,
                              aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
     augment()
@@ -1053,7 +1086,7 @@ test_that("'optimize_nlminb' works", {
 
 ## 'record_metadata' ----------------------------------------------------------
 
-test_that("'draw_vals_and_record' works", {
+test_that("'record_metadata' works", {
   set.seed(10)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1075,7 +1108,11 @@ test_that("'draw_vals_and_record' works", {
   out <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi", random = random, map = map,
                         is_test_nonconv = FALSE)
   est_prec <- extract_est_prec(f = out$f, has_random_effects = TRUE)
-  mod <- draw_vals_and_record(mod = mod, est = est_prec$est, prec = est_prec$prec, map = map)
+  mod <- draw_vals_and_record(mod = mod,
+                              est = est_prec$est,
+                              prec = est_prec$prec,
+                              map = map,
+                              max_jitter = max_jitter)
   times <- make_fit_times(t_start = Sys.time(),
                           t_optim = Sys.time(),
                           t_report = Sys.time(),

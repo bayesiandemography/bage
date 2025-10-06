@@ -43,18 +43,22 @@ library(poputils)
 
 divorces_small <- nzl_divorces |>
   filter(age_upper(age) < 40,
-         time >= 2016) |>
+         time >= 2018) |>
   droplevels()
 
-mod <- mod_pois(divorces ~ age * sex + time,
+mod <- mod_pois(divorces ~ age + sex + time,
                 data = divorces_small,
-		            exposure = population)
+		exposure = population) |>
+  set_prior(`(Intercept)` ~ Known(-1)) |>
+  set_prior(sex ~ NFix(sd = 0.1)) |>
+  set_prior(age ~ RW(s = 0.05)) |>
+  set_prior(time ~ AR1(s = 0.1))
 mod		
 ```
 
 To do the simulation study, we pass the model to `report_sim()`. If only one model is supplied, `report_sim()` assumes that that model should be used as the estimation model and as the data generation model. By default `report_sim()` repeats the experiment 100 times, generating a different dataset each time.
 
-```{r}
+```{r, message = FALSE}
 set.seed(0)
 res <- report_sim(mod_est = mod)
 res
@@ -75,7 +79,7 @@ With `report_sim()`, this can be done by using one model for the `mod_est` argum
 
 Consider, for instance, a case where the time effect is generated from an `AR1()` prior, while the estimation model continues to use the default value of a `RW()` prior,
 
-```{r}
+```{r, message = FALSE}
 mod_ar1 <- mod |>
   set_prior(time ~ AR1())
 mod_ar1	
@@ -83,7 +87,7 @@ mod_ar1
 
 We set the `mod_sim` argument to `mod_ar1` and generate the report.
 
-```{r}
+```{r, message = FALSE}
 res_ar1 <- report_sim(mod_est = mod, mod_sim = mod_ar1)
 res_ar1
 ```

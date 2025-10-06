@@ -1148,19 +1148,21 @@ make_draws_hyperrandfree <- function(est, draws_post) {
 #' @param prec Precision matrix returned by TMB
 #' @param map 'map' argument to TMB
 #' @param n_draw Number of posterior draws
-#'
+#' @param max_jitter Maximum amount added to matrix
+#' to enable Cholesky factorization
+#' 
 #' @returns A matrix
 #'
 #' @noRd
-make_draws_post <- function(est, prec, map, n_draw) {
+make_draws_post <- function(est, prec, map, n_draw, max_jitter) {
   is_fixed <- make_is_fixed(est = est, map = map)
   est_unlist <- unlist(est)
-  mean <- est_unlist[!is_fixed]
-  CH <- Matrix::Cholesky(prec)
-  is_sparse <- methods::is(CH, "dCHMsimpl") || methods::is(CH, "dCHMsuper")
+  mu <- est_unlist[!is_fixed]
+  CH <- safe_chol_prec(Q = prec, max_jitter = max_jitter)
+  is_sparse <- methods::is(CH, "CHMfactor")
   if (is_sparse) {
     t_draws_nonfixed <- sparseMVN::rmvn.sparse(n = n_draw,
-                                               mu = mean,
+                                               mu = mu,
                                                CH = CH,
                                                prec = TRUE)
     draws_nonfixed <- t(t_draws_nonfixed)
@@ -1168,7 +1170,7 @@ make_draws_post <- function(est, prec, map, n_draw) {
   else {
     R_prec <- Matrix::expand1(CH, which = "L")
     draws_nonfixed <- rmvnorm_chol(n = n_draw,
-                                   mean = mean,
+                                   mean = mu,
                                    R_prec = R_prec)
   }
   ans <- matrix(NA_real_, nrow = length(is_fixed), ncol = n_draw)
@@ -2271,11 +2273,17 @@ rescale_components <- function(components, mod) {
 #' Reproducibility is achieved via 'seed_components'.
 #'
 #' @param mod A fitted 'bage_mod' object
+#' @param est Named list with estimates returned by TMB
+#' @param prec Precision matrix returned by TMB
+#' @param map 'map' argument to TMB
+#' @param n_draw Number of posterior draws
+#' @param max_jitter Maximum amount added to matrix
+#' to enable Cholesky factorization
 #'
 #' @returns Modified version of 'mod'
 #'
 #' @noRd
-make_stored_draws <- function(mod, est, prec, map) {
+make_stored_draws <- function(mod, est, prec, map, max_jitter) {
   n_draw <- mod$n_draw
   transforms_hyper <- make_transforms_hyper(mod)
   seed_components <- mod$seed_components
@@ -2284,7 +2292,8 @@ make_stored_draws <- function(mod, est, prec, map) {
   draws_post <- make_draws_post(est = est,
                                 prec = prec,
                                 map = map,
-                                n_draw = n_draw)
+                                n_draw = n_draw,
+                                max_jitter = max_jitter)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   mod$draws_effectfree <- make_draws_effectfree(est = est,
                                                 draws_post = draws_post)
@@ -2317,6 +2326,7 @@ make_stored_draws <- function(mod, est, prec, map) {
 #' - 'point_datamod_param'
 #'
 #' @param mod A fitted 'bage_mod' object
+#' @param est Named list with estimates returned by TMB
 #'
 #' @returns Modified version of 'mod'
 #'

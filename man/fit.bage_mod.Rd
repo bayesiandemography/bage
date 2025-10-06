@@ -10,6 +10,7 @@
   vars_inner = NULL,
   optimizer = c("multi", "nlminb", "BFGS", "CG"),
   quiet = TRUE,
+  max_jitter = 1e-04,
   start_oldpar = FALSE,
   ...
 )
@@ -34,8 +35,13 @@ Current choices are \code{"multi"},
 \code{"nlminb"}, \code{"BFGS"}, and \code{"CG"}. Default
 is \code{"multi"}. See below for details.}
 
-\item{quiet}{Whether to suppress messages.
-Default is \code{TRUE}.}
+\item{quiet}{Whether to suppress messages
+from optimizer. Default is \code{TRUE}.}
+
+\item{max_jitter}{Maximum quantity to add to
+diagonal of precision matrix, if Cholesky
+factorization is failing. Default is
+0.0001.}
 
 \item{start_oldpar}{Whether the optimizer should start
 at previous estimates. Used only
@@ -86,6 +92,24 @@ using \code{"BFGS"}. The default.
 \item \code{"BFGS"} \code{\link[stats:optim]{stats::optim()}} using method \code{"BFGS"}.
 \item \code{"GC"} \code{\link[stats:optim]{stats::optim()}} using method \code{"CG"} (conjugate gradient).
 }
+}
+
+\section{Cholesky factorization and \code{max_jitter}}{
+
+
+Sampling from the posterior distribution requires
+performing a Cholesky factorization of the precision
+matrix returned by TMB. This factorization sometimes
+fails because of numerical problems. Adding a small
+quantity to the diagonal of the precision matrix
+can alleviate numerical problems, though potentially
+at the cost of reduced accuracy. If the Cholesky factorization
+initially fails, \code{bage} will try again with progressively
+largeer quantities added to the diagonal, up to the
+maximum set by \code{max_jitter}. Increasing the value of
+\code{max_jitter} can help suppress numerical problems
+further. A safer strategy, however, is to simplify
+the model, or to use more informative priors.
 }
 
 \examples{

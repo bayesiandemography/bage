@@ -906,6 +906,22 @@ generics::fit
 #' - `"BFGS"` [stats::optim()] using method `"BFGS"`.
 #' - `"GC"` [stats::optim()] using method `"CG"` (conjugate gradient).
 #'
+#' @section Cholesky factorization and `max_jitter`:
+#'
+#' Sampling from the posterior distribution requires
+#' performing a Cholesky factorization of the precision
+#' matrix returned by TMB. This factorization sometimes
+#' fails because of numerical problems. Adding a small
+#' quantity to the diagonal of the precision matrix
+#' can alleviate numerical problems, though potentially
+#' at the cost of reduced accuracy. If the Cholesky factorization
+#' initially fails, `bage` will try again with progressively
+#' largeer quantities added to the diagonal, up to the
+#' maximum set by `max_jitter`. Increasing the value of
+#' `max_jitter` can help suppress numerical problems
+#' further. A safer strategy, however, is to simplify
+#' the model, or to use more informative priors.
+#'
 #' @param object A `bage_mod` object,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
@@ -922,8 +938,12 @@ generics::fit
 #' Current choices are `"multi"`,
 #' `"nlminb"`, `"BFGS"`, and `"CG"`. Default
 #' is `"multi"`. See below for details.
-#' @param quiet Whether to suppress messages.
-#' Default is `TRUE`.
+#' @param quiet Whether to suppress messages
+#' from optimizer. Default is `TRUE`.
+#' @param max_jitter Maximum quantity to add to
+#' diagonal of precision matrix, if Cholesky
+#' factorization is failing. Default is
+#' 0.0001.
 #' @param start_oldpar Whether the optimizer should start
 #' at previous estimates. Used only
 #' when `fit()` is being called on a fitted
@@ -975,6 +995,7 @@ fit.bage_mod <- function(object,
                          vars_inner = NULL,
                          optimizer = c("multi", "nlminb", "BFGS", "CG"),
                          quiet = TRUE,
+                         max_jitter = 1e-4,
                          start_oldpar = FALSE,
                          ...) {
   check_old_version(x = object, nm_x = "object")
@@ -982,6 +1003,9 @@ fit.bage_mod <- function(object,
   method <- match.arg(method)
   optimizer <- match.arg(optimizer)
   check_flag(x = quiet, nm_x = "quiet")
+  check_number(x = max_jitter, nm_x = "max_jitter")
+  if (max_jitter < 0)
+    cli::cli_abort("{.arg max_jitter} is negative.")
   check_flag(x = start_oldpar, nm_x = "start_oldpar")
   check_has_no_dots(...)
   if (method == "standard") {
