@@ -989,9 +989,47 @@ test_that("'make_draws_post' works with valid inputs - has R_prec", {
   ans <- make_draws_post(est = est,
                          prec = prec,
                          map = map,
-                         n_draw = 500000L)
+                         n_draw = 500000L,
+                         max_jitter = 1e-4)
   expect_equal(rowMeans(ans), unlist(est, use.names = FALSE), tolerance = 0.02)
   expect_equal(solve(cov(t(ans[c(1, 4:14),]))), as.matrix(prec), tolerance = 0.02)
+})
+
+test_that("make_draws_post uses sparse path when precision is sparse", {
+  library(Matrix)
+  set.seed(1)
+  # Build sparse SPD precision: Q = S'S + tau*I
+  n   <- 60L
+  k   <- 25L                     # k <= n; rectangular S encourages PSD
+  S <- rsparsematrix(n, k, density = 0.05)   # n x k, sparse
+  Q <- tcrossprod(S) + Diagonal(n) * 1e-3    # n x n, SPD, sparse
+  Q <- Matrix::forceSymmetric(Q) 
+  # everything free
+  est <- list(effectfree = rnorm(n))
+  map <- NULL
+  dr <- make_draws_post(
+    est        = est,
+    prec       = Q,
+    map        = map,
+    n_draw     = 5L,
+    max_jitter = 1e-4)
+  expect_equal(dim(dr), c(n, 5L))
+})
+
+test_that("make_draws_post uses dense path when precision is dense", {
+  library(Matrix)
+  set.seed(2)
+  A  <- matrix(rnorm(100), 10, 10)
+  Qd <- crossprod(A) + diag(10) * 1e-3  # SPD dense precision
+  Q  <- forceSymmetric(Matrix(Qd, sparse = FALSE))
+  est <- list(effectfree = rnorm(10))
+  map <- NULL
+  dr <- make_draws_post(est = est,
+                        prec = Q,
+                        map = map,
+                        n_draw = 4L,
+                        max_jitter = 1e-6)
+  expect_equal(dim(dr), c(10L, 4L))
 })
 
 
@@ -1011,7 +1049,11 @@ test_that("'fit_default' works with pois, optimzier is 'multi'", {
     set_prior(age ~ AR()) |>
     set_prior(age:sex ~ RW2(sd = 0)) |>
     set_prior(age:sex:time ~ AR())
-  ans_obtained <- fit_default(mod, optimizer = "multi", quiet = TRUE, aggregate = TRUE,
+  ans_obtained <- fit_default(mod,
+                              optimizer = "multi",
+                              quiet = TRUE,
+                              aggregate = TRUE,
+                              max_jitter = 1e-4,
                               start_oldpar = FALSE)
   expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -1025,7 +1067,11 @@ test_that("'fit_default' works with pois, optimzier is 'nlminb'", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  ans_obtained <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+  ans_obtained <- fit_default(mod,
+                              optimizer = "nlminb",
+                              quiet = TRUE,
+                              aggregate = TRUE,
+                              max_jitter = 1e-4,
                               start_oldpar = FALSE)
   expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -1039,7 +1085,11 @@ test_that("'fit_default' works with pois - start_oldpar", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+  mod <- fit_default(mod,
+                     optimizer = "nlminb",
+                     quiet = TRUE,
+                     aggregate = TRUE,
+                     max_jitter = 1e-4,
                      start_oldpar = FALSE)
   ans_obtained <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
                               start_oldpar = TRUE)
@@ -1055,7 +1105,11 @@ test_that("'fit_default' gives error with 'start_oldpar' if model fitted", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  expect_error(fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+  expect_error(fit_default(mod,
+                           optimizer = "nlminb",
+                           quiet = TRUE,
+                           aggregate = TRUE,
+                           max_jitter = 1e-4,
                            start_oldpar = TRUE),
                "`start_oldpar` is TRUE but model has not been fitted.")
 })
@@ -1086,12 +1140,13 @@ test_that("'fit_inner_outer' works with with pois", {
                              optimizer = "nlminb",
                              quiet = TRUE,
                              start_oldpar = FALSE,
+                             max_jitter = 1e-4,
                              aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
-  augment()
+    augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
   aug_default <- ans_default |>
-  augment()
+    augment()
   fit_default <- rvec::draws_median(aug_default$.fitted)
   expect_true(cor(fit_inner_outer, fit_default) > 0.98)
 })
@@ -1119,6 +1174,7 @@ test_that("'fit_inner_outer' works with with binom", {
                              optimizer = "nlminb",
                              quiet = TRUE,
                              start_oldpar = FALSE,
+                             max_jitter = 1e-4,
                              aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
   augment()
@@ -1152,6 +1208,7 @@ test_that("'fit_inner_outer' works with with norm", {
                              optimizer = "BFGS",
                              quiet = TRUE,
                              start_oldpar = FALSE,
+                             max_jitter = 1e-4,
                              aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
     augment()
@@ -2106,14 +2163,16 @@ test_that("'make_stored_draws' works with valid inputs - no covariates", {
   ans <- make_stored_draws(mod = mod,
                            est = est,
                            prec = prec,
-                           map = map)
+                           map = map,
+                           max_jitter = 1e-4)
   expect_identical(ncol(ans$draws_effectfree), 10L)
   expect_identical(ncol(ans$draws_hyper), 10L)
   expect_identical(length(ans$draws_disp), 10L)
   ans2 <- make_stored_draws(mod = mod,
                             est = est,
                             prec = prec,
-                            map = map)
+                            map = map,
+                            max_jitter = 1e-4)
   expect_identical(ans, ans2)
 })
 
@@ -2142,7 +2201,8 @@ test_that("'make_stored_draws' works with valid inputs - has covariates, datamod
   ans <- make_stored_draws(mod = mod,
                            est = est,
                            prec = prec,
-                           map = map)
+                           map = map,
+                           max_jitter = 1e-4)
   expect_identical(ncol(ans$draws_effectfree), 10L)
   expect_identical(ncol(ans$draws_hyper), 10L)
   expect_identical(length(ans$draws_disp), 10L)
@@ -2151,7 +2211,8 @@ test_that("'make_stored_draws' works with valid inputs - has covariates, datamod
   ans2 <- make_stored_draws(mod = mod,
                             est = est,
                             prec = prec,
-                            map = map)
+                            map = map,
+                            max_jitter = 1e-4)
   expect_identical(ans, ans2)
   set.seed(mod$seed_components)
   draws_post <- make_draws_post(est = est, prec = prec, map = map, n_draw = 10)

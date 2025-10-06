@@ -1,4 +1,37 @@
 
+#' Coerce Symmetric Matrix to Class Suitable for Cholesky
+#'
+#' Prefers sparse symmetric (`dsCMatrix`) so
+#' Matrix::Cholesky() returns a CHMfactor
+#' accepted by sparseMVN.
+#'
+#' Otherwise, fall back to sparse general.
+#'
+#' Oterwise, fall  back to dense symmetric.
+#'
+#' Assume Q is already symmetric
+#'
+#' @param Q A symmetric matrix
+#'
+#' @returns A Matrix
+#'
+#' @noRd
+as_cholmod_preferred <- function(Q) {
+  if (methods::is(Q, "dsCMatrix"))
+    return(Q)
+  Q_try <- try(methods::as(Q, "dsCMatrix"),
+               silent = TRUE)
+  if (!inherits(Q_try, "try-error"))
+    return(Q_try)
+  Q_try <- try(methods::as(Q, "generalMatrix"),
+               silent = TRUE)
+  if (!inherits(Q_try, "try-error"))
+    return(Q_try)
+  methods::as(Q, "dsyMatrix")
+}
+
+
+## HAS_TESTS
 #' Convert Integer-ish Character Vectors
 #' in a Data Frame to Integer
 #'
@@ -662,6 +695,74 @@ rvec_to_mean <- function(data) {
   data
 }
 
+#' Robust LLᵀ Cholesky for precision matrices with adaptive ridge
+#'
+#' Uses `symmetry_grade()` with defaults.
+#' Warns if asymmetry is "moderate"; errors if "severe".
+#' Always warns (with iteration count) if a ridge is required.
+#'
+#' @param Q A matrix. Dense or sparse. Assumed to
+#' be square with at least one row/col.
+#' @param max_jitter Maximum jitter to be added to
+#' diagonal (set to 1e-4 at user-visible level).
+#'
+#' @noRd
+safe_chol_prec <- function(Q, max_jitter) {
+  jitter0 <- 1e-12
+  symmetry_grade <- symmetry_grade(Q)
+  if (symmetry_grade == "severe") {
+    cli::cli_abort("Internal error: precision matrix estimated by TMB is severely asymmetric.")
+  }
+  if (symmetry_grade == "moderate") {
+    cli::cli_warn(c("Precision matrix returned by TMB is moderately asymmetric.",
+                    i = "Proceeding after forcing matrix to be symmetric.",
+                    i = paste("Asymmetry sometimes implies that a model is too complex,",
+                              "or is weakly identified."),
+                    i = "Consider simplifying the model or using more informative priors?"))
+  }
+  ## drop upper triangle and force symmetry
+  Q <- Matrix::forceSymmetric(Q, uplo = "L")
+  ## coerce to sparse if possible, so that Cholesky returns CHMfactor
+  Q <- as_cholmod_preferred(Q)
+  ## attempt Cholesky, with increasing levels of jitter added to diagonal
+  n <- nrow(Q)
+  jitter <- 0
+  iter <- 0L
+  repeat {
+    if (jitter > 0) {
+      jitter_matrix <- Matrix::Diagonal(n = n, x = jitter)
+      Qj <- Q + jitter_matrix
+    }
+    else
+      Qj <- Q
+    ans <- suppressWarnings(
+      try(Matrix::Cholesky(Qj, LDL = FALSE, perm = TRUE, super = NA),
+          silent = TRUE)
+    )
+    succeeded <- !inherits(ans, "try-error")
+    if (succeeded) {
+      if (jitter > 0) {
+        cli::cli_warn(c("Cholesky factorization only possible after adding small quantity to diagonal.",
+                        i = sprintf("Quantity added: %.1e", jitter),
+                        i = paste("Factorization problems sometimes imply that a model is too complex,",
+                                  "or is weakly identified."),
+                        i = "Consider simplifying the model or using more informative priors?"))
+      }
+      return(ans)
+    }
+    jitter <- if (jitter == 0) jitter0 else jitter * 10
+    iter <- iter + 1L
+    if (jitter > max_jitter) {
+      cli::cli_abort(c("Cholesky factorization failed.",
+                       i = paste("Factorization problems sometimes imply that a model is too complex,",
+                                 "or is weakly identified."),
+                       i = "Consider simplifying the model or using more informative priors?",
+                       i = paste("Increasing {.arg max_jitter} may allow factorization to proceed,",
+                                 "with reduced accuracy.")))
+    }
+  }
+}
+
 
 ## HAS_TESTS
 #' Obtain a Draws from the Posterior
@@ -724,7 +825,6 @@ sample_post_binom_betabinom <- function(n, y, mu, xi, pi) {
 }
 
 
-
 ## HAS_TESTS
 #' Obtain a Single Draw from the Posterior
 #' of a Beta-Binomial Model with Binomial
@@ -765,7 +865,58 @@ sample_post_binom_betabinom_inner <- function(n, y, mu, xi, pi) {
   sample(x, size = 1L, prob = wt)
 }
 
-  
+
+## HAS_TESTS
+#' Assess Extent to Which a Matrix is Symmetric
+#'
+#' Gives grade "near", "moderate", or "severe"
+#'
+#' Assumes Q is square and non-empty. 
+#'
+#' @param Q A matrix. Dense or sparse.
+#' @param thresh_abs_near Absolute threshold for "near" grade
+#' @param thresh_rel_near Relative threshold for "near" grade
+#' @param thresh_abs_moderate Absolute threshold for "moderate" grade
+#' @param thresh_rel_moderate Relative threshold for "moderate" grade
+#'
+#' @returns "near", "moderate", or "severe"
+#'
+#' @noRd
+symmetry_grade <- function(Q,
+                           thresh_abs_near = 1e-11,  
+                           thresh_rel_near = 1e-9,   
+                           thresh_abs_moderate = 1e-8,   
+                           thresh_rel_moderate = 1e-7) { 
+  if (!inherits(Q, "Matrix"))
+    Q <- Matrix::Matrix(Q, sparse = FALSE)
+  if (inherits(Q, "sparseMatrix"))
+    Q <- methods::as(Q, "generalMatrix")
+  if (Matrix::isSymmetric(Q, tol = 0))
+    return("near")
+  U <- Matrix::triu(Q, k = 1L)
+  L <- Matrix::tril(Q, k = -1L)
+  diff_U_L <- U - Matrix::t(L)
+  if (length(diff_U_L@x) > 0L) ## can be length 0 if all elements zero
+    max_abs_diff <-  max(abs(diff_U_L@x))
+  else
+    max_abs_diff <- 0
+  if (length(Q@x) > 0L) ## can be length 0 if all elements 0
+    max_element_Q <- max(abs(Q@x))
+  else
+    max_element_Q <- 0
+  max_element_Q <- max(max_element_Q, 1) ## avoid division by 0
+  max_rel_diff <- max_abs_diff / max_element_Q
+  le_abs_near <- max_abs_diff <= thresh_abs_near
+  le_rel_near <- max_rel_diff <= thresh_rel_near
+  le_abs_moderate <- max_abs_diff <= thresh_abs_moderate
+  le_rel_moderate <- max_rel_diff <= thresh_rel_moderate
+  if (le_abs_near && le_rel_near)
+    "near"
+  else if (le_abs_moderate && le_rel_moderate)
+    "moderate"
+  else
+    "severe"
+}
                                               
   
 

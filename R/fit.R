@@ -8,15 +8,18 @@
 #' @param est Point estimates
 #' @param prec Precision matrix
 #' @param map Named list specifying parameters held fixed
+#' @param max_jitter Maximum amount added to matrix
+#' to enable Cholesky factorization
 #'
 #' @returns Modified version of 'mod'
 #'
 #' @noRd
-draw_vals_and_record <- function(mod, est, prec, map) {
+draw_vals_and_record <- function(mod, est, prec, map, max_jitter) {
   mod <- make_stored_draws(mod = mod,
                            est = est,
                            prec = prec,
-                           map = map)
+                           map = map,
+                           max_jitter)
   mod <- make_stored_point(mod = mod,
                            est = est)
   mod
@@ -68,12 +71,19 @@ extract_est_prec <- function(f, has_random_effects) {
 #' @param optimizer Which optimizer to use
 #' @param quiet Whether to suppress warnings and trace information
 #' from optimizer
+#' @param max_jitter Maximum amount to add to allow
+#' Cholesky factorization
 #' @param start_oldpar Whether to start from old parameter values
 #'
 #' @returns A `bage_mod` object
 #'
 #' @noRd
-fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
+fit_default <- function(mod,
+                        aggregate,
+                        optimizer,
+                        quiet,
+                        max_jitter,
+                        start_oldpar) {
   t_start <- Sys.time()
   if (is_not_testing_or_snapshot())
     cli::cli_progress_message("Building log-posterior function...") # nocov
@@ -115,7 +125,8 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
   mod <- draw_vals_and_record(mod = mod,
                               est = est,
                               prec = prec,
-                              map = map)
+                              map = map,
+                              max_jitter = max_jitter)
   t_end <- Sys.time()
   times <- make_fit_times(t_start = t_start,
                           t_optim = t_optim,
@@ -139,13 +150,20 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
 #' @param quiet Whether to suppress warning messages from nlminb
 #' @param vars_inner Variables used
 #' in inner model.
+#' @param max_jitter Maximum amount to add to
+#' precision matrix to facilitate Cholesky factorization
 #' @param optimizer Which optimizer to use
 #' @param quiet Whether to suppress warnings from 'optimizer'
 #'
 #' @returns A `bage_mod` object
 #'
 #' @noRd
-fit_inner_outer <- function(mod, optimizer, quiet, vars_inner, start_oldpar) {
+fit_inner_outer <- function(mod,
+                            optimizer,
+                            quiet,
+                            vars_inner,
+                            max_jitter,
+                            start_oldpar) {
   if (start_oldpar)
     cli::cli_abort("{.arg start_oldpar} must be {.val {FALSE}} when using \"inner-outer\" method.")
   if (has_covariates(mod))
@@ -164,6 +182,7 @@ fit_inner_outer <- function(mod, optimizer, quiet, vars_inner, start_oldpar) {
                            optimizer = optimizer,
                            quiet = quiet,
                            start_oldpar = start_oldpar,
+                           max_jitter = max_jitter,
                            aggregate = TRUE)
   mod_outer <- make_mod_outer(mod = mod,
                               mod_inner = mod_inner,
@@ -172,6 +191,7 @@ fit_inner_outer <- function(mod, optimizer, quiet, vars_inner, start_oldpar) {
                            optimizer = optimizer,
                            quiet = quiet,
                            start_oldpar = start_oldpar,
+                           max_jitter = max_jitter,
                            aggregate = TRUE)
   computations <- rbind(inner = mod_inner$computations,
                         outer = mod_outer$computations)
@@ -185,6 +205,7 @@ fit_inner_outer <- function(mod, optimizer, quiet, vars_inner, start_oldpar) {
                             optimizer = optimizer,
                             quiet = quiet,
                             start_oldpar = start_oldpar,
+                            max_jitter = max_jitter,
                             aggregate = FALSE)
     computations <- rbind(computations,
                           disp = mod_disp$computations)

@@ -796,8 +796,6 @@ test_that("'make_dimnames_terms' throws error when variable has single value", {
 })
 
 
-
-
 ## 'make_effectfree' ----------------------------------------------------------
 
 test_that("'make_effectfree' works with valid inputs", {

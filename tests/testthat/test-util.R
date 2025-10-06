@@ -1,4 +1,39 @@
 
+## 'as_cholmod_preferred' -----------------------------------------------------
+
+test_that("as_cholmod_preferred keeps dsCMatrix as-is", {
+  library(Matrix)
+  Q <- rsparsematrix(50, 50, density = 0.03)
+  Q <- forceSymmetric(Q) + Diagonal(50) # make SPD-ish
+  Q <- methods::as(Q, "dsCMatrix")
+  Q2 <- as_cholmod_preferred(Q)
+  expect_s4_class(Q2, "dsCMatrix")
+})
+
+test_that("as_cholmod_preferred makes general sparse when dsCMatrix not possible", {
+  library(Matrix)
+  # Start dense, then forceSymmetric; dsCMatrix coercion may fail on some patterns
+  Qd <- matrix(0, 5, 5); diag(Qd) <- 1
+  Q  <- Matrix::forceSymmetric(Matrix(Qd, sparse = TRUE))
+  # Intentionally break symmetry class annotation:
+  Qg <- methods::as(Q, "generalMatrix")
+  Q2 <- as_cholmod_preferred(Qg)
+  # If dsCMatrix works, good; otherwise generalMatrix is acceptable
+  expect_true(methods::is(Q2, "dsCMatrix") || methods::is(Q2, "generalMatrix"))
+})
+
+test_that("as_cholmod_preferred falls back to dense symmetric when needed", {
+  library(Matrix)
+  Qd <- matrix(0.1, 6, 6); diag(Qd) <- 1
+  Q  <- Matrix::forceSymmetric(Matrix(Qd, sparse = FALSE))
+  Q2 <- as_cholmod_preferred(Q)
+  expect_true(Matrix::isSymmetric(Q2))
+  expect_false(methods::is(Q2, "sparseMatrix"))
+  CH <- Matrix::Cholesky(Q2, LDL = FALSE, perm = TRUE, super = NA)
+  expect_s4_class(CH, "Cholesky")  # dense factor path
+})
+
+
 ## 'chr_to_int' ---------------------------------------------------------------
 
 test_that("'chr_to_int' works with valid inputs", {
@@ -946,6 +981,69 @@ test_that("'rvec_to_mean' works with valid inputs", {
 })
 
 
+# 'safe_chol_prec' ------------------------------------------------------------
+
+test_that("'safe_chol_prec' - exact symmetric SPD factors without warnings", {
+  library(Matrix)
+  Q <- forceSymmetric(Matrix(matrix(c(4,1,0,
+                                      1,3,0,
+                                      0,0,2), 3, 3, byrow = TRUE)))
+  expect_no_warning({
+    CH <- safe_chol_prec(Q, max_jitter = 1e-6)
+    expect_s4_class(CH, "Cholesky")
+  })
+})
+
+test_that("'safe_chol_prec' - moderate asymmetry emits a warning then succeeds", {
+  library(Matrix)
+  # Start symmetric SPD
+  S <- forceSymmetric(Matrix(matrix(c(4, 1, 0,
+                                      1, 3, 0,
+                                      0, 0, 2), 3, 3, byrow = TRUE)))
+  # Introduce small antisymmetric mismatch (moderate by default thresholds)
+  S_mod <- S
+  S_mod[1, 2] <- S_mod[1, 2] + 5e-9  # break symmetry slightly
+  expect_warning(
+    {
+      CH <- safe_chol_prec(S_mod, max_jitter = 1e-6)
+      expect_s4_class(CH, "Cholesky")
+    },
+    "Precision matrix returned by TMB is moderately asymmetric."
+  )
+})
+
+test_that("'safe_chol_prec' - severe asymmetry aborts with cli error", {
+  library(Matrix)
+  S <- forceSymmetric(Matrix(matrix(c(4, 1, 0,
+                                      1, 3, 0,
+                                      0, 0, 2), 3, 3, byrow = TRUE)))
+  S_sev <- S
+  S_sev[1, 2] <- S_sev[1, 2] + 1e-3  # large antisymmetric mismatch
+  expect_error(
+    safe_chol_prec(S_sev, max_jitter = 1e-6),
+    "Internal error: precision matrix estimated by TMB is severely asymmetric",
+  )
+})
+
+test_that("'safe_chol_prec' - singular but symmetric matrices trigger ridge warning and then succeed", {
+  library(Matrix)
+  # Graph Laplacian for a path graph with n nodes (singular, rank n-1)
+  n <- 20L
+  d <- c(1, rep(2, n - 2), 1)
+  Q <- bandSparse(n, k = 0,  diag = list(d)) +
+       bandSparse(n, k = 1,  diag = list(rep(-1, n - 1))) +
+       bandSparse(n, k = -1, diag = list(rep(-1, n - 1)))
+  Q <- forceSymmetric(Q)
+  # Expect a warning, then success
+  expect_warning(
+    {
+      CH <- safe_chol_prec(Q, max_jitter = 1e-4)
+      expect_s4_class(CH, "CHMsimpl")
+    },
+    "Cholesky factorization"
+  )
+})
+
 
 ## 'sample_post_binom_betabinom' ----------------------------------------------
 
@@ -1089,3 +1187,72 @@ test_that("recovers distribution", {
   expect_equal(sd(x_true), sd(x_post), tolerance = 0.01)
 })
     
+
+## 'symmetry_grade' -----------------------------------------------------------
+
+test_that("'symmetry_grade' exactly symmetric matrices grade as 'near' (dense and sparse)", {
+  library(Matrix)
+  # Dense base matrix (not a Matrix object)
+  A_dense <- matrix(c(2, 1, 1,
+                      1, 3, 0,
+                      1, 0, 4), 3, 3, byrow = TRUE)
+  expect_identical(symmetry_grade(A_dense), "near")
+  # Sparse symmetric (identity)
+  I5 <- Diagonal(5)
+  expect_identical(symmetry_grade(I5), "near")
+  # Sparse symmetric (non-identity)
+  S <- forceSymmetric(Matrix(c(2, 0, 1,
+                               0, 3, 0,
+                               1, 0, 4), 3, 3))
+  expect_identical(symmetry_grade(S), "near")
+})
+
+test_that("'symmetry_grade' all-zero off-diagonal (sparse identity) does not error and is 'near'", {
+  library(Matrix)
+  I10 <- Diagonal(10)
+  expect_no_error(symmetry_grade(I10))
+  expect_identical(symmetry_grade(I10), "near")
+})
+
+test_that("'symmetry_grade' 'severe' asymmetry is detected", {
+  library(Matrix)
+  # Upper-triangular off-diagonals only (clearly asymmetric)
+  A <- Matrix(matrix(c(1, 2, 0,
+                       0, 3, 4,
+                       0, 0, 5), 3, 3, byrow = TRUE))
+  expect_identical(symmetry_grade(A), "severe")
+})
+
+test_that("'symmetry_grade' 'near' vs 'moderate' classification with controlled perturbations", {
+  library(Matrix)
+  # Start with symmetric S having entries ~ O(1)
+  S <- forceSymmetric(Matrix(c(2, 0, 1,
+                               0, 3, 0,
+                               1, 0, 4), 3, 3))
+  ## Case 1: very small antisymmetric noise => "near" (default thresholds)
+  eps_near <- 1e-12
+  # put eps in (1,2) but not mirrored in (2,1)
+  S_near <- S
+  S_near[1, 2] <- S_near[1, 2] + eps_near
+  # NB: S_near is no longer symmetric; grade should still be "near"
+  expect_identical(symmetry_grade(S_near),
+                   "near")
+  ## Case 2: moderate antisymmetric noise => "moderate"
+  eps_mod <- 5e-9  # > abs_near(1e-11) and < abs_moderate(1e-8)
+  S_mod <- S
+  S_mod[1, 3] <- S_mod[1, 3] + eps_mod
+  expect_identical(symmetry_grade(S_mod),
+                   "moderate")
+})
+
+test_that("'symmetry_grade' function handles non-Matrix inputs by coercing", {
+  # purely base R matrix, exactly symmetric
+  B <- matrix(c(5, 2, 2,
+                2, 6, 1,
+                2, 1, 7), 3, 3, byrow = TRUE)
+  expect_identical(symmetry_grade(B), "near")
+  # base R matrix with a small asymmetry -> still 'near'
+  B2 <- B
+  B2[1, 2] <- B2[1, 2] + 1e-12
+  expect_identical(symmetry_grade(B2), "near")
+})

@@ -1315,7 +1315,7 @@ report_sim <- function(mod_est,
                     max = NULL,
                     divisible_by = NULL)
   point_est_fun <- match.arg(point_est_fun)
-  check_widths(widths)
+   check_widths(widths)
   report_type <- match.arg(report_type)
   poputils::check_n(n = n_core,
                     nm_n = "n_core",
