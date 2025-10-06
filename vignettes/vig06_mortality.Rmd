@@ -140,14 +140,14 @@ where
 
 Each of the $\beta^{(m)}$ in the model for $\mu_i$ receives a prior. The default prior for the intercept is
 \begin{equation}
-  \beta^{(0)} \sim \text{N}(0, 10^2)
+  \beta^{(0)} \sim \text{N}(0, 1)
 \end{equation}
-This prior allows for a much broader range of values than we would expect to see in practice. We would only rarely expect to see values of $\gamma_i$ that were lower than 0.001 (which is -7 on a log scale) or higher than 1 (which is 0).
 
 The default prior for age is a first-order random walk,
-\begin{equation}
-  \beta_j^{(1)} \sim \text{N}(\beta_{j-1}^{(1)}, \tau_1^2), \quad j = 2, \dots, J_1
-\end{equation}
+\begin{align}
+  \beta_1^{(1)} & \sim \text{N}(0, 1) \\
+  \beta_j^{(1)} & \sim \text{N}(\beta_{j-1}^{(1)}, \tau_1^2), \quad j = 2, \dots, J_1
+\end{align}
 A random walk prior embodies the idea that we expect changes from one age group to the next to be relatively small, and that neighboring age groups are more strongly correlated than distant age groups.
 
 The value for the standard deviation parameter $\tau_1$ is estimated as part of the model, and has its own prior,
@@ -156,22 +156,17 @@ The value for the standard deviation parameter $\tau_1$ is estimated as part of 
 \end{equation}
 $\text{N}^+(0, 1)$ denotes a half-normal distribution, that is, a normal distribution restricted to non-negative values.
 
-For this prior to be properly identified, we need to place some constraint on the overall level. We use a soft constraint on the mean, 
-\begin{equation}
-  \frac{1}{J_1}\sum_{j=1}^{J_1} \beta_j^{(1)} \sim \text{N}(0, 1)
-\end{equation}
 
 The sex main effect has the prior
-\begin{align}
-  \beta_j^{(2)} & \sim \text{N}(0, \tau_2^2), \quad j = 1, 2 \\
-  \tau_2^2 & \sim \text{N}^+(0, 1)
-\end{align}
+\begin{equation}
+  \beta_j^{(2)} \sim \text{N}(0, 1) \quad j = 1, 2 \\
+\end{equation}
 
 The time term $\beta^{(3)}$ has the same random-walk prior as the age effect. The age-sex interaction $\beta^{(4)}$ has the same prior as the sex effect.
 
-Finally, the dispersion term $\xi$ has a penalized-complexity prior [@simpson2022priors],
+Finally, the dispersion term $\xi$ has an prior
 \begin{equation}
-    p(\xi) = \frac{1}{2 \sqrt{\xi}}e^{-\sqrt{\xi}}.
+    p(\xi) = e^{-\xi}.
 \end{equation}
 
 

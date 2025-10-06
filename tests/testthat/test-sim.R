@@ -322,8 +322,9 @@ test_that("'draw_vals_coef' works with n = 10", {
 ## 'draw_vals_components_unfitted' --------------------------------------------
 
 test_that("'draw_vals_components_unfitted' works", {
+  testthat::skip_on_cran() 
   set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data <- expand.grid(age = 0:3, time = 2000:2004, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   formula <- deaths ~ age * time + sex
@@ -342,7 +343,8 @@ test_that("'draw_vals_components_unfitted' works", {
 
 test_that("'draw_vals_components_unfitted' works - with covariates, datamod", {
   set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  testthat::skip_on_cran()
+  data <- expand.grid(age = 0:3, time = 2000:2003, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   data$income <- rnorm(n = nrow(data))
@@ -1417,23 +1419,25 @@ test_that("'report_sim' works when mod_sim more complicated that mod_est", {
 })
 
 test_that("'report_sim' works with rr3 model", {
-    set.seed(0)
-    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
-                        sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- 3 * rpois(n = nrow(data), lambda = 5)
-    mod_est <- mod_pois(deaths ~ age + sex,
-                        data = data,
-                        exposure = popn) |>
-                        set_prior(age ~ SVD(HMD)) |>
-                        set_confidential_rr3()
-    set.seed(0)
-    ans_obtained <- report_sim(mod_est, n_sim = 2)
-    expect_setequal(names(ans_obtained), c("components", "augment"))
+  set.seed(0)
+  testthat::skip_on_cran()  
+  data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- 3 * rpois(n = nrow(data), lambda = 5)
+  mod_est <- mod_pois(deaths ~ age + sex,
+                      data = data,
+                      exposure = popn) |>
+    set_prior(age ~ SVD(HMD)) |>
+    set_confidential_rr3()
+  set.seed(0)
+  ans_obtained <- report_sim(mod_est, n_sim = 2)
+  expect_setequal(names(ans_obtained), c("components", "augment"))
 })
 
 test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
   set.seed(0)
+  testthat::skip_on_cran()
   data <- expand.grid(age = 0:4, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)

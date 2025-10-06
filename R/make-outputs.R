@@ -1161,11 +1161,10 @@ make_draws_post <- function(est, prec, map, n_draw, max_jitter) {
   CH <- safe_chol_prec(Q = prec, max_jitter = max_jitter)
   is_sparse <- methods::is(CH, "CHMfactor")
   if (is_sparse) {
-    t_draws_nonfixed <- sparseMVN::rmvn.sparse(n = n_draw,
-                                               mu = mu,
-                                               CH = CH,
-                                               prec = TRUE)
-    draws_nonfixed <- t(t_draws_nonfixed)
+    draws_nonfixed <- rmvn_from_sparse_CH(CH = CH,
+                                          mu = mu,
+                                          n_draw = n_draw,
+                                          prec = prec)
   }
   else {
     R_prec <- Matrix::expand1(CH, which = "L")

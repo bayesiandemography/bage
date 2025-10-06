@@ -318,26 +318,6 @@ rmvnorm_chol <- function(n, mean, R_prec) {
 
 
 ## HAS_TESTS
-#' Draw from multivariate normal, using results
-#' from an eigen decomposition
-#'
-#' @param n Number of draws
-#' @param mean Mean of distribution
-#' @param scaled_eigen Matrix of scaled eigenvalues
-#'
-#' @returns A matrix, with each columns being one draw
-#'
-#' @noRd
-rmvnorm_eigen <- function(n, mean, scaled_eigen) {
-    n_val <- length(mean)
-    Z <- matrix(stats::rnorm(n = n_val * n),
-                nrow = n_val,
-                ncol = n)
-    mean + scaled_eigen %*% Z
-}
-
-
-## HAS_TESTS
 #' Version of 'nbinom' With Upper Limit on Mean
 #'
 #' Negative binomial can have numerical problems
@@ -677,6 +657,53 @@ log_skellam_safe <- function(x, m, threshold) {
   }
   else
     ans <- ifelse(x == 0, 0, -Inf)
+  ans
+}
+
+
+#' Draw MVN Using Sparse Cholesky (With Fallbacks)
+#'
+#' @param CH Object of class CHMfactor
+#' @param mu Vector of means
+#' @param n_draw Number of draws
+#' @param prec Precision matrix
+#'
+#' @returns A matrix, each column of which is a draw
+#' 
+#' @noRd
+rmvn_from_sparse_CH <- function(CH, mu, n_draw, prec) {
+  if (!inherits(CH, "CHMfactor"))
+    cli::cli_abort("Internal error: {.arg CH} has class {.cls {class(CH)}}.")
+  ## try LL-tr with original CH
+  t_ans <- try(
+    sparseMVN::rmvn.sparse(n = n_draw, mu = mu, CH = CH, prec = TRUE),
+    silent = TRUE
+  )
+  is_ok <- !inherits(t_ans, "try-error")
+  if (is_ok) {
+    ans <- t(t_ans)
+    return(ans)
+  }
+  # fallback: use LDL-tr version of CH
+  CH_ldl <- try(
+    Matrix::Cholesky(Matrix::forceSymmetric(prec, uplo = "L"),
+                     LDL = TRUE, perm = TRUE, super = NA),
+    silent = TRUE
+  )
+  is_ok <- !inherits(CH_ldl, "try-error")
+  if (is_ok) {
+    t_ans <- try(
+      sparseMVN::rmvn.sparse(n = n_draw, mu = mu, CH = CH_ldl, prec = TRUE),
+      silent = TRUE
+    )
+    if (!inherits(t_ans, "try-error")) {
+      ans <- t(t_ans)
+      return(ans)
+    }
+  }
+  ## final fallback: use dense calculations with original CH
+  L_prec <- Matrix::expand1(CH, which = "L")
+  ans <- rmvnorm_chol(n = n_draw, mean = mu, R_prec = L_prec)
   ans
 }
 
