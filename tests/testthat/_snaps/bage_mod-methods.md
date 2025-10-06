@@ -14,9 +14,9 @@
       
               term  prior along n_par n_par_free
        (Intercept) NFix()     -     1          1
-               age   RW()   age    10         10
+               age NFix()     -     2          2
                sex NFix()     -     2          2
-              time   RW()  time     6          6
+              time NFix()     -     2          2
       
        covariates: ~income
       

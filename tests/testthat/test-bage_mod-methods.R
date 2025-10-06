@@ -1085,45 +1085,47 @@ test_that("'fit' works with AR", {
 })
 
 test_that("'fit' works with SVD, n_by > 1", {
-    set.seed(0)
-    data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:reg + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, age:reg ~ SVD(HMD))
-    ans_obtained <- fit(mod)
-    expect_s3_class(ans_obtained, "bage_mod")
+  testthat::skip_on_cran()
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age:reg + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:reg ~ SVD(HMD))
+  ans_obtained <- fit(mod)
+  expect_s3_class(ans_obtained, "bage_mod")
 })
 
 test_that("'fit' works with SVD, n_by > 1", {
-    set.seed(0)
-    data <- expand.grid(age = c(0:59, "60+"), time = 2000:2001, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex:time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, age:sex:time ~ SVD(HMD))
-    ans_obtained <- fit(mod)
-    expect_s3_class(ans_obtained, "bage_mod")
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2001, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age:sex:time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex:time ~ SVD(HMD))
+  ans_obtained <- fit(mod)
+  expect_s3_class(ans_obtained, "bage_mod")
 })
 
 test_that("'fit' works with Lin_AR", {
-    set.seed(0)
-    data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:reg + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, time ~ Lin_AR(s = 0.2))
-    ans_obtained <- fit(mod)
-    expect_s3_class(ans_obtained, "bage_mod")
+  testthat::skip_on_cran()
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age:reg + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ Lin_AR(s = 0.2))
+  ans_obtained <- fit(mod)
+  expect_s3_class(ans_obtained, "bage_mod")
 })
 
 test_that("'fit' works with Lin(s = 0)", {
@@ -1141,19 +1143,20 @@ test_that("'fit' works with Lin(s = 0)", {
 })
 
 test_that("'fit' works with RW2_Infant()", {
-    set.seed(0)
-    data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:reg + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, age:reg ~ RW2_Infant())
-    ans_obtained <- fit(mod)
-    mod <- set_prior(mod, age:reg ~ RW2_Infant(con = "by"))
-    ans_obtained <- fit(mod)
-    expect_s3_class(ans_obtained, "bage_mod")
+  testthat::skip_on_cran()
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age:reg + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:reg ~ RW2_Infant())
+  ans_obtained <- fit(mod)
+  mod <- set_prior(mod, age:reg ~ RW2_Infant(con = "by"))
+  ans_obtained <- fit(mod)
+  expect_s3_class(ans_obtained, "bage_mod")
 })
 
 test_that("'fit' and 'forecast' work with SVD_AR", {
@@ -1253,19 +1256,21 @@ test_that("'fit' works inner-outer", {
 })
 
 test_that("'fit' works when optimizer is 'optim'", {
-    set.seed(0)
-    data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:reg + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- fit(mod)
-    expect_s3_class(ans_obtained, "bage_mod")
+  testthat::skip_on_cran()
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age:reg + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- fit(mod)
+  expect_s3_class(ans_obtained, "bage_mod")
 })
 
 test_that("'fit' works when 'quiet' is FALSE and optimizer is 'nlminb'", {
+  testthat::skip_on_cran()
   set.seed(0)
   data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1281,6 +1286,7 @@ test_that("'fit' works when 'quiet' is FALSE and optimizer is 'nlminb'", {
 })
 
 test_that("'fit' works when 'quiet' is FALSE and optimizer is 'BFGS'", {
+  testthat::skip_on_cran()
   set.seed(0)
   data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1296,6 +1302,7 @@ test_that("'fit' works when 'quiet' is FALSE and optimizer is 'BFGS'", {
 })
 
 test_that("'fit' works when 'quiet' is FALSE and optimizer is 'CG'", {
+  testthat::skip_on_cran()
   set.seed(0)
   data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1641,6 +1648,7 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset",
 })
 
 test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset, imputed historical est", {
+  testthat::skip_on_cran()
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$deaths <- rpois(n = nrow(data), lambda = 100)
@@ -2912,6 +2920,7 @@ test_that("'make_mod_disp' works with pois", {
 })
 
 test_that("'make_mod_disp' works with pois - large dataset", {
+  testthat::skip_on_cran()
   set.seed(0)
   data <- expand.grid(time = 1:6000, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 1000)
@@ -2996,6 +3005,7 @@ test_that("'make_mod_disp' works with norm", {
 })
 
 test_that("'make_mod_disp' works with norm - large dataset", {
+  testthat::skip_on_cran()
   set.seed(0)
   data <- expand.grid(time = 2000:8000, sex = c("F", "M"))
   data$wt <- rpois(n = nrow(data), lambda = 1000)
@@ -3201,7 +3211,7 @@ test_that("'nm_distn' works with valid inputs", {
 
 test_that("'print' works with mod_pois", {
     set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data <- expand.grid(age = 0:1, time = 2000:2001, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.4 * data$popn)
     data$income <- rnorm(n = nrow(data))
@@ -3282,7 +3292,7 @@ test_that("'replicate_data' works with mod_pois - no disp", {
 
 test_that("'replicate_data' works with mod_pois, rr3 confidential", {
     set.seed(10)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.1 * data$popn)
     formula <- deaths ~ age + sex + time
@@ -3429,7 +3439,7 @@ test_that("'replicate_data' works with mod_binom, undercount data model ", {
 
 test_that("'replicate_data' works with mod_binom, rr3, disp 0", {
     set.seed(0)
-    data <- expand.grid(age = 0:29, time = 2000:2002, sex = c("F", "M"))
+    data <- expand.grid(age = 0:2, time = 2000:2002, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- 3 * rbinom(n = nrow(data), size = data$popn, prob = 0.1)
     formula <- deaths ~ age + sex + time
@@ -3505,9 +3515,6 @@ test_that("'replicate_data' works with mod_norm, noise data model", {
     expect_warning(replicate_data(mod, condition_on = "expected"),
                    "Ignoring value for `condition_on`.")
 })
-
-
-
 
 
 ## 'tidy' ---------------------------------------------------------------------

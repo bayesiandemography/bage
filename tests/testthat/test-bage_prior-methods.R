@@ -6738,7 +6738,7 @@ test_that("'infer_trend_cyc_seas_err_forecast_one' works with bage_prior_linar",
 
 test_that("'infer_trend_cyc_seas_err_forecast_one' works with bage_prior_rwrandomseasfix", {
   set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data <- expand.grid(age = 0:1, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   formula <- deaths ~ sex * time + age
