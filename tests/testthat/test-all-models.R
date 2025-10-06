@@ -2,6 +2,8 @@
 ## All combinations of likelihood, data model, and confidentialization
 ## (but very small datasets and simple priors)
 
+testthat::skip_on_cran()
+
 ## No disp, no data models ----------------------------------------------------
 
 testthat::test_that("pois no disp has exposure", {

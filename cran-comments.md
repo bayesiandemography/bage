@@ -1,4 +1,46 @@
 
+# Submission, 6 October 2025, version 0.9.7
+
+- This submission is a response to an error detected by Prof. Ripley
+  when testing `bage` under noLD:
+  https://cran.r-project.org/web/checks/check_results_bage.html
+  
+  The error message was as follows:
+
+Quitting from vig07_simulation.Rmd:57-61 [unnamed-chunk-4]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<error/rlang_error>
+Error in `expand1()`:
+! D[i,i] is negative, i=25
+---
+Backtrace:
+     ▆
+  1. └─bage::report_sim(mod_est = mod)
+  2.   └─base::lapply(s_sim, report_sim_inner)
+  3.     └─bage (local) FUN(X[[i]], ...)
+  4.       ├─generics::fit(mod_est, method = method, vars_inner = vars_inner)
+  5.       └─bage:::fit.bage_mod(mod_est, method = method, vars_inner = vars_inner)
+  6.         └─bage:::fit_default(...)
+  7.           └─bage:::draw_vals_and_record(...)
+  8.             └─bage:::make_stored_draws(mod = mod, est = est, prec = prec, map = map)
+  9.               └─bage:::make_draws_post(est = est, prec = prec, map = map, n_draw = n_draw)
+ 10.                 └─sparseMVN::rmvn.sparse(n = n_draw, mu = mean, CH = CH, prec = TRUE)
+ 11.                   ├─Matrix::expand(CH)
+ 12.                   └─Matrix::expand(CH)
+ 13.                     ├─Matrix::expand1(x, "L")
+ 14.                     └─Matrix::expand1(x, "L")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Error: processing vignette 'vig07_simulation.Rmd' failed with diagnostics:
+D[i,i] is negative, i=25
+--- failed re-building ‘vig07_simulation.Rmd’
+
+- It appears that the Cholesky factorization was failing without long
+  doubles. I'm grateful to have this vulnerability pointed out, and
+  have fixed it by wrapping the call to 
+
+
+
 # Submission, 1 October 2025, version 0.9.6
 
 * Current CRAN checks have notes for the three r-oldrel systems. All

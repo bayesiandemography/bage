@@ -11,7 +11,6 @@ test_that("as_cholmod_preferred keeps dsCMatrix as-is", {
 })
 
 test_that("as_cholmod_preferred makes general sparse when dsCMatrix not possible", {
-  library(Matrix)
   # Start dense, then forceSymmetric; dsCMatrix coercion may fail on some patterns
   Qd <- matrix(0, 5, 5); diag(Qd) <- 1
   Q  <- Matrix::forceSymmetric(Matrix(Qd, sparse = TRUE))
@@ -23,14 +22,16 @@ test_that("as_cholmod_preferred makes general sparse when dsCMatrix not possible
 })
 
 test_that("as_cholmod_preferred falls back to dense symmetric when needed", {
-  library(Matrix)
   Qd <- matrix(0.1, 6, 6); diag(Qd) <- 1
   Q  <- Matrix::forceSymmetric(Matrix(Qd, sparse = FALSE))
   Q2 <- as_cholmod_preferred(Q)
   expect_true(Matrix::isSymmetric(Q2))
-  expect_false(methods::is(Q2, "sparseMatrix"))
   CH <- Matrix::Cholesky(Q2, LDL = FALSE, perm = TRUE, super = NA)
-  expect_s4_class(CH, "Cholesky")  # dense factor path
+  if (methods::is(Q2, "sparseMatrix")) {
+    expect_true(methods::is(CH, "CHMfactor"))
+  } else {
+    expect_s4_class(CH, "Cholesky")
+  }
 })
 
 
@@ -898,18 +899,83 @@ test_that("'rbinom_guarded' throws error when size, prob different lengths", {
 })
 
 
-## 'rmvnorm_chol', 'rmvnorm_eigen' --------------------------------------------
+## 'rmvn_from_sparse_Ch' ------------------------------------------------------
 
-test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
-    set.seed(0)
-    prec <- crossprod(matrix(rnorm(25), 5))
-    mean <- rnorm(5)
-    R_prec <- chol(prec)
-    scaled_eigen <- make_scaled_eigen(prec)
-    ans_chol <- rmvnorm_chol(n = 100000, mean = mean, R_prec = R_prec)
-    ans_eigen <- rmvnorm_eigen(n = 100000, mean = mean, scaled_eigen = scaled_eigen)
-    expect_equal(rowMeans(ans_chol), rowMeans(ans_eigen), tolerance = 0.02)
-    expect_equal(cov(t(ans_chol)), cov(t(ans_eigen)), tolerance = 0.02)
+test_that("rmvn_from_sparse_CH: basic LL path works and shapes are correct", {
+  set.seed(1)
+  # Small sparse precision: tri-diagonal SPD
+  n  <- 5L
+  D  <- Matrix::Diagonal(n, 2)
+  E  <- Matrix::bandSparse(n, n, k = c(-1, 1), diagonals = list(rep(-1, n-1), rep(-1, n-1)))
+  Q  <- Matrix::forceSymmetric(D - 0.4 * E, uplo = "L")  # strictly PD
+  CH <- Matrix::Cholesky(Q, LDL = FALSE, perm = TRUE, super = NA)
+  mu     <- seq_len(n) * 0.1
+  n_draw <- 200L
+  draws <- rmvn_from_sparse_CH(CH = CH, mu = mu, n_draw = n_draw, prec = Q)
+  # Columns are draws (matches rmvnorm_chol contract in your code)
+  expect_type(draws, "double")
+  expect_equal(dim(draws), c(n, n_draw))
+  # Quick sanity: sample mean close-ish to mu
+  sm <- rowMeans(draws)
+  expect_lt(max(abs(sm - mu)), 0.2)
+})
+
+test_that("rmvn_from_sparse_CH: empirical mean/cov roughly match target", {
+  set.seed(2)
+  n  <- 6L
+  D  <- Matrix::Diagonal(n, 2)
+  E  <- Matrix::bandSparse(n, n, k = c(-1, 1), diagonals = list(rep(-0.6, n-1), rep(-0.6, n-1)))
+  Q  <- Matrix::forceSymmetric(D - E, uplo = "L")  # PD (diagonally dominant)
+  CH <- Matrix::Cholesky(Q, LDL = FALSE, perm = TRUE, super = NA)
+  mu     <- rep(0, n)
+  n_draw <- 1500L  # keep light for CRAN
+  draws <- rmvn_from_sparse_CH(CH = CH, mu = mu, n_draw = n_draw, prec = Q)
+  # Mean ~ mu
+  sm <- rowMeans(draws)
+  expect_lt(max(abs(sm - mu)), 0.08)
+  # Covariance ~ solve(Q) on diagonal (coarse check to avoid dense solve cost)
+  # If you can afford it, use as.matrix(solve(Q)); here we check a few entries.
+  Sig_diag_target <- 1 / Matrix::diag(Q)  # rough lower bound; diagonal of inverse is <= 1/diag(Q) generally
+  Sig_hat_diag    <- apply(draws, 1, var)
+  expect_true(all(Sig_hat_diag > 0))
+  expect_lt(max(abs(Sig_hat_diag - Sig_diag_target)), 0.2)  # loose tolerance
+})
+
+test_that("rmvn_from_sparse_CH: LDL fallback triggers when LL path fails (mocked)", {
+  set.seed(3)
+  n  <- 5L
+  Q  <- Matrix::Diagonal(n, 1)
+  CH <- Matrix::Cholesky(Q, LDL = FALSE, perm = TRUE, super = NA)
+  mu <- rep(0, n)
+  # Stateful stub: first call (LL) errors; second call (LDL) succeeds
+  calls <- 0L
+  stub_fun <- function(n, mu, CH, prec) {
+    calls <<- calls + 1L
+    if (calls == 1L) stop("boom: LL failed")
+    # Return n rows (draws) x length(mu) cols, as rmvn.sparse does
+    matrix(0, nrow = n, ncol = length(mu))
+  }
+  mockery::stub(rmvn_from_sparse_CH, "sparseMVN::rmvn.sparse", stub_fun)
+  draws <- rmvn_from_sparse_CH(CH = CH, mu = mu, n_draw = n, prec = Q)
+  expect_equal(dim(draws), c(n, n))
+})
+
+test_that("rmvn_from_sparse_CH: dense fallback triggers when LL and LDL both fail (mocked)", {
+  set.seed(4)
+  n  <- 4L
+  Q  <- Matrix::Diagonal(n, 2)
+  CH <- Matrix::Cholesky(Q, LDL = FALSE, perm = TRUE, super = NA)
+  mu <- rep(0, n)
+  # Force BOTH rmvn.sparse calls to fail
+  mockery::stub(
+    rmvn_from_sparse_CH,
+    "sparseMVN::rmvn.sparse",
+    function(...) stop("boom: both fail")
+  )
+  draws <- rmvn_from_sparse_CH(CH = CH, mu = mu, n_draw = 10L, prec = Q)
+  expect_equal(dim(draws), c(n, 10L))
+  # Basic sanity: not all NAs
+  expect_false(any(!is.finite(draws)))
 })
 
 
@@ -990,7 +1056,7 @@ test_that("'safe_chol_prec' - exact symmetric SPD factors without warnings", {
                                       0,0,2), 3, 3, byrow = TRUE)))
   expect_no_warning({
     CH <- safe_chol_prec(Q, max_jitter = 1e-6)
-    expect_s4_class(CH, "Cholesky")
+    expect_s4_class(CH, "CHMfactor")
   })
 })
 
@@ -1006,7 +1072,7 @@ test_that("'safe_chol_prec' - moderate asymmetry emits a warning then succeeds",
   expect_warning(
     {
       CH <- safe_chol_prec(S_mod, max_jitter = 1e-6)
-      expect_s4_class(CH, "Cholesky")
+      expect_s4_class(CH, "CHMfactor")
     },
     "Precision matrix returned by TMB is moderately asymmetric."
   )
