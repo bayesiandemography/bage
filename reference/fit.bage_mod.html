@@ -68,6 +68,7 @@ for a model.</p>
 <span>  vars_inner <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  optimizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"multi"</span>, <span class="st">"nlminb"</span>, <span class="st">"BFGS"</span>, <span class="st">"CG"</span><span class="op">)</span>,</span>
 <span>  quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  max_jitter <span class="op">=</span> <span class="fl">1e-04</span>,</span>
 <span>  start_oldpar <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -105,8 +106,15 @@ is <code>"multi"</code>. See below for details.</p></dd>
 
 
 <dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
-<dd><p>Whether to suppress messages.
-Default is <code>TRUE</code>.</p></dd>
+<dd><p>Whether to suppress messages
+from optimizer. Default is <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-max-jitter">max_jitter<a class="anchor" aria-label="anchor" href="#arg-max-jitter"></a></dt>
+<dd><p>Maximum quantity to add to
+diagonal of precision matrix, if Cholesky
+factorization is failing. Default is
+0.0001.</p></dd>
 
 
 <dt id="arg-start-oldpar">start_oldpar<a class="anchor" aria-label="anchor" href="#arg-start-oldpar"></a></dt>
@@ -159,6 +167,25 @@ using <code>"BFGS"</code>. The default.</p></li>
 <li><p><code>"BFGS"</code> <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> using method <code>"BFGS"</code>.</p></li>
 <li><p><code>"GC"</code> <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> using method <code>"CG"</code> (conjugate gradient).</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="cholesky-factorization-and-max-jitter">Cholesky factorization and <code>max_jitter</code><a class="anchor" aria-label="anchor" href="#cholesky-factorization-and-max-jitter"></a></h2>
+
+
+
+<p>Sampling from the posterior distribution requires
+performing a Cholesky factorization of the precision
+matrix returned by TMB. This factorization sometimes
+fails because of numerical problems. Adding a small
+quantity to the diagonal of the precision matrix
+can alleviate numerical problems, though potentially
+at the cost of reduced accuracy. If the Cholesky factorization
+initially fails, <code>bage</code> will try again with progressively
+largeer quantities added to the diagonal, up to the
+maximum set by <code>max_jitter</code>. Increasing the value of
+<code>max_jitter</code> can help suppress numerical problems
+further. A safer strategy, however, is to simplify
+the model, or to use more informative priors.</p>
+    </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
@@ -233,7 +260,7 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    1000     year     age           sex    nlminb</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_max time_draw iter converged                    message</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        0.26     0.12      0.11   13      TRUE   relative convergence (4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        0.27     0.12      0.12   13      TRUE   relative convergence (4)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## extract rates</span></span></span>
