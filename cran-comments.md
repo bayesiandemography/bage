@@ -1,5 +1,5 @@
 
-# Submission, 6 October 2025, version 0.9.7
+# Submission, 7 October 2025, version 0.9.7
 
 - This submission is a response to an error detected in a test of the
   package under noLD:
