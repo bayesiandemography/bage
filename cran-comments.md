@@ -1,8 +1,8 @@
 
 # Submission, 6 October 2025, version 0.9.7
 
-- This submission is a response to an error detected by Prof. Ripley
-  when testing `bage` under noLD:
+- This submission is a response to an error detected in a test of the
+  package under noLD:
   https://cran.r-project.org/web/checks/check_results_bage.html
   
   The error message was as follows:
@@ -35,10 +35,31 @@ Error: processing vignette 'vig07_simulation.Rmd' failed with diagnostics:
 D[i,i] is negative, i=25
 --- failed re-building ‘vig07_simulation.Rmd’
 
-- It appears that the Cholesky factorization was failing without long
-  doubles. I'm grateful to have this vulnerability pointed out, and
-  have fixed it by wrapping the call to 
+- The process for making multivariate normal draws was failing during
+  a simulation in a vignette. I have taken two steps to avoid this
+  happening again:
+  
+1. I have made the process for generating draws more robust, by
+adding fallbacks if the generation fails. (I have also also
+added fallbacks to the Cholesky factorization that proceeds the
+multivariate draws.)
+  
+2. I have modified the simulation vignette. The vignette previously
+used weakly-informative priors to generate synthentic
+datasets. This could lead to extreme values and hence numerical
+problems. The vignette now uses more strongly informative priors,
+which gives better-behaved datasets.
+   
+The package runs on `rhub::rhub_check(platforms = "nold")` without
+problems.
 
+Because these changes are non-trivial, I have bumped the version
+number to 0.9.7.
+
+Checktime in r-devel-windows-x86_64 for the previous version of the
+package was 13 minutes. I have added `testthat::skip_on_cran()` calls
+to computationally intensive tests, which will hopefully bring the
+checktime below 10 minutes.
 
 
 # Submission, 1 October 2025, version 0.9.6
