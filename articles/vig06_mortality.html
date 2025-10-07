@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -255,32 +255,27 @@ where</p>
 </ul>
 <p>Each of the <span class="math inline">\(\beta^{(m)}\)</span> in the model for <span class="math inline">\(\mu_i\)</span> receives a prior. The default prior for the intercept is
 <span class="math display">\[\begin{equation}
-  \beta^{(0)} \sim \text{N}(0, 10^2)
-\end{equation}\]</span>
-This prior allows for a much broader range of values than we would expect to see in practice. We would only rarely expect to see values of <span class="math inline">\(\gamma_i\)</span> that were lower than 0.001 (which is -7 on a log scale) or higher than 1 (which is 0).</p>
+  \beta^{(0)} \sim \text{N}(0, 1)
+\end{equation}\]</span></p>
 <p>The default prior for age is a first-order random walk,
-<span class="math display">\[\begin{equation}
-  \beta_j^{(1)} \sim \text{N}(\beta_{j-1}^{(1)}, \tau_1^2), \quad j = 2, \dots, J_1
-\end{equation}\]</span>
+<span class="math display">\[\begin{align}
+  \beta_1^{(1)} &amp; \sim \text{N}(0, 1) \\
+  \beta_j^{(1)} &amp; \sim \text{N}(\beta_{j-1}^{(1)}, \tau_1^2), \quad j = 2, \dots, J_1
+\end{align}\]</span>
 A random walk prior embodies the idea that we expect changes from one age group to the next to be relatively small, and that neighboring age groups are more strongly correlated than distant age groups.</p>
 <p>The value for the standard deviation parameter <span class="math inline">\(\tau_1\)</span> is estimated as part of the model, and has its own prior,
 <span class="math display">\[\begin{equation}
     \tau_1^2 \sim \text{N}^+(0, 1)
 \end{equation}\]</span>
 <span class="math inline">\(\text{N}^+(0, 1)\)</span> denotes a half-normal distribution, that is, a normal distribution restricted to non-negative values.</p>
-<p>For this prior to be properly identified, we need to place some constraint on the overall level. We use a soft constraint on the mean,
-<span class="math display">\[\begin{equation}
-  \frac{1}{J_1}\sum_{j=1}^{J_1} \beta_j^{(1)} \sim \text{N}(0, 1)
-\end{equation}\]</span></p>
 <p>The sex main effect has the prior
-<span class="math display">\[\begin{align}
-  \beta_j^{(2)} &amp; \sim \text{N}(0, \tau_2^2), \quad j = 1, 2 \\
-  \tau_2^2 &amp; \sim \text{N}^+(0, 1)
-\end{align}\]</span></p>
-<p>The time term <span class="math inline">\(\beta^{(3)}\)</span> has the same random-walk prior as the age effect. The age-sex interaction <span class="math inline">\(\beta^{(4)}\)</span> has the same prior as the sex effect.</p>
-<p>Finally, the dispersion term <span class="math inline">\(\xi\)</span> has a penalized-complexity prior <span class="citation">[@simpson2022priors]</span>,
 <span class="math display">\[\begin{equation}
-    p(\xi) = \frac{1}{2 \sqrt{\xi}}e^{-\sqrt{\xi}}.
+  \beta_j^{(2)} \sim \text{N}(0, 1) \quad j = 1, 2 \\
+\end{equation}\]</span></p>
+<p>The time term <span class="math inline">\(\beta^{(3)}\)</span> has the same random-walk prior as the age effect. The age-sex interaction <span class="math inline">\(\beta^{(4)}\)</span> has the same prior as the sex effect.</p>
+<p>Finally, the dispersion term <span class="math inline">\(\xi\)</span> has an prior
+<span class="math display">\[\begin{equation}
+    p(\xi) = e^{-\xi}.
 \end{equation}\]</span></p>
 </div>
 <div class="section level3" number="3.3">
@@ -314,7 +309,7 @@ A random walk prior embodies the idea that we expect changes from one age group 
 <span><span class="co">#&gt;    1000     time     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.83     1.39      1.20   14      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.83     1.39      1.19   14      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="3.4">
 <h3 id="extracting-rates">
@@ -499,7 +494,7 @@ where <span class="math inline">\(K\)</span> is chosen by the user. The prior fo
 <span><span class="co">#&gt;    1000     time     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.51     1.23      1.08    9      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.49     1.22      1.07    9      TRUE   relative convergence (4)</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
 <span></span>
