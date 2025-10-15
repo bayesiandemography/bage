@@ -99,10 +99,17 @@ suppressPackageStartupMessages({
 
 ```
 
-Our data is the data frame `kor_births`, which is part of **bage**. The data frame gives numbers of births disaggregated by age of mother, region, and year. It also contains a numeric variable called `gdp_pc_2023` that gives GDP per capita (in thousands of US dollars) in 2023, and a categorical variable (with levels `"Low"`, `"Medium"`, and `"High"`) describing population density in 2020.
+Our data is a subset of the the data frame `kor_births`, which is part of **bage**.
 
 ```{r}
-kor_births
+births <- kor_births |>
+  filter(region %in% levels(region)[1:5])
+```
+
+The data frame gives numbers of births disaggregated by age of mother, region, and year. It also contains a numeric variable called `gdp_pc_2023` that gives GDP per capita (in thousands of US dollars) in 2023, and a categorical variable (with levels `"Low"`, `"Medium"`, and `"High"`) describing population density in 2020.
+
+```{r}
+births
 ```
 
 ## Covariates that bring in extra information
@@ -112,7 +119,7 @@ The variables `gdp_pc_2023` and `dens_2020` are both examples of covariates that
 We use function `set_covariates()` to instruct `mod_pois()` to treat these variables as covariates.
 ```{r}
 mod_gdp_dens <- mod_pois(births ~ (age + region + time)^2,
-                         data = kor_births,
+                         data = births,
                          exposure = popn) |>
   set_covariates(~ gdp_pc_2023 + dens_2020) |>
   fit()
@@ -133,7 +140,7 @@ mod_gdp_dens |>
 In East Asia, years with the Dragon zodiac sign sometimes have larger-than-usual numbers of births. To allow for this possibility, we create a dragon-year covariate, and incorporate it into a new model.
 
 ```{r}
-births <- kor_births |>
+births <- births |>
   mutate(is_dragon_year = time == 2012)
 mod_dragon <- mod_pois(births ~ (age + region + time)^2,
                       data = births,
