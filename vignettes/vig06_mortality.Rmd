@@ -347,22 +347,6 @@ ggplot(data, aes(x = age_mid(age), y = diff)) +
   geom_point(size = 0.2)
 ```
 
-```{r, fig.width = 7, fig.height = 7}
-rep_data_hmd <- replicate_data(mod_hmd, condition_on = "expected")
-
-data <- rep_data_hmd |>
-  filter(time == 2022) |>
-  select(-popn) |>
-  pivot_wider(names_from = sex, values_from = deaths) |>
-  mutate(diff = Female - Male)
-```
-  
-```{r, fig.width = 7, fig.height = 7}
-ggplot(data, aes(x = age_mid(age), y = diff)) +
-  facet_wrap(vars(.replicate)) +
-  geom_point(size = 0.2)
-```
-
 
 # Life expectancy and life tables
 
