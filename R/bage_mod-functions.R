@@ -1803,6 +1803,7 @@ unfit <- function(mod) {
   mod["point_datamod_param"] <- list(NULL)
   mod["computations"] <- list(NULL)
   mod["oldpar"] <- list(NULL)
+  mod["vars_inner"] <- list(NULL)
   mod
 }
 

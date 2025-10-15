@@ -19,7 +19,7 @@
 as_cholmod_preferred <- function(Q) {
   if (methods::is(Q, "dsCMatrix"))
     return(Q)
-  Q_try <- try(methods::as(Q, "dsCMatrix"),
+  Q_try <- try(methods::as(Q, "CsparseMatrix"),
                silent = TRUE)
   if (!inherits(Q_try, "try-error"))
     return(Q_try)

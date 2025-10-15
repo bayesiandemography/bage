@@ -955,3 +955,20 @@ test_that("'unfit' works with valid inputs", {
   for (nm in nms)
     expect_true(isTRUE(all.equal(mod_fit_unfit[[nm]], mod_unfit[[nm]])))
 })
+
+test_that("'unfit' works with inner-outer", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rev(seq_len(nrow(data)))
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod_unfit <- mod_pois(formula = formula,
+                        data = data,
+                        exposure = popn) 
+  mod_fit <- fit(mod_unfit, method = "inner-outer", vars_inner = c("age", "sex"))
+  mod_reunfit <- unfit(mod_fit)
+  expect_identical(mod_unfit$vars_inner, NULL)
+  expect_identical(mod_fit$vars_inner, c("age", "sex"))
+  expect_identical(mod_reunfit$vars_inner, NULL)
+})
+
