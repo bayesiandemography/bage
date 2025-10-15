@@ -1,4 +1,32 @@
 
+# bage 0.9.8
+
+## Changes to internal calculations
+
+* The update of the TMB to version 1.9.18 appears to have changed
+  outputs, which caused a test involving replicate data to fail. The
+  test has been make more robust, by generating more draws.
+  
+## Bug fixes
+
+* Function `unfit()` was not previously removing information on the
+  `"inner-outer"` fitting method, making it appear that a model had
+  been fit using this method, when it had in fact been re-fit using
+  the standard method. This has been corrected.
+
+
+
+# bage 0.9.7
+
+## Changes to internal calculations
+
+* The process for carrying out the Cholesky factorization and then
+  drawing from the multivariate normal has been made more robust. When
+  carrying out the Cholesky decomposition, small values are added to
+  the diagonal at each failure, up to a limit that can be controlled
+  by the user. Fallbacks (eg to using dense matrix calculations) have
+  also been added to the function for generating multiple draws.
+
 # bage 0.9.6
 
 
