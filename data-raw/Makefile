@@ -8,6 +8,9 @@ all: ../data/isl_deaths.rda \
      ../data/nzl_injuries.rda \
      ../data/prt_deaths.rda \
      ../data/usa_deaths.rda \
+     ../data/HIMD_P1.rda \
+     ../data/HIMD_P5.rda \
+     ../data/HIMD_R.rda \
      ../data/HFD.rda \
      ../data/HMD.rda \
      ../data/LFP.rda \
@@ -73,6 +76,18 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
 
 
 ## 'bage_ssvd' objects
+
+../data/HIMD_P1.rda: ssvd_himd/HIMD_P1.R \
+  ssvd_himd/himd_2024-10-24.zip
+	Rscript $^ $@
+
+../data/HIMD_P5.rda: ssvd_himd/HIMD_P5.R \
+  ssvd_himd/himd_2024-10-24.zip
+	Rscript $^ $@
+
+../data/HIMD_R.rda: ssvd_himd/HIMD_R.R \
+  ssvd_himd/himd_2024-10-24.zip
+	Rscript $^ $@
 
 ../data/HFD.rda: ssvd_hfd/HFD.R \
   ssvd_hfd/asfrRR.txt.zip

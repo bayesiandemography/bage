@@ -46,13 +46,15 @@
 #' HMD <- ssvd(data)
 #' }
 #' @noRd
-ssvd <- function(data) {
+ssvd <- function(data, version) {
   nms_valid <- c("type",
                  "labels_age",
                  "labels_sexgender",
                  "matrix",
                  "offset")
   type_valid <- c("total", "joint", "indep")
+  ## version string is valid
+  check_string(x = version, nm_x = "version")
   ## 'data' is a data frame
   if (!is.data.frame(data))
     cli::cli_abort(c("{.arg data} is not a data frame.",
