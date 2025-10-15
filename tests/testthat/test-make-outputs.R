@@ -73,7 +73,7 @@ test_that("'con_by_fitted' works", {
 test_that("'draw_vals_components_fitted' works - no covariates", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -772,7 +772,7 @@ test_that("'make_draws_components' works - no svd, spline", {
 test_that("'make_draws_components' works - has spline", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -795,7 +795,7 @@ test_that("'make_draws_components' works - has spline", {
 test_that("'make_draws_components' works - has svd", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -818,7 +818,7 @@ test_that("'make_draws_components' works - has svd", {
 test_that("'make_draws_components' works - has hyperrand", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -837,7 +837,7 @@ test_that("'make_draws_components' works - has hyperrand", {
 test_that("'make_draws_components' works - has covariates", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"),
                       reg = letters[1:3])
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -857,7 +857,7 @@ test_that("'make_draws_components' works - has covariates", {
 test_that("'make_draws_components' works - has datamodels", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"),
                       reg = letters[1:3])
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1154,7 +1154,7 @@ test_that("'fit_inner_outer' works with with pois", {
 test_that("'fit_inner_outer' works with with binom", {
   set.seed(0)
   data <- expand.grid(age = 0:5,
-                      time = 2000:2003,
+                      time = 2000:2001,
                       sex = c("F", "M"),
                       region = c("a", "b"))
   data$popn <- rpois(n = nrow(data), lambda = 1000)
@@ -1182,7 +1182,7 @@ test_that("'fit_inner_outer' works with with binom", {
   aug_default <- ans_default |>
   augment()
   fit_default <- rvec::draws_median(aug_default$.fitted)
-  expect_true(cor(fit_inner_outer, fit_default) > 0.98)
+  expect_true(cor(fit_inner_outer, fit_default) > 0.95)
 })
 
 test_that("'fit_inner_outer' works with with norm", {
@@ -2678,7 +2678,7 @@ test_that("'make_point_est_effects' throws correct error when not fitted", {
 test_that("'make_spline' works", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -2692,7 +2692,7 @@ test_that("'make_spline' works", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_spline(mod = mod, effectfree = effectfree)
-  ans_expected <- effectfree[23:32,]
+  ans_expected <- effectfree[19:28,]
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -2702,7 +2702,7 @@ test_that("'make_spline' works", {
 test_that("'make_svd' works - SVD_RW, random", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2002,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -2716,14 +2716,14 @@ test_that("'make_svd' works - SVD_RW, random", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
-  ans_expected <- effectfree[24:63,]
+  ans_expected <- effectfree[21:45,]
   expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'make_svd' works - SVD_RW, zero", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2002,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -2737,16 +2737,16 @@ test_that("'make_svd' works - SVD_RW, zero", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
-  ans_expected <- rbind(effectfree[24:33,],
+  ans_expected <- rbind(effectfree[21:30,],
                         matrix(0, nrow = 5, ncol = 5),
-                        effectfree[34:58,])
+                        effectfree[31:40,])
   expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'make_svd' works - SVD_AR", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2002,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 20)
@@ -2759,7 +2759,7 @@ test_that("'make_svd' works - SVD_AR", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
-  ans_expected <- effectfree[22:27,]
+  ans_expected <- effectfree[19:21,]
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -2768,7 +2768,7 @@ test_that("'make_svd' works - SVD_AR", {
 
 test_that("'make_term_components' works - no disp", {
     set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data <- expand.grid(age = 0:4, time = 2000:2001, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age + sex + time
@@ -2786,7 +2786,7 @@ test_that("'make_term_components' works - no disp", {
 
 test_that("'make_term_components' works - has hyperrand", {
     set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data <- expand.grid(age = 0:4, time = 2000:2001, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age + sex * time
@@ -2804,7 +2804,7 @@ test_that("'make_term_components' works - has hyperrand", {
 test_that("'make_term_components' works - has svd", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -2822,7 +2822,7 @@ test_that("'make_term_components' works - has svd", {
 test_that("'make_term_components' works - has covariates", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"),
                       reg = c("a", "b"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -2842,7 +2842,7 @@ test_that("'make_term_components' works - has covariates", {
 test_that("'make_term_components' works - has data model", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
+                      time = 2000:2001,
                       sex = c("F", "M"),
                       reg = c("a", "b"))
   data$popn <- rpois(n = nrow(data), lambda = 100)

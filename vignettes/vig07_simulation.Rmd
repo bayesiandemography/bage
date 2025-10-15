@@ -89,14 +89,12 @@ mod_rw <- mod |>
 mod_rw	
 ```
 
-We set the `mod_sim` argument to `mod_ar1` and generate the report.
+A simulation where the estimation model differs from the data generation mode can be generated as follows:
 
-```{r, message = FALSE}
+```{r, message = FALSE, eval = FALSE}
 set.seed(0)
-res_rw <- report_sim(mod_est = mod, mod_sim = mod_rw)
-res_rw
+report_sim(mod_est = mod, mod_sim = mod_rw) ## not run
 ```
-In this case, although actual coverage for the hyper-parameters (in the `components` part of the results) now diverges from the advertised coverage, coverage for the low-level rates (in the `augment` part of the results) is still close to advertised coverage.
 
 # The relationship between `report_sim()` and `replicate_data()`
 

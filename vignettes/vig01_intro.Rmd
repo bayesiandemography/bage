@@ -477,12 +477,14 @@ mod_rw2 <- mod_pois(population ~ year,
   set_prior(year ~ RW2())
 
 ## Run the simulation
-report_sim(mod_est = mod_rw2, mod_sim = mod_rw)
+report_sim(mod_est = mod_rw2,
+           mod_sim = mod_rw,
+	   n_sim = 10) ## ideally should be 1000 or more
 ```
 
 ## Prior predictive checks
 
-Another way of gaining insights about a model is to look at estimates based purely on the priors, without using data on the outcome variable. In `bage`, this can be done by calling `augment()`, `components()` or `forecast()` on an unfitted version of the model.
+Another way of gaining insights about a model is to look at estimates based purely on the priors, without using data on the outcome variable. This is referred to as a 'prior predictive check'. In `bage`, prior predictive checks can be done by calling `augment()`, `components()` or `forecast()` on an unfitted version of the model.
 
 ```{r}
 mod |>

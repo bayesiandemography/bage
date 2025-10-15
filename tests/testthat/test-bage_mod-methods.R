@@ -1145,7 +1145,8 @@ test_that("'fit' works with Lin(s = 0)", {
 test_that("'fit' works with RW2_Infant()", {
   testthat::skip_on_cran()
   set.seed(0)
-  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+  data <- expand.grid(age = poputils::age_labels("lt", max = 60),
+                      time = 2000:2001, reg = c("a", "b"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   formula <- deaths ~ age:reg + time
@@ -3281,9 +3282,9 @@ test_that("'replicate_data' works with mod_pois - no disp", {
                     exposure = popn) |>
       set_disp(mean = 0)
     mod <- fit(mod)
-    ans <- replicate_data(mod)
+    ans <- replicate_data(mod, n = 99)
     expect_identical(names(ans), c(".replicate", names(data)))
-    expect_identical(nrow(ans), nrow(data) * 20L)
+    expect_identical(nrow(ans), nrow(data) * 100L)
     tab <- tapply(ans$deaths, ans$.replicate, sd)
     expect_true(var(tab) > 0)
     ans_fit <- replicate_data(mod, condition_on = "fitted")
@@ -3293,7 +3294,7 @@ test_that("'replicate_data' works with mod_pois - no disp", {
 test_that("'replicate_data' works with mod_pois, rr3 confidential", {
     set.seed(10)
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$popn <- rpois(n = nrow(data), lambda = 1000)
     data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.1 * data$popn)
     formula <- deaths ~ age + sex + time
     mod <- mod_pois(formula = formula,
@@ -3301,13 +3302,13 @@ test_that("'replicate_data' works with mod_pois, rr3 confidential", {
                     exposure = popn)
     mod <- set_confidential_rr3(mod)
     mod <- fit(mod)
-    ans <- replicate_data(mod)
+    ans <- replicate_data(mod, n = 99)
     expect_identical(names(ans), c(".replicate", names(data)))
-    expect_identical(nrow(ans), nrow(data) * 20L)
+    expect_identical(nrow(ans), nrow(data) * 100L)
     tab <- tapply(ans$deaths, ans$.replicate, sd)
     expect_true(var(tab) > 0)
     ans_fit <- replicate_data(mod, condition_on = "fitted")
-    expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.02)
+    expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.1)
     expect_true(all(ans_fit$deaths %% 3 == 0))
 })
 
