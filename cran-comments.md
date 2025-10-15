@@ -1,4 +1,33 @@
 
+# Submission, 16 October 2025, version 0.9.8
+
+- This submission is a response to an error detected in a test of the
+  package on R Under development (unstable) (2025-10-13 r88916), using
+  using platform: aarch64-apple-darwin25.0.0.
+  
+  The error message was as follows:
+
+```
+    ── Failure ('test-bage_mod-methods.R:3310:5'): 'replicate_data' works with mod_pois, rr3 confidential ──
+  mean(ans_fit$deaths) (`actual`) not equal to mean(ans$deaths) (`expected`).
+```
+  
+- Professor Ripley indicated that error is likely to have been
+  triggered by the updating of TMB to version 1.9.18. 
+  
+- The failing test involves random draws. I have made the test
+  more robust be increasing the number of draws, which should reduce
+  its sensitivity to events such as package updates. (I have also done
+  the same in similar replicate data tests.) The test is now passing
+  on TMB 1.9.18, including with R 4.6.0.
+  
+- The output from the tests included a deprecation warning from
+  Matrix, which I have addressed. Testing and generation of vignettes was
+  also slightly exceeding the 10-minute maximum. I have modified the
+  tests and vignettes in order to reduce the time required.
+  
+
+
 # Submission, 7 October 2025, version 0.9.7
 
 - This submission is a response to an error detected in a test of the
