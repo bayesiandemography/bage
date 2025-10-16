@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,6 +51,24 @@
       <small>Source: <a href="https://github.com/bayesiandemography/bage/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.9.8" id="bage-098">bage 0.9.8<a class="anchor" aria-label="anchor" href="#bage-098"></a></h2>
+<div class="section level3">
+<h3 id="changes-to-internal-calculations-0-9-8">Changes to internal calculations<a class="anchor" aria-label="anchor" href="#changes-to-internal-calculations-0-9-8"></a></h3>
+<ul><li>The update of the TMB to version 1.9.18 appears to have changed outputs, which caused a test involving replicate data to fail. The test has been make more robust, by generating more draws.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-9-8">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-9-8"></a></h3>
+<ul><li>Function <code><a href="../reference/unfit.html">unfit()</a></code> was not previously removing information on the <code>"inner-outer"</code> fitting method, making it appear that a model had been fit using this method, when it had in fact been re-fit using the standard method. This has been corrected.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.9.7" id="bage-097">bage 0.9.7<a class="anchor" aria-label="anchor" href="#bage-097"></a></h2><p class="text-muted">CRAN release: 2025-10-07</p>
+<div class="section level3">
+<h3 id="changes-to-internal-calculations-0-9-7">Changes to internal calculations<a class="anchor" aria-label="anchor" href="#changes-to-internal-calculations-0-9-7"></a></h3>
+<ul><li>The process for carrying out the Cholesky factorization and then drawing from the multivariate normal has been made more robust. When carrying out the Cholesky decomposition, small values are added to the diagonal at each failure, up to a limit that can be controlled by the user. Fallbacks (eg to using dense matrix calculations) have also been added to the function for generating multiple draws.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.9.6" id="bage-096">bage 0.9.6<a class="anchor" aria-label="anchor" href="#bage-096"></a></h2><p class="text-muted">CRAN release: 2025-10-01</p>
 <div class="section level3">
