@@ -24,11 +24,18 @@ test_that("'ssvd' throws correct error when name invalid", {
                  "`data` does not have expected variables.")
 })
 
+test_that("'ssvd' throws correct error when version has NA", {
+    data <- sim_ssvd()$data
+    data$version[3] <- NA
+    expect_error(ssvd(data),
+                 "`version` has NA.")
+})
+
 test_that("'ssvd' throws correct error when type has NA", {
     data <- sim_ssvd()$data
     data$type[3] <- NA
     expect_error(ssvd(data),
-                 "Element 3 of `type` is NA.")
+                 "`type` has NA.")
 })
 
 test_that("'ssvd' throws correct error when type has invalid category", {
@@ -121,6 +128,16 @@ test_that("'ssvd' throws correct error when rownames, names different", {
     expect_error(ssvd(data),
                  "`matrix` and `offset` not consistent.")
 })
+
+test_that("'ssvd' throws correct error when duplicates", {
+  data <- sim_ssvd()$data
+  data <- rbind(data[1,], data)
+  expect_error(ssvd(data),
+               paste("Row 2 of `data` duplicates values for `version`,",
+                     "`type`, `labels_age`, and `labels_sexgender`",
+                     "from earlier row."))
+})
+
 
 
 

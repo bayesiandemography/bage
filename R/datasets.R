@@ -289,6 +289,15 @@
 #' @format
 #' Object of class `"bage_ssvd"`.
 #'
+#' # Versions
+#'
+#' - `"2025"` (default) data published on
+#'   2025-09-25, all countries and years
+#' - `"2025-50"` data published on
+#'   2025-09-25, all countries, 1950 and later
+#' - `"2024"` data published on
+#'   2024-02-26, all countries and years
+#'
 #' @source Derived from data from the
 #' Human Mortality Database. Max Planck Institute for
 #' Demographic Research (Germany), University of California,

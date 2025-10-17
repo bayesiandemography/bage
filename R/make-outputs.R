@@ -242,6 +242,7 @@ generate_prior_svd_helper <- function(x, n_element, n_along, n_by, n_draw) {
 #' by function 'generate_prior_svd_helper').
 #'
 #' @param svd An object of class `"bage_ssvd"`.
+#' @param v Version of data.
 #' @param n_along Number of element in 'along' dimension (always 1 for SVD() prior)
 #' @param n_by Number of combinations of categories for 'by' variables
 #' @param n_comp Number of SVD components to be used
@@ -253,6 +254,7 @@ generate_prior_svd_helper <- function(x, n_element, n_along, n_by, n_draw) {
 #'
 #' @noRd
 generate_ssvd_helper <- function(ssvd,
+                                 v,
                                  n_element,
                                  n_along,
                                  n_by,
@@ -260,6 +262,13 @@ generate_ssvd_helper <- function(ssvd,
                                  indep,
                                  n_draw,
                                  age_labels) {
+  version <- ssvd$data$version
+  if (is.null(v))
+    v <- version[[1L]]
+  else {
+    if (!(v %in% version))
+      cli::cli_abort("Internal error: Invalid value for {.arg v}.")
+  }
   uses_along_by <- missing(n_element)
   if (uses_along_by) {
     poputils::check_n(n = n_along,
@@ -337,6 +346,7 @@ generate_ssvd_helper <- function(ssvd,
   n_sexgender <- length(levels_sexgender)
   agesex <- if (has_indep) "age:sex" else "age"
   matrix <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                     v = v,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
                                      joint = !indep,
@@ -344,6 +354,7 @@ generate_ssvd_helper <- function(ssvd,
                                      get_matrix = TRUE,
                                      n_comp = n_comp)
   offset <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                     v = v,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
                                      joint = !indep,

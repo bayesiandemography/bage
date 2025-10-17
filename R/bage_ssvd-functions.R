@@ -6,6 +6,7 @@
 #' Extract a matrix or offset from a 'bage_ssvd' object
 #'
 #' @param ssvd Object of class 'bage_ssvd'
+#' @param v Version of data
 #' @param joint Whether SVDs for sexes/genders were
 #' carried out jointly or separately
 #' @param agesex String describing age main effect
@@ -21,6 +22,7 @@
 #'
 #' @noRd
 get_matrix_or_offset_svd <- function(ssvd,
+                                     v,
                                      levels_age,
                                      levels_sexgender,
                                      joint,
@@ -28,9 +30,16 @@ get_matrix_or_offset_svd <- function(ssvd,
                                      get_matrix,
                                      n_comp) {
   data <- ssvd$data
-  type <- data$type
-  labels_age <- data$labels_age
-  labels_sexgender <- data$labels_sexgender
+  version <- data$version
+  ## subset to data for version
+  is_version <- data$version == v
+  if (!any(is_version))
+    cli::cli_abort("Internal error: {.val {v}} is not a valid value for {.var version}.")
+  data_version <- data[is_version, , drop = FALSE]
+  ## extract values for subset
+  type <- data_version$type
+  labels_age <- data_version$labels_age
+  labels_sexgender <- data_version$labels_sexgender
   n_comp_max <- get_n_comp(ssvd)
   ## check for duplicates
   for (nm in c("levels_age", "levels_sexgender")) {
@@ -86,7 +95,7 @@ get_matrix_or_offset_svd <- function(ssvd,
   }
   ## extract matrix or offset
   if (get_matrix) {
-    ans <- data$matrix[is_type_req][[i_matched]]
+    ans <- data_version$matrix[is_type_req][[i_matched]]
     ans <- Matrix::as.matrix(ans)
     cols <- seq_len(n_comp)
     if (type_req == "indep") {
@@ -100,7 +109,7 @@ get_matrix_or_offset_svd <- function(ssvd,
     nms_ans <- rownames(ans)
   }
   else {
-    ans <- data$offset[is_type_req][[i_matched]]
+    ans <- data_version$offset[is_type_req][[i_matched]]
     nms_ans <- names(ans)
   }
   ## align matrix/offset to term

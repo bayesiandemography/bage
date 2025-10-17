@@ -776,6 +776,21 @@ check_n_along_ge <- function(n_along, min, nm, prior) {
 
 
 ## HAS_TESTS
+#' Check if Vector Has NA
+#'
+#' @param x Vector
+#' @param nm_x Name for 'x' to use in error messages.
+#'
+#' @returns TRUE, invisibly
+#' 
+#' @noRd
+check_na <- function(x, nm_x) {
+  if (anyNA(x))
+    cli::cli_abort("{.arg {nm_x}} has {.val {NA}}.")
+  invisible(TRUE)
+}
+
+## HAS_TESTS
 #' Check if Vector Has NaNs
 #'
 #' @param x Vector
@@ -789,7 +804,6 @@ check_nan <- function(x, nm_x) {
     cli::cli_abort("{.arg {nm_x}} has {.val {NaN}}.")
   invisible(TRUE)
 }
-
 
 ## HAS_TESTS
 #' Check that 'new_seeds' is List of Numeric Scalars with Correct Names

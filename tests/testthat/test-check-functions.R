@@ -924,6 +924,25 @@ test_that("'check_nan' throws correct error with invalid inputs", {
 })
 
 
+## 'check_na' -----------------------------------------------------------------
+
+test_that("'check_na' returns TRUE with valid inputs", {
+  x <- 1:5
+  expect_true(check_na(x, nm_x = "x"))
+  x <- c(-1, 0.2)
+  expect_true(check_na(x))
+})
+
+test_that("'check_na' throws correct error with invalid inputs", {
+  x <- c(1:5, NA)
+  expect_error(check_na(x, nm_x = "x"),
+               "`x` has NA.")
+  x <- c(-1, NA, 0.2, NA)
+  expect_error(check_na(x, nm_x = "x"),
+               "`x` has NA.")
+})
+
+
 ## 'check_new_seeds' ----------------------------------------------------------
 
 test_that("'check_new_seeds works with valid inputs", {

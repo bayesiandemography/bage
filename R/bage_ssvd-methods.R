@@ -48,6 +48,7 @@
 #' components(LFP, age_labels = labels)
 #' @export
 components.bage_ssvd <- function(object,
+                                 v = NULL,
                                  n_comp = NULL,
                                  indep = NULL,
                                  age_labels = NULL,
@@ -156,6 +157,7 @@ components.bage_ssvd <- function(object,
 #'
 #' @inheritParams components.bage_ssvd
 #' @param x An object of class `"bage_ssvd"`.
+#' @param v Version of data to use.
 #' @param n_draw Number of random draws to generate.
 #' @param ... Unused. Included for generic consistency only.
 #' 
@@ -181,6 +183,7 @@ components.bage_ssvd <- function(object,
 #' generate(HMD, age_labels = labels)
 #' @export
 generate.bage_ssvd <- function(x,
+                               v = NULL,
                                n_draw = 20,
                                n_comp = NULL,
                                indep = NULL,
@@ -188,6 +191,7 @@ generate.bage_ssvd <- function(x,
                                ...) {
   check_has_no_dots(...)
   l <- generate_ssvd_helper(ssvd = x,
+                            v = v,
                             n_element = 1L,
                             n_draw = n_draw,
                             n_comp = n_comp,
@@ -214,9 +218,15 @@ print.bage_ssvd <- function(x, ...) {
   cat(paste(rep("-", times = 60), collapse = ""), "\n")
   cat("<Object of class \"", class(x), "\">\n\n", sep = "")
   data <- x$data
+  version <- data$version
+  version <- unique(version)
   type <- data$type
   sexgender <- data$labels_sexgender
   age <- data$labels_age
+  cat("versions:\n")
+  for (v in version)
+    cat("    ", v, "\n")
+  cat("\n")
   has_sexgender <- "joint" %in% type
   if (has_sexgender) {
     levels_sexgender <- unique(sexgender[type == "joint"][[1L]])
@@ -226,11 +236,12 @@ print.bage_ssvd <- function(x, ...) {
     cat("\n")
   }
   cat("age labels:\n")
-  labels_age <- age[data$type == "total"]
+  is_default_total <- data$version == version[[1L]] & data$type == "total"
+  labels_age <- age[is_default_total]
   for (labels in labels_age) {
     n <- length(labels)
     if (n >= 9L)
-      labels <- c(labels[1:4], "...", labels[c(n - 2L, n - 1L, n)])
+      labels <- c(labels[1:3], "...", labels[c(n - 1L, n)])
     labels <- paste(labels, collapse = ", ")
     cat("    ", labels, "\n")
   }

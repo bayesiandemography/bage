@@ -53,7 +53,8 @@ make_small_mod_norm <- function(use_weights) {
 }
 
 sim_ssvd <- function() {
-  data <- data.frame(type = c("total", "joint", "indep"))
+  data <- data.frame(version = rep("v1", times = 3),
+                     type = c("total", "joint", "indep"))
   data$labels_age <- list(c("0-4", "5-9"),
                           c("0-4", "5-9", "0-4", "5-9"),
                           c("0-4", "5-9", "0-4", "5-9"))

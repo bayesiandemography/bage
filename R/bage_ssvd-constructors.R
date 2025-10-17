@@ -8,6 +8,7 @@
 #'
 #' `data` has the following columns:
 #'
+#' - `version` Vintage of data
 #' - `type` Type of decomposition. Choices are "total",
 #'   "joint", and "indep".
 #' - `labels_age` Age labels for individual rows of
@@ -28,7 +29,7 @@
 #'   are identical to the rownames of the corresponding
 #'   element of `matrix`.
 #'
-#' `data` would normally be constructed using a function
+#' `data` would normally be constructed using functions
 #' in package [bssvd](https://bayesiandemography.github.io/bssvd/).
 #'   
 #' @param data A data frame. See Details for description.
@@ -46,19 +47,16 @@
 #' HMD <- ssvd(data)
 #' }
 #' @noRd
-ssvd <- function(data, version) {
-  nms_valid <- c("type",
+ssvd <- function(data) {
+  nms_valid <- c("version",
+                 "type",
                  "labels_age",
                  "labels_sexgender",
                  "matrix",
                  "offset")
   type_valid <- c("total", "joint", "indep")
-  ## version string is valid
-  check_string(x = version, nm_x = "version")
   ## 'data' is a data frame
-  if (!is.data.frame(data))
-    cli::cli_abort(c("{.arg data} is not a data frame.",
-                     i = "{.arg data} has class {.cls {class(data)}}."))
+  check_is_dataframe(x = data, nm_x = "data")
   ## names in 'data' unique
   nms_data <- names(data)
   i_dup <- match(TRUE, duplicated(nms_data), nomatch = 0L)
@@ -68,10 +66,10 @@ ssvd <- function(data, version) {
   if (!setequal(nms_data, nms_valid))
     cli::cli_abort(c("{.arg data} does not have expected variables.",
                      i = "{.arg data} has variables {.val {nms_data}}."))
-  ## 'type' has no NAs
-  i_na_type <- match(TRUE, is.na(data$type), nomatch = 0L)
-  if (i_na_type > 0L)
-    cli::cli_abort("Element {i_na_type} of {.var type} is {.val {NA}}.")
+  ## 'version'
+  check_na(x = data$version, nm_x = "version")
+  ## 'type'
+  check_na(x = data$type, nm_x = "type")
   is_valid_type <- data$type %in% type_valid
   i_invalid_type <- match(FALSE, is_valid_type, nomatch = 0L)
   if (i_invalid_type > 0L) 
@@ -179,9 +177,16 @@ ssvd <- function(data, version) {
     cli::cli_abort(c("{.var matrix} and {.var offset} not consistent.",
                      i = "Element {i_diff_nm} of {.var matrix} has rownames {.val {rn_matrix[[i_diff_nm]]}}.",
                      i = "Element {i_diff_nm} of {.var offset} has names {.val {nm_offset_mod[[i_diff_nm]]}}."))
+  ## no duplicates
+  is_dup <- duplicated(data[c("version", "type", "labels_age", "labels_sexgender")])
+  i_dup <- match(TRUE, is_dup, nomatch = 0L)
+  if (i_dup > 0L)
+    cli::cli_abort(paste("Row {.val {i_dup}} of {.arg data} duplicates values for {.arg version},",
+                         "{.arg type}, {.arg labels_age}, and {.arg labels_sexgender}",
+                         "from earlier row."))
   ## create object
   data <- tibble::as_tibble(data)
-  data <- data[c("type", "labels_age", "labels_sexgender", "matrix", "offset")]
+  data <- data[c("version", "type", "labels_age", "labels_sexgender", "matrix", "offset")]
   ans <- list(data = data)
   class(ans) <- "bage_ssvd"
   ans

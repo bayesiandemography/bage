@@ -190,6 +190,7 @@ test_that("'generate_prior_svd_helper' works with valid inputs - n_by = 1", {
 test_that("'generate_ssvd_helper' works with valid inputs - indep = NULL, n_element = 1", {
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
+                              v = "v1",
                               n_element = 1,
                               n_draw = 3,
                               n_comp = 2,
@@ -202,6 +203,7 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = NULL, n_elem
 test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by = 1, n_along = 3", {
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
+                              v = NULL,
                               n_along = 3,
                               n_by = 1,
                               n_draw = 3,
@@ -215,6 +217,7 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by =
 test_that("'generate_ssvd_helper' works with valid inputs - indep = FALSE, n_by = 1", {
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
+                              v = NULL,
                               n_along = 2,
                               n_by = 1,
                               n_draw = 3,
@@ -228,6 +231,7 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = FALSE, n_by 
 test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by = 2", {
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
+                              v = NULL,
                               n_along = 3,
                               n_by = 2,
                               n_draw = 3,
@@ -238,6 +242,20 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by =
   expect_identical(ncol(ans$matrix), 24L)
   expect_identical(nrow(ans$matrix_along_by), 3L)
 })
+
+test_that("'generate_ssvd_helper' gives appropriate error when v invalid", {
+  set.seed(0)
+  expect_error(generate_ssvd_helper(ssvd = HMD,
+                                    v = "wrong",
+                                    n_along = 3,
+                                    n_by = 2,
+                                    n_draw = 3,
+                                    n_comp = 2,
+                                    indep = TRUE,
+                                    age_labels = NULL),
+               "Internal error: Invalid value for `v`.")
+})
+
 
 
 ## 'get_term_from_est' --------------------------------------------------------
