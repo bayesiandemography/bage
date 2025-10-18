@@ -4,10 +4,20 @@
 \alias{generate.bage_ssvd}
 \title{Generate Random Age or Age-Sex Profiles}
 \usage{
-\method{generate}{bage_ssvd}(x, n_draw = 20, n_comp = NULL, indep = NULL, age_labels = NULL, ...)
+\method{generate}{bage_ssvd}(
+  x,
+  v = NULL,
+  n_draw = 20,
+  n_comp = NULL,
+  indep = NULL,
+  age_labels = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{An object of class \code{"bage_ssvd"}.}
+
+\item{v}{Version of data to use.}
 
 \item{n_draw}{Number of random draws to generate.}
 

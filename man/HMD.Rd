@@ -5,7 +5,15 @@
 \alias{HMD}
 \title{Components from Human Mortality Database}
 \format{
-Object of class \code{"bage_ssvd"}.
+Object of class \code{"bage_ssvd"}.Versions
+\itemize{
+\item \code{"v2025"} (default) data published on
+2025-09-25, all countries and years
+\item \code{"v2025-50"} data published on
+2025-09-25, all countries, 1950 and later
+\item \code{"v2024"} data published on
+2024-02-26, all countries and years
+}
 }
 \source{
 Derived from data from the

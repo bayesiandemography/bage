@@ -42,11 +42,11 @@
 #' - `bssvd::data_ssvd_lfp()` Prepare OECD data on labor force participation
 #'
 #' @examples
-#' \dontrun{
-#' data <- data_ssvd_hmd("hmd_statistics_20240226.zip")
-#' HMD <- ssvd(data)
-#' }
-#' @noRd
+#' library(bssvd)
+#' data <- data_ssvd_lfp(oecd_data_subset)
+#' LFP_subset <- ssvd(data)
+#' LFP_subset
+#' @export
 ssvd <- function(data) {
   nms_valid <- c("version",
                  "type",

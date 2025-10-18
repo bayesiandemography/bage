@@ -78,15 +78,15 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
 ## 'bage_ssvd' objects
 
 ../data/HIMD_P1.rda: ssvd_himd/HIMD_P1.R \
-  ssvd_himd/himd_2024-10-24.zip
+  ssvd_himd/himd_20241023.zip
 	Rscript $^ $@
 
 ../data/HIMD_P5.rda: ssvd_himd/HIMD_P5.R \
-  ssvd_himd/himd_2024-10-24.zip
+  ssvd_himd/himd_20241023.zip
 	Rscript $^ $@
 
 ../data/HIMD_R.rda: ssvd_himd/HIMD_R.R \
-  ssvd_himd/himd_2024-10-24.zip
+  ssvd_himd/himd_20241023.zip
 	Rscript $^ $@
 
 ../data/HFD.rda: ssvd_hfd/HFD.R \
@@ -97,7 +97,8 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
   ssvd_hmd/hmd_statistics_20240226.zip
 	Rscript $^ $@
 
-../data/LFP.rda: ssvd_lfp/LFP.R
+../data/LFP.rda: ssvd_lfp/LFP.R \
+  ssvd_lfp/lfp_data_2025-10-17.zip
 	Rscript $^ $@
 
 

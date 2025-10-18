@@ -1,19 +1,22 @@
 
-library(command)
-library(bssvd)
-library(rsdmx)
-library(bage)
+suppressPackageStartupMessages({
+  library(bssvd)
+  library(bage)
+  library(readr)
+  library(dplyr)
+  library(command)
+})
 
-cmd_assign(.out = "../data/LFP.rda")
+cmd_assign(.lfp25 = "ssvd_lfp/lfp_data_2025-10-17.zip",
+           .out = "../data/LFP.rda")
 
-url <- paste("https://sdmx.oecd.org/public/rest/data",
-             "OECD.ELS.SAE,DSD_LFS@DF_LFS_INDIC,1.1",
-             "all?dimensionAtObservation=AllDimensions",
-             sep = "/")
-lfp_sdmx <- rsdmx::readSDMX(url)
-lfp_df <- as.data.frame(lfp_sdmx)
-data <- data_ssvd_lfp(lfp_df)
-LFP <- bage:::ssvd(data)
+data <- read_csv(.lfp25)
+
+LFP <- data |>
+  data_ssvd_lfp() |>
+  mutate(version = "v2025") |>
+  relocate(version) |>
+  bage:::ssvd()
 
 save(LFP, file = .out, compress = "bzip2")
 

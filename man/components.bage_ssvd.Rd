@@ -4,7 +4,14 @@
 \alias{components.bage_ssvd}
 \title{Extract Components used by SVD Summary}
 \usage{
-\method{components}{bage_ssvd}(object, n_comp = NULL, indep = NULL, age_labels = NULL, ...)
+\method{components}{bage_ssvd}(
+  object,
+  v = NULL,
+  n_comp = NULL,
+  indep = NULL,
+  age_labels = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{An object of class \code{"bage_ssvd"}.}

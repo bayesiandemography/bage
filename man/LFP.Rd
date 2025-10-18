@@ -5,7 +5,10 @@
 \alias{LFP}
 \title{Components from OECD Labor Force Participation Data}
 \format{
-Object of class \code{"bage_ssvd"}.
+Object of class \code{"bage_ssvd"}.Versions
+\itemize{
+\item \code{"v2025"} data downloaded on 2025-10-17
+}
 }
 \source{
 Derived from data in the "Labor Force Indicators"

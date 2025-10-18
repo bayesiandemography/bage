@@ -247,6 +247,10 @@
 #' @format
 #' Object of class `"bage_ssvd"`.
 #'
+#' # Versions
+#'
+#' - `"v2025"` data downloaded on 2025-10-17
+#' 
 #' @source Derived from data in the "Labor Force Indicators"
 #' table of the OECD Data Explorer.
 #' Code to create `LFS`
@@ -259,7 +263,7 @@
 #' Components from Human Fertility Database
 #'
 #' An object of class `"bage_ssvd"`
-#' holding components extracted from mortality
+#' holding components extracted from
 #' data from the
 #' [Human Fertility Database](https://www.humanfertility.org).
 #' The object holds 5 components.
@@ -277,11 +281,57 @@
 #' package.
 "HFD"
 
+#' Components from Human Internal Migration Database
+#'
+#' Objects of class `"bage_ssvd"`
+#' holding components extracted from data
+#' data from the
+#' [Human Internal Migration Database](https://osf.io/vmrfk/).
+#' The objects all hold 5 components.
+#'
+#' - `HMD_P1` is derived from data on
+#'   1-year migration probabilities, ie the
+#'   probability that a person will migrate
+#'   during an interval of 1 year.
+#' - `HMD_P5` is derived from data on
+#'   5-year migration probabilities, ie the
+#'   probability that a person will migrate
+#'   during an interval of 5 years.
+#' - `HMD_R` is derived from data on 1-year
+#'   migration probabilities, using the
+#'   formula \eqn{r = \log(1 - p)}.
+#'   The calculations assume that
+#'   people migrate no more than
+#'   once per year.
+#'
+#' @format
+#' Objects of class `"bage_ssvd"`
+#'
+#' @section Versions:
+#'
+#' - `"v2025"` (default) data accessed on
+#'   1 September 2025
+#'
+#' @source Dyrting, S. (2024, October 23).
+#' Data from: Estimating Complete Migration Probabilities
+#' from Grouped Data. Retrieved from osf.io/vmrfk
+#' on 1 September 2025.
+"HIMD"
+
+#' @rdname HIMD
+"HIMD_R"
+
+#' @rdname HIMD
+"HIMD_P1"
+
+#' @rdname HIMD
+"HIMD_P5"
+
 
 #' Components from Human Mortality Database
 #'
 #' An object of class `"bage_ssvd"`
-#' holding components extracted from mortality
+#' holding components extracted from
 #' data from the
 #' [Human Mortality Database](https://www.mortality.org).
 #' The object holds 5 components.
@@ -289,13 +339,13 @@
 #' @format
 #' Object of class `"bage_ssvd"`.
 #'
-#' # Versions
+#' @section Versions:
 #'
-#' - `"2025"` (default) data published on
+#' - `"v2025"` (default) data published on
 #'   2025-09-25, all countries and years
-#' - `"2025-50"` data published on
+#' - `"v2025-50"` data published on
 #'   2025-09-25, all countries, 1950 and later
-#' - `"2024"` data published on
+#' - `"v2024"` data published on
 #'   2024-02-26, all countries and years
 #'
 #' @source Derived from data from the
