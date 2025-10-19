@@ -1,11 +1,12 @@
 
 suppressPackageStartupMessages({
-  library(command)
   library(bssvd)
   library(bage)
+  library(dplyr)
+  library(command)
 })
 
-cmd_assign(.himd = "ssvd_himd/himd_2024-10-23.zip",
+cmd_assign(.himd = "ssvd_himd/himd_20241023.zip",
            .out = "../data/HIMD_P1.rda")
 
 data <- data_ssvd_himd(.himd,

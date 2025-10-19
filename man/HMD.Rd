@@ -3,17 +3,10 @@
 \docType{data}
 \name{HMD}
 \alias{HMD}
-\title{Components from Human Mortality Database}
+\title{Scaled SVD Components from
+Human Mortality Database}
 \format{
-Object of class \code{"bage_ssvd"}.Versions
-\itemize{
-\item \code{"v2025"} (default) data published on
-2025-09-25, all countries and years
-\item \code{"v2025-50"} data published on
-2025-09-25, all countries, 1950 and later
-\item \code{"v2024"} data published on
-2024-02-26, all countries and years
-}
+Object of class \code{"bage_ssvd"}.
 }
 \source{
 Derived from data from the
@@ -30,9 +23,20 @@ HMD
 }
 \description{
 An object of class \code{"bage_ssvd"}
-holding components extracted from mortality
+holding scaled SVD components derived from
 data from the
 \href{https://www.mortality.org}{Human Mortality Database}.
 The object holds 5 components.
+}
+\details{
+\strong{Versions:}
+\itemize{
+\item \code{"v2025"} (default) data published on
+2025-09-25, all countries and years
+\item \code{"v2025-50"} data published on
+2025-09-25, all countries, 1950 and later
+\item \code{"v2024"} data published on
+2024-02-26, all countries and years
+}
 }
 \keyword{datasets}

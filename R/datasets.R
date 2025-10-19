@@ -237,20 +237,21 @@
 
 ## SVD ------------------------------------------------------------------------
 
-#' Components from OECD Labor Force Participation Data
+#' Scaled SVD Components from OECD
+#' Labor Force Participation Data
 #'
 #' An object of class `"bage_ssvd"`
 #' holding components extracted from labor force participation
 #' data from the
 #' [OECD Data Explorer](https://data-explorer.oecd.org).
 #'
-#' @format
-#' Object of class `"bage_ssvd"`.
-#'
-#' # Versions
+#' **Versions:**
 #'
 #' - `"v2025"` data downloaded on 2025-10-17
 #' 
+#' @format
+#' Object of class `"bage_ssvd"`.
+#'
 #' @source Derived from data in the "Labor Force Indicators"
 #' table of the OECD Data Explorer.
 #' Code to create `LFS`
@@ -260,13 +261,18 @@
 "LFP"
 
 
-#' Components from Human Fertility Database
+#' Scaled SVD Components from Human Fertility Database
 #'
 #' An object of class `"bage_ssvd"`
-#' holding components extracted from
+#' holding scaled SVD components derived from
 #' data from the
 #' [Human Fertility Database](https://www.humanfertility.org).
 #' The object holds 5 components.
+#'
+#' **Versions:**
+#'
+#' - `"v2024"` (default) version of data from
+#'   23 October 2024
 #'
 #' @format
 #' Object of class `"bage_ssvd"`.
@@ -281,65 +287,57 @@
 #' package.
 "HFD"
 
-#' Components from Human Internal Migration Database
+#' Scaled SVD Components from Human
+#' Internal Migration Database
 #'
 #' Objects of class `"bage_ssvd"`
-#' holding components extracted from data
+#' holding scaled SVD components derived from
 #' data from the
 #' [Human Internal Migration Database](https://osf.io/vmrfk/).
-#' The objects all hold 5 components.
+#' Each object holds 5 components
 #'
-#' - `HMD_P1` is derived from data on
+#' - `HIMD_P1` is derived from data on
 #'   1-year migration probabilities, ie the
 #'   probability that a person will migrate
 #'   during an interval of 1 year.
-#' - `HMD_P5` is derived from data on
+#' - `HIMD_P5` is derived from data on
 #'   5-year migration probabilities, ie the
 #'   probability that a person will migrate
 #'   during an interval of 5 years.
-#' - `HMD_R` is derived from data on 1-year
+#' - `HIMD_R` is derived from data on 1-year
 #'   migration probabilities, using the
 #'   formula \eqn{r = \log(1 - p)}.
-#'   The calculations assume that
-#'   people migrate no more than
-#'   once per year.
 #'
+#' **Versions:**
+#'
+#' - `"v2024"` Data from 23 October 2024 (the default)
+#' 
 #' @format
-#' Objects of class `"bage_ssvd"`
-#'
-#' @section Versions:
-#'
-#' - `"v2025"` (default) data accessed on
-#'   1 September 2025
+#' An object of class bage_ssvd of length 1.
 #'
 #' @source Dyrting, S. (2024, October 23).
 #' Data from: Estimating Complete Migration Probabilities
 #' from Grouped Data. Retrieved from osf.io/vmrfk
 #' on 1 September 2025.
-"HIMD"
-
-#' @rdname HIMD
 "HIMD_R"
 
-#' @rdname HIMD
+#' @rdname HIMD_R
 "HIMD_P1"
 
-#' @rdname HIMD
+#' @rdname HIMD_R
 "HIMD_P5"
 
 
-#' Components from Human Mortality Database
+#' Scaled SVD Components from
+#' Human Mortality Database
 #'
 #' An object of class `"bage_ssvd"`
-#' holding components extracted from
+#' holding scaled SVD components derived from
 #' data from the
 #' [Human Mortality Database](https://www.mortality.org).
 #' The object holds 5 components.
 #'
-#' @format
-#' Object of class `"bage_ssvd"`.
-#'
-#' @section Versions:
+#' **Versions:**
 #'
 #' - `"v2025"` (default) data published on
 #'   2025-09-25, all countries and years
@@ -348,6 +346,9 @@
 #' - `"v2024"` data published on
 #'   2024-02-26, all countries and years
 #'
+#' @format
+#' Object of class `"bage_ssvd"`.
+#' 
 #' @source Derived from data from the
 #' Human Mortality Database. Max Planck Institute for
 #' Demographic Research (Germany), University of California,

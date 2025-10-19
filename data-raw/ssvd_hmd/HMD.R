@@ -25,7 +25,7 @@ data <- bind_rows("v2025" = data_2025,
                   "v2024" = data_2024,
                   .id = "version")
 
-HMD <- bage:::ssvd(data)
+HMD <- ssvd(data)
 
 save(HMD, file = .out, compress = "bzip2")
 

@@ -90,10 +90,12 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
 	Rscript $^ $@
 
 ../data/HFD.rda: ssvd_hfd/HFD.R \
-  ssvd_hfd/asfrRR.txt.zip
+  ssvd_hfd/asfrRR_20240523.txt.zip \
+  ssvd_hfd/asfrRR_20250724.txt.zip
 	Rscript $^ $@
 
 ../data/HMD.rda: ssvd_hmd/HMD.R \
+  ssvd_hmd/hmd_statistics_20250925.zip \
   ssvd_hmd/hmd_statistics_20240226.zip
 	Rscript $^ $@
 

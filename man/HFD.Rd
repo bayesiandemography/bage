@@ -3,7 +3,7 @@
 \docType{data}
 \name{HFD}
 \alias{HFD}
-\title{Components from Human Fertility Database}
+\title{Scaled SVD Components from Human Fertility Database}
 \format{
 Object of class \code{"bage_ssvd"}.
 }
@@ -22,9 +22,16 @@ HFD
 }
 \description{
 An object of class \code{"bage_ssvd"}
-holding components extracted from mortality
+holding scaled SVD components derived from
 data from the
 \href{https://www.humanfertility.org}{Human Fertility Database}.
 The object holds 5 components.
+}
+\details{
+\strong{Versions:}
+\itemize{
+\item \code{"v2024"} (default) version of data from
+23 October 2024
+}
 }
 \keyword{datasets}

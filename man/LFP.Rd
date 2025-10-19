@@ -3,12 +3,10 @@
 \docType{data}
 \name{LFP}
 \alias{LFP}
-\title{Components from OECD Labor Force Participation Data}
+\title{Scaled SVD Components from OECD
+Labor Force Participation Data}
 \format{
-Object of class \code{"bage_ssvd"}.Versions
-\itemize{
-\item \code{"v2025"} data downloaded on 2025-10-17
-}
+Object of class \code{"bage_ssvd"}.
 }
 \source{
 Derived from data in the "Labor Force Indicators"
@@ -26,5 +24,11 @@ An object of class \code{"bage_ssvd"}
 holding components extracted from labor force participation
 data from the
 \href{https://data-explorer.oecd.org}{OECD Data Explorer}.
+}
+\details{
+\strong{Versions:}
+\itemize{
+\item \code{"v2025"} data downloaded on 2025-10-17
+}
 }
 \keyword{datasets}

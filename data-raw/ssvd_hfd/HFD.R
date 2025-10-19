@@ -1,16 +1,30 @@
 
-library(command)
-library(bssvd)
-library(bage)
-library(readr)
+suppressPackageStartupMessages({
+  library(bssvd)
+  library(bage)
+  library(readr)
+  library(dplyr)
+  library(command)
+})
 
-cmd_assign(.asfr = "ssvd_hfd/asfrRR.txt.zip",
+cmd_assign(.asfr24 = "ssvd_hfd/asfrRR_20240523.txt.zip",
+           .asfr25 = "ssvd_hfd/asfrRR_20250724.txt.zip",
            .out = "../data/HFD.rda")
 
-asfr <- read_table(.asfr, skip = 2)
+asfr24 <- read_table(.asfr24, skip = 2) 
+asfr25 <- read_table(.asfr25, skip = 2)
 
-data <- data_ssvd_hfd(asfr, n_comp = 5)
-HFD <- bage:::ssvd(data)
+data_24 <- data_ssvd_hfd(asfr24, n_comp = 5) |>
+  mutate(version = "v2024") |>
+  relocate()
+
+data_25 <- data_ssvd_hfd(asfr25, n_comp = 5) |>
+  mutate(version = "v2025") |>
+  relocate()
+
+data <- bind_rows(data_24, data_25)
+
+HFD <- ssvd(data)
 
 save(HFD, file = .out, compress = "bzip2")
 
