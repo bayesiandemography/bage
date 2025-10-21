@@ -3,3 +3,4 @@ data-raw/*.zip filter=lfs diff=lfs merge=lfs -text
 data-raw/ssvd_hmd/hmd_statistics_20240226.zip filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
 data-raw/ssvd_lfp/lfp_data_2025-10-17.zip filter=lfs diff=lfs merge=lfs -text
+data-raw/ssvd_wmd/undesa_pd_2019_wmd_marital_status.xlsx filter=lfs diff=lfs merge=lfs -text
