@@ -173,6 +173,8 @@ get_matrix_or_offset_svd_prior <- function(prior,
                                            var_sexgender,
                                            get_matrix) {
   ssvd <- prior$specific$ssvd
+  v <- prior$specific$v
+  nm_ssvd <- prior$specific$nm_ssvd
   indep <- prior$specific$indep
   n_comp <- prior$specific$n_comp
   levels_age <- dimnames_term[[var_age]]
@@ -195,6 +197,8 @@ get_matrix_or_offset_svd_prior <- function(prior,
                         var_age = var_age,
                         var_sexgender = var_sexgender)
   get_matrix_or_offset_svd(ssvd = ssvd,
+                           v = v,
+                           nm_ssvd = nm_ssvd,
                            levels_age = levels_age,
                            levels_sexgender = levels_sexgender,
                            joint = joint,

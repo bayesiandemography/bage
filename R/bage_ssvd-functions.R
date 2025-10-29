@@ -7,6 +7,7 @@
 #'
 #' @param ssvd Object of class 'bage_ssvd'
 #' @param v Version of data
+#' @param nm_ssvd Name of 'bage_ssvd' object
 #' @param joint Whether SVDs for sexes/genders were
 #' carried out jointly or separately
 #' @param agesex String describing age main effect
@@ -23,6 +24,7 @@
 #' @noRd
 get_matrix_or_offset_svd <- function(ssvd,
                                      v,
+                                     nm_ssvd,
                                      levels_age,
                                      levels_sexgender,
                                      joint,
@@ -31,10 +33,23 @@ get_matrix_or_offset_svd <- function(ssvd,
                                      n_comp) {
   data <- ssvd$data
   version <- data$version
+  versions <- unique(version)
   ## subset to data for version
+  if (is.null(v)) {
+    v <- versions[[1L]]
+  }
+  else {
+    if (!(v %in% versions)) {
+      n_version <- length(versions)
+      if (n_version > 1L)
+        msg_valid <- "Valid values for {.var v} with {.arg {nm_ssvd}} are: {.val {versions}}."
+      else
+        msg_valid <- "Only valid value for {.var v} with {.arg {nm_ssvd}} is {.val {versions}}."
+      cli::cli_abort(c("Invalid value for version parameter {.var v}.",
+                       i = msg_valid))
+    }
+  }
   is_version <- data$version == v
-  if (!any(is_version))
-    cli::cli_abort("Internal error: {.val {v}} is not a valid value for {.var version}.")
   data_version <- data[is_version, , drop = FALSE]
   ## extract values for subset
   type <- data_version$type

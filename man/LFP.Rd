@@ -13,7 +13,7 @@ Derived from data in the "Labor Force Indicators"
 table of the OECD Data Explorer.
 Code to create \code{LFS}
 is in folder 'data-raw/ssvd_lfp' in
-the source code for the \strong{bage}
+the source code for the \pkg{bage}
 package.
 }
 \usage{

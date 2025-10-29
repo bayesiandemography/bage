@@ -3,6 +3,7 @@ test_that("'get_matrix_or_offset_svd' works with age main effect, type is total,
     ssvd <- sim_ssvd()
     ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                              v = "v1",
+                                             nm_ssvd = "SSVD",
                                              levels_age = c("0-4", "5-9"),
                                              levels_sex = NULL,
                                              joint = NULL,
@@ -14,6 +15,23 @@ test_that("'get_matrix_or_offset_svd' works with age main effect, type is total,
     expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'get_matrix_or_offset_svd' works with age main effect, type is total, matrix - no v supplied", {
+    ssvd <- sim_ssvd()
+    ans_obtained <- get_matrix_or_offset_svd(ssvd,
+                                             v = NULL,
+                                             nm_ssvd = "SSVD",
+                                             levels_age = c("0-4", "5-9"),
+                                             levels_sex = NULL,
+                                             joint = NULL,
+                                             agesex = "age",
+                                             get_matrix = TRUE,
+                                             n_comp = 3L)
+    ans_expected <- Matrix::Matrix(1, nr = 2, nc = 3, 
+                                         dimnames = list(c("0-4", "5-9"), NULL))
+    expect_equal(ans_obtained, ans_expected)
+})
+
+
 test_that("'get_matrix_or_offset_svd' v argument works", {
   ssvd <- sim_ssvd()
   data1 <- ssvd$data
@@ -22,6 +40,7 @@ test_that("'get_matrix_or_offset_svd' v argument works", {
   ssvd$data <- rbind(data1, data2)
   ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                            v = "v2",
+                                           nm_ssvd = "SSVD",
                                            levels_age = c("0-4", "5-9"),
                                            levels_sex = NULL,
                                            joint = NULL,
@@ -37,6 +56,7 @@ test_that("'get_matrix_or_offset_svd' works with age main effect, type is total,
     ssvd <- sim_ssvd()
     ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                              v = "v1",
+                                             nm_ssvd = "SSVD",
                                              levels_age = c("0 to 4", "5 to 9"),
                                              levels_sex = NULL,
                                              joint = NULL,
@@ -51,6 +71,7 @@ test_that("'get_matrix_or_offset_svd' works with sex-age interaction, type is jo
     ssvd <- sim_ssvd()
     ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                              v = "v1",
+                                             nm_ssvd = "SSVD",
                                              levels_age = c("0-4", "5-9"),
                                              levels_sex = c("Male", "Female"),
                                              joint = TRUE,
@@ -65,6 +86,7 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is in
   ssvd <- sim_ssvd()
   ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                            v = "v1",
+                                           nm_ssvd = "SSVD",
                                            levels_age = c("0-4", "5-9"),
                                            levels_sexgender = c("Female", "Male"),
                                            joint = FALSE,
@@ -82,6 +104,7 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is jo
   ssvd <- sim_ssvd()
   ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                            v = "v1",
+                                           nm_ssvd = "SSVD",
                                            levels_age = c("0 to 4", "5--9"),
                                            levels_sexgender = c("M", "F"),
                                            joint = FALSE,
@@ -95,10 +118,43 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is jo
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'get_matrix_or_offset_svd' returns expected error when 'v' incorrect - one version present", {
+  ssvd <- sim_ssvd()
+  expect_error(get_matrix_or_offset_svd(ssvd,
+                                        v = "wrong",
+                                        nm_ssvd = "SSVD",
+                                        levels_age = c("0-4", "5-9", "0-4"),
+                                        levels_sexgender = c("F", "M"),
+                                        joint = FALSE,
+                                        agesex = "age:sex",
+                                        get_matrix = TRUE,
+                                        n_comp = 5),
+               "Invalid value for version parameter `v`.")
+})
+
+test_that("'get_matrix_or_offset_svd' returns expected error when 'v' incorrect - two versions present", {
+  ssvd <- sim_ssvd()
+  data1 <- ssvd$data
+  data2 <- ssvd$data
+  data2$version <- "v2"
+  ssvd$data <- rbind(data1, data2)
+  expect_error(get_matrix_or_offset_svd(ssvd,
+                                        v = "wrong",
+                                        nm_ssvd = "SSVD",
+                                        levels_age = c("0-4", "5-9", "0-4"),
+                                        levels_sexgender = c("F", "M"),
+                                        joint = FALSE,
+                                        agesex = "age:sex",
+                                        get_matrix = TRUE,
+                                        n_comp = 5),
+               "Invalid value for version parameter `v`.")
+})
+
 test_that("'get_matrix_or_offset_svd' returns expected error when 'levels_age' has duplicates", {
   ssvd <- sim_ssvd()
   expect_error(get_matrix_or_offset_svd(ssvd,
                                         v = "v1",
+                                        nm_ssvd = "SSVD",
                                         levels_age = c("0-4", "5-9", "0-4"),
                                         levels_sexgender = c("F", "M"),
                                         joint = FALSE,
@@ -112,6 +168,7 @@ test_that("'get_matrix_or_offset_svd' returns expected error when 'levels_sexgen
   ssvd <- sim_ssvd()
   expect_error(get_matrix_or_offset_svd(ssvd,
                                         v = "v1",
+                                        nm_ssvd = "SSVD",
                                         levels_age = c("0-4", "5-9"),
                                         levels_sexgender = c("F", "M", "M"),
                                         joint = FALSE,
@@ -126,6 +183,7 @@ test_that("'get_matrix_or_offset_svd' returns expected error with illegal value 
   ssvd <- sim_ssvd()
   expect_error(get_matrix_or_offset_svd(ssvd,
                                         v = "v1",
+                                        nm_ssvd = "SSVD",
                                         levels_age = c("0-4", "5-9"),
                                         levels_sexgender = c("F", "M"),
                                         joint = FALSE,
@@ -139,6 +197,7 @@ test_that("'get_matrix_or_offset_svd' returns expected error with illegal value 
     ssvd <- sim_ssvd()
     expect_error(get_matrix_or_offset_svd(ssvd,
                                           v = "v1",
+                                          nm_ssvd = "SSVD",
                                           levels_age = c("0-4", "wrong"),
                                           levels_sexgender = c("F", "M"),
                                           joint = FALSE,
@@ -152,6 +211,7 @@ test_that("'get_matrix_or_offset_svd' returns expected error with illegal value 
   ssvd <- sim_ssvd()
   expect_error(get_matrix_or_offset_svd(ssvd,
                                         v = "v1",
+                                        nm_ssvd = "SSVD",
                                         levels_age = c("0-4", "5-9"),
                                         levels_sexgender = c("F", "wrong"),
                                         joint = FALSE,
@@ -165,6 +225,7 @@ test_that("'get_matrix_or_offset_svd' returns expected error when can't align ag
   ssvd <- sim_ssvd()
   expect_error(get_matrix_or_offset_svd(ssvd,
                                         v = "v1",
+                                        nm_ssvd = "SSVD",
                                         levels_age = c("0---4", "5+"),
                                         levels_sexgender = c("F", "M"),
                                         joint = FALSE,
@@ -178,6 +239,7 @@ test_that("'get_matrix_or_offset_svd' returns expected error when can't parse se
   ssvd <- sim_ssvd()
   expect_error(get_matrix_or_offset_svd(ssvd,
                                         v = "v1",
+                                        nm_ssvd = "SSVD",
                                         levels_age = c("0-4", "5-9"),
                                         levels_sexgender = c("M", "FFF"),
                                         joint = FALSE,
@@ -191,6 +253,7 @@ test_that("'get_matrix_or_offset_svd' returns expected error when can't align se
   ssvd <- sim_ssvd()
   expect_error(get_matrix_or_offset_svd(ssvd,
                                         v = "v1",
+                                        nm_ssvd = "SSVD",
                                         levels_age = c("0-4", "5-9"),
                                         levels_sexgender = "M",
                                         joint = FALSE,

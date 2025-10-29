@@ -4,12 +4,16 @@
 \alias{SVD}
 \title{SVD-Based Prior for Age or Age-Sex Profiles}
 \usage{
-SVD(ssvd, n_comp = NULL, indep = TRUE)
+SVD(ssvd, v = NULL, n_comp = NULL, indep = TRUE)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
 holding a scaled SVD. See below for scaled SVDs
 of databases currently available in \strong{bage}.}
+
+\item{v}{Version of scaled SVD components
+to use. If no value is suppled, the most
+recent version is used.}
 
 \item{n_comp}{Number of components from scaled SVD
 to use in modelling. The default is half

@@ -305,16 +305,19 @@ test_that("'Sp' works with valid inputs", {
 test_that("'SVD' works with valid inputs", {
     expect_identical(SVD(HMD),
                      new_bage_prior_svd(HMD,
+                                        v = NULL,
                                         nm_ssvd = "HMD",
                                         indep = TRUE,
                                         n_comp = 3L))
-    expect_identical(SVD(HMD, n_comp = 2),
+    expect_identical(SVD(HMD, n_comp = 2, v = "v2025"),
                      new_bage_prior_svd(HMD,
+                                        v = "v2025",
                                         nm_ssvd = "HMD",
                                         indep = TRUE,
                                         n_comp = 2L))
     expect_identical(SVD(HMD, n_comp = 4, indep = FALSE),
                      new_bage_prior_svd(HMD,
+                                        v = NULL,
                                         nm_ssvd = "HMD",
                                         indep = FALSE,
                                         n_comp = 4L))
@@ -328,6 +331,7 @@ test_that("'SVD' throws correct error when n_comp is too high", {
 test_that("'SVD_AR' works with valid inputs", {
   expect_identical(SVD_AR(HMD, n_coef = 3),
                    new_bage_prior_svd_ar(HMD,
+                                         v = NULL,
                                          nm_ssvd = "HMD",
                                          n_comp = 3L,
                                          indep = TRUE,
@@ -340,9 +344,10 @@ test_that("'SVD_AR' works with valid inputs", {
                                          con = "none",
                                          nm = "SVD_AR"))
   expect_identical(SVD_AR(LFP, n_comp = 2, indep = FALSE, n_coef = 1, s = 0.01,
-                          con = "by",
+                          con = "by", v = "v2025",
                           shape1 = 3),
                    new_bage_prior_svd_ar(LFP,
+                                         v = "v2025",
                                          nm_ssvd = "LFP",
                                          n_comp = 2L,
                                          indep = FALSE,
@@ -359,6 +364,7 @@ test_that("'SVD_AR' works with valid inputs", {
 test_that("'SVD_AR1' works with valid inputs", {
   expect_identical(SVD_AR1(HMD),
                    new_bage_prior_svd_ar(HMD,
+                                         v = NULL,
                                          nm_ssvd = "HMD",
                                          n_comp = 3L,
                                          indep = TRUE,
@@ -373,6 +379,7 @@ test_that("'SVD_AR1' works with valid inputs", {
   expect_identical(SVD_AR1(LFP, n_comp = 2, max = 0.9, s = 0.01, 
                            con = "by"),
                    new_bage_prior_svd_ar(LFP,
+                                         v = NULL,
                                          nm_ssvd = "LFP",
                                          n_comp = 2L,
                                          indep = TRUE,
@@ -389,14 +396,17 @@ test_that("'SVD_AR1' works with valid inputs", {
 test_that("'SVD_RW' works with valid inputs - random", {
   expect_identical(SVD_RW(HMD),
                    new_bage_prior_svd_rwrandom(HMD,
+                                               v = NULL,
                                                nm_ssvd = "HMD",
                                                n_comp = 3L,
                                                indep = TRUE,
                                                scale = 1,
                                                sd = 1,
                                                con = "none"))
-  expect_identical(SVD_RW(LFP, n_comp = 2, sd = 0.3, s = 0.01, indep = F, con = "by"),
+  expect_identical(SVD_RW(LFP, v = "v2025",
+                          n_comp = 2, sd = 0.3, s = 0.01, indep = F, con = "by"),
                    new_bage_prior_svd_rwrandom(LFP,
+                                               v = "v2025",
                                                nm_ssvd = "LFP",
                                                n_comp = 2L,
                                                indep = FALSE,
@@ -408,23 +418,27 @@ test_that("'SVD_RW' works with valid inputs - random", {
 test_that("'SVD_RW' works with valid inputs - zero", {
   expect_identical(SVD_RW(HMD, sd = 0),
                    new_bage_prior_svd_rwzero(HMD,
-                                                nm_ssvd = "HMD",
-                                                n_comp = 3L,
-                                                indep = TRUE,
-                                                scale = 1,
-                                                con = "none"))
-  expect_identical(SVD_RW(LFP, n_comp = 2, sd = 0, s = 0.01, indep = F, con = "by"),
+                                             v = NULL,
+                                             nm_ssvd = "HMD",
+                                             n_comp = 3L,
+                                             indep = TRUE,
+                                             scale = 1,
+                                             con = "none"))
+  expect_identical(SVD_RW(LFP, v = "v2025",
+                          n_comp = 2, sd = 0, s = 0.01, indep = F, con = "by"),
                    new_bage_prior_svd_rwzero(LFP,
-                                         nm_ssvd = "LFP",
-                                         n_comp = 2L,
-                                         indep = FALSE,
-                                         scale = 0.01,
-                                         con = "by"))
+                                             v = "v2025",
+                                             nm_ssvd = "LFP",
+                                             n_comp = 2L,
+                                             indep = FALSE,
+                                             scale = 0.01,
+                                             con = "by"))
 })
 
 test_that("'SVD_RW2' works with valid inputs - random", {
   expect_identical(SVD_RW2(HMD),
                    new_bage_prior_svd_rw2random(HMD,
+                                                v = NULL,
                                                 nm_ssvd = "HMD",
                                                 n_comp = 3L,
                                                 indep = TRUE,
@@ -432,8 +446,10 @@ test_that("'SVD_RW2' works with valid inputs - random", {
                                                 sd = 1,
                                                 sd_slope = 1,
                                                 con = "none"))
-  expect_identical(SVD_RW2(LFP, n_comp = 2, sd_slope = 0.2, sd = 0.4, s = 0.01, con = "by"),
+  expect_identical(SVD_RW2(LFP, v = "v2025",
+                           n_comp = 2, sd_slope = 0.2, sd = 0.4, s = 0.01, con = "by"),
                    new_bage_prior_svd_rw2random(LFP,
+                                                v = "v2025",
                                                 nm_ssvd = "LFP",
                                                 n_comp = 2L,
                                                 indep = TRUE,
@@ -446,15 +462,18 @@ test_that("'SVD_RW2' works with valid inputs - random", {
 test_that("'SVD_RW2' works with valid inputs - zero", {
   expect_identical(SVD_RW2(HMD, sd = 0),
                    new_bage_prior_svd_rw2zero(HMD,
+                                              v = NULL,
                                               nm_ssvd = "HMD",
                                               n_comp = 3L,
                                               indep = TRUE,
                                               scale = 1,
                                               sd_slope = 1,
                                               con = "none"))
-  expect_identical(SVD_RW2(LFP, n_comp = 2, sd_slope = 0.2, s = 0.01, sd = 0,
+  expect_identical(SVD_RW2(LFP, v = "v2025",
+                           n_comp = 2, sd_slope = 0.2, s = 0.01, sd = 0,
                            con = "by"),
                    new_bage_prior_svd_rw2zero(LFP,
+                                              v = "v2025",
                                               nm_ssvd = "LFP",
                                               n_comp = 2L,
                                               indep = TRUE,
@@ -910,6 +929,7 @@ test_that("'new_bage_prior_spline' works", {
 
 test_that("'new_bage_prior_svd' works", {
   obj <- new_bage_prior_svd(HMD,
+                            v = NULL,
                             nm_ssvd = "HMD",
                             n_comp = 3L,
                             indep = TRUE)
@@ -919,10 +939,12 @@ test_that("'new_bage_prior_svd' works", {
   expect_identical(obj$const, 0)
   expect_identical(obj$specific,
                    list(ssvd = HMD,
+                        v = NULL,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = TRUE))
   obj <- new_bage_prior_svd(HMD,
+                            v = "v2025",
                             nm_ssvd = "HMD",
                             n_comp = 3L,
                             indep = FALSE)
@@ -932,6 +954,7 @@ test_that("'new_bage_prior_svd' works", {
   expect_identical(obj$const, 0)
   expect_identical(obj$specific,
                    list(ssvd = HMD,
+                        v = "v2025",
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = FALSE))
@@ -939,6 +962,7 @@ test_that("'new_bage_prior_svd' works", {
 
 test_that("'new_bage_prior_svd_ar' works", {
   obj <- new_bage_prior_svd_ar(HMD,
+                               v = NULL,
                                nm_ssvd = "HMD",
                                n_comp = 3L,
                                indep = TRUE,
@@ -961,6 +985,7 @@ test_that("'new_bage_prior_svd_ar' works", {
                      scale = 1))
   expect_identical(obj$specific,
                    list(ssvd = HMD,
+                        v = NULL,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = TRUE,
@@ -974,6 +999,7 @@ test_that("'new_bage_prior_svd_ar' works", {
                         con = "none",
                         nm = "SVD_AR"))
   obj <- new_bage_prior_svd_ar(HMD,
+                               v = "v2025",
                                nm_ssvd = "HMD",
                                n_comp = 5L,
                                indep = FALSE,
@@ -996,6 +1022,7 @@ test_that("'new_bage_prior_svd_ar' works", {
                      scale = 0.5))
   expect_identical(obj$specific,
                    list(ssvd = HMD,
+                        v = "v2025",
                         nm_ssvd = "HMD",
                         n_comp = 5L,
                         indep = FALSE,
@@ -1012,6 +1039,7 @@ test_that("'new_bage_prior_svd_ar' works", {
 
 test_that("'new_bage_prior_svd_rwrandom' works", {
   obj <- new_bage_prior_svd_rwrandom(HMD,
+                                     v = "v2025",
                                      nm_ssvd = "HMD",
                                      n_comp = 3L,
                                      indep = TRUE,
@@ -1026,6 +1054,7 @@ test_that("'new_bage_prior_svd_rwrandom' works", {
                      sd = 1))
   expect_identical(obj$specific,
                    list(ssvd = HMD,
+                        v = "v2025",
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = TRUE,
@@ -1037,6 +1066,7 @@ test_that("'new_bage_prior_svd_rwrandom' works", {
 
 test_that("'new_bage_prior_svd_rwzero' works", {
   obj <- new_bage_prior_svd_rwzero(HMD,
+                                   v = NULL,
                                    nm_ssvd = "HMD",
                                    n_comp = 3L,
                                    indep = TRUE,
@@ -1049,6 +1079,7 @@ test_that("'new_bage_prior_svd_rwzero' works", {
                    c(scale = 1))
   expect_identical(obj$specific,
                    list(ssvd = HMD,
+                        v = NULL,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = TRUE,
@@ -1059,6 +1090,7 @@ test_that("'new_bage_prior_svd_rwzero' works", {
 
 test_that("'new_bage_prior_svd_rw2random' works", {
   obj <- new_bage_prior_svd_rw2random(HMD,
+                                      v = NULL,
                                       nm_ssvd = "HMD",
                                       n_comp = 3L,
                                       indep = TRUE,
@@ -1075,6 +1107,7 @@ test_that("'new_bage_prior_svd_rw2random' works", {
                      sd_slope = 1))
   expect_identical(obj$specific,
                    list(ssvd = HMD,
+                        v = NULL,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = TRUE,
@@ -1087,6 +1120,7 @@ test_that("'new_bage_prior_svd_rw2random' works", {
 
 test_that("'new_bage_prior_svd_rw2zero' works", {
   obj <- new_bage_prior_svd_rw2zero(HMD,
+                                    v = "v2025",
                                     nm_ssvd = "HMD",
                                     n_comp = 3L,
                                     indep = TRUE,
@@ -1101,6 +1135,7 @@ test_that("'new_bage_prior_svd_rw2zero' works", {
                      sd_slope = 1))
   expect_identical(obj$specific,
                    list(ssvd = HMD,
+                        v = "v2025",
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = TRUE,

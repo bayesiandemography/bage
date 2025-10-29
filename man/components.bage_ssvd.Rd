@@ -16,14 +16,19 @@
 \arguments{
 \item{object}{An object of class \code{"bage_ssvd"}.}
 
+\item{v}{Version of scaled SVD components
+to use. If no value is suppled, the most
+recent version is used.}
+
 \item{n_comp}{The number of components.
 The default is half the total number of
 components of \code{object}.}
 
 \item{indep}{Whether to use independent or
 joint SVDs for each sex/gender. If
-no value is supplied, an SVD with no
-sex/gender dimension is used. Note that the
+no value is supplied, and \code{object}
+includes type \code{"total"}, then an SVD with no
+sex/gender dimension is used. Note that this
 default is different from \code{\link[=SVD]{SVD()}}.}
 
 \item{age_labels}{Age labels for the

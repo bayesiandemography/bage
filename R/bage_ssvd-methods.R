@@ -8,13 +8,17 @@
 #' @inheritSection SVD Scaled SVDs of demographic databases in bage
 #'
 #' @param object An object of class `"bage_ssvd"`.
+#' @param v Version of scaled SVD components
+#' to use. If no value is suppled, the most
+#' recent version is used.
 #' @param n_comp The number of components.
 #' The default is half the total number of
 #' components of `object`.
 #' @param indep Whether to use independent or
 #' joint SVDs for each sex/gender. If
-#' no value is supplied, an SVD with no
-#' sex/gender dimension is used. Note that the
+#' no value is supplied, and `object`
+#' includes type `"total"`, then an SVD with no
+#' sex/gender dimension is used. Note that this
 #' default is different from [SVD()].
 #' @param age_labels Age labels for the
 #' desired age or age-sex profile.
@@ -53,6 +57,10 @@ components.bage_ssvd <- function(object,
                                  indep = NULL,
                                  age_labels = NULL,
                                  ...) {
+  nm_ssvd <- deparse1(substitute(object))
+  data <- object$data
+  version <- data$version
+  versions <- unique(version)
   n_comp_obj <- get_n_comp(object)
   if (is.null(n_comp))
     n_comp <- ceiling(n_comp_obj / 2)
@@ -75,8 +83,13 @@ components.bage_ssvd <- function(object,
                            "does not have a sex/gender dimension."))
     type <- if (indep) "indep" else "joint"
   }
-  else
-    type <- "total"
+  else {
+    has_total <- "total" %in% data$type
+    if (has_total)
+      type <- "total"
+    else
+      type <- "indep"
+  }
   has_age <- !is.null(age_labels)
   if (has_age) {
     age_labels <- tryCatch(poputils::reformat_age(age_labels, factor = FALSE),
@@ -85,24 +98,41 @@ components.bage_ssvd <- function(object,
       cli::cli_abort(c("Problem with {.arg age_labels}.",
                        i = age_labels$message))
   }
-  data <- object$data
-  data <- data[data$type == type, ]
+  if (is.null(v)) {
+    v <- versions[[1L]]
+  }
+  else {
+    if (!(v %in% versions)) {
+      n_version <- length(versions)
+      if (n_version > 1L)
+        msg_valid <- "Valid values for {.var v} with {.arg {nm_ssvd}} are: {.val {versions}}."
+      else
+        msg_valid <- "Only valid value for {.var v} with {.arg {nm_ssvd}} is {.val {versions}}."
+      cli::cli_abort(c("Invalid value for version parameter {.var v}.",
+                       i = msg_valid))
+    }
+  }
+  is_version <- data$version == v
+  is_type <- data$type == type
+  data_version_type <- data[is_version & is_type, , drop = FALSE]
   if (has_age) {
-    is_matched <- vapply(data$labels_age, setequal, TRUE, y = age_labels)
+    is_matched <- vapply(data_version_type$labels_age, setequal, TRUE, y = age_labels)
     if (!any(is_matched))
       cli::cli_abort("Can't find labels from {.arg age_labels} in {.arg object}.")
     i_matched <- which(is_matched)
   }
   else {
-    lengths_labels <- lengths(data$labels_age)
+    lengths_labels <- lengths(data_version_type$labels_age)
     i_matched <- which.max(lengths_labels)
   }
-  labels_age <- data$labels_age[[i_matched]]
-  labels_sexgender <- data$labels_sexgender[[i_matched]]
+  labels_age <- data_version_type$labels_age[[i_matched]]
+  labels_sexgender <- data_version_type$labels_sexgender[[i_matched]]
   levels_age <- unique(labels_age)
   levels_sexgender <- unique(labels_sexgender)
   agesex <- if (has_indep) "age:sex" else "age"
   matrix <- get_matrix_or_offset_svd(ssvd = object,
+                                     v = v,
+                                     nm_ssvd = nm_ssvd,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
                                      joint = !indep,
@@ -110,6 +140,8 @@ components.bage_ssvd <- function(object,
                                      get_matrix = TRUE,
                                      n_comp = n_comp)
   offset <- get_matrix_or_offset_svd(ssvd = object,
+                                     v = v,
+                                     nm_ssvd = nm_ssvd,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
                                      joint = !indep,
@@ -189,9 +221,11 @@ generate.bage_ssvd <- function(x,
                                indep = NULL,
                                age_labels = NULL,
                                ...) {
+  nm_ssvd <- deparse1(substitute(x))
   check_has_no_dots(...)
   l <- generate_ssvd_helper(ssvd = x,
                             v = v,
+                            nm_ssvd = nm_ssvd,
                             n_element = 1L,
                             n_draw = n_draw,
                             n_comp = n_comp,
@@ -219,12 +253,13 @@ print.bage_ssvd <- function(x, ...) {
   cat("<Object of class \"", class(x), "\">\n\n", sep = "")
   data <- x$data
   version <- data$version
-  version <- unique(version)
+  versions <- unique(version)
   type <- data$type
+  types <- unique(type)
   sexgender <- data$labels_sexgender
   age <- data$labels_age
   cat("versions:\n")
-  for (v in version)
+  for (v in versions)
     cat("    ", v, "\n")
   cat("\n")
   has_sexgender <- "joint" %in% type
@@ -236,8 +271,8 @@ print.bage_ssvd <- function(x, ...) {
     cat("\n")
   }
   cat("age labels:\n")
-  is_default_total <- data$version == version[[1L]] & data$type == "total"
-  labels_age <- age[is_default_total]
+  is_first <- version == versions[[1L]] & type == types[[1L]]
+  labels_age <- age[is_first]
   for (labels in labels_age) {
     n <- length(labels)
     if (n >= 9L)

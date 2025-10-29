@@ -9,6 +9,7 @@
 \usage{
 SVD_AR(
   ssvd,
+  v = NULL,
   n_comp = NULL,
   indep = TRUE,
   n_coef = 2,
@@ -20,6 +21,7 @@ SVD_AR(
 
 SVD_AR1(
   ssvd,
+  v = NULL,
   n_comp = NULL,
   indep = TRUE,
   min = 0.8,
@@ -30,10 +32,19 @@ SVD_AR1(
   con = c("none", "by")
 )
 
-SVD_RW(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd = 1, con = c("none", "by"))
+SVD_RW(
+  ssvd,
+  v = NULL,
+  n_comp = NULL,
+  indep = TRUE,
+  s = 1,
+  sd = 1,
+  con = c("none", "by")
+)
 
 SVD_RW2(
   ssvd,
+  v = NULL,
   n_comp = NULL,
   indep = TRUE,
   s = 1,
@@ -46,6 +57,10 @@ SVD_RW2(
 \item{ssvd}{Object of class \code{"bage_ssvd"}
 holding a scaled SVD. See below for scaled SVDs
 of databases currently available in \strong{bage}.}
+
+\item{v}{Version of scaled SVD components
+to use. If no value is suppled, the most
+recent version is used.}
 
 \item{n_comp}{Number of components from scaled SVD
 to use in modelling. The default is half

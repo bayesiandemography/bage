@@ -27,8 +27,9 @@ components of \code{object}.}
 
 \item{indep}{Whether to use independent or
 joint SVDs for each sex/gender. If
-no value is supplied, an SVD with no
-sex/gender dimension is used. Note that the
+no value is supplied, and \code{object}
+includes type \code{"total"}, then an SVD with no
+sex/gender dimension is used. Note that this
 default is different from \code{\link[=SVD]{SVD()}}.}
 
 \item{age_labels}{Age labels for the

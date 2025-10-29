@@ -14,7 +14,7 @@ for Demographic Research (Germany) and Vienna
 Institute of Demography (Austria). .
 Code to create \code{HFD}
 is in folder 'data-raw/ssvd_hfd'
-in the source code for \strong{bage}
+in the source code for the \pkg{bage}
 package.
 }
 \usage{

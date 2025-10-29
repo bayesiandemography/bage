@@ -256,7 +256,7 @@
 #' table of the OECD Data Explorer.
 #' Code to create `LFS`
 #' is in folder 'data-raw/ssvd_lfp' in
-#' the source code for the **bage**
+#' the source code for the \pkg{bage}
 #' package.
 "LFP"
 
@@ -283,7 +283,7 @@
 #' Institute of Demography (Austria). .
 #' Code to create `HFD`
 #' is in folder 'data-raw/ssvd_hfd'
-#' in the source code for **bage**
+#' in the source code for the \pkg{bage}
 #' package.
 "HFD"
 
@@ -318,7 +318,11 @@
 #' @source Dyrting, S. (2024, October 23).
 #' Data from: Estimating Complete Migration Probabilities
 #' from Grouped Data. Retrieved from osf.io/vmrfk
-#' on 1 September 2025.
+#' on 1 September 2025. Code to create `HIMD_R`,
+#' `HIMD_P1` and `HIMD_P5`
+#' is in folder 'data-raw/ssvd_himd'
+#' in the source code for the \pkg{bage}
+#' package.
 "HIMD_R"
 
 #' @rdname HIMD_R
@@ -355,6 +359,33 @@
 #' Berkeley (USA), and French Institute for Demographic Studies
 #' (France). Code to create `HMD`
 #' is in folder 'data-raw/ssvd_hmd'
-#' in the source code for **bage**
+#' in the source code for the \pkg{bage}
 #' package.
 "HMD"
+
+
+#' Scaled SVD Components from
+#' World Marriage Database
+#'
+#' An object of class `"bage_ssvd"`
+#' holding scaled SVD components derived from
+#' data from the
+#' [World Marriage Data database](https://www.un.org/development/desa/pd/data/world-marriage-data).
+#' The object holds 5 components.
+#'
+#' **Versions:**
+#'
+#' - `"v2019"` (default) data published in 2019
+#'
+#' @format
+#' Object of class `"bage_ssvd"`.
+#' 
+#' @source Derived from data from the
+#' World Marriage Data 2019 database,
+#' which is assembled by the UN Population
+#' Division from national census and survey data.
+#' Code to create `WMD`
+#' is in folder 'data-raw/ssvd_wmd'
+#' in the source code for thet \pkg{bage}
+#' package.
+"WMD"

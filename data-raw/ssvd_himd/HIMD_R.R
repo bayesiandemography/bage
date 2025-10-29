@@ -13,8 +13,7 @@ data <- data_ssvd_himd(.himd,
                        measure = "rate",
                        time_interval = 1,
                        n_comp = 5) |>
-  mutate(version = "v2024") |>
-  relocate()
+  mutate(version = "v2024")
 
 HIMD_R <- ssvd(data)
 

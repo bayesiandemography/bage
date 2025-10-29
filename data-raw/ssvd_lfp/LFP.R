@@ -14,9 +14,8 @@ data <- read_csv(.lfp25)
 
 LFP <- data |>
   data_ssvd_lfp() |>
-  mutate(version = "v2025") |>
-  relocate(version) |>
-  bage:::ssvd()
+  mutate(version = "v2025")
+  ssvd()
 
 save(LFP, file = .out, compress = "bzip2")
 

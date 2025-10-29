@@ -43,7 +43,10 @@
 #'
 #' @examples
 #' library(bssvd)
-#' data <- data_ssvd_lfp(oecd_data_subset)
+#' library(dplyr)
+#' data <- oecd_lfp_subset |>
+#'   data_ssvd_lfp() |>
+#'   mutate(version = "v1")
 #' LFP_subset <- ssvd(data)
 #' LFP_subset
 #' @export
@@ -147,13 +150,17 @@ ssvd <- function(data) {
   ## elements of 'matrix' have 'n_comp' columns if type is "total" or "joint"
   ## and 2 * 'n_comp' columns if type is "indep"
   ncol_matrix <- vapply(data$matrix, ncol, 1L)
-  ncol_total_1 <- ncol_matrix[is_total][[1L]]
-  ncol_expected <- ifelse(data$type == "indep", 2L * ncol_total_1, ncol_total_1)
+  is_joint <- data$type == "joint"
+  is_indep <- data$type == "indep"
+  is_total_joint <- is_total | is_joint
+  ncol_total_joint_1 <- ncol_matrix[is_total_joint][[1L]]
+  ncol_expected <- ifelse(is_indep, 2L * ncol_total_joint_1, ncol_total_joint_1)
   is_ncol_expect <- ncol_matrix == ncol_expected
   i_ncol_unex <- match(FALSE, is_ncol_expect, nomatch = 0L)
   if (i_ncol_unex > 0L)
     cli::cli_abort(c("Elements of {.var matrix} have incompatible numbers of columns.",
-                     i = "Columns for first matrix of type {.val total}: {.val {ncol_total_1}}.",
+                     i = paste("Columns for first matrix of type {.val total}",
+                               "or {.val joint}: {.val {ncol_total_joint_1}}."),
                      i = paste("Columns for element {.val {i_ncol_unex}} of {.var matrix}:",
                                "{.val {ncol_matrix[[i_ncol_unex]]}}."),
                      i = paste("Element {.val {i_ncol_unex}} of {.var matrix} has type",

@@ -212,12 +212,16 @@ generate_prior_helper <- function(x, n_element, n_along, n_by, n_draw) {
 generate_prior_svd_helper <- function(x, n_element, n_along, n_by, n_draw) {
   uses_along_by <- missing(n_element)
   ssvd <- x$specific$ssvd
+  v <- x$specific$v
+  nm_ssvd <- x$specific$nm_ssvd
   n_comp <- x$specific$n_comp
   indep <- x$specific$indep
   if (isTRUE(indep) && !has_sexgender(ssvd))
     indep <- NULL
   if (uses_along_by)
     generate_ssvd_helper(ssvd = ssvd,
+                         v = v,
+                         nm_ssvd = nm_ssvd,
                          n_along = n_along,
                          n_by = n_by,
                          n_draw = n_draw,
@@ -226,6 +230,8 @@ generate_prior_svd_helper <- function(x, n_element, n_along, n_by, n_draw) {
                          age_labels = NULL)
   else
     generate_ssvd_helper(ssvd = ssvd,
+                         v = v,
+                         nm_ssvd = nm_ssvd,
                          n_element = n_element,
                          n_draw = n_draw,
                          n_comp = n_comp,
@@ -255,6 +261,7 @@ generate_prior_svd_helper <- function(x, n_element, n_along, n_by, n_draw) {
 #' @noRd
 generate_ssvd_helper <- function(ssvd,
                                  v,
+                                 nm_ssvd,
                                  n_element,
                                  n_along,
                                  n_by,
@@ -262,12 +269,22 @@ generate_ssvd_helper <- function(ssvd,
                                  indep,
                                  n_draw,
                                  age_labels) {
-  version <- ssvd$data$version
-  if (is.null(v))
-    v <- version[[1L]]
+  data <- ssvd$data
+  version <- data$version
+  versions <- unique(version)
+  if (is.null(v)) {
+    v <- versions[[1L]]
+  }
   else {
-    if (!(v %in% version))
-      cli::cli_abort("Internal error: Invalid value for {.arg v}.")
+    if (!(v %in% versions)) {
+      n_version <- length(versions)
+      if (n_version > 1L)
+        msg_valid <- "Valid values for {.var v} with {.arg {nm_ssvd}} are: {.val {versions}}."
+      else
+        msg_valid <- "Only valid value for {.var v} with {.arg {nm_ssvd}} is {.val {versions}}."
+      cli::cli_abort(c("Invalid value for version parameter {.var v}.",
+                       i = msg_valid))
+    }
   }
   uses_along_by <- missing(n_element)
   if (uses_along_by) {
@@ -317,8 +334,13 @@ generate_ssvd_helper <- function(ssvd,
                            "does not have a sex/gender dimension."))
     type <- if (indep) "indep" else "joint"
   }
-  else
-    type <- "total"
+  else {
+    has_total <- "total" %in% data$type
+    if (has_total)
+      type <- "total"
+    else
+      type <- "indep"
+  }
   has_age <- !is.null(age_labels)
   if (has_age) {
     age_labels <- tryCatch(poputils::reformat_age(age_labels, factor = FALSE),
@@ -327,26 +349,28 @@ generate_ssvd_helper <- function(ssvd,
       cli::cli_abort(c("Problem with {.arg age_labels}.",
                        i = age_labels$message))
   }
-  data <- ssvd$data
-  data <- data[data$type == type, , drop = FALSE]
+  is_type <- data$type == type
+  is_version <- data$version == v
+  data_type_version <- data[is_type & is_version, , drop = FALSE]
   if (has_age) {
-    is_matched <- vapply(data$labels_age, setequal, TRUE, y = age_labels)
+    is_matched <- vapply(data_type_version$labels_age, setequal, TRUE, y = age_labels)
     if (!any(is_matched))
       cli::cli_abort("Can't find labels from {.arg age_labels} in {.arg x}.")
     i_matched <- which(is_matched)
   }
   else {
-    lengths_labels <- lengths(data$labels_age)
+    lengths_labels <- lengths(data_type_version$labels_age)
     i_matched <- which.max(lengths_labels)
   }
-  levels_age <- data$labels_age[[i_matched]]
-  levels_sexgender <- data$labels_sexgender[[i_matched]]
+  levels_age <- data_type_version$labels_age[[i_matched]]
+  levels_sexgender <- data_type_version$labels_sexgender[[i_matched]]
   levels_age <- unique(levels_age)
   levels_sexgender <- unique(levels_sexgender)
   n_sexgender <- length(levels_sexgender)
   agesex <- if (has_indep) "age:sex" else "age"
   matrix <- get_matrix_or_offset_svd(ssvd = ssvd,
                                      v = v,
+                                     nm_ssvd = nm_ssvd,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
                                      joint = !indep,
@@ -355,6 +379,7 @@ generate_ssvd_helper <- function(ssvd,
                                      n_comp = n_comp)
   offset <- get_matrix_or_offset_svd(ssvd = ssvd,
                                      v = v,
+                                     nm_ssvd = nm_ssvd,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
                                      joint = !indep,

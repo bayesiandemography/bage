@@ -1442,3 +1442,28 @@ check_widths <- function(widths) {
 }
 
 
+#' Check 'v' Argument for Scaled SVDs
+#'
+#' @param v Version. A string.
+#' @param ssvd Object of class 'bage_ssvd'
+#' @param nm_ssvd Name of 'bage_ssvd' object
+#'
+#' @returns TRUE invisibly
+#'
+#' @noRd
+check_v_ssvd <- function(v, ssvd, nm_ssvd) {
+  if (!is.null(v)) {
+    data <- ssvd$data
+    version <- unique(data$version)
+    if (!(v %in% version)) {
+      n_version <- length(version)
+      if (n_version > 1L)
+        msg_valid <- "Valid values for {.var v} with {.arg {nm_ssvd}} are: {.val {version}}."
+      else
+        msg_valid <- "Only valid value for {.var v} with {.arg {nm_ssvd}} is {.val {version}}."
+      cli::cli_abort(c("Invalid value for version parameter {.var v}.",
+                       i = msg_valid))
+    }
+  }
+  invisible(TRUE)
+}

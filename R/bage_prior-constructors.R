@@ -1625,6 +1625,9 @@ Sp <- function(n_comp = NULL,
 #' @param ssvd Object of class `"bage_ssvd"`
 #' holding a scaled SVD. See below for scaled SVDs
 #' of databases currently available in **bage**.
+#' @param v Version of scaled SVD components
+#' to use. If no value is suppled, the most
+#' recent version is used.
 #' @param n_comp Number of components from scaled SVD
 #' to use in modelling. The default is half
 #' the number of components of `ssvd`.
@@ -1657,14 +1660,17 @@ Sp <- function(n_comp = NULL,
 #' SVD(HMD, n_comp = 3)
 #' @export
 SVD <- function(ssvd,
+                v = NULL,
                 n_comp = NULL,
                 indep = TRUE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
   n_comp <- n_comp_svd(n_comp = n_comp, nm_n_comp = "n_comp", ssvd = ssvd)
   check_flag(x = indep, nm_x = "indep")
   new_bage_prior_svd(ssvd = ssvd,
                      nm_ssvd = nm_ssvd,
+                     v = v,
                      n_comp = n_comp,
                      indep = indep)
 }
@@ -1801,6 +1807,7 @@ SVD <- function(ssvd,
 #' SVD_RW2(HMD, indep = FALSE)
 #' @export
 SVD_AR <- function(ssvd,
+                   v = NULL,
                    n_comp = NULL,
                    indep = TRUE,
                    n_coef = 2,
@@ -1810,6 +1817,7 @@ SVD_AR <- function(ssvd,
                    con = c("none", "by")) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
@@ -1828,6 +1836,7 @@ SVD_AR <- function(ssvd,
   shape2 <- as.double(shape2)
   con <- match.arg(con)
   new_bage_prior_svd_ar(ssvd = ssvd,
+                        v = v,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
                         indep = indep,
@@ -1845,6 +1854,7 @@ SVD_AR <- function(ssvd,
 #' @rdname SVD_AR
 #' @export
 SVD_AR1 <- function(ssvd,
+                    v = NULL,
                     n_comp = NULL,
                     indep = TRUE,
                     min = 0.8,
@@ -1855,6 +1865,7 @@ SVD_AR1 <- function(ssvd,
                     con = c("none", "by")) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
@@ -1870,6 +1881,7 @@ SVD_AR1 <- function(ssvd,
   shape1 <- as.double(shape1)
   shape2 <- as.double(shape2)
   new_bage_prior_svd_ar(ssvd = ssvd,
+                        v = v,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
                         indep = indep,
@@ -1886,6 +1898,7 @@ SVD_AR1 <- function(ssvd,
 #' @rdname SVD_AR
 #' @export
 SVD_RW <- function(ssvd,
+                   v = NULL,
                    n_comp = NULL,
                    indep = TRUE,
                    s = 1,
@@ -1893,6 +1906,7 @@ SVD_RW <- function(ssvd,
                    con = c("none", "by")) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
@@ -1904,6 +1918,7 @@ SVD_RW <- function(ssvd,
   sd <- as.double(sd)
   if (sd > 0)
     new_bage_prior_svd_rwrandom(ssvd = ssvd,
+                                v = v,
                                 nm_ssvd = nm_ssvd,
                                 n_comp = n_comp,
                                 indep = indep,
@@ -1912,6 +1927,7 @@ SVD_RW <- function(ssvd,
                                 con = con)
   else
     new_bage_prior_svd_rwzero(ssvd = ssvd,
+                              v = v,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
                               indep = indep,
@@ -1923,6 +1939,7 @@ SVD_RW <- function(ssvd,
 #' @rdname SVD_AR
 #' @export
 SVD_RW2 <- function(ssvd,
+                    v = NULL,
                     n_comp = NULL,
                     indep = TRUE,
                     s = 1,
@@ -1931,6 +1948,7 @@ SVD_RW2 <- function(ssvd,
                     con = c("none", "by")) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
@@ -1944,6 +1962,7 @@ SVD_RW2 <- function(ssvd,
   sd_slope <- as.double(sd_slope)
   if (sd > 0)
     new_bage_prior_svd_rw2random(ssvd = ssvd,
+                                 v = v,
                                  nm_ssvd = nm_ssvd,
                                  n_comp = n_comp,
                                  indep = indep,
@@ -1953,6 +1972,7 @@ SVD_RW2 <- function(ssvd,
                                  con = con)
   else
     new_bage_prior_svd_rw2zero(ssvd = ssvd,
+                               v = v,
                                nm_ssvd = nm_ssvd,
                                n_comp = n_comp,
                                indep = indep,
@@ -2399,12 +2419,14 @@ new_bage_prior_spline <- function(n_comp,
 
 ## HAS_TESTS
 new_bage_prior_svd <- function(ssvd,
+                               v,
                                nm_ssvd,
                                n_comp,
                                indep) {
     ans <- list(i_prior = 9L,
                 const = 0, ## not used
                 specific = list(ssvd = ssvd,
+                                v = v,
                                 nm_ssvd = nm_ssvd,
                                 n_comp = n_comp,
                                 indep = indep))
@@ -2414,6 +2436,7 @@ new_bage_prior_svd <- function(ssvd,
 
 ## HAS_TESTS
 new_bage_prior_svd_ar <- function(ssvd,
+                                  v,
                                   nm_ssvd,
                                   n_comp,
                                   indep,
@@ -2432,6 +2455,7 @@ new_bage_prior_svd_ar <- function(ssvd,
                         max = max,
                         scale = scale),
               specific = list(ssvd = ssvd,
+                              v = v,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
                               indep = indep,
@@ -2450,6 +2474,7 @@ new_bage_prior_svd_ar <- function(ssvd,
 
 ## HAS_TESTS
 new_bage_prior_svd_rwrandom <- function(ssvd,
+                                        v,
                                         nm_ssvd,
                                         n_comp,
                                         indep,
@@ -2460,6 +2485,7 @@ new_bage_prior_svd_rwrandom <- function(ssvd,
               const = c(scale = scale,
                         sd = sd),
               specific = list(ssvd = ssvd,
+                              v = v,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
                               indep = indep,
@@ -2473,6 +2499,7 @@ new_bage_prior_svd_rwrandom <- function(ssvd,
 
 ## HAS_TESTS
 new_bage_prior_svd_rwzero <- function(ssvd,
+                                      v,
                                       nm_ssvd,
                                       n_comp,
                                       indep,
@@ -2481,6 +2508,7 @@ new_bage_prior_svd_rwzero <- function(ssvd,
   ans <- list(i_prior = 15L,
               const = c(scale = scale),
               specific = list(ssvd = ssvd,
+                              v = v,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
                               indep = indep,
@@ -2494,6 +2522,7 @@ new_bage_prior_svd_rwzero <- function(ssvd,
 
 ## HAS_TESTS
 new_bage_prior_svd_rw2random <- function(ssvd,
+                                         v,
                                          nm_ssvd,
                                          n_comp,
                                          indep,
@@ -2506,6 +2535,7 @@ new_bage_prior_svd_rw2random <- function(ssvd,
                         sd = sd,
                         sd_slope = sd_slope),
               specific = list(ssvd = ssvd,
+                              v = v,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
                               indep = indep,
@@ -2520,6 +2550,7 @@ new_bage_prior_svd_rw2random <- function(ssvd,
 
 ## HAS_TESTS
 new_bage_prior_svd_rw2zero <- function(ssvd,
+                                       v,
                                        nm_ssvd,
                                        n_comp,
                                        indep,
@@ -2530,6 +2561,7 @@ new_bage_prior_svd_rw2zero <- function(ssvd,
               const = c(scale = scale,
                         sd_slope = sd_slope),
               specific = list(ssvd = ssvd,
+                              v = v,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
                               indep = indep,

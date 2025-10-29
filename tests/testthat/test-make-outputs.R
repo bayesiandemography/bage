@@ -190,7 +190,8 @@ test_that("'generate_prior_svd_helper' works with valid inputs - n_by = 1", {
 test_that("'generate_ssvd_helper' works with valid inputs - indep = NULL, n_element = 1", {
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
-                              v = "v1",
+                              v = "v2025",
+                              nm_ssvd = "LFP",
                               n_element = 1,
                               n_draw = 3,
                               n_comp = 2,
@@ -204,6 +205,7 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by =
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
                               v = NULL,
+                              nm_ssvd = "LFP",
                               n_along = 3,
                               n_by = 1,
                               n_draw = 3,
@@ -218,6 +220,7 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = FALSE, n_by 
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
                               v = NULL,
+                              nm_ssvd = "LFP",
                               n_along = 2,
                               n_by = 1,
                               n_draw = 3,
@@ -232,6 +235,7 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by =
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
                               v = NULL,
+                              nm_ssvd = "LFP",
                               n_along = 3,
                               n_by = 2,
                               n_draw = 3,
@@ -244,8 +248,8 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by =
 })
 
 test_that("'generate_ssvd_helper' gives appropriate error when v invalid", {
-  set.seed(0)
   expect_error(generate_ssvd_helper(ssvd = HMD,
+                                    nm_ssvd = "HMD",
                                     v = "wrong",
                                     n_along = 3,
                                     n_by = 2,
@@ -253,9 +257,18 @@ test_that("'generate_ssvd_helper' gives appropriate error when v invalid", {
                                     n_comp = 2,
                                     indep = TRUE,
                                     age_labels = NULL),
-               "Internal error: Invalid value for `v`.")
+               "Invalid value for version parameter `v`.")
+  expect_error(generate_ssvd_helper(ssvd = sim_ssvd(),
+                                    nm_ssvd = "SSVD",
+                                    v = "wrong",
+                                    n_along = 3,
+                                    n_by = 2,
+                                    n_draw = 3,
+                                    n_comp = 2,
+                                    indep = TRUE,
+                                    age_labels = NULL),
+               "Invalid value for version parameter `v`.")
 })
-
 
 
 ## 'get_term_from_est' --------------------------------------------------------

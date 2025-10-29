@@ -18,7 +18,11 @@ An object of class \code{bage_ssvd} of length 1.
 Dyrting, S. (2024, October 23).
 Data from: Estimating Complete Migration Probabilities
 from Grouped Data. Retrieved from osf.io/vmrfk
-on 1 September 2025.
+on 1 September 2025. Code to create \code{HIMD_R},
+\code{HIMD_P1} and \code{HIMD_P5}
+is in folder 'data-raw/ssvd_himd'
+in the source code for the \pkg{bage}
+package.
 }
 \usage{
 HIMD_R

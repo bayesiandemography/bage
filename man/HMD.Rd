@@ -15,7 +15,7 @@ Demographic Research (Germany), University of California,
 Berkeley (USA), and French Institute for Demographic Studies
 (France). Code to create \code{HMD}
 is in folder 'data-raw/ssvd_hmd'
-in the source code for \strong{bage}
+in the source code for the \pkg{bage}
 package.
 }
 \usage{

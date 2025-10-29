@@ -15,12 +15,10 @@ asfr24 <- read_table(.asfr24, skip = 2)
 asfr25 <- read_table(.asfr25, skip = 2)
 
 data_24 <- data_ssvd_hfd(asfr24, n_comp = 5) |>
-  mutate(version = "v2024") |>
-  relocate()
+  mutate(version = "v2024")
 
 data_25 <- data_ssvd_hfd(asfr25, n_comp = 5) |>
-  mutate(version = "v2025") |>
-  relocate()
+  mutate(version = "v2025")
 
 data <- bind_rows(data_24, data_25)
 

@@ -47,7 +47,10 @@ in package \href{https://bayesiandemography.github.io/bssvd/}{bssvd}.
 }
 \examples{
 library(bssvd)
-data <- data_ssvd_lfp(oecd_data_subset)
+library(dplyr)
+data <- oecd_lfp_subset |>
+  data_ssvd_lfp() |>
+  mutate(version = "v1")
 LFP_subset <- ssvd(data)
 LFP_subset
 }
