@@ -212,7 +212,7 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by =
                               n_comp = 2,
                               indep = TRUE,
                               age_labels = NULL)
-  expect_identical(nrow(ans$matrix), 3L * nrow(unique(ans$ans[c("age", "sexgender")])))
+  expect_identical(nrow(ans$matrix), 3L * nrow(unique(ans$ans[c("age", "sex")])))
   expect_identical(ncol(ans$matrix), 12L)
 })
 
@@ -227,7 +227,7 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = FALSE, n_by 
                               n_comp = 2,
                               indep = FALSE,
                               age_labels = NULL)
-  expect_identical(nrow(ans$matrix), 2L * nrow(unique(ans$ans[c("age", "sexgender")])))
+  expect_identical(nrow(ans$matrix), 2L * nrow(unique(ans$ans[c("age", "sex")])))
   expect_identical(ncol(ans$matrix), 4L)
 })
 
@@ -242,7 +242,7 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by =
                               n_comp = 2,
                               indep = TRUE,
                               age_labels = NULL)
-  expect_identical(nrow(ans$matrix), 3L * nrow(unique(ans$ans[c("by", "age", "sexgender")])))
+  expect_identical(nrow(ans$matrix), 3L * nrow(unique(ans$ans[c("by", "age", "sex")])))
   expect_identical(ncol(ans$matrix), 24L)
   expect_identical(nrow(ans$matrix_along_by), 3L)
 })

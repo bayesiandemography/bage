@@ -9,7 +9,7 @@ SVD(ssvd, v = NULL, n_comp = NULL, indep = TRUE)
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
 holding a scaled SVD. See below for scaled SVDs
-of databases currently available in \strong{bage}.}
+of databases currently available in \pkg{bage}.}
 
 \item{v}{Version of scaled SVD components
 to use. If no value is suppled, the most
@@ -50,13 +50,13 @@ variables other than age and sex/gender,
 separate profiles are constructed
 within each combination of other variables.
 
-\strong{bage} chooses the appropriate age-specific
+\pkg{bage} chooses the appropriate age-specific
 or age-sex-specific SVD values internally.
 The choice depends on the model term that the
 \code{SVD()} prior is applied to, and on the
 age labels used in \code{data} argument to
 \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}} or \code{\link[=mod_norm]{mod_norm()}}.
-\strong{bage} makes its choice when \code{\link[=set_prior]{set_prior()}}
+\pkg{bage} makes its choice when \code{\link[=set_prior]{set_prior()}}
 is called.
 }
 \section{Joint or independent SVDs}{
@@ -210,7 +210,7 @@ SVD(HMD, n_comp = 3)
 \itemize{
 \item For details of the construction of
 scaled SVDS see the
-\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
+\href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette
 }
 }
@@ -221,7 +221,9 @@ for time-varying age profiles;
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via second-order random walk
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
+implemented in \pkg{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
 \item \code{\link[=set_var_sexgender]{set_var_sexgender()}} Identify sex or gender variable in data

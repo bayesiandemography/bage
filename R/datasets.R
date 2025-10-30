@@ -237,30 +237,6 @@
 
 ## SVD ------------------------------------------------------------------------
 
-#' Scaled SVD Components from OECD
-#' Labor Force Participation Data
-#'
-#' An object of class `"bage_ssvd"`
-#' holding components extracted from labor force participation
-#' data from the
-#' [OECD Data Explorer](https://data-explorer.oecd.org).
-#'
-#' **Versions:**
-#'
-#' - `"v2025"` data downloaded on 2025-10-17
-#' 
-#' @format
-#' Object of class `"bage_ssvd"`.
-#'
-#' @source Derived from data in the "Labor Force Indicators"
-#' table of the OECD Data Explorer.
-#' Code to create `LFS`
-#' is in folder 'data-raw/ssvd_lfp' in
-#' the source code for the \pkg{bage}
-#' package.
-"LFP"
-
-
 #' Scaled SVD Components from Human Fertility Database
 #'
 #' An object of class `"bage_ssvd"`
@@ -277,6 +253,10 @@
 #' @format
 #' Object of class `"bage_ssvd"`.
 #'
+#' @seealso
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
+#'
 #' @source Derived from data from the
 #' Human Fertility Database.Max Planck Institute
 #' for Demographic Research (Germany) and Vienna
@@ -286,6 +266,7 @@
 #' in the source code for the \pkg{bage}
 #' package.
 "HFD"
+
 
 #' Scaled SVD Components from Human
 #' Internal Migration Database
@@ -314,6 +295,10 @@
 #' 
 #' @format
 #' An object of class bage_ssvd of length 1.
+#'
+#' @seealso
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
 #'
 #' @source Dyrting, S. (2024, October 23).
 #' Data from: Estimating Complete Migration Probabilities
@@ -353,6 +338,10 @@
 #' @format
 #' Object of class `"bage_ssvd"`.
 #' 
+#' @seealso
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
+#'
 #' @source Derived from data from the
 #' Human Mortality Database. Max Planck Institute for
 #' Demographic Research (Germany), University of California,
@@ -364,14 +353,56 @@
 "HMD"
 
 
+#' Scaled SVD Components from OECD
+#' Labor Force Participation Data
+#'
+#' An object of class `"bage_ssvd"`
+#' holding components extracted from labor force participation
+#' data from the
+#' [OECD Data Explorer](https://data-explorer.oecd.org).
+#'
+#' **Versions:**
+#'
+#' - `"v2025"` data downloaded on 2025-10-17
+#' 
+#' @format
+#' Object of class `"bage_ssvd"`.
+#'
+#' @seealso
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
+#'
+#' @source Derived from data in the "Labor Force Indicators"
+#' table of the OECD Data Explorer.
+#' Code to create `LFS`
+#' is in folder 'data-raw/ssvd_lfp' in
+#' the source code for the \pkg{bage}
+#' package.
+"LFP"
+
+
 #' Scaled SVD Components from
 #' World Marriage Database
 #'
-#' An object of class `"bage_ssvd"`
+#' Object of class `"bage_ssvd"`
 #' holding scaled SVD components derived from
 #' data from the
 #' [World Marriage Data database](https://www.un.org/development/desa/pd/data/world-marriage-data).
-#' The object holds 5 components.
+#' Each object holds 5 components.
+#'
+#' - `WMD_C` is based on data on the proportion
+#'   of the population that is currently married.
+#'   It should be used for modelling the proportion
+#'   of people whose marital status is
+#'   "Currently Married"
+#' - `WMD_E` is based on data on the proportion
+#'   of the population that has ever been married.
+#'   It should be used for modelling the proportion
+#'   of people whose marital status is
+#'   "Ever Married".
+#'
+#' In both cases "marriage" includes de facto
+#' marriages and consensual unions.
 #'
 #' **Versions:**
 #'
@@ -379,7 +410,11 @@
 #'
 #' @format
 #' Object of class `"bage_ssvd"`.
-#' 
+#'
+#' @seealso
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
+#'
 #' @source Derived from data from the
 #' World Marriage Data 2019 database,
 #' which is assembled by the UN Population
@@ -388,4 +423,7 @@
 #' is in folder 'data-raw/ssvd_wmd'
 #' in the source code for thet \pkg{bage}
 #' package.
-"WMD"
+"WMD_C"
+
+#' @rdname WMD_C
+"WMD_E"

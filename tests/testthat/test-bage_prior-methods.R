@@ -6597,7 +6597,7 @@ test_that("'generate' works with bage_prior_svd_rwrandom - has sex, n_by = 2, in
   n_by <- 2
   n_draw <- 5
   ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
-  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sexgender", "age", "value"))
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
 })
 
 test_that("'generate' works with bage_prior_svd_rwrandom - has sex, n_by = 2, indep = FALSE", {
@@ -6607,7 +6607,7 @@ test_that("'generate' works with bage_prior_svd_rwrandom - has sex, n_by = 2, in
   n_by <- 2
   n_draw <- 5
   ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
-  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sexgender", "age", "value"))
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
 })
 
 test_that("'generate' works with bage_prior_svd_rwrandom - has sex, n_by = 2, indep = FALSE, con = 'by'", {
@@ -6617,7 +6617,7 @@ test_that("'generate' works with bage_prior_svd_rwrandom - has sex, n_by = 2, in
   n_by <- 2
   n_draw <- 5
   ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
-  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sexgender", "age", "value"))
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
 })
 
 test_that("'generate' works with bage_prior_svd_rwzero - no sex, n_by = 2", {
@@ -6667,7 +6667,7 @@ test_that("'generate' works with bage_prior_svd_rw2zero - no sex, n_by = 2", {
   n_by <- 2
   n_draw <- 5
   ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
-  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sexgender", "age", "value"))
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
 })
 
 test_that("'generate' works with bage_prior_svd_rw2zero - no sex, n_by = 2, con = 'by'", {
@@ -6677,7 +6677,7 @@ test_that("'generate' works with bage_prior_svd_rw2zero - no sex, n_by = 2, con 
   n_by <- 2
   n_draw <- 5
   ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
-  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sexgender", "age", "value"))
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
 })
 
 

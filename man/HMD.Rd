@@ -39,4 +39,10 @@ The object holds 5 components.
 2024-02-26, all countries and years
 }
 }
+\seealso{
+\itemize{
+\item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
+implemented in \pkg{bage}
+}
+}
 \keyword{datasets}

@@ -58,4 +58,10 @@ formula \eqn{r = \log(1 - p)}.
 \item \code{"v2024"} Data from 23 October 2024 (the default)
 }
 }
+\seealso{
+\itemize{
+\item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
+implemented in \pkg{bage}
+}
+}
 \keyword{datasets}

@@ -21,11 +21,13 @@ on age but not on sex or gender.
 \details{
 \tabular{lllll}{
    \strong{Scaled SVD} \tab \strong{Process} \tab \strong{Source data} \tab \strong{Versions} \tab \strong{Sex} \cr
-   \link{HMD} \tab Mortality \tab Human Mortality Database \tab \code{"v2025"}, \code{"v2025_50"}, \code{"v2024"} \tab Yes \cr
    \link{HFD} \tab Fertility \tab Human Fertility Database \tab \code{"v2025"}, \code{"v2024"} \tab No \cr
    \link{HIMD_R} \tab Internal migration: annual rates \tab Human Internal Migration Database \tab \code{"v2024"} \tab No \cr
    \link{HIMD_P1} \tab Internal migration: 1-year probabilities \tab Human Internal Migration Database \tab \code{"v2024"} \tab No \cr
    \link{HIMD_P5} \tab Internal migration: 5-year probabilities \tab Human Internal Migration Database \tab \code{"v2024"} \tab No \cr
+   \link{HMD} \tab Mortality \tab Human Mortality Database \tab \code{"v2025"}, \code{"v2025_50"}, \code{"v2024"} \tab Yes \cr
    \link{LFP} \tab Labour Force Participation \tab OECD \tab \code{"v2025"} \tab Yes \cr
+   \link{WMD_C} \tab Currently married \tab World Migration Data \tab \code{"v2019"} \tab Yes \cr
+   \link{WMD_E} \tab Ever married \tab World Migration Data \tab \code{"v2019"} \tab Yes \cr
 }
 }

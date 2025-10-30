@@ -412,7 +412,7 @@ generate_ssvd_helper <- function(ssvd,
     else
       levels <- list(by = seq_len(n_by),
                      along = seq_len(n_along),
-                     sexgender = levels_sexgender,
+                     sex = levels_sexgender,
                      age = levels_age)
   }
   else {
@@ -421,7 +421,7 @@ generate_ssvd_helper <- function(ssvd,
                      age = levels_age)
     else 
       levels <- list(element = seq_len(n_element),
-                     sexgender = levels_sexgender,
+                     sex = levels_sexgender,
                      age = levels_age)
   }
   levels_draw <- list(draw = seq_len(n_draw))
@@ -434,7 +434,7 @@ generate_ssvd_helper <- function(ssvd,
     ans$by <- factor(ans$by, levels = unique(ans$by))
   }
   if (!is_total)
-    ans$sexgender <- poputils::reformat_sex(ans$sexgender)
+    ans$sex <- poputils::reformat_sex(ans$sex)
   ans$age <- poputils::reformat_age(ans$age)
   ans <- tibble::tibble(ans)
   list(ans = ans,

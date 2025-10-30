@@ -56,7 +56,7 @@ SVD_RW2(
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
 holding a scaled SVD. See below for scaled SVDs
-of databases currently available in \strong{bage}.}
+of databases currently available in \pkg{bage}.}
 
 \item{v}{Version of scaled SVD components
 to use. If no value is suppled, the most
@@ -231,7 +231,7 @@ SVD_RW2(HMD, indep = FALSE)
 \itemize{
 \item For details of the construction of
 scaled SVDS see the
-\item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
+\href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette
 }
 }
@@ -241,7 +241,9 @@ vignette
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via second-order random walk
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
+implemented in \pkg{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
 \item \code{\link[=set_var_sexgender]{set_var_sexgender()}} Identify sex or gender variable in data

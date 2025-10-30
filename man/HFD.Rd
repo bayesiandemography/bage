@@ -34,4 +34,10 @@ The object holds 5 components.
 23 October 2024
 }
 }
+\seealso{
+\itemize{
+\item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
+implemented in \pkg{bage}
+}
+}
 \keyword{datasets}

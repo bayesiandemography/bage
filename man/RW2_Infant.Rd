@@ -109,7 +109,7 @@ RW2_Infant(s = 0.1)
 \item \code{\link[=RW2]{RW2()}} Second-order random walk, without infant indicator
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
 \item \code{\link[=SVD]{SVD()}} Smoothing over age via singular value decomposition
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
 \item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}

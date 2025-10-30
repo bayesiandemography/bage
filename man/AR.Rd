@@ -130,7 +130,7 @@ AR(along = "cohort")
 \item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}. Can be more
 numerically stable than higher-order models.
 \item \code{\link[=Lin_AR]{Lin_AR()}}, \code{\link[=Lin_AR1]{Lin_AR1()}} Straight line with AR errors
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
 \item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}

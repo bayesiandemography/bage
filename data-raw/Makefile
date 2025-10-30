@@ -14,7 +14,8 @@ all: ../data/isl_deaths.rda \
      ../data/HFD.rda \
      ../data/HMD.rda \
      ../data/LFP.rda \
-     ../data/WMD.rda \
+     ../data/WMD_C.rda \
+     ../data/WMD_E.rda \
 	documentation
 
 
@@ -104,7 +105,11 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
   ssvd_lfp/lfp_data_2025-10-17.zip
 	Rscript $^ $@
 
-../data/WMD.rda: ssvd_wmd/WMD.R \
+../data/WMD_C.rda: ssvd_wmd/WMD_C.R \
+  ssvd_wmd/undesa_pd_2019_wmd_marital_status.xlsx
+	Rscript $^ $@
+
+../data/WMD_E.rda: ssvd_wmd/WMD_E.R \
   ssvd_wmd/undesa_pd_2019_wmd_marital_status.xlsx
 	Rscript $^ $@
 

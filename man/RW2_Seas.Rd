@@ -152,7 +152,7 @@ RW2_Seas(n_seas = 4, sd = 0)       ## first term in random walk fixed at 0
 \itemize{
 \item \code{\link[=RW2]{RW2()}} Second-order random walk without seasonal effect
 \item \code{\link[=RW_Seas]{RW_Seas()}} Random walk with seasonal effect
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
 \item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}

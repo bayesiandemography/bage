@@ -20,14 +20,14 @@
 #'
 #' | **Scaled SVD** | **Process**                              | **Source data**                   | **Versions**                    | **Sex** |
 #' |----------------|------------------------------------------|-----------------------------------|---------------------------------|---------|
-#' | [HMD]          | Mortality                                | Human Mortality Database          | `"v2025"`, `"v2025_50"`, `"v2024"`| Yes     |
 #' | [HFD]          | Fertility                                | Human Fertility Database          | `"v2025"`, `"v2024"`             | No      |
 #' | [HIMD_R]       | Internal migration: annual rates         | Human Internal Migration Database | `"v2024"`                       | No      |
 #' | [HIMD_P1]      | Internal migration: 1-year probabilities | Human Internal Migration Database | `"v2024"`                       | No      |
 #' | [HIMD_P5]      | Internal migration: 5-year probabilities | Human Internal Migration Database | `"v2024"`                       | No      |
+#' | [HMD]          | Mortality                                | Human Mortality Database          | `"v2025"`, `"v2025_50"`, `"v2024"`| Yes     |
 #' | [LFP]          | Labour Force Participation               | OECD                              | `"v2025"`                       | Yes     |
-#' 
-#' 
+#' | [WMD_C]        | Currently married                        | World Migration Data              | `"v2019"`                       | Yes     |
+#' | [WMD_E]        | Ever married                             | World Migration Data              | `"v2019"`                       | Yes     |
 #' 
 #' @name svds
 NULL

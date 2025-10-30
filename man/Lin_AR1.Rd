@@ -154,7 +154,7 @@ defaults for \code{forecast::ets()}.
 \item \code{\link[=Lin_AR]{Lin_AR()}} Generalization of \code{Lin_AR1()}
 \item \code{\link[=Lin]{Lin()}} Line with independent normal errors
 \item \code{\link[=AR1]{AR1()}} AR1 process with no line
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
 \item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}

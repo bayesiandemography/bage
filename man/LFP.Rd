@@ -31,4 +31,10 @@ data from the
 \item \code{"v2025"} data downloaded on 2025-10-17
 }
 }
+\seealso{
+\itemize{
+\item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
+implemented in \pkg{bage}
+}
+}
 \keyword{datasets}

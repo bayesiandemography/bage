@@ -144,7 +144,7 @@ Lin_AR(n_coef = 3, s = 0.5, sd_slope = 2)
 \item \code{\link[=Lin_AR1]{Lin_AR1()}} Special case of \code{Lin_AR()}
 \item \code{\link[=Lin]{Lin()}} Line with independent normal errors
 \item \code{\link[=AR]{AR()}} AR process with no line
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
 \item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}

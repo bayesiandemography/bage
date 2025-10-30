@@ -118,10 +118,10 @@ Statistical Science. 11 (2): 89–121.
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via second-order random walk
 \item \code{\link[=SVD]{SVD()}} Smoothing of age via singular value decomposition
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
-\item \code{\link[splines:bs]{splines::bs()}} Function used by \strong{bage} to construct
+\item \code{\link[splines:bs]{splines::bs()}} Function used by \pkg{bage} to construct
 spline basis functions
 \item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
 vignette

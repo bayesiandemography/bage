@@ -94,7 +94,7 @@
 #' - [AR1()] Special case of `AR()`. Can be more
 #'   numerically stable than higher-order models.
 #' - [Lin_AR()], [Lin_AR1()] Straight line with AR errors
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -210,7 +210,7 @@ AR <- function(n_coef = 2,
 #' @seealso
 #' - [AR()] Generalization of `AR1()`
 #' - [Lin_AR()], [Lin_AR1()] Line with AR errors
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -270,7 +270,7 @@ AR1 <- function(s = 1,
 #'
 #' @seealso
 #' - [NFix()] Prior where level unknown, but variability known.
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -360,7 +360,7 @@ Known <- function(values) {
 #' - [Lin_AR()] Linear with AR errors
 #' - [Lin_AR1()] Linear with AR1 errors
 #' - [RW2()] Second-order random walk
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -480,7 +480,7 @@ Lin <- function(s = 1,
 #' - [Lin_AR1()] Special case of `Lin_AR()`
 #' - [Lin()] Line with independent normal errors
 #' - [AR()] AR process with no line
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -609,7 +609,7 @@ Lin_AR <- function(n_coef = 2,
 #' - [Lin_AR()] Generalization of `Lin_AR1()`
 #' - [Lin()] Line with independent normal errors
 #' - [AR1()] AR1 process with no line
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -693,7 +693,7 @@ Lin_AR1 <- function(s = 1,
 #' @seealso 
 #' - [NFix()] Similar to `N()` but standard deviation
 #'   parameter is supplied rather than estimated from data
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -736,7 +736,7 @@ N <- function(s = 1) {
 #' - [N()] Similar to `NFix()`, but standard deviation
 #'   parameter is estimated from the data rather
 #'   than being fixed in advance
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -814,7 +814,7 @@ NFix <- function(sd = 1) {
 #' - [AR1()] Autoregressive with order 1
 #' - [Sp()] Smoothing via splines
 #' - [SVD()] Smoothing over age using singular value decomposition
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -938,7 +938,7 @@ RW <- function(s = 1,
 #' @seealso
 #' - [RW()] Random walk without seasonal effect
 #' - [RW2_Seas()] Second-order random walk with seasonal effect
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -1078,7 +1078,7 @@ RW_Seas <- function(n_seas,
 #' - [AR1()] Autoregressive with order 1
 #' - [Sp()] Smoothing via splines
 #' - [SVD()] Smoothing over age via singular value decomposition
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -1180,7 +1180,7 @@ RW2 <- function(s = 1,
 #' - [RW2()] Second-order random walk, without infant indicator
 #' - [Sp()] Smoothing via splines
 #' - [SVD()] Smoothing over age via singular value decomposition
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -1284,7 +1284,7 @@ RW2_Infant <- function(s = 1,
 #' @seealso
 #' - [RW2()] Second-order random walk without seasonal effect
 #' - [RW_Seas()] Random walk with seasonal effect
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
@@ -1413,10 +1413,10 @@ RW2_Seas <- function(n_seas,
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via second-order random walk
 #' - [SVD()] Smoothing of age via singular value decomposition
-#' - [priors] Overview of priors implemented in **bage**
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
-#' - [splines::bs()] Function used by **bage** to construct
+#' - [splines::bs()] Function used by \pkg{bage} to construct
 #'   spline basis functions
 #' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
@@ -1485,13 +1485,13 @@ Sp <- function(n_comp = NULL,
 #' separate profiles are constructed
 #' within each combination of other variables.
 #'
-#' **bage** chooses the appropriate age-specific
+#' \pkg{bage} chooses the appropriate age-specific
 #' or age-sex-specific SVD values internally.
 #' The choice depends on the model term that the
 #' `SVD()` prior is applied to, and on the
 #' age labels used in `data` argument to
 #' [mod_pois()], [mod_binom()] or [mod_norm()].
-#' **bage** makes its choice when [set_prior()]
+#' \pkg{bage} makes its choice when [set_prior()]
 #' is called.
 #'
 #' @section Joint or independent SVDs:
@@ -1624,7 +1624,7 @@ Sp <- function(n_comp = NULL,
 #'
 #' @param ssvd Object of class `"bage_ssvd"`
 #' holding a scaled SVD. See below for scaled SVDs
-#' of databases currently available in **bage**.
+#' of databases currently available in \pkg{bage}.
 #' @param v Version of scaled SVD components
 #' to use. If no value is suppled, the most
 #' recent version is used.
@@ -1644,7 +1644,9 @@ Sp <- function(n_comp = NULL,
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via second-order random walk
 #' - [Sp()] Smoothing via splines
-#' - [priors] Overview of priors implemented in **bage**
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [set_var_sexgender()] Identify sex or gender variable in data
@@ -1652,7 +1654,7 @@ Sp <- function(n_comp = NULL,
 #' @references
 #' - For details of the construction of
 #'   scaled SVDS see the
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples
@@ -1790,7 +1792,9 @@ SVD <- function(ssvd,
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via second-order random walk
 #' - [Sp()] Smoothing via splines
-#' - [priors] Overview of priors implemented in **bage**
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
+#' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #' - [set_var_sexgender()] Identify sex or gender variable in data
@@ -1798,7 +1802,7 @@ SVD <- function(ssvd,
 #' @references
 #' - For details of the construction of
 #'   scaled SVDS see the
-#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
 #'   vignette
 #'
 #' @examples

@@ -40,7 +40,7 @@ NFix(sd = 10)
 \item \code{\link[=N]{N()}} Similar to \code{NFix()}, but standard deviation
 parameter is estimated from the data rather
 than being fixed in advance
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
 \item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}

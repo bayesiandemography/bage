@@ -23,7 +23,7 @@ Known(c(0.1, 2, -0.11))
 \seealso{
 \itemize{
 \item \code{\link[=NFix]{NFix()}} Prior where level unknown, but variability known.
-\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
 \item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}

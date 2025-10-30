@@ -66,8 +66,11 @@ and is fast.
 \item \link[=components.bage_ssvd]{components()} Matrices and offsets from scaled SVD
 \item \link[=generate.bage_ssvd]{generate()} Random profiles
 \item \link{HFD} Scaled SVD of fertility rates from Human Fertility Database
+\item \link{HIMD_R},\link{HIMD_P1},\link{HIMD_P5} Scaled SVD of mortality rates from
+Human Internal Migration Database
 \item \link{HMD} Scaled SVD of mortality rates from Human Mortality Database
 \item \link{LFP} Scaled SVD of labor force participation rates from OECD
+\item \link{WMD_C},\link{WMD_E} Scaled SVD of World Migration Data
 }
 
 \strong{Data}
