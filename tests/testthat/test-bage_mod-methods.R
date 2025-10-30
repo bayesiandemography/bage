@@ -1335,6 +1335,19 @@ test_that("'fit' works with covariates - no shrinkage", {
   expect_s3_class(ans_obtained, "bage_mod")
 })
 
+test_that("'fit' throws error when jitter negative", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(formula = deaths ~ age * sex ,
+                  data = data,
+                  exposure = popn)
+  expect_error(fit(mod, max_jitter = -1),
+               "`max_jitter` is negative.")
+})
 
 
 ## 'forecast' -----------------------------------------------------------------

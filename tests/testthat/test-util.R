@@ -978,6 +978,20 @@ test_that("rmvn_from_sparse_CH: dense fallback triggers when LL and LDL both fai
   expect_false(any(!is.finite(draws)))
 })
 
+test_that("rmvn_from_sparse_CH throws error with invalid CH", {
+  set.seed(1)
+  # Small sparse precision: tri-diagonal SPD
+  n  <- 5L
+  D  <- Matrix::Diagonal(n, 2)
+  E  <- Matrix::bandSparse(n, n, k = c(-1, 1), diagonals = list(rep(-1, n-1), rep(-1, n-1)))
+  Q  <- Matrix::forceSymmetric(D - 0.4 * E, uplo = "L")  # strictly PD
+  CH <- Matrix::Cholesky(Q, LDL = FALSE, perm = TRUE, super = NA)
+  mu     <- seq_len(n) * 0.1
+  n_draw <- 200L
+  expect_error(rmvn_from_sparse_CH(CH = "wrong", mu = mu, n_draw = n_draw, prec = Q),
+               "Internal error")
+})
+
 
 ## 'rpois_guarded' ------------------------------------------------------------
 
@@ -1107,6 +1121,20 @@ test_that("'safe_chol_prec' - singular but symmetric matrices trigger ridge warn
       expect_s4_class(CH, "CHMsimpl")
     },
     "Cholesky factorization"
+  )
+})
+
+test_that("safe_chol_prec aborts when jitter exceeds max_jitter", {
+  # Symmetric, singular matrix -> Cholesky fails at jitter == 0
+  Q0 <- Matrix(matrix(c(1, 1,
+                        1, 1), 2, 2), sparse = FALSE)
+  Q0 <- forceSymmetric(Q0, uplo = "L")
+  # Pick max_jitter below the first increment (1e-12)
+  max_jitter <- 1e-13
+  expect_error(
+    safe_chol_prec(Q0, max_jitter = max_jitter),
+    regexp = "Cholesky factorization failed\\.",
+    class = "rlang_error"
   )
 })
 

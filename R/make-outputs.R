@@ -326,8 +326,8 @@ generate_ssvd_helper <- function(ssvd,
                        i = "Number of components: {.val {n_comp_ssvd}}."))
   }
   n_comp <- as.integer(n_comp)
-  has_indep <- !is.null(indep)
-  if (has_indep) {
+  has_indep_arg <- !is.null(indep)
+  if (has_indep_arg) {
     check_flag(x = indep, nm_x = "indep")
     if (!has_sexgender(ssvd))
       cli::cli_abort(paste("Value supplied for {.arg indep}, but {.arg x}",
@@ -367,13 +367,15 @@ generate_ssvd_helper <- function(ssvd,
   levels_age <- unique(levels_age)
   levels_sexgender <- unique(levels_sexgender)
   n_sexgender <- length(levels_sexgender)
-  agesex <- if (has_indep) "age:sex" else "age"
+  is_total <- type == "total"
+  agesex <- if (is_total) "age" else "age:sex"
+  joint <- type == "joint"
   matrix <- get_matrix_or_offset_svd(ssvd = ssvd,
                                      v = v,
                                      nm_ssvd = nm_ssvd,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
-                                     joint = !indep,
+                                     joint = joint,
                                      agesex = agesex,
                                      get_matrix = TRUE,
                                      n_comp = n_comp)
@@ -382,7 +384,7 @@ generate_ssvd_helper <- function(ssvd,
                                      nm_ssvd = nm_ssvd,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
-                                     joint = !indep,
+                                     joint = joint,
                                      agesex = agesex,
                                      get_matrix = FALSE,
                                      n_comp = n_comp)
@@ -403,23 +405,23 @@ generate_ssvd_helper <- function(ssvd,
     matrix_along_by <- make_matrix_along_by_inner(i_along = 1L, dim = dim)
   }    
   if (uses_along_by) {
-    if (has_indep)
+    if (is_total)
       levels <- list(by = seq_len(n_by),
                      along = seq_len(n_along),
-                     sexgender = levels_sexgender,
                      age = levels_age)
     else
       levels <- list(by = seq_len(n_by),
                      along = seq_len(n_along),
+                     sexgender = levels_sexgender,
                      age = levels_age)
   }
   else {
-    if (has_indep)
+    if (is_total)
       levels <- list(element = seq_len(n_element),
-                     sexgender = levels_sexgender,
                      age = levels_age)
     else 
       levels <- list(element = seq_len(n_element),
+                     sexgender = levels_sexgender,
                      age = levels_age)
   }
   levels_draw <- list(draw = seq_len(n_draw))
@@ -431,7 +433,7 @@ generate_ssvd_helper <- function(ssvd,
     ans$by <- paste("By", ans$by)
     ans$by <- factor(ans$by, levels = unique(ans$by))
   }
-  if (has_indep)
+  if (!is_total)
     ans$sexgender <- poputils::reformat_sex(ans$sexgender)
   ans$age <- poputils::reformat_age(ans$age)
   ans <- tibble::tibble(ans)

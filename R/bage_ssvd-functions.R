@@ -166,8 +166,12 @@ get_n_comp <- function(ssvd) {
   data <- ssvd$data
   type <- data$type
   matrix <- data$matrix
-  i_total <- match("total", type)
-  matrix_total <- matrix[[i_total]]
+  i <- match("total", type, nomatch = 0L)
+  if (i == 0L)
+    i <- match("joint", type, nomatch = 0L)
+  if (i == 0L)
+    cli::cli_abort("Internal error: Object does not have 'total' or 'joint'.")
+  matrix_total <- matrix[[i]]
   n_col(matrix_total)
 }
 

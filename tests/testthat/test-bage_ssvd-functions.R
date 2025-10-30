@@ -266,11 +266,26 @@ test_that("'get_matrix_or_offset_svd' returns expected error when can't align se
 
 ## 'get_n_comp' -------------------------------------------------------------------
 
-test_that("'get_n_comp' works", {
+test_that("'get_n_comp' works - total is present", {
   ssvd <- sim_ssvd()
   ans_obtained <- get_n_comp(ssvd)
   ans_expected <- 10L
   expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'get_n_comp' works - total not present but joint present", {
+  ssvd <- sim_ssvd()
+  ssvd$data$type <- "joint"
+  ans_obtained <- get_n_comp(ssvd)
+  ans_expected <- 10L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'get_n_comp' throws error - total and joint not present", {
+  ssvd <- sim_ssvd()
+  ssvd$data$type <- "indep"
+  expect_error(get_n_comp(ssvd),
+               "Internal error: Object does not have 'total' or 'joint'.")
 })
 
 

@@ -7,7 +7,7 @@
 #'
 #' Otherwise, fall back to sparse general.
 #'
-#' Oterwise, fall  back to dense symmetric.
+#' Otherwise, fall  back to dense symmetric.
 #'
 #' Assume Q is already symmetric
 #'
@@ -23,11 +23,11 @@ as_cholmod_preferred <- function(Q) {
                silent = TRUE)
   if (!inherits(Q_try, "try-error"))
     return(Q_try)
-  Q_try <- try(methods::as(Q, "generalMatrix"),
-               silent = TRUE)
-  if (!inherits(Q_try, "try-error"))
-    return(Q_try)
-  methods::as(Q, "dsyMatrix")
+  Q_try <- try(methods::as(Q, "generalMatrix"), # nocov
+               silent = TRUE)                   # nocov
+  if (!inherits(Q_try, "try-error"))            # nocov
+    return(Q_try)                               # nocov
+  methods::as(Q, "dsyMatrix")                   # nocov
 }
 
 
@@ -926,11 +926,11 @@ symmetry_grade <- function(Q,
   if (length(diff_U_L@x) > 0L) ## can be length 0 if all elements zero
     max_abs_diff <-  max(abs(diff_U_L@x))
   else
-    max_abs_diff <- 0
+    max_abs_diff <- 0 # nocov
   if (length(Q@x) > 0L) ## can be length 0 if all elements 0
     max_element_Q <- max(abs(Q@x))
   else
-    max_element_Q <- 0
+    max_element_Q <- 0 # nocov
   max_element_Q <- max(max_element_Q, 1) ## avoid division by 0
   max_rel_diff <- max_abs_diff / max_element_Q
   le_abs_near <- max_abs_diff <= thresh_abs_near

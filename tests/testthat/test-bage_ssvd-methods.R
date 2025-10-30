@@ -30,6 +30,11 @@ test_that("'components' works with ssvd - joint", {
                      as.numeric(HMD$data$matrix[[79]][,1])))
 })
 
+test_that("'components' works with no 'total' type", {
+  ans <- components(WMD)
+  expect_setequal(names(ans), c("component", "sex", "age", "value"))
+})
+
 test_that("'components' method for ssvd - gives expected error with invalid age labels", {
   age_labels <- poputils::age_labels(type = "lt", max = 65)
   age_labels[10] <- "wrong"

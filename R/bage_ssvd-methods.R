@@ -75,8 +75,8 @@ components.bage_ssvd <- function(object,
                        i = "{.arg n_comp}: {.val {n_comp}}.",
                        i = "Number of components: {.val {n_comp_obj}}."))
   }
-  has_indep <- !is.null(indep)
-  if (has_indep) {
+  has_indep_arg <- !is.null(indep)
+  if (has_indep_arg) {
     check_flag(x = indep, nm_x = "indep")
     if (!has_sexgender(object))
       cli::cli_abort(paste("Value supplied for {.arg indep}, but {.arg object}",
@@ -129,13 +129,14 @@ components.bage_ssvd <- function(object,
   labels_sexgender <- data_version_type$labels_sexgender[[i_matched]]
   levels_age <- unique(labels_age)
   levels_sexgender <- unique(labels_sexgender)
-  agesex <- if (has_indep) "age:sex" else "age"
+  agesex <- if (type == "total") "age" else "age:sex"
+  joint <- type == "joint"
   matrix <- get_matrix_or_offset_svd(ssvd = object,
                                      v = v,
                                      nm_ssvd = nm_ssvd,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
-                                     joint = !indep,
+                                     joint = joint,
                                      agesex = agesex,
                                      get_matrix = TRUE,
                                      n_comp = n_comp)
@@ -144,7 +145,7 @@ components.bage_ssvd <- function(object,
                                      nm_ssvd = nm_ssvd,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
-                                     joint = !indep,
+                                     joint = joint,
                                      agesex = agesex,
                                      get_matrix = FALSE,
                                      n_comp = n_comp)

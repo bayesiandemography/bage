@@ -1026,6 +1026,46 @@ test_that("'make_draws_post' works with valid inputs - has R_prec", {
   expect_equal(solve(cov(t(ans[c(1, 4:14),]))), as.matrix(prec), tolerance = 0.02)
 })
 
+test_that("'make_draws_post' works with dense matrix", {
+  library(Matrix)
+  set.seed(0)
+  est <- list(effectfree = c("(Intercept)" = -3,
+                             sex = c(-1, 1),
+                             age = rnorm(10)),
+              log_disp = 0.2)
+  map <- list(effectfree = factor(c(1, NA, NA, 2:11)),
+              disp = factor(1))
+  # Dense SPD precision
+  S <- matrix(rnorm(144), 12, 12)
+  Q_dense <- crossprod(S) + diag(12) * 1e-6
+  # Return dense Cholesky (not CHMfactor)
+  dense_safe_chol <- function(Q, max_jitter) {
+    Qd <- Matrix(Q, sparse = FALSE)
+    Matrix::Cholesky(Qd, LDL = FALSE, perm = FALSE, super = NA)
+  }
+  # Fail if sparse branch called
+  rmvn_from_sparse_CH <- function(...) stop("Sparse branch executed")
+  # Fake rmvnorm_chol to confirm call
+  rmvnorm_chol_called <- FALSE
+  fake_rmvnorm_chol <- function(n, mean, R_prec) {
+    rmvnorm_chol_called <<- TRUE
+    matrix(rep(mean, times = n), nrow = length(mean), ncol = n)
+  }
+  # Local mocks for this test
+  testthat::local_mocked_bindings(
+    safe_chol_prec = dense_safe_chol,
+    rmvn_from_sparse_CH = rmvn_from_sparse_CH,
+    rmvnorm_chol = fake_rmvnorm_chol
+  )
+  ans <- make_draws_post(est = est,
+                         prec = Q_dense,
+                         map = map,
+                         n_draw = 100,
+                         max_jitter = 0)
+  expect_true(rmvnorm_chol_called)
+  expect_equal(rowMeans(ans), unlist(est, use.names = FALSE))
+})
+
 test_that("make_draws_post uses sparse path when precision is sparse", {
   library(Matrix)
   set.seed(1)
