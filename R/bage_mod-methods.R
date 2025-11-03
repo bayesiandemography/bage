@@ -916,11 +916,25 @@ generics::fit
 #' can alleviate numerical problems, though potentially
 #' at the cost of reduced accuracy. If the Cholesky factorization
 #' initially fails, `bage` will try again with progressively
-#' largeer quantities added to the diagonal, up to the
+#' larger quantities added to the diagonal, up to the
 #' maximum set by `max_jitter`. Increasing the value of
 #' `max_jitter` can help suppress numerical problems
 #' further. A safer strategy, however, is to simplify
 #' the model, or to use more informative priors.
+#'
+#' @section Aggregation:
+#'
+#' Up to version 0.9.8 of `bage`, `fit()` aggregated
+#' across cells with identical values of the
+#' right-hand-side variables
+#' in `formula` before fitting the model. For instance,
+#' if a dataset contained deaths and population
+#' disaggregated by age and sex, but the model formula
+#' was `deaths ~ age`, then `fit()` would aggregate
+#' deaths and population within each age category
+#' before fitting the model. From
+#' version 0.9.9, `fit()` no longer does
+#' any aggregation before fitting.
 #'
 #' @param object A `bage_mod` object,
 #' created with [mod_pois()],
@@ -1009,11 +1023,15 @@ fit.bage_mod <- function(object,
   check_flag(x = start_oldpar, nm_x = "start_oldpar")
   check_has_no_dots(...)
   if (method == "standard") {
+    formula <- object$formula
+    data <- object$data
+    warn_not_aggregating(formula = formula,
+                         data = data)
     fit_default(object,
                 optimizer = optimizer,
                 quiet = quiet,
                 start_oldpar = start_oldpar,
-                aggregate = TRUE)
+                aggregate = FALSE)
   }
   else if (method == "inner-outer")
     fit_inner_outer(mod = object,

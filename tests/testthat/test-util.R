@@ -1322,3 +1322,34 @@ test_that("'symmetry_grade' function handles non-Matrix inputs by coercing", {
   B2[1, 2] <- B2[1, 2] + 1e-12
   expect_identical(symmetry_grade(B2), "near")
 })
+
+
+## 'warn_not_aggregating' -----------------------------------------------------
+
+test_that("warn_not_aggregating returns TRUE with no duplicates", {
+  formula <- deaths ~ age + sex
+  data <- expand.grid(age = 0:2, sex = c("f", "m"))
+  data$deaths <- 1
+  expect_true(warn_not_aggregating(formula = formula,
+                                   data = data))
+})
+
+test_that("warn_not_aggregating raises warning with duplicates, but only first time", {
+  dir_cache <- tools::R_user_dir(package = "bage", which = "cache")
+  dir.create(dir_cache, showWarnings = FALSE, recursive = TRUE)
+  path <- file.path(dir_cache, "aggregation.txt")
+  unlink(path)
+  formula <- deaths ~ age + sex
+  data <- expand.grid(age = 0:2, sex = c("f", "m"))
+  data <- rbind(data, data)
+  data$deaths <- 1
+  expect_warning(warn_not_aggregating(formula = formula,
+                                      data = data),
+                 "`data` has multiple rows with the same values for the predictor variables \\(\"age\" and \"sex\"\\).")
+  expect_true(warn_not_aggregating(formula = formula,
+                                      data = data))
+})
+
+
+              
+  
