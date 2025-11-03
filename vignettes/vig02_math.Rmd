@@ -2,7 +2,6 @@
 title: "2. Mathematical Details"
 output:
   bookdown::html_document2:
-    base_format: rmarkdown::html_vignette
     fig_caption: true
     toc: true
     toc_depth: 2
