@@ -1,7 +1,11 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# bage <a href="https://github.com/bayesiandemography/bage"><img src="data-raw/sticker/sticker.png" align="right" height="138" /></a>
+<a href="https://github.com/bayesiandemography/bage">
+<img src="man/figures/sticker/sticker.png"
+       style="float:right; height:138px;" /> </a>
+
+# bage
 
 <!-- badges: start -->
 
@@ -52,7 +56,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.75     0.79      0.54   13      TRUE   relative convergence (4)
+#>        1.79     0.80      0.58   13      TRUE   relative convergence (4)
 ```
 
 Extract model-based and direct estimates

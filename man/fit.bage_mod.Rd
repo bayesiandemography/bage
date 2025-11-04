@@ -68,16 +68,13 @@ means are jointly estimated within TMB.
 When \code{method} is \code{"inner-outer"}, estimation is
 carried out in multiple steps, which, in large models,
 can sometimes reduce computation times.
-In Step 1, the data is aggregated across all dimensions other
-than those specified in \code{var_inner}, and a model
-for the \code{inner} variables is fitted to the data.
-In Step 2, the data is aggregated across the
-remaining variables, and a model for the
+In Step 1, a model only using the \code{inner} variables
+is fitted to the data.
+In Step 2, a model only using the
 \code{outer} variables is fitted to the data.
 In Step 3, values for dispersion are calculated.
 Parameter estimates from steps 1, 2, and 3
-are then combined. \code{"inner-outer"} methods are
-still experimental, and may change in future.
+are then combined.
 }
 
 \section{Optimizer}{
@@ -102,14 +99,37 @@ performing a Cholesky factorization of the precision
 matrix returned by TMB. This factorization sometimes
 fails because of numerical problems. Adding a small
 quantity to the diagonal of the precision matrix
-can alleviate numerical problems, though potentially
-at the cost of reduced accuracy. If the Cholesky factorization
+can alleviate numerical problems, while potentially
+reducing accuracy. If the Cholesky factorization
 initially fails, \code{bage} will try again with progressively
-largeer quantities added to the diagonal, up to the
+larger quantities added to the diagonal, up to the
 maximum set by \code{max_jitter}. Increasing the value of
-\code{max_jitter} can help suppress numerical problems
-further. A safer strategy, however, is to simplify
+\code{max_jitter} can help suppress numerical problems.
+A safer strategy, however, is to simplify
 the model, or to use more informative priors.
+}
+
+\section{Aggregation}{
+
+
+Up to version 0.9.8 of \code{bage}, \code{fit()} always aggregated
+across cells with identical values of the
+predictor variables
+in \code{formula} (ie the variables to the right of \code{~})
+before fitting. For instance,
+if a dataset contained deaths and population
+disaggregated by age and sex, but the model formula
+was \code{deaths ~ age}, then \code{fit()} would aggregate
+deaths and population within each age category
+before fitting the model. From
+version 0.9.9, \code{fit()}
+only aggregates across cells with identical
+values if no data model is used,
+and if the model is Poisson with
+dispersion set to 0 or is normal.
+Note that this change in behavior has no effect
+on most models, since most models include all
+variables used to classify outcomes.
 }
 
 \examples{
@@ -144,6 +164,7 @@ comp
 probabilities, or means, together
 with original data
 \item \code{\link[=components]{components()}} Extract values for hyper-parameters
+\item \code{\link[=dispersion]{dispersion()}} Extract values for dispersion
 \item \code{\link[=forecast]{forecast()}} Forecast, based on a model
 \item \code{\link[=report_sim]{report_sim()}} Simulation study of a model
 \item \code{\link[=unfit]{unfit()}} Reset a model

@@ -1,8 +1,10 @@
 ---
 title: "3. Priors"
+template:
+  math-rendering: katex
 output:
   bookdown::html_document2:
-    base_format: rmarkdown::html_vignette
+    fig_caption: true
     toc: true
     toc_depth: 2
     number_sections: true

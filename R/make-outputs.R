@@ -1,9 +1,16 @@
 
 ## HAS_TESTS
-#' Combined Stored Draws and Point EStimates from Two Models
+#' Combined Stored Draws and Point Estimates
+#' from Inner and Outer Models
 #'
-#' Term used from first model if 'use_term' is TRUE; otherwise
-#' from second model. Dispersion ignored.
+#' Term used from inner model if 'use_term' is TRUE; otherwise
+#' from outer model.
+#'
+#' Dispersion ignored.
+#'
+#' Covariates always taken from outer model.
+#'
+#' Data model parameters ignored.
 #'
 #' @param mod Model receiving the draws
 #' @param mod_inner Model for which use_term is TRUE
@@ -67,15 +74,19 @@ combine_stored_draws_point_inner_outer <- function(mod, mod_inner, mod_outer, us
       point_hyperrandfree <- c(point_hyperrandfree, point_hyperrandfree_outer[is_term_hyperrandfree])
     }
   }
+  draws_coef_covariates <- mod_outer$draws_coef_covariates
+  point_coef_covariates <- mod_outer$point_coef_covariates
   draws_effectfree <- do.call(rbind, draws_effectfree)
   draws_hyper <- do.call(rbind, draws_hyper)
   draws_hyperrandfree <- do.call(rbind, draws_hyperrandfree)
   mod$draws_effectfree <- draws_effectfree
   mod$draws_hyper <- draws_hyper
   mod$draws_hyperrandfree <- draws_hyperrandfree
+  mod$draws_coef_covariates <- draws_coef_covariates
   mod$point_effectfree <- point_effectfree
   mod$point_hyper <- point_hyper
   mod$point_hyperrandfree <- point_hyperrandfree
+  mod$point_coef_covariates <- point_coef_covariates
   mod
 }
 
@@ -2041,6 +2052,7 @@ make_linpred_from_stored_draws_covariates <- function(mod, point) {
 }
 
 
+## HAS_TESTS
 #' Calculate the Contribution of Effects to the Linear Predictor
 #'
 #' @param mod Object of class "bage_mod"

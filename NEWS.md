@@ -1,4 +1,26 @@
 
+# bage 0.9.9
+
+## Changes to model behavior
+
+* Up to version 0.9.8, `fit()` silently aggregated rows with
+  duplicated values for the predictors (ie the variables to the right
+  side of the `~` in the model formula. From 0.9.9 this aggregation
+  only occurs with Poisson models where dispersion has been set to 0,
+  or with Normal models. Even in these cases, aggregation no longer
+  happens if the model includes a data model. In cases where
+  aggregation would previously have occurred, `fit()` warns users
+  about the behavior change. Thank you to Salah Merad for pointing out
+  that the aggregation was leading to unexpected results.
+
+## Changes to interface
+
+* The `"inner-outer"` fitting method can now be used with models that
+  include covariates.
+* A function called `dispersion()` has been added, which returns prior
+  or posterior values of the `disp` parameters. (Previously the only
+  ways to obtain values of `disp` was to use function `components()`.)
+  
 # bage 0.9.8
 
 ## Changes to internal calculations

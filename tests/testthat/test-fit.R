@@ -78,7 +78,7 @@ test_that("'fit_default' works with pois, optimzier is 'multi'", {
   ans_obtained <- fit_default(mod,
                               optimizer = "multi",
                               quiet = TRUE,
-                              aggregate = TRUE,
+                              aggregate = FALSE,
                               max_jitter = 1e-4,
                               start_oldpar = FALSE)
   expect_s3_class(ans_obtained, "bage_mod")
@@ -96,7 +96,7 @@ test_that("'fit_default' works with pois, optimzier is 'nlminb'", {
   ans_obtained <- fit_default(mod,
                               optimizer = "nlminb",
                               quiet = TRUE,
-                              aggregate = TRUE,
+                              aggregate = FALSE,
                               max_jitter = 1e-4,
                               start_oldpar = FALSE)
   expect_s3_class(ans_obtained, "bage_mod")
@@ -111,12 +111,12 @@ test_that("'fit_default' works with pois - start_oldpar", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+  mod <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = FALSE,
                      start_oldpar = FALSE)
   ans_obtained <- fit_default(mod,
                               optimizer = "nlminb",
                               quiet = TRUE,
-                              aggregate = TRUE,
+                              aggregate = FALSE,
                               max_jitter = 1e-4,
                               start_oldpar = TRUE)
   expect_s3_class(ans_obtained, "bage_mod")
@@ -134,7 +134,7 @@ test_that("'fit_default' gives error with 'start_oldpar' if model fitted", {
   expect_error(fit_default(mod,
                            optimizer = "nlminb",
                            quiet = TRUE,
-                           aggregate = TRUE,
+                           aggregate = FALSE,
                            max_jitter = 1e-4,
                            start_oldpar = TRUE),
                "`start_oldpar` is TRUE but model has not been fitted.")
@@ -155,7 +155,7 @@ test_that("'fit_default' gives same answer with and without aggregation - Poisso
   mod_ag <- fit_default(mod,
                         optimizer = "multi",
                         quiet = TRUE,
-                        aggregate = TRUE,
+                        aggregate = FALSE,
                         max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
@@ -191,7 +191,7 @@ test_that("'fit_default' gives same answer with and without aggregation - Poisso
   mod_ag <- fit_default(mod,
                         optimizer = "multi",
                         quiet = TRUE,
-                        aggregate = TRUE,
+                        aggregate = FALSE,
                         max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
@@ -228,7 +228,7 @@ test_that("'fit_default' gives same answer with and without aggregation - binomi
   mod_ag <- fit_default(mod,
                         optimizer = "multi",
                         quiet = TRUE,
-                        aggregate = TRUE,
+                        aggregate = FALSE,
                         max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
@@ -266,7 +266,7 @@ test_that("'fit_default' gives same answer with and without aggregation - norm, 
   mod_ag <- fit_default(mod,
                         optimizer = "multi",
                         quiet = TRUE,
-                        aggregate = TRUE,
+                        aggregate = FALSE,
                         max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
@@ -304,7 +304,7 @@ test_that("'fit_default' gives same answer with and without aggregation - norm, 
   mod_ag <- fit_default(mod,
                         optimizer = "multi",
                         quiet = TRUE,
-                        aggregate = TRUE,
+                        aggregate = FALSE,
                         max_jitter = 1e-4,
                         start_oldpar = FALSE)
   mod_nonag <- fit_default(mod,
@@ -353,7 +353,7 @@ test_that("'fit_inner_outer' works with with pois", {
                              quiet = TRUE,
                              start_oldpar = FALSE,
                              max_jitter = 1e-4,
-                             aggregate = TRUE)
+                             aggregate = FALSE)
   aug_inner_outer <- ans_inner_outer |>
     augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
@@ -387,7 +387,7 @@ test_that("'fit_inner_outer' works with with binom", {
                              quiet = TRUE,
                              start_oldpar = FALSE,
                              max_jitter = 1e-4,
-                             aggregate = TRUE)
+                             aggregate = FALSE)
   aug_inner_outer <- ans_inner_outer |>
     augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
@@ -421,7 +421,7 @@ test_that("'fit_inner_outer' works with with norm", {
                              quiet = TRUE,
                              start_oldpar = FALSE,
                              max_jitter = 1e-4,
-                             aggregate = TRUE)
+                             aggregate = FALSE)
   aug_inner_outer <- ans_inner_outer |>
     augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
@@ -430,6 +430,43 @@ test_that("'fit_inner_outer' works with with norm", {
   fit_default <- rvec::draws_median(aug_default$.fitted)
   expect_true(cor(fit_inner_outer, fit_default) > 0.98)
 })
+
+test_that("'fit_inner_outer' works wtih covariates", {
+  set.seed(0)
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2003,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$wt <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
+  data$wealth <- rnorm(n = nrow(data))
+  formula <- income ~ age * sex + region * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt) |>
+    set_covariates(~ wealth)  
+  set.seed(0)
+  ans_inner_outer <- fit_inner_outer(mod,
+                                     optimizer = "BFGS",
+                                     quiet = TRUE,
+                                     start_oldpar = FALSE,
+                                     vars_inner = c("age", "sex"))
+  set.seed(0)
+  ans_default <- fit_default(mod,
+                             optimizer = "BFGS",
+                             quiet = TRUE,
+                             start_oldpar = FALSE,
+                             max_jitter = 1e-4,
+                             aggregate = FALSE)
+  aug_inner_outer <- ans_inner_outer |>
+    augment()
+  fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
+  aug_default <- ans_default |>
+    augment()
+  fit_default <- rvec::draws_median(aug_default$.fitted)
+  expect_true(cor(fit_inner_outer, fit_default) > 0.98)
+})
+
 
 test_that("'fit_inner_outer' throws error when 'start_oldpar' is TRUE", {
   set.seed(0)
@@ -450,29 +487,6 @@ test_that("'fit_inner_outer' throws error when 'start_oldpar' is TRUE", {
                                start_oldpar = TRUE,
                                vars_inner = c("age", "sex")),
                "`start_oldpar` must be FALSE when using \"inner-outer\" method.")
-})
-
-test_that("'fit_inner_outer' throws error when model has covariates", {
-  set.seed(0)
-  data <- expand.grid(age = 0:5,
-                      time = 2000:2003,
-                      sex = c("F", "M"),
-                      region = c("a", "b"))
-  data$wt <- rpois(n = nrow(data), lambda = 10)
-  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
-  data$wealth <- rnorm(n = nrow(data))
-  formula <- income ~ age * sex + region * time
-  mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = wt) |>
-    set_covariates(~ wealth)  
-  set.seed(0)
-  expect_error(fit_inner_outer(mod,
-                               optimizer = "BFGS",
-                               quiet = TRUE,
-                               start_oldpar = FALSE,
-                               vars_inner = c("age", "sex")),
-               "\"inner-outer\" method cannot be used with models that include covariates.")
 })
 
 test_that("'fit_inner_outer' throws error when model has data model", {

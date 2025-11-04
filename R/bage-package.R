@@ -35,8 +35,10 @@
 #'
 #' - [augment()] Add cell-level estimates to data
 #' - [components()][bage::components.bage_mod] Hyper-parameters
+#' - [dispersion()] Dispersion parameter
 #' - [tidy()] One-line summary
 #' - [set_n_draw()] Specify number of prior or posterior draws
+#' - [n_draw()][bage::n_draw.bage_mod] Get number of prior or posterior draws
 #'
 #' **Forecast**
 #'
@@ -56,7 +58,7 @@
 #'   Human Internal Migration Database
 #' - [HMD] Scaled SVD of mortality rates from Human Mortality Database
 #' - [LFP] Scaled SVD of labor force participation rates from OECD
-#' - [WMD_C],[WMD_E] Scaled SVD of World Migration Data
+#' - [WMD_C],[WMD_E] Scaled SVD of World Marriage Data
 #'
 #' **Data**
 #'

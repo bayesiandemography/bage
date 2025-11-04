@@ -76,7 +76,6 @@ set_confidential_rr3 <- function(mod) {
 }
 
 
-
 ## 'set_covariates' -----------------------------------------------------------
 
 ## HAS_TESTS
@@ -1233,7 +1232,6 @@ set_datamod_undercount <- function(mod, prob) {
   mod <- unfit(mod)
   mod
 }
-
 
 
 ## 'set_datamod_outcome_rr3' --------------------------------------------------

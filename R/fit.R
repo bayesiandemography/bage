@@ -166,8 +166,6 @@ fit_inner_outer <- function(mod,
                             start_oldpar) {
   if (start_oldpar)
     cli::cli_abort("{.arg start_oldpar} must be {.val {FALSE}} when using \"inner-outer\" method.")
-  if (has_covariates(mod))
-    cli::cli_abort("\"inner-outer\" method cannot be used with models that include covariates.")
   if (has_datamod(mod))
     cli::cli_abort("\"inner-outer\" method cannot be used with models that include a data model.")
   if (is.null(vars_inner))
@@ -178,21 +176,23 @@ fit_inner_outer <- function(mod,
                             vars_inner = vars_inner)
   mod_inner <- make_mod_inner(mod = mod,
                               use_term = use_term)
+  aggregate <- can_aggregate(mod_inner)
   mod_inner <- fit_default(mod = mod_inner,
                            optimizer = optimizer,
                            quiet = quiet,
                            start_oldpar = start_oldpar,
                            max_jitter = max_jitter,
-                           aggregate = TRUE)
+                           aggregate = aggregate)
   mod_outer <- make_mod_outer(mod = mod,
                               mod_inner = mod_inner,
                               use_term = use_term)
+  aggregate <- can_aggregate(mod_inner)
   mod_outer <- fit_default(mod = mod_outer,
                            optimizer = optimizer,
                            quiet = quiet,
                            start_oldpar = start_oldpar,
                            max_jitter = max_jitter,
-                           aggregate = TRUE)
+                           aggregate = aggregate)
   computations <- rbind(inner = mod_inner$computations,
                         outer = mod_outer$computations)
   mod <- combine_stored_draws_point_inner_outer(mod = mod,

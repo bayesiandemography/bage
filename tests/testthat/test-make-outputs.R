@@ -9,15 +9,18 @@ test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
                       time = 2001:2005)
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
   formula <- deaths ~ age * sex  + region * time
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
   mod <- set_prior(mod, region:time ~ Lin())
   mod <- set_n_draw(mod, n_draw = 10)
+  mod <- set_covariates(mod, ~ income)
   vars_inner <- c("age", "sex")
   use_term <- make_use_term(mod = mod, vars_inner = vars_inner)
   mod_inner <- reduce_model_terms(mod = mod, use_term = use_term)
+  mod_inner <- remove_covariates(mod_inner)
   mod_inner <- fit_default(mod_inner, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
                            start_oldpar = FALSE)
   mod_outer <- reduce_model_terms(mod = mod, use_term = !use_term)
@@ -42,6 +45,10 @@ test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
                    mod_inner$point_effectfree)
   expect_identical(mod_comb$point_effectfree[is_outer],
                    mod_outer$point_effectfree)
+  expect_identical(mod_comb$draws_coef_covariates,
+                   mod_outer$draws_coef_covariates)
+  expect_identical(mod_comb$point_coef_covariates,
+                   mod_outer$point_coef_covariates)
 })
 
 
