@@ -58,6 +58,11 @@ mod
 \item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
 \item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
 \item \link[=fit]{fit.bage_mod()} and \code{\link[=is_fitted]{is_fitted()}} Model fitting
+\item \code{\link[=augment]{augment()}} Extract values for rates,
+probabilities, or means, together
+with original data
+\item \code{\link[=components]{components()}} Extract values for hyper-parameters
+\item \code{\link[=dispersion]{dispersion()}} Extract values for dispersion
 \item \link{priors} Overview of priors for model terms
 \item \link[=tidy]{tidy.bage_mod()} Number of parameters,
 and standard deviations

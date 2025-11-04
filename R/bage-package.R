@@ -35,8 +35,10 @@
 #'
 #' - [augment()] Add cell-level estimates to data
 #' - [components()][bage::components.bage_mod] Hyper-parameters
+#' - [dispersion()] Dispersion parameter
 #' - [tidy()] One-line summary
 #' - [set_n_draw()] Specify number of prior or posterior draws
+#' - [n_draw()][bage::n_draw.bage_mod] Get number of prior or posterior draws
 #'
 #' **Forecast**
 #'
@@ -51,7 +53,7 @@
 #'
 #' - [components()][bage::components.bage_ssvd] Matrices and offsets from scaled SVD
 #' - [generate()][bage::generate.bage_ssvd] Random profiles
-###' - [HFD] Scaled SVD of fertility rates from Human Fertility Database
+#' - [HFD] Scaled SVD of fertility rates from Human Fertility Database
 #' - [HMD] Scaled SVD of mortality rates from Human Mortality Database
 #' - [LFP] Scaled SVD of labor force participation rates from OECD
 #'

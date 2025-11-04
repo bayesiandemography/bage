@@ -1,11 +1,15 @@
 ---
 title: "2. Mathematical Details"
+template:
+  math-rendering: katex
 output:
   bookdown::html_document2:
     fig_caption: true
     toc: true
     toc_depth: 2
     number_sections: true
+pkgdown:
+  as_is: true    
 vignette: >
   %\VignetteIndexEntry{2. Mathematical Details}
   %\VignetteEncoding{UTF-8}
@@ -1154,7 +1158,7 @@ kable(models,
 ```
 
 
-## Poisson, undercount in outcome variable {#sec:datamod-pois-under}
+## Poisson with undercount in outcome variable {#sec:datamod-pois-under}
 
 ### System model
 
@@ -1205,7 +1209,7 @@ then set $y_i^{\text{true}} = y_i^{\text{obs}} + x_i$.
 Appendix \@ref(app:datamod) has the derivation.
 
 
-## Poisson, overcount in outcome variable {#sec:datamod-pois-over}
+## Poisson with overcount in outcome variable {#sec:datamod-pois-over}
 
 ### System model
 
@@ -1252,7 +1256,7 @@ We use the normally-distributed latent variable $z_g$ and then transform to calc
 Appendix \@ref(app:datamod) has the derivation.
 
 
-## Poisson, undercount and overcount in outcome variable {#sec:datamod-pois-miscount}
+## Poisson with undercount and overcount in outcome variable {#sec:datamod-pois-miscount}
 
 ### System model
 
@@ -1312,7 +1316,7 @@ As also shown in Appendix \@ref(app:datamod),
 We can obtain a value for $y_i^{\text{true}}$ by drawing a value for $u_i$, then drawing a value for $x_i = y_i^{\text{true}} - u_i$, then setting $y_i^{\text{true}} = x_i + u_i$.
 
 
-## Poisson, noise added to outcome variable {#sec:datamod-pois-noise}
+## Poisson with noise added to outcome variable {#sec:datamod-pois-noise}
 
 ### System model
 
@@ -1346,7 +1350,7 @@ where $I_{\lvert \nu \rvert}(x)$ is a Bessel function of the first kind. Derivat
 
 We use the exact distribution when $\mu_i w_i < 50$ or $m_{g[i]} < 50$, and a normal approximation otherwise.
 
-## Poisson, measurement errors in exposure {#sec:datamod-pois-off}
+## Poisson with measurement errors in exposure {#sec:datamod-pois-off}
 
 ### System model
 
@@ -1406,7 +1410,7 @@ where
 $\hat{w}_i^{\text{data}}$ is an estimate of $w_i^{\text{true}}$ derived from the data model, and $\hat{w}_i^{\text{rate}}$ is an estimate derived from the model for the rates.
 
 
-## Binomial, measurement errors in outcome variable {#sec:datamod-binom}
+## Binomial with measurement errors in outcome variable {#sec:datamod-binom}
 
 ### System model
 
@@ -1457,7 +1461,7 @@ then set $y_i^{\text{true}} = y_i^{\text{obs}} + x_i$.
 
 Derivation in Appendix \@ref(app:datamod).
 
-## Normal, noise added to outcome variable
+## Normal with noise added to outcome variable
 
 ### System model
 
@@ -1548,15 +1552,24 @@ where $p_{\text{con}|\text{un}}(\cdot)$ and $p_{\text{un}}(\cdot)$ are defined a
 
 # Estimation
 
-## Filtering and Aggregation {#sec:filter-ag}
+## Filtering {#sec:filter-ag}
 
-The data that we supply to TMB is a a filtered and aggregated version of the data that the user provides through the `data` argument.
+The data that we supply to TMB is a a filtered version of the data that the user provides through the `data` argument. We remove any rows where (i) the offset is 0 or NA, or (ii) the outcome variable is NA.
 
-In the filtering stage, we remove any rows where (i) the offset is 0 or NA, or (ii) the outcome variable is NA.
 
-In the aggregation stage, we identify any rows in the data where there are duplicated combinations of classification variables. For instance, if the classification variables are `age` and `sex`, and we have two rows where `age` is `"20-24"` and sex is `"Female"`, then these rows would count as duplicated combinations. We aggregate offset and outcome variables across these duplicates.
+## Inner-Outer Approximation
 
-Let $D$ be the number of times a particular combination is duplicated. 
+The inner-outer approximation cannot be used with models that include data models.
+
+### Step 0: Select 'inner' and 'outer' variables
+
+Select variables to be used in inner model. By default, these are the age, sex, and time variables in the model. All remaining variables are 'outer' variables. Any covariates specified through `set_covariates()` are also treated as 'outer' variables.
+
+### Step 1: Fit inner model
+
+In Poisson and binomial models we set dispersion $\xi$ to 0.
+
+We aggregate the data using the classification formed by the inner variables. We identify any rows in the data where there are duplicated combinations of the inner variables. For instance, if the inner variables are `age` and `sex`, and we have two rows where `age` is `"20-24"` and sex is `"Female"`, then these rows would count as duplicated combinations. We aggregate offset and outcome variables across these duplicates. Let $D$ be the number of times a particular combination is duplicated. 
 
 With Poisson models, the aggregation formula for outcomes is
 \begin{equation}
@@ -1588,16 +1601,7 @@ and the aggregation formuala for weights is
   w^{\text{new}} = \frac{D^2}{\sum_{i=1}^D \frac{1}{w_i^{\text{old}}}}.
 \end{equation}
 
-
-## Inner-Outer Approximation
-
-### Step 0: Select 'inner' and 'outer' variables
-
-Select variables to be used in inner model. By default, these are the age, sex, and time variables in the model. All remaining variables are 'outer' variables.
-
-### Step 1: Fit inner model
-
-Aggregate the data using the classification formed by the inner variables. (See Section \@ref(sec:filter-ag) on aggregation procedures.) Remove all terms not involving 'inner' variables, other than the intercept term, from the model. Set dispersion to 0. Fit the resulting model.
+We remove all terms not involving 'inner' variables, other than the intercept term, from the model. We fit the resulting model.
 
 ### Step 2: Fit outer model
 
@@ -1605,15 +1609,15 @@ Let $\hat{\mu}_i^{\text{in}}$ be point estimates for the linear predictor $\mu_i
 
 **Poisson model**
 
-Aggregate the data using the classification formed by the outer variables. Remove all terms involving the 'inner' variables, plus the intercept, from the model. Set dispersion to 0. Set exposure to $w_i^{\text{out}} = \hat{\mu}^{\text{in}} w_i$. Fit the model.
+Aggregate the data using the classification formed by the outer variables and any covariates. Remove all terms involving the 'inner' variables, plus the intercept, from the model. Set exposure to $w_i^{\text{out}} = \hat{\mu}^{\text{in}} w_i$. Set dispersion to 0. Fit the model.
 
 **Binomial model**
 
-Fit the original model, but set dispersion to 0, and for all terms from the 'inner' model, use Known priors using point estimates from the inner model.
+Do not aggregate. Fit the original model, but with dispersion set to zero, and using Known priors for 'inner' terms, based on point estimates from the inner model.
 
 **Normal model**
 
-Aggregate the data using the classification formed by the outer variables. Remove all terms involving the 'inner' variables, plus the intercept, from the model. Set the outcome variable to to $y_i^{\text{out}} = y_i - \hat{\mu}^{\text{in}}. Fit the model.
+Aggregate the data using the classification formed by the outer variables and any covariates. Remove all terms involving the 'inner' variables, plus the intercept, from the model. Set the outcome variable to to $y_i^{\text{out}} = y_i - \hat{\mu}^{\text{in}}. Fit the model.
 
 ### Step 4: Concatenate estimates
 
@@ -1656,12 +1660,6 @@ Output from the Normal model receives special treatment. As described in section
   \frac{y_i - \bar{y}}{s} & \sim \text{N}\left(\mu_i, \frac{\bar{w}}{w_i} \xi^2\right) \\
   \mu_i & = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)} + (\pmb{Z} \pmb{\zeta})_i
 \end{align}
-
-
-
-
-
-
 
 # Simulation
 
@@ -1817,7 +1815,9 @@ should look approximately like a randomly-selected column from the original data
 
 ## Derivation of quantities used in data models {#app:datamod}
 
-### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i$ in Section \@ref(sec:datamod-pois-under)
+### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i$
+
+Derivation of formula from Section \@ref(sec:datamod-pois-under)
 
 When $\xi > 0$,
 \begin{align}
@@ -1850,7 +1850,9 @@ which is the kernel for the distribution
 
 
 
-### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \kappa_{h[i]}, \mu_i, \xi, w_i$ in overcount-only model in Section \@ref(sec:datamod-pois-over)
+### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \kappa_{h[i]}, \mu_i, \xi, w_i$ in overcount-only model
+
+Derivation of formula from Section \@ref(sec:datamod-pois-over).
 
 Conditional on $\gamma_i, \kappa_{h[i]}, w_i$, the quantities $y_i^{\text{true}}$ and $v_i$ are independent Poisson variates,
 \begin{align}
@@ -1869,9 +1871,9 @@ We therefore have
 \end{align}
 
 
+### Derivation of $u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i$
 
-
-### Derivation of $u_i \mid y_i^{\text{obs}}, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, \xi, w_i$ in Section \@ref(sec:datamod-pois-miscount)
+Derivation of formula from Section \@ref(sec:datamod-pois-miscount).
 
 Conditional on $\gamma_i, \pi_{g[i]}, \kappa_{h[i]}, w_i$, the quantities $u_i$ and $v_i$ are independent Poisson variates,
 \begin{align}
@@ -1889,7 +1891,9 @@ The value of $u_i$ does not depend on $\gamma_i$, and hence does not depend on $
 \end{align}
 
 
-### Derivation of $y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi$ in Section \@ref(sec:datamod-pois-miscount)
+### Derivation of $y_i^{\text{true}} \mid u_i, \pi_{g[i]}, \kappa_{h[i]}, \mu_i, w_i, \xi$
+
+Derivation of formula from Section \@ref(sec:datamod-pois-miscount).
 
 When $\xi > 0$,
 \begin{align}
@@ -1921,7 +1925,9 @@ which is the kernel for the distribution
 \end{equation}
 
 
-### Derivation of $p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \lambda, \mu_i, w_i)$ in Section \@ref(sec:datamod-pois-noise)
+### Derivation of $p(y_i^{\text{true}} \mid y_i^{\text{obs}}, \lambda, \mu_i, w_i)$
+
+Derivation of formula from Section \@ref(sec:datamod-pois-noise).
 
 \begin{align}
   p(y_i^{\text{true}} \mid y_i^{\text{obs}}, m_{g[i]}, \mu_i, w_i) 
@@ -1947,7 +1953,9 @@ Assume have no prior information on $w_i^{\text{true}}$, so that $w_i^{\text{tru
 \end{align}
 as required.
 
-### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i$ in Section \@ref(sec:datamod-binom)
+### Derivation of $y_i^{\text{true}} \mid y_i^{\text{obs}}, \pi_{g[i]}, \mu_i, \xi, w_i$
+
+Derivation of formula from Section \@ref(sec:datamod-binom).
 
 When $\xi > 0$,
 \begin{align}

@@ -47,6 +47,7 @@ Suggests:
     testthat (>= 3.0.0),
     tidyr
 Config/testthat/edition: 3
+Config/Needs/website: bookdown
 RoxygenNote: 7.3.3
 LinkingTo: 
     TMB (>= 0.9.1),

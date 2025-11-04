@@ -15,7 +15,12 @@ opts_chunk$set(
 )
 ```
 
-# bage <a href="https://github.com/bayesiandemography/bage"><img src="data-raw/sticker/sticker.png" align="right" height="138" /></a>
+<a href="https://github.com/bayesiandemography/bage">
+  <img src="man/figures/sticker/sticker.png"
+       style="float:right; height:138px;" />
+</a>
+
+# bage
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)

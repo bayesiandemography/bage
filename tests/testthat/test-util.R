@@ -1345,11 +1345,9 @@ test_that("warn_not_aggregating raises warning with duplicates, but only first t
   data$deaths <- 1
   expect_warning(warn_not_aggregating(formula = formula,
                                       data = data),
-                 "`data` has multiple rows with the same values for the predictor variables \\(\"age\" and \"sex\"\\).")
+                 "`data` has multiple rows with the same values for the predictors \\(`age` and `sex`\\).")
   expect_true(warn_not_aggregating(formula = formula,
                                       data = data))
 })
-
-
               
   

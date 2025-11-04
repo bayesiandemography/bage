@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{augment.bage_mod}
 \alias{augment.bage_mod}
-\title{Extract Data and Modelled Values}
+\title{Extract Data and Modeled Values}
 \usage{
 \method{augment}{bage_mod}(x, quiet = FALSE, ...)
 }
@@ -41,20 +41,20 @@ Uncertain quantities are represented using
 Extract data and rates, probabilities, or means
 from a model object.
 The return value consists of the original
-data and one or more columns of modelled values.
+data and one or more columns of modeled values.
 }
 \section{Fitted vs unfitted models}{
 
 
 \code{augment()} is typically called on a \link[=fit]{fitted}
-model. In this case, the modelled values are
+model. In this case, the modeled values are
 draws from the joint posterior distribution for rates,
 probabilities, or means.
 
 \code{augment()} can, however, be called on an
-unfitted model. In this case, the modelled values
+unfitted model. In this case, the modeled values
 are draws from the joint prior distribution.
-In other words, the modelled values are informed by
+In other words, the modeled values are informed by
 model priors, and by values for \code{exposure}, \code{size}, or \code{weights},
 but not by observed outcomes.
 }
@@ -121,6 +121,7 @@ mod_pois(divorces ~ age + sex + time,
 \seealso{
 \itemize{
 \item \code{\link[=components]{components()}} Extract values for hyper-parameters
+\item \code{\link[=dispersion]{dispersion()}} Extract values for dispersion
 \item \code{\link[=tidy]{tidy()}} Short summary of a model
 \item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
 \item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model

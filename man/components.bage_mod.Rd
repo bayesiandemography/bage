@@ -121,6 +121,7 @@ mod |>
 \item \code{\link[=augment]{augment()}} Extract values for rates,
 means, or probabilities,
 together with original data
+\item \code{\link[=dispersion]{dispersion()}} Extract values for dispersion
 \item \code{\link[=tidy]{tidy()}} Extract a one-line summary of a model
 \item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
 \item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model

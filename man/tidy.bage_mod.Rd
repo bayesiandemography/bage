@@ -66,5 +66,6 @@ tidy(mod)
 probabilities, or means, together
 with original data
 \item \code{\link[=components]{components()}} Extract values for hyper-parameters
+\item \code{\link[=dispersion]{dispersion()}} Extract values for dispersion
 }
 }

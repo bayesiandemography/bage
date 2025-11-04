@@ -122,6 +122,7 @@ mod_pois(injuries ~ age:sex + ethnicity + year,
 probabilities, or means, together
 with original data
 \item \code{\link[=components]{components()}} Extract values for hyper-parameters
+\item \code{\link[=dispersion]{dispersion()}} Extract values for dispersion
 \item \code{\link[=forecast]{forecast()}} Forecast, based on a model
 \item \code{\link[=report_sim]{report_sim()}} Simulation study of model.
 \item \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}

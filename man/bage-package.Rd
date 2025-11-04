@@ -46,8 +46,10 @@ and is fast.
 \itemize{
 \item \code{\link[=augment]{augment()}} Add cell-level estimates to data
 \item \link[=components.bage_mod]{components()} Hyper-parameters
+\item \code{\link[=dispersion]{dispersion()}} Dispersion parameter
 \item \code{\link[=tidy]{tidy()}} One-line summary
 \item \code{\link[=set_n_draw]{set_n_draw()}} Specify number of prior or posterior draws
+\item \link[=n_draw.bage_mod]{n_draw()} Get number of prior or posterior draws
 }
 
 \strong{Forecast}
