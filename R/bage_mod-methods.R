@@ -415,7 +415,7 @@ computations.bage_mod <- function(object) {
 #' scale or the transformed scale.
 #' Default is `FALSE`.
 #'
-#' @returns An [rvecs][rvec]
+#' @returns An [rvec][rvec::rvec]
 #' (or `NULL` if the model does not
 #' include a dispersion parameter.)
 #'
