@@ -771,64 +771,6 @@ make_along_mod <- function(mod) {
 
 
 ## HAS_TESTS
-#' Create combined matrix from effect to outcome
-#'
-#' Combine matrices for individual terms to
-#' create a matrix that maps all elements of
-#' 'effect' to 'outcome'.
-#'
-#' @param An object of class 'bage_mod'
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_combined_matrix_effect_outcome <- function(mod) {
-  data <- mod$data
-  dimnames_terms <- mod$dimnames_terms
-  nms_terms <- names(dimnames_terms)
-  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
-                                                          dimnames_terms = dimnames_terms)
-  Reduce(Matrix::cbind2, matrices_effect_outcome)
-}
-
-
-## HAS_TESTS
-#' Create combined matrix from effectfree to effect
-#'
-#' Combine matrices for individual terms to
-#' create a matrix that maps all elements of
-#' 'effectfree' to 'effect'.
-#'
-#' @param An object of class 'bage_mod'
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_combined_matrix_effectfree_effect <- function(mod) {
-    matrices <- make_matrices_effectfree_effect(mod)
-    Matrix::.bdiag(matrices)
-}
-
-
-## HAS_TESTS
-#' Create combined offset from effectfree to effect
-#'
-#' Combine offsets for individual terms to
-#' create a offset that maps all elements of
-#' 'effectfree' to 'effect'.
-#'
-#' @param An object of class 'bage_mod'
-#'
-#' @returns A numeric vector
-#'
-#' @noRd
-make_combined_offset_effectfree_effect <- function(mod) {
-    offsets <- make_offsets_effectfree_effect(mod)
-    do.call(c, offsets)
-}
-
-
-## HAS_TESTS
 #' Make variable identifying component in 'components'
 #'
 #' Helper function for function 'components'
@@ -982,6 +924,7 @@ make_draws_components <- function(mod) {
   ## effects
   effectfree <- mod$draws_effectfree
   ans_effects <- make_effects(mod = mod, effectfree = effectfree)
+  ans_effects <- do.call(rbind, ans_effects)
   ans_effects <- rvec::rvec_dbl(ans_effects)
   ## hyper
   hyper <- mod$draws_hyper
@@ -1200,10 +1143,23 @@ make_draws_post <- function(est, prec, map, n_draw, max_jitter) {
 #' 
 #' @noRd
 make_effects <- function(mod, effectfree) {
-  matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-  offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
-  ans <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
-  ans <- Matrix::as.matrix(ans)
+  matrices <- make_matrices_effectfree_effect(mod)
+  offsets <- make_offsets_effectfree_effect(mod)
+  lengths_effectfree <- vapply(matrices, ncol, 1L)
+  is_draws <- is.matrix(effectfree)
+  if (is_draws) {
+    effectfree_split <- split_matrix_rows(m = effectfree,
+                                          nrows = lengths_effectfree)
+  }
+  else
+    effectfree_split <- split_vector_lengths(v = effectfree,
+                                             lengths = lengths_effectfree)
+  ans <- .mapply(function(m, x, o) Matrix::as.matrix(m %*% x + o),
+                 dots = list(m = matrices,
+                             x = effectfree_split,
+                             o = offsets),
+                 MoreArgs = list())
+  names(ans) <- names(matrices)
   ans
 }
 
@@ -2025,13 +1981,25 @@ make_linpred_from_stored_draws_covariates <- function(mod, point) {
 #'
 #' @noRd
 make_linpred_from_stored_draws_effects <- function(mod, point) {
-  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
   if (point)
     effectfree <- mod$point_effectfree
   else
     effectfree <- mod$draws_effectfree
-  effect <- make_effects(mod = mod, effectfree = effectfree)
-  matrix_effect_outcome %*% effect
+  effects <- make_effects(mod = mod,
+                          effectfree = effectfree)
+  matrices <- make_matrices_effect_outcome(data = data,
+                                           dimnames_terms = dimnames_terms)
+  n_effect <- length(effects)
+  ans <- matrices[[1L]] %*% effects[[1L]]
+  if (n_effect > 1L) {
+    for (i_effect in seq.int(from = 2L, to = n_effect)) {
+      ans <- ans + matrices[[i_effect]] %*% effects[[i_effect]]
+    }
+  }
+  ans <- Matrix::as.matrix(ans)
+  ans
 }
 
 
@@ -2049,10 +2017,8 @@ make_point_est_effects <- function(mod) {
   point_effectfree <- mod$point_effectfree
   dimnames_terms <- mod$dimnames_terms
   terms_effects <- make_terms_effects(dimnames_terms)
-  point_effects <- make_effects(mod = mod, effectfree = point_effectfree)
-  point_effects <- as.double(point_effects)
-  ans <- split(x = point_effects, f = terms_effects)
-  ans <- ans[unique(terms_effects)] ## 'split' orders result
+  ans <- make_effects(mod = mod, effectfree = point_effectfree)
+  ans <- lapply(ans, as.double)
   ans
 }
 

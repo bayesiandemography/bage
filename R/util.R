@@ -894,6 +894,50 @@ sample_post_binom_betabinom_inner <- function(n, y, mu, xi, pi) {
 
 
 ## HAS_TESTS
+#' Turn a Matrix into a List of Submatrices Formed
+#' from Horizontal Slices
+#'
+#' @param m A matrix
+#' @param nrows Number of rows of in each slice
+#'
+#' @returns A list of matrices
+#'
+#' @noRd
+split_matrix_rows <- function(m, nrows) {
+  if (sum(nrows) != nrow(m))
+    cli::cli_abort("Internal error: sum(nrows) != nrow(m)")
+  ends <- cumsum(nrows)
+  n <- length(ends)
+  starts <- c(1L, ends[-n] + 1L)
+  extract_rows <- function(start, end) m[start:end, , drop = FALSE]
+  .mapply(extract_rows,
+          dots = list(start = starts, end = ends),
+          MoreArgs = list())
+}
+
+## HAS_TESTS
+#' Turn a Vector into a List of Subvectors
+#'
+#' @param v A vector
+#' @param lengths Lengths of subvectors
+#'
+#' @returns A list of vectors
+#'
+#' @noRd
+split_vector_lengths <- function(v, lengths) {
+  if (sum(lengths) != length(v))
+    cli::cli_abort("Internal error: sum(lengths) != length(v)")
+  ends <- cumsum(lengths)
+  n <- length(ends)
+  starts <- c(1L, ends[-n] + 1L)
+  extract_subvectors <- function(start, end) v[start:end]
+  .mapply(extract_subvectors,
+          dots = list(start = starts, end = ends),
+          MoreArgs = list())
+}
+
+
+## HAS_TESTS
 #' Assess Extent to Which a Matrix is Symmetric
 #'
 #' Gives grade "near", "moderate", or "severe"
@@ -946,7 +990,7 @@ symmetry_grade <- function(Q,
 }
                                               
   
-
+## HAS_TESTS
 #' Warn the User that Aggregation Behavior Has Changed
 #'
 #' Only warn if formula implies duplicated cells.
@@ -955,31 +999,40 @@ symmetry_grade <- function(Q,
 #'
 #' @param formula Formula for model
 #' @param data Dataset for model
+#' @param formula_covariates Formula for covariates (or NULL)
+#' @param always Whether to always check, including in tests
 #'
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-warn_not_aggregating <- function(formula, data) {
-  nms_predictors <- all.vars(formula[[3L]])
-  predictors <- data[nms_predictors]
-  has_dup <- any(duplicated(predictors))
-  if (has_dup) {
-    dir_cache <- tools::R_user_dir(package = "bage", which = "cache")
-    dir.create(dir_cache, showWarnings = FALSE, recursive = TRUE)
-    path <- file.path(dir_cache, "aggregation.txt")
-    aggregation_file_exists <- file.exists(path)
-    time_now <- as.numeric(Sys.time())
-    if (aggregation_file_exists)
-      time_last <- as.numeric(readLines(path, warn = FALSE))
-    else
-      time_last <- 0
-    is_eight_hours_or_more <- time_now - time_last > 8 * 3600
-    if (is_eight_hours_or_more) {
-      cli::cli_warn(c("{.arg data} has multiple rows with the same values for the predictor{?s} ({.var {nms_predictors}}). Model behavior when predictors are duplicated has changed since version 0.9.8.",
-                      i = "Up to version 0.9.8, rows with duplicated values were aggregated before fitting. From version 0.9.9 no aggregation occurs.",
-                      i = "See help for {.fun fit} for details.",
-                      i = "(This warning will only be shown once every 8 hours)."))
-      writeLines(as.character(time_now), path)
+warn_not_aggregating <- function(formula, data, formula_covariates, always) {
+  if (always || is_not_testing_or_snapshot()) {
+    nms_predictors <- all.vars(formula[[3L]])
+    has_covariates <- !is.null(formula_covariates)
+    if (has_covariates) {
+      nms_covariates <- all.vars(formula_covariates[[2L]])
+      nms_predictors <- union(nms_predictors, nms_covariates)
+    }
+    predictors <- data[nms_predictors]
+    has_dup <- any(duplicated(predictors))
+    if (has_dup) {
+      dir_cache <- tools::R_user_dir(package = "bage", which = "cache")
+      dir.create(dir_cache, showWarnings = FALSE, recursive = TRUE)
+      path <- file.path(dir_cache, "aggregation.txt")
+      aggregation_file_exists <- file.exists(path)
+      time_now <- as.numeric(Sys.time())
+      if (aggregation_file_exists)
+        time_last <- as.numeric(readLines(path, warn = FALSE))
+      else
+        time_last <- 0
+      is_eight_hours_or_more <- time_now - time_last > 8 * 3600
+      if (is_eight_hours_or_more) {
+        cli::cli_warn(c("{.arg data} has multiple rows with the same values for the predictor{?s} ({.var {nms_predictors}}). Model behavior when predictors are duplicated has changed since version 0.9.8.",
+                        i = "Up to version 0.9.8, rows with duplicated values were aggregated before fitting. From version 0.9.9 no aggregation occurs.",
+                        i = "See help for {.fun fit} for details.",
+                        i = "(This warning will only be shown once every 8 hours)."))
+        writeLines(as.character(time_now), path)
+      }
     }
   }
   invisible(TRUE)

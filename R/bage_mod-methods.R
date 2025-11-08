@@ -1187,12 +1187,15 @@ fit.bage_mod <- function(object,
   check_flag(x = start_oldpar, nm_x = "start_oldpar")
   check_has_no_dots(...)
   if (method == "standard") {
-    formula <- object$formula
-    data <- object$data
     aggregate <- can_aggregate(object)
     if (!aggregate) {
+      formula <- object$formula
+      data <- object$data
+      formula_covariates <- object$formula_covariates
       warn_not_aggregating(formula = formula,
-                           data = data)
+                           data = data,
+                           formula_covariates = formula_covariates,
+                           always = FALSE)
     }
     fit_default(object,
                 optimizer = optimizer,
@@ -3282,9 +3285,6 @@ tidy.bage_mod <- function(x, ...) {
   if (is_fitted) {
     effectfree <- x$point_effectfree
     effects <- make_effects(mod = x, effectfree = effectfree)
-    effects <- as.double(effects)
-    terms <- make_terms_effects(dimnames_terms)
-    effects <- split(effects, terms)
     ans[["std_dev"]] <- vapply(effects, stats::sd, 0)
   }
   ans <- tibble::tibble(ans)

@@ -446,10 +446,6 @@ test_that("'dispersion' gives expected message when 'original_scale' is FALSE an
 })
 
 
-
-
-
-
 ## 'draw_vals_augment_fitted' -------------------------------------------------
 
 test_that("'draw_vals_augment_fitted' works with Poisson, has disp", {
