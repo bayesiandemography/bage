@@ -2290,7 +2290,9 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - point is F
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws(mod, point = FALSE)
+  ans_obtained <- make_linpred_from_stored_draws(mod,
+                                                 point = FALSE,
+                                                 rows = NULL)
   comp <- components(mod, quiet = TRUE)
   ans_expected <- make_linpred_from_components(mod = mod,
                                                components = comp,
@@ -2310,7 +2312,9 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - point is T
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws(mod, point = TRUE)
+  ans_obtained <- make_linpred_from_stored_draws(mod,
+                                                 point = TRUE,
+                                                 rows = NULL)
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   nms_terms <- names(dimnames_terms)
@@ -2323,7 +2327,7 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - point is T
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_linpred_from_stored_draws' works with valid inputs - has covariaes", {
+test_that("'make_linpred_from_stored_draws' works with valid inputs - has covariates", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -2336,7 +2340,9 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - has covari
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- set_covariates(mod, ~ income)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws(mod, point = TRUE)
+  ans_obtained <- make_linpred_from_stored_draws(mod,
+                                                 point = TRUE,
+                                                 rows = NULL)
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   nms_terms <- names(dimnames_terms)
@@ -2346,6 +2352,36 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - has covari
   matrices <- make_matrices_effectfree_effect(mod)
   m2 <- Matrix::.bdiag(matrices)
   mc <- make_matrix_covariates(~income, data)
+  ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree) +
+    as.double(mod$point_coef_covariates * mc)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_linpred_from_stored_draws' works with valid inputs - has covariates and rows", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- set_covariates(mod, ~ income)
+  mod <- fit(mod)
+  ans_obtained <- make_linpred_from_stored_draws(mod,
+                                                 point = TRUE,
+                                                 rows = 11:120)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
+  nms_terms <- names(dimnames_terms)
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data[11:120,],
+                                                          dimnames_terms = dimnames_terms)
+  m1 <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrices <- make_matrices_effectfree_effect(mod)
+  m2 <- Matrix::.bdiag(matrices)
+  mc <- make_matrix_covariates(~income, data)[11:120,]
   ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree) +
     as.double(mod$point_coef_covariates * mc)
   expect_equal(ans_obtained, ans_expected)
@@ -2367,7 +2403,9 @@ test_that("'make_linpred_from_stored_draws_covariates' works with valid inputs -
   mod <- set_covariates(mod, ~income)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws_covariates(mod, point = FALSE)
+  ans_obtained <- make_linpred_from_stored_draws_covariates(mod,
+                                                            point = FALSE,
+                                                            rows = NULL)
   ans_expected <- scale(data$income) %*% mod$draws_coef_covariates
   expect_equal(as.matrix(ans_obtained), as.matrix(ans_expected))
 })
@@ -2385,11 +2423,32 @@ test_that("'make_linpred_from_stored_draws_covariates' works with valid inputs -
   mod <- set_covariates(mod, ~income)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws_covariates(mod, point = TRUE)
+  ans_obtained <- make_linpred_from_stored_draws_covariates(mod,
+                                                            point = TRUE,
+                                                            rows = NULL)
   ans_expected <- scale(data$income) %*% mod$point_coef_covariates
   expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
 })
 
+test_that("'make_linpred_from_stored_draws_covariates' works with valid inputs - rows non-null", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_covariates(mod, ~income)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- fit(mod)
+  ans_obtained <- make_linpred_from_stored_draws_covariates(mod,
+                                                            point = TRUE,
+                                                            rows = 1:80)
+  ans_expected <- (scale(data$income) %*% mod$point_coef_covariates)[1:80]
+  expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
+})
 
 
 ## 'make_linpred_from_stored_draws_effects' -----------------------------------
@@ -2405,7 +2464,9 @@ test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - po
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws_effects(mod, point = FALSE)
+  ans_obtained <- make_linpred_from_stored_draws_effects(mod,
+                                                         point = FALSE,
+                                                         rows = NULL)
   comp <- components(mod, quiet = TRUE)
   ans_expected <- make_linpred_from_components(mod = mod,
                                                components = comp,
@@ -2426,7 +2487,9 @@ test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - po
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws_effects(mod, point = TRUE)
+  ans_obtained <- make_linpred_from_stored_draws_effects(mod,
+                                                         point = TRUE,
+                                                         rows = NULL)
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   nms_terms <- names(dimnames_terms)
@@ -2438,6 +2501,33 @@ test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - po
   ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree)
   expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
 })
+
+test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - point is TRUE - rows supplied", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- fit(mod)
+  ans_obtained <- make_linpred_from_stored_draws_effects(mod,
+                                                         point = TRUE,
+                                                         rows = 1:90)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
+  nms_terms <- names(dimnames_terms)
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data[1:90,],
+                                                          dimnames_terms = dimnames_terms)
+  m1 <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrices <- make_matrices_effectfree_effect(mod)
+  m2 <- Matrix::.bdiag(matrices)
+  ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree)
+  expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
+})
+
 
 
 ## 'make_point_est_effects' ---------------------------------------------------

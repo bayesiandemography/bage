@@ -743,7 +743,9 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod, quiet) {
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
   ## prepare inputs
-  linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
+  linpred <- make_linpred_from_stored_draws(mod = mod,
+                                            point = FALSE,
+                                            rows = NULL)
   disp <- get_disp(mod)
   has_datamod_outcome <- has_datamod(mod)
   has_missing_outcome <- anyNA(outcome)
@@ -2406,15 +2408,19 @@ make_mod_disp.bage_mod_pois <- function(mod) {
   n_term <- length(mod$dimnames_terms)
   use_term <- rep(c(TRUE, FALSE), times = c(1L, n_term - 1L))
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
-  linpred <- make_linpred_from_stored_draws(mod = mod, point = TRUE)
   nrow_data <- nrow(mod$data)
-  if (nrow_data > nrow_max) {
-    i_keep <- sample(nrow_data, size = nrow_max)
-    ans$data <- ans$data[i_keep, , drop = FALSE]
-    ans$outcome <- ans$outcome[i_keep]
-    ans$offset <- ans$offset[i_keep]
-    linpred <- linpred[i_keep]
+  is_reduce_rows <- nrow_data > nrow_max
+  if (is_reduce_rows) {
+    rows <- sample(nrow_data, size = nrow_max)
+    ans$data <- ans$data[rows, , drop = FALSE]
+    ans$outcome <- ans$outcome[rows]
+    ans$offset <- ans$offset[rows]
   }
+  else
+    rows <- NULL
+  linpred <- make_linpred_from_stored_draws(mod = mod,
+                                            point = TRUE,
+                                            rows = rows)
   mu <- exp(linpred)
   ans$offset <- ans$offset * mu
   ans$nm_offset_data <- "offset_inner_outer"
@@ -2448,15 +2454,19 @@ make_mod_disp.bage_mod_norm <- function(mod) {
   n_term <- length(mod$dimnames_terms)
   use_term <- rep(c(TRUE, FALSE), times = c(1L, n_term - 1L))
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
-  linpred <- make_linpred_from_stored_draws(mod = mod, point = TRUE)
   nrow_data <- nrow(mod$data)
-  if (nrow_data > nrow_max) {
-    i_keep <- sample(nrow_data, size = nrow_max)
-    ans$data <- ans$data[i_keep, , drop = FALSE]
-    ans$outcome <- ans$outcome[i_keep]
-    ans$offset <- ans$offset[i_keep]
-    linpred <- linpred[i_keep]
+  is_reduce_rows <- nrow_data > nrow_max
+  if (is_reduce_rows) {
+    rows <- sample(nrow_data, size = nrow_max)
+    ans$data <- ans$data[rows, , drop = FALSE]
+    ans$outcome <- ans$outcome[rows]
+    ans$offset <- ans$offset[rows]
   }
+  else
+    rows <- NULL
+  linpred <- make_linpred_from_stored_draws(mod = mod,
+                                            point = TRUE,
+                                            rows = rows)
   ans$outcome <- ans$outcome - linpred
   ans$nm_offset_data <- "offset_inner_outer"
   ans
@@ -2516,7 +2526,9 @@ make_mod_outer <- function(mod, mod_inner, use_term) {
 ## HAS_TESTS
 #' @export
 make_mod_outer.bage_mod_pois <- function(mod, mod_inner, use_term) {
-  linpred_inner <- make_linpred_from_stored_draws(mod = mod_inner, point = TRUE)
+  linpred_inner <- make_linpred_from_stored_draws(mod = mod_inner,
+                                                  point = TRUE,
+                                                  rows = NULL)
   mu_inner <- exp(linpred_inner)
   use_term <- !use_term
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
@@ -2539,7 +2551,9 @@ make_mod_outer.bage_mod_binom <- function(mod, mod_inner, use_term) {
 ## HAS_TESTS
 #' @export
 make_mod_outer.bage_mod_norm <- function(mod, mod_inner, use_term) {
-  linpred_inner <- make_linpred_from_stored_draws(mod = mod_inner, point = TRUE)
+  linpred_inner <- make_linpred_from_stored_draws(mod = mod_inner,
+                                                  point = TRUE,
+                                                  rows = NULL)
   use_term <- !use_term
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
   ans$outcome <- ans$outcome - linpred_inner

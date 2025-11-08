@@ -3053,7 +3053,7 @@ test_that("'make_mod_disp' works with pois", {
   mod <- fit(mod)
   mod_disp <- make_mod_disp(mod)
   expect_setequal(names(mod_disp$priors), "(Intercept)")
-  mu <- exp(make_linpred_from_stored_draws(mod, point = TRUE))
+  mu <- exp(make_linpred_from_stored_draws(mod, point = TRUE, rows = NULL))
   expect_equal(mod_disp$offset, mod$offset * mu)
   expect_true(mod_disp$mean_disp > 0)
   expect_identical(length(mod_disp$dimnames_terms), 1L)
@@ -3104,7 +3104,7 @@ test_that("'make_mod_disp' works with binom", {
   mod <- fit(mod)
   mod_disp <- make_mod_disp(mod)
   expect_setequal(names(mod_disp$priors), "(Intercept)")
-  mu <- exp(make_linpred_from_stored_draws(mod, point = TRUE))
+  mu <- exp(make_linpred_from_stored_draws(mod, point = TRUE, rows = NULL))
   expect_true(mod_disp$mean_disp > 0)
 })
 
@@ -3137,7 +3137,7 @@ test_that("'make_mod_disp' works with norm", {
   mod <- fit(mod)
   mod_disp <- make_mod_disp(mod)
   expect_setequal(names(mod_disp$priors), "(Intercept)")
-  mu <- make_linpred_from_stored_draws(mod, point = TRUE)
+  mu <- make_linpred_from_stored_draws(mod, point = TRUE, rows = NULL)
   expect_equal(mod_disp$outcome, mod$outcome - mu)
   expect_true(mod_disp$mean_disp > 0)
   expect_identical(length(mod_disp$dimnames_terms), 1L)
@@ -3217,7 +3217,9 @@ test_that("'make_mod_outer' works with pois", {
                               mod_inner = mod_inner,
                               use_term = use_term)
   expect_setequal(names(mod_outer$priors), c("time", "sex:time"))
-  mu <- exp(make_linpred_from_stored_draws(mod_inner, point = TRUE))
+  mu <- exp(make_linpred_from_stored_draws(mod_inner,
+                                           point = TRUE,
+                                           rows = NULL))
   expect_equal(mod_outer$offset, mod$offset * mu)
   expect_equal(mod_outer$mean_disp, 0)
   expect_identical(mod_outer$nm_offset_data, "offset_inner_outer")
@@ -3281,7 +3283,9 @@ test_that("'make_mod_outer' works with norm", {
                               mod_inner = mod_inner,
                               use_term = use_term)
   expect_setequal(names(mod_outer$priors), c("time", "sex:time"))
-  mu <- make_linpred_from_stored_draws(mod_inner, point = TRUE)
+  mu <- make_linpred_from_stored_draws(mod_inner,
+                                       point = TRUE,
+                                       rows = NULL)
   expect_equal(mod_outer$outcome, mod$outcome - mu)
   expect_true(mod_outer$mean_disp > 0)
   expect_identical(mod_outer$nm_offset_data, "offset_inner_outer")

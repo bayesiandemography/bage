@@ -1925,16 +1925,19 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
 #' @param mod Object of class "bage_mod"
 #' @param point Whether to return point estimates
 #' or draws from the posterior.
+#' @param rows Rows of 'data' to use for calculations
 #'
 #' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_from_stored_draws <- function(mod, point) {
+make_linpred_from_stored_draws <- function(mod, point, rows) {
   ans <- make_linpred_from_stored_draws_effects(mod = mod,
-                                                point = point)
+                                                point = point,
+                                                rows = rows)
   if (has_covariates(mod)) {
     linpred_covariates <- make_linpred_from_stored_draws_covariates(mod = mod,
-                                                                    point = point)
+                                                                    point = point,
+                                                                    rows = rows)
     ans <- ans + linpred_covariates
   }
   if (point)
@@ -1948,40 +1951,48 @@ make_linpred_from_stored_draws <- function(mod, point) {
 
 
 ## HAS_TESTS
-#' Calculate the Contribution of Covariates to the Linear Predictor
+#' Calculate the Covariates Component of the Linear Predictor
 #'
 #' @param mod Object of class "bage_mod"
 #' @param point Whether to return point estimates
 #' or draws from the posterior.
+#' @param rows Rows of 'data' to use for calculations
 #'
 #' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_from_stored_draws_covariates <- function(mod, point) {
+make_linpred_from_stored_draws_covariates <- function(mod, point, rows) {
   formula_covariates <- mod$formula_covariates
   data <- mod$data
   if (point)
     coef_covariates <- mod$point_coef_covariates
   else
     coef_covariates <- mod$draws_coef_covariates
+  ## can't subset 'data', because might miss some
+  ## combinations of values expected by 'formula_covariates'
   matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
                                               data = data)
+  if (!is.null(rows))
+    matrix_covariates <- matrix_covariates[rows, , drop = FALSE]
   matrix_covariates %*% coef_covariates
 }
 
 
 ## HAS_TESTS
-#' Calculate the Contribution of Effects to the Linear Predictor
+#' Calculate the Effects Component of the Linear Predictor
 #'
 #' @param mod Object of class "bage_mod"
 #' @param point Whether to return point estimates
 #' or draws from the posterior.
+#' @param rows Rows of 'data' to use for calculations
 #'
 #' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_from_stored_draws_effects <- function(mod, point) {
+make_linpred_from_stored_draws_effects <- function(mod, point, rows) {
   data <- mod$data
+  if (!is.null(rows))
+    data <- data[rows, , drop = FALSE]
   dimnames_terms <- mod$dimnames_terms
   if (point)
     effectfree <- mod$point_effectfree
