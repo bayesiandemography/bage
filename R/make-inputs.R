@@ -1038,39 +1038,47 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
 #'
 #' @noRd
 make_matrices_effect_outcome <- function(data, dimnames_terms) {
-  n_term <- length(dimnames_terms)
-  ans <- vector(mode = "list", length = n_term)
+  ans <- .mapply(make_matrix_effect_outcome,
+                 dots = list(dimnames_term = dimnames_terms),
+                 MoreArgs = list(data = data))
   names(ans) <- names(dimnames_terms)
-  for (i_term in seq_len(n_term)) {
-    dimnames_term <- dimnames_terms[[i_term]]
-    nm <- dimnames_to_nm(dimnames_term)
-    is_intercept <- nm == "(Intercept)"
-    if (is_intercept) {
-      n_data <- nrow(data)
-      i <- seq_len(n_data)
-      j <- rep.int(1L, times = n_data)
-      x <- rep.int(1L, times = n_data)
-      m_term <- Matrix::sparseMatrix(i = i, j = j, x = x)
-    }
-    else {
-      nm_split <- dimnames_to_nm_split(dimnames_term)
-      data_term <- data[nm_split]
-      data_term[] <- .mapply(factor,
-                             dots = list(x = data_term, levels = dimnames_term),
-                             MoreArgs = list())
-      contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
-      formula_term <- paste0("~", nm, "-1")
-      formula_term <- stats::as.formula(formula_term)
-      m_term <- Matrix::sparse.model.matrix(formula_term,
-                                            data = data_term,
-                                            contrasts.arg = contrasts_term,
-                                            row.names = FALSE)
-      colnames(m_term) <- dimnames_to_levels(dimnames_term)
-    }
-    ans[[i_term]] <- m_term
-  }
-  ans        
+  ans
 }
+                      
+          
+##   n_term <- length(dimnames_terms)
+##   ans <- vector(mode = "list", length = n_term)
+##   names(ans) <- names(dimnames_terms)
+##   for (i_term in seq_len(n_term)) {
+##     dimnames_term <- dimnames_terms[[i_term]]
+##     nm <- dimnames_to_nm(dimnames_term)
+##     is_intercept <- nm == "(Intercept)"
+##     if (is_intercept) {
+##       n_data <- nrow(data)
+##       i <- seq_len(n_data)
+##       j <- rep.int(1L, times = n_data)
+##       x <- rep.int(1L, times = n_data)
+##       m_term <- Matrix::sparseMatrix(i = i, j = j, x = x)
+##     }
+##     else {
+##       nm_split <- dimnames_to_nm_split(dimnames_term)
+##       data_term <- data[nm_split]
+##       data_term[] <- .mapply(factor,
+##                              dots = list(x = data_term, levels = dimnames_term),
+##                              MoreArgs = list())
+##       contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
+##       formula_term <- paste0("~", nm, "-1")
+##       formula_term <- stats::as.formula(formula_term)
+##       m_term <- Matrix::sparse.model.matrix(formula_term,
+##                                             data = data_term,
+##                                             contrasts.arg = contrasts_term,
+##                                             row.names = FALSE)
+##       colnames(m_term) <- dimnames_to_levels(dimnames_term)
+##     }
+##     ans[[i_term]] <- m_term
+##   }
+##   ans        
+## }
 
 
 

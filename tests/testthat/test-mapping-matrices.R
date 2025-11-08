@@ -669,6 +669,57 @@ test_that("'make_matrix_draws_svd_nozero' works", {
 })
 
 
+## 'make_matrix_effect_outcome' -----------------------------------------------
+
+test_that("make_matrix_effect_outcome: intercept", {
+  df <- data.frame(x = 1:4)
+  dn <- list(`(Intercept)` = "(Intercept)")
+  M <- make_matrix_effect_outcome(df, dn)
+  expect_s4_class(M, "dgCMatrix")
+  expect_equal(dim(M), c(4L, 1L))
+  expect_equal(drop(M[, 1]), rep(1, 4))
+})
+
+test_that("make_matrix_effect_outcome: single factor matches sparse.model.matrix", {
+  df <- data.frame(f = factor(c("a","b","a","b")))
+  dn <- list(f = c("a","b"))
+  M1 <- make_matrix_effect_outcome(df, dn)
+  df_ref <- transform(df, f = factor(f, levels = c("a","b")))
+  M2 <- Matrix::sparse.model.matrix(~ f - 1, data = df_ref, row.names = FALSE)
+  colnames(M2) <- dimnames_to_levels(dn)
+  expect_equal(as.matrix(M1), as.matrix(M2))
+})
+
+test_that("make_matrix_effect_outcome: two-factor interaction matches sparse.model.matrix", {
+  df <- data.frame(
+    f1 = c("a","a","b","b"),
+    f2 = c("x","y","x","y")
+  )
+  dn <- list(f1 = c("a","b"), f2 = c("x","y"))
+  M1 <- make_matrix_effect_outcome(df, dn)
+  df_ref <- transform(
+    df,
+    f1 = factor(f1, levels = c("a","b")),
+    f2 = factor(f2, levels = c("x","y"))
+  )
+  M2 <- Matrix::sparse.model.matrix(~ f1:f2 - 1, data = df_ref, row.names = FALSE)
+  colnames(M2) <- dimnames_to_levels(dn)
+  expect_equal(as.matrix(M1), as.matrix(M2))
+})
+
+test_that("make_matrix_effect_outcome: missing combinations still allocate full width", {
+  df <- data.frame(
+    f1 = c("a","a","b"),
+    f2 = c("x","y","x")
+  )
+  dn <- list(f1 = c("a","b"), f2 = c("x","y"))
+  M <- make_matrix_effect_outcome(df, dn)
+  expect_equal(dim(M), c(3L, 4L))
+  expect_equal(colnames(M), dimnames_to_levels(dn))
+  expect_true(all(M[, "b.y"] == 0))
+})
+
+
 ## 'make_matrix_effectfree_effect_inner' --------------------------------------
 
 test_that("'make_matrix_effectfree_effect_inner' works - con is 'by', along first", {

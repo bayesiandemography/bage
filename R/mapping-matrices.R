@@ -486,6 +486,54 @@ make_matrix_draws_svd_nozero <- function(prior,
 }
 
 
+#' Make a Matrix from an Effect to an Outcome
+#'
+#' Designed to be memory efficient
+#'
+#' @param data Data used to fit model
+#' @param dimnames_term The dimnames for the particular effect
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_matrix_effect_outcome <- function(data, dimnames_term) {
+  n <- nrow(data)
+  i <- seq_len(n)
+  x <- rep(1L, n)
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames <- list(NULL, dimnames_to_levels(dimnames_term))
+  is_intercept <- nm == "(Intercept)"
+  if (is_intercept) {
+    j <- rep.int(1L, n)
+    dims <- c(n, 1L)
+  }
+  else {
+    nm_split <- dimnames_to_nm_split(dimnames_term)
+    factors <- .mapply(factor,
+                       dots = list(x = data[nm_split],
+                                   levels = dimnames_term),
+                       MoreArgs = list())
+    lengths <- vapply(factors, nlevels, integer(1L))
+    n_factor <- length(factors)
+    j <- as.integer(factors[[1L]])
+    mult <- 1L
+    if (n_factor > 1L) {
+      for (k in seq.int(from = 2L, to = n_factor)) {
+        mult <- mult * lengths[k - 1L]
+        j <- j + (as.integer(factors[[k]]) - 1L) * mult
+      }
+    }
+    dims <- c(n, prod(lengths))
+  }
+  Matrix::sparseMatrix(i = i,
+                       j = j,
+                       x = x,
+                       dims = dims,
+                       dimnames = dimnames)
+}
+
+
+
 #' Make Matrix to Transform between 'effectfree' and 'effect
 #'
 #' Workhorse for 'make_matrix_effectfree_effect'
