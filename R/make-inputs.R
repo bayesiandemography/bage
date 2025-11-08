@@ -1125,21 +1125,25 @@ make_matrices_effectfree_effect <- function(mod) {
 #'
 #' @noRd
 make_matrix_covariates <- function(formula, data) {
-  is_numeric <- vapply(data, is.numeric, FALSE)
-  all_numeric <- all(is_numeric)
-  has_intercept <- attr(stats::terms(formula), "intercept")
+  tt <- stats::terms(formula)
+  has_intercept <- attr(tt, "intercept")
+  var_names <- all.vars(formula)
+  is_in_formula <- names(data) %in% var_names
+  is_numeric <- vapply(data, is.numeric, logical(1L))
   standardize <- function(x) as.numeric(scale(x))
-  data[is_numeric] <- lapply(data[is_numeric], standardize)
+  is_standardize <- is_in_formula & is_numeric
+  data[is_standardize] <- lapply(data[is_standardize], standardize)
+  all_numeric <- all(is_numeric[is_in_formula])
   if (all_numeric) {
-    formula <- stats::update(formula, ~.-1)
-    ans <- stats::model.matrix(formula, data = data)
+    formula <- stats::update(formula, ~ . - 1)
+    ans <- Matrix::sparse.model.matrix(formula, data = data)
   }
   else {
     if (!has_intercept)
       formula <- stats::update(formula, ~ . + 1)
-    ans <- stats::model.matrix(formula, data = data)
+    ans <- Matrix::sparse.model.matrix(formula, data = data)
     if (!identical(colnames(ans)[[1L]], "(Intercept)"))
-      cli::cli_abort("Internal error: First column is not intercept.") ## nocov
+      cli::cli_abort("Internal error: First column is not intercept.")  # nocov
     ans <- ans[, -1L, drop = FALSE]
   }
   attr(ans, "assign") <- NULL
@@ -1300,7 +1304,10 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
                                                 data = data_df)
   else
-    matrix_covariates <- matrix(NA_real_, nrow = 0, ncol = 0)
+    matrix_covariates <- Matrix::Matrix(0,
+                                        nrow = 0L,
+                                        ncol = 0L,
+                                        sparse = TRUE)
   list(outcome = outcome,
        offset = offset,
        matrices_effect_outcome = matrices_effect_outcome,

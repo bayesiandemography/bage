@@ -1908,8 +1908,9 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
     coef_covariates <- fitted[indices_covariates]
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
                                                 data = data)
-    coef_covariates <- as.matrix(coef_covariates)
+    coef_covariates <- as.matrix(coef_covariates) ## coerce from rvec
     val_covariates_linpred <- matrix_covariates %*% coef_covariates
+    val_covariates_linpred <- Matrix::as.matrix(val_covariates_linpred)
     ans <- ans + val_covariates_linpred
   }
   ans <- rvec::rvec_dbl(ans)
@@ -1974,7 +1975,9 @@ make_linpred_from_stored_draws_covariates <- function(mod, point, rows) {
                                               data = data)
   if (!is.null(rows))
     matrix_covariates <- matrix_covariates[rows, , drop = FALSE]
-  matrix_covariates %*% coef_covariates
+  ans <- matrix_covariates %*% coef_covariates
+  ans <- Matrix::as.matrix(ans)
+  ans
 }
 
 
