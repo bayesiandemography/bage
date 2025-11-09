@@ -1,5 +1,5 @@
 
-## 'combine_stored_draws_point_inner_outer' -----------------------------------------
+## 'combine_stored_draws_point_inner_outer' -----------------------------------
 
 test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
   set.seed(0)
@@ -594,59 +594,88 @@ test_that("'impute_outcome_true' raises error with invalid nm_distn", {
 
 
 
+## 'infer_trend_cyc_seas_err_forecast' ----------------------------------------
 
-  
-
-
-## 'make_combined_matrix_effect_outcome' --------------------------------------
-
-test_that("'make_combined_matrix_effect_outcome' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + age * time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_combined_matrix_effect_outcome(mod)
-    expect_identical(nrow(ans_obtained), nrow(data))
-    expect_identical(ncol(ans_obtained), length(make_terms_effects(mod$dimnames_terms)))
-    expect_false(all(ans_obtained[,1] == 0))
+test_that("'infer_trend_cyc_seas_err_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_prior(time ~ RW2()) |>
+    set_prior(sex:time ~ Lin()) |>
+    fit()
+  mod <- set_n_draw(mod, 5)
+  mod <- fit(mod)
+  comp_est <- components(mod)
+  comp_forecast <- forecast(mod, labels = 2006:2007, output = "components")
+  dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                          var_time = mod$var_time,
+                                                          labels_forecast = 2006:2007,
+                                                          time_only = TRUE)
+  ans_obtained <- infer_trend_cyc_seas_err_forecast(components = comp_forecast,
+                                                    priors = mod$priors,
+                                                    dimnames_terms = dimnames_terms_forecast,
+                                                    var_time = mod$var_time,
+                                                    var_age = mod$var_age)
+  expect_equal(ans_obtained[1:3], comp_forecast[1:3])
 })
 
 
-## 'make_combined_matrix_effectfree_effect' -----------------------------------------
+## 'infer_trend_cyc_seas_err_seasfix_forecast' --------------------------------
 
-test_that("'make_combined_matrix_effectfree_effect' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + age * time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_combined_matrix_effectfree_effect(mod)
-    expect_identical(nrow(ans_obtained), length(make_terms_effects(mod$dimnames_terms)))
-    expect_identical(ncol(ans_obtained), length(make_terms_effectfree(mod)))
+test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3)) |>
+                  set_n_draw(n = 10) |>
+                  fit()
+  components <- components(mod)
+  ans <- infer_trend_cyc_seas_err_seasfix_forecast(prior = mod$priors[["sex:time"]],
+                                                   dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                                   var_time = mod$var_time,
+                                                   var_age = mod$var_age,
+                                                   components = components)
+  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
+  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
+  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
+  expect_equal(effect, season + trend)
 })
 
 
-## 'make_combined_offset_effectfree_effect' -----------------------------------------
+## 'infer_trend_cyc_seas_err_seasvary_forecast' -------------------------------
 
-test_that("'make_combined_offset_effectfree_effect' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + age * time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_combined_offset_effectfree_effect(mod)
-    expect_identical(length(ans_obtained), length(make_terms_effects(mod$dimnames_terms)))
-    expect_true(all(ans_obtained == 0))
+test_that("'infer_trend_cyc_seas_err_seasvary_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3, s = 1)) |>
+                  set_n_draw(n = 10) |>
+                  fit()
+  components <- components(mod)
+  ans <- infer_trend_cyc_seas_err_seasvary_forecast(prior = mod$priors[["sex:time"]],
+                                                    dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                                    var_time = mod$var_time,
+                                                    var_age = mod$var_age,
+                                                    components = components)
+  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
+  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
+  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
+  expect_equal(effect, season + trend)
 })
 
 
@@ -1111,32 +1140,9 @@ test_that("make_draws_post uses dense path when precision is dense", {
 })
 
 
-## 'fit_default' --------------------------------------------------------------
+## 'make_effects' -------------------------------------------------------------
 
-## lots more tests for 'fit' method
-
-test_that("'fit_default' works with pois, optimzier is 'multi'", {
-  set.seed(10)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-    set_prior(age ~ AR()) |>
-    set_prior(age:sex ~ RW2(sd = 0)) |>
-    set_prior(age:sex:time ~ AR())
-  ans_obtained <- fit_default(mod,
-                              optimizer = "multi",
-                              quiet = TRUE,
-                              aggregate = TRUE,
-                              max_jitter = 1e-4,
-                              start_oldpar = FALSE)
-  expect_s3_class(ans_obtained, "bage_mod")
-})
-
-test_that("'fit_default' works with pois, optimzier is 'nlminb'", {
+test_that("'make_effects' works with valid inputs - draws", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1144,17 +1150,22 @@ test_that("'fit_default' works with pois, optimzier is 'nlminb'", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn)
-  ans_obtained <- fit_default(mod,
-                              optimizer = "nlminb",
-                              quiet = TRUE,
-                              aggregate = TRUE,
-                              max_jitter = 1e-4,
-                              start_oldpar = FALSE)
-  expect_s3_class(ans_obtained, "bage_mod")
+                  exposure = popn) |>
+    set_n_draw(n_draw = 10) |>
+    fit_default(aggregate = FALSE, optimizer = "nlminb",
+                quiet = TRUE, max_jitter= 0,
+                start_oldpar = FALSE)
+  effectfree <- mod$draws_effectfree
+  ans_obtained <- make_effects(mod = mod,
+                               effectfree = effectfree)
+  ans_expected <- list("(Intercept)" = effectfree[1,,drop = F],
+                       age = effectfree[2:11,],
+                       sex = effectfree[12:13,],
+                       time = effectfree[14:19,])
+  expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'fit_default' works with pois - start_oldpar", {
+test_that("'make_effects' works with valid inputs - point", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1162,245 +1173,19 @@ test_that("'fit_default' works with pois - start_oldpar", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn)
-  mod <- fit_default(mod,
-                     optimizer = "nlminb",
-                     quiet = TRUE,
-                     aggregate = TRUE,
-                     max_jitter = 1e-4,
-                     start_oldpar = FALSE)
-  ans_obtained <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
-                              start_oldpar = TRUE)
-  expect_s3_class(ans_obtained, "bage_mod")
-})
-
-test_that("'fit_default' gives error with 'start_oldpar' if model fitted", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  expect_error(fit_default(mod,
-                           optimizer = "nlminb",
-                           quiet = TRUE,
-                           aggregate = TRUE,
-                           max_jitter = 1e-4,
-                           start_oldpar = TRUE),
-               "`start_oldpar` is TRUE but model has not been fitted.")
-})
-
-
-## 'fit_inner_outer' ----------------------------------------------------------
-
-test_that("'fit_inner_outer' works with with pois", {
-  set.seed(0)
-  data <- expand.grid(age = 0:5,
-                      time = 2000:2003,
-                      sex = c("F", "M"),
-                      region = c("a", "b"))
-  data$popn <- rpois(n = nrow(data), lambda = 1000)
-  data$deaths <- rnbinom(n = nrow(data), mu = 0.1 * data$popn, size = 100)
-  formula <- deaths ~ age * sex + region * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  set.seed(0)
-  ans_inner_outer <- fit_inner_outer(mod,
-                                     optimizer = "nlminb",
-                                     quiet = TRUE,
-                                     start_oldpar = FALSE,
-                                     vars_inner = c("age", "sex"))
-  set.seed(0)
-  ans_default <- fit_default(mod,
-                             optimizer = "nlminb",
-                             quiet = TRUE,
-                             start_oldpar = FALSE,
-                             max_jitter = 1e-4,
-                             aggregate = TRUE)
-  aug_inner_outer <- ans_inner_outer |>
-    augment()
-  fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
-  aug_default <- ans_default |>
-    augment()
-  fit_default <- rvec::draws_median(aug_default$.fitted)
-  expect_true(cor(fit_inner_outer, fit_default) > 0.98)
-})
-
-test_that("'fit_inner_outer' works with with binom", {
-  set.seed(0)
-  data <- expand.grid(age = 0:5,
-                      time = 2000:2001,
-                      sex = c("F", "M"),
-                      region = c("a", "b"))
-  data$popn <- rpois(n = nrow(data), lambda = 1000)
-  data$deaths <- rbinom(n = nrow(data), prob = 0.2, size = data$popn)
-  formula <- deaths ~ age * sex + region * time
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  set.seed(0)
-  ans_inner_outer <- fit_inner_outer(mod,
-                                     optimizer = "nlminb",
-                                     quiet = TRUE,
-                                     start_oldpar = FALSE,
-                                     vars_inner = NULL)
-  set.seed(0)
-  ans_default <- fit_default(mod,
-                             optimizer = "nlminb",
-                             quiet = TRUE,
-                             start_oldpar = FALSE,
-                             max_jitter = 1e-4,
-                             aggregate = TRUE)
-  aug_inner_outer <- ans_inner_outer |>
-  augment()
-  fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
-  aug_default <- ans_default |>
-  augment()
-  fit_default <- rvec::draws_median(aug_default$.fitted)
-  expect_true(cor(fit_inner_outer, fit_default) > 0.95)
-})
-
-test_that("'fit_inner_outer' works with with norm", {
-  set.seed(0)
-  data <- expand.grid(age = 0:5,
-                      time = 2000:2003,
-                      sex = c("F", "M"),
-                      region = c("a", "b"))
-  data$wt <- rpois(n = nrow(data), lambda = 10)
-  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
-  formula <- income ~ age * sex + region * time
-  mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = wt)
-  set.seed(0)
-  ans_inner_outer <- fit_inner_outer(mod,
-                                     optimizer = "BFGS",
-                                     quiet = TRUE,
-                                     start_oldpar = FALSE,
-                                     vars_inner = c("age", "sex"))
-  set.seed(0)
-  ans_default <- fit_default(mod,
-                             optimizer = "BFGS",
-                             quiet = TRUE,
-                             start_oldpar = FALSE,
-                             max_jitter = 1e-4,
-                             aggregate = TRUE)
-  aug_inner_outer <- ans_inner_outer |>
-    augment()
-  fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
-  aug_default <- ans_default |>
-    augment()
-  fit_default <- rvec::draws_median(aug_default$.fitted)
-  expect_true(cor(fit_inner_outer, fit_default) > 0.98)
-})
-
-test_that("'fit_inner_outer' throws error when 'start_oldpar' is TRUE", {
-  set.seed(0)
-  data <- expand.grid(age = 0:5,
-                      time = 2000:2003,
-                      sex = c("F", "M"),
-                      region = c("a", "b"))
-  data$wt <- rpois(n = nrow(data), lambda = 10)
-  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
-  formula <- income ~ age * sex + region * time
-  mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = wt)
-  set.seed(0)
-  expect_error(fit_inner_outer(mod,
-                               optimizer = "BFGS",
-                               quiet = TRUE,
-                               start_oldpar = TRUE,
-                               vars_inner = c("age", "sex")),
-               "`start_oldpar` must be FALSE when using \"inner-outer\" method.")
-})
-
-
-## 'infer_trend_cyc_seas_err_forecast' --------------------------------------------
-
-test_that("'infer_trend_cyc_seas_err_forecast' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
                   exposure = popn) |>
-    set_prior(time ~ RW2()) |>
-    set_prior(sex:time ~ Lin()) |>
-    fit()
-  mod <- set_n_draw(mod, 5)
-  mod <- fit(mod)
-  comp_est <- components(mod)
-  comp_forecast <- forecast(mod, labels = 2006:2007, output = "components")
-  dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
-                                                          var_time = mod$var_time,
-                                                          labels_forecast = 2006:2007,
-                                                          time_only = TRUE)
-  ans_obtained <- infer_trend_cyc_seas_err_forecast(components = comp_forecast,
-                                                    priors = mod$priors,
-                                                    dimnames_terms = dimnames_terms_forecast,
-                                                    var_time = mod$var_time,
-                                                    var_age = mod$var_age)
-  expect_equal(ans_obtained[1:3], comp_forecast[1:3])
-})
-
-
-## 'infer_trend_cyc_seas_err_seasfix_forecast' --------------------------------
-
-test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n = 3)) |>
-                  set_n_draw(n = 10) |>
-                  fit()
-  components <- components(mod)
-  ans <- infer_trend_cyc_seas_err_seasfix_forecast(prior = mod$priors[["sex:time"]],
-                                                   dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                                   var_time = mod$var_time,
-                                                   var_age = mod$var_age,
-                                                   components = components)
-  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
-  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
-  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
-  expect_equal(effect, season + trend)
-})
-
-
-## 'infer_trend_cyc_seas_err_seasvary_forecast' -------------------------------
-
-test_that("'infer_trend_cyc_seas_err_seasvary_forecast' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n = 3, s = 1)) |>
-                  set_n_draw(n = 10) |>
-                  fit()
-  components <- components(mod)
-  ans <- infer_trend_cyc_seas_err_seasvary_forecast(prior = mod$priors[["sex:time"]],
-                                                    dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                                    var_time = mod$var_time,
-                                                    var_age = mod$var_age,
-                                                    components = components)
-  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
-  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
-  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
-  expect_equal(effect, season + trend)
+    set_n_draw(n_draw = 10) |>
+    fit_default(aggregate = FALSE, optimizer = "nlminb",
+                quiet = TRUE, max_jitter= 0,
+                start_oldpar = FALSE)
+  effectfree <- mod$point_effectfree
+  ans_obtained <- make_effects(mod = mod,
+                               effectfree = effectfree)
+  ans_expected <- list("(Intercept)" = matrix(effectfree[1]),
+                       age = matrix(effectfree[2:11]),
+                       sex = matrix(effectfree[12:13]),
+                       time = matrix(effectfree[14:19]))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -2576,7 +2361,9 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - point is F
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws(mod, point = FALSE)
+  ans_obtained <- make_linpred_from_stored_draws(mod,
+                                                 point = FALSE,
+                                                 rows = NULL)
   comp <- components(mod, quiet = TRUE)
   ans_expected <- make_linpred_from_components(mod = mod,
                                                components = comp,
@@ -2596,14 +2383,22 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - point is T
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws(mod, point = TRUE)
-  m1 <- make_combined_matrix_effect_outcome(mod)
-  m2 <- make_combined_matrix_effectfree_effect(mod)
+  ans_obtained <- make_linpred_from_stored_draws(mod,
+                                                 point = TRUE,
+                                                 rows = NULL)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
+  nms_terms <- names(dimnames_terms)
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
+                                                          dimnames_terms = dimnames_terms)
+  m1 <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrices <- make_matrices_effectfree_effect(mod)
+  m2 <- Matrix::.bdiag(matrices)
   ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree)
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_linpred_from_stored_draws' works with valid inputs - has covariaes", {
+test_that("'make_linpred_from_stored_draws' works with valid inputs - has covariates", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -2616,10 +2411,48 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - has covari
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- set_covariates(mod, ~ income)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws(mod, point = TRUE)
-  m1 <- make_combined_matrix_effect_outcome(mod)
-  m2 <- make_combined_matrix_effectfree_effect(mod)
+  ans_obtained <- make_linpred_from_stored_draws(mod,
+                                                 point = TRUE,
+                                                 rows = NULL)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
+  nms_terms <- names(dimnames_terms)
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
+                                                          dimnames_terms = dimnames_terms)
+  m1 <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrices <- make_matrices_effectfree_effect(mod)
+  m2 <- Matrix::.bdiag(matrices)
   mc <- make_matrix_covariates(~income, data)
+  ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree) +
+    as.double(mod$point_coef_covariates * mc)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_linpred_from_stored_draws' works with valid inputs - has covariates and rows", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- set_covariates(mod, ~ income)
+  mod <- fit(mod)
+  ans_obtained <- make_linpred_from_stored_draws(mod,
+                                                 point = TRUE,
+                                                 rows = 11:120)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
+  nms_terms <- names(dimnames_terms)
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data[11:120,],
+                                                          dimnames_terms = dimnames_terms)
+  m1 <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrices <- make_matrices_effectfree_effect(mod)
+  m2 <- Matrix::.bdiag(matrices)
+  mc <- make_matrix_covariates(~income, data)[11:120,]
   ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree) +
     as.double(mod$point_coef_covariates * mc)
   expect_equal(ans_obtained, ans_expected)
@@ -2641,7 +2474,9 @@ test_that("'make_linpred_from_stored_draws_covariates' works with valid inputs -
   mod <- set_covariates(mod, ~income)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws_covariates(mod, point = FALSE)
+  ans_obtained <- make_linpred_from_stored_draws_covariates(mod,
+                                                            point = FALSE,
+                                                            rows = NULL)
   ans_expected <- scale(data$income) %*% mod$draws_coef_covariates
   expect_equal(as.matrix(ans_obtained), as.matrix(ans_expected))
 })
@@ -2659,11 +2494,32 @@ test_that("'make_linpred_from_stored_draws_covariates' works with valid inputs -
   mod <- set_covariates(mod, ~income)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws_covariates(mod, point = TRUE)
+  ans_obtained <- make_linpred_from_stored_draws_covariates(mod,
+                                                            point = TRUE,
+                                                            rows = NULL)
   ans_expected <- scale(data$income) %*% mod$point_coef_covariates
   expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
 })
 
+test_that("'make_linpred_from_stored_draws_covariates' works with valid inputs - rows non-null", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_covariates(mod, ~income)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- fit(mod)
+  ans_obtained <- make_linpred_from_stored_draws_covariates(mod,
+                                                            point = TRUE,
+                                                            rows = 1:80)
+  ans_expected <- (scale(data$income) %*% mod$point_coef_covariates)[1:80]
+  expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
+})
 
 
 ## 'make_linpred_from_stored_draws_effects' -----------------------------------
@@ -2679,7 +2535,9 @@ test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - po
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws_effects(mod, point = FALSE)
+  ans_obtained <- make_linpred_from_stored_draws_effects(mod,
+                                                         point = FALSE,
+                                                         rows = NULL)
   comp <- components(mod, quiet = TRUE)
   ans_expected <- make_linpred_from_components(mod = mod,
                                                components = comp,
@@ -2700,12 +2558,47 @@ test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - po
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_from_stored_draws_effects(mod, point = TRUE)
-  m1 <- make_combined_matrix_effect_outcome(mod)
-  m2 <- make_combined_matrix_effectfree_effect(mod)
+  ans_obtained <- make_linpred_from_stored_draws_effects(mod,
+                                                         point = TRUE,
+                                                         rows = NULL)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
+  nms_terms <- names(dimnames_terms)
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
+                                                          dimnames_terms = dimnames_terms)
+  m1 <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrices <- make_matrices_effectfree_effect(mod)
+  m2 <- Matrix::.bdiag(matrices)
   ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree)
   expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
 })
+
+test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - point is TRUE - rows supplied", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- fit(mod)
+  ans_obtained <- make_linpred_from_stored_draws_effects(mod,
+                                                         point = TRUE,
+                                                         rows = 1:90)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
+  nms_terms <- names(dimnames_terms)
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data[1:90,],
+                                                          dimnames_terms = dimnames_terms)
+  m1 <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrices <- make_matrices_effectfree_effect(mod)
+  m2 <- Matrix::.bdiag(matrices)
+  ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree)
+  expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
+})
+
 
 
 ## 'make_point_est_effects' ---------------------------------------------------

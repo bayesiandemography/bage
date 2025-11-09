@@ -809,64 +809,6 @@ make_along_mod <- function(mod) {
 
 
 ## HAS_TESTS
-#' Create combined matrix from effect to outcome
-#'
-#' Combine matrices for individual terms to
-#' create a matrix that maps all elements of
-#' 'effect' to 'outcome'.
-#'
-#' @param An object of class 'bage_mod'
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_combined_matrix_effect_outcome <- function(mod) {
-  data <- mod$data
-  dimnames_terms <- mod$dimnames_terms
-  nms_terms <- names(dimnames_terms)
-  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
-                                                          dimnames_terms = dimnames_terms)
-  Reduce(Matrix::cbind2, matrices_effect_outcome)
-}
-
-
-## HAS_TESTS
-#' Create combined matrix from effectfree to effect
-#'
-#' Combine matrices for individual terms to
-#' create a matrix that maps all elements of
-#' 'effectfree' to 'effect'.
-#'
-#' @param An object of class 'bage_mod'
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_combined_matrix_effectfree_effect <- function(mod) {
-    matrices <- make_matrices_effectfree_effect(mod)
-    Matrix::.bdiag(matrices)
-}
-
-
-## HAS_TESTS
-#' Create combined offset from effectfree to effect
-#'
-#' Combine offsets for individual terms to
-#' create a offset that maps all elements of
-#' 'effectfree' to 'effect'.
-#'
-#' @param An object of class 'bage_mod'
-#'
-#' @returns A numeric vector
-#'
-#' @noRd
-make_combined_offset_effectfree_effect <- function(mod) {
-    offsets <- make_offsets_effectfree_effect(mod)
-    do.call(c, offsets)
-}
-
-
-## HAS_TESTS
 #' Make variable identifying component in 'components'
 #'
 #' Helper function for function 'components'
@@ -1020,6 +962,7 @@ make_draws_components <- function(mod) {
   ## effects
   effectfree <- mod$draws_effectfree
   ans_effects <- make_effects(mod = mod, effectfree = effectfree)
+  ans_effects <- do.call(rbind, ans_effects)
   ans_effects <- rvec::rvec_dbl(ans_effects)
   ## hyper
   hyper <- mod$draws_hyper
@@ -1238,10 +1181,23 @@ make_draws_post <- function(est, prec, map, n_draw, max_jitter) {
 #' 
 #' @noRd
 make_effects <- function(mod, effectfree) {
-  matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-  offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
-  ans <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
-  ans <- Matrix::as.matrix(ans)
+  matrices <- make_matrices_effectfree_effect(mod)
+  offsets <- make_offsets_effectfree_effect(mod)
+  lengths_effectfree <- vapply(matrices, ncol, 1L)
+  is_draws <- is.matrix(effectfree)
+  if (is_draws) {
+    effectfree_split <- split_matrix_rows(m = effectfree,
+                                          nrows = lengths_effectfree)
+  }
+  else
+    effectfree_split <- split_vector_lengths(v = effectfree,
+                                             lengths = lengths_effectfree)
+  ans <- .mapply(function(m, x, o) Matrix::as.matrix(m %*% x + o),
+                 dots = list(m = matrices,
+                             x = effectfree_split,
+                             o = offsets),
+                 MoreArgs = list())
+  names(ans) <- names(matrices)
   ans
 }
 
@@ -1990,8 +1946,9 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
     coef_covariates <- fitted[indices_covariates]
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
                                                 data = data)
-    coef_covariates <- as.matrix(coef_covariates)
+    coef_covariates <- as.matrix(coef_covariates) ## coerce from rvec
     val_covariates_linpred <- matrix_covariates %*% coef_covariates
+    val_covariates_linpred <- Matrix::as.matrix(val_covariates_linpred)
     ans <- ans + val_covariates_linpred
   }
   ans <- rvec::rvec_dbl(ans)
@@ -2007,16 +1964,19 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
 #' @param mod Object of class "bage_mod"
 #' @param point Whether to return point estimates
 #' or draws from the posterior.
+#' @param rows Rows of 'data' to use for calculations
 #'
 #' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_from_stored_draws <- function(mod, point) {
+make_linpred_from_stored_draws <- function(mod, point, rows) {
   ans <- make_linpred_from_stored_draws_effects(mod = mod,
-                                                point = point)
+                                                point = point,
+                                                rows = rows)
   if (has_covariates(mod)) {
     linpred_covariates <- make_linpred_from_stored_draws_covariates(mod = mod,
-                                                                    point = point)
+                                                                    point = point,
+                                                                    rows = rows)
     ans <- ans + linpred_covariates
   }
   if (point)
@@ -2030,46 +1990,68 @@ make_linpred_from_stored_draws <- function(mod, point) {
 
 
 ## HAS_TESTS
-#' Calculate the Contribution of Covariates to the Linear Predictor
+#' Calculate the Covariates Component of the Linear Predictor
 #'
 #' @param mod Object of class "bage_mod"
 #' @param point Whether to return point estimates
 #' or draws from the posterior.
+#' @param rows Rows of 'data' to use for calculations
 #'
 #' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_from_stored_draws_covariates <- function(mod, point) {
+make_linpred_from_stored_draws_covariates <- function(mod, point, rows) {
   formula_covariates <- mod$formula_covariates
   data <- mod$data
   if (point)
     coef_covariates <- mod$point_coef_covariates
   else
     coef_covariates <- mod$draws_coef_covariates
+  ## can't subset 'data', because might miss some
+  ## combinations of values expected by 'formula_covariates'
   matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
                                               data = data)
-  matrix_covariates %*% coef_covariates
+  if (!is.null(rows))
+    matrix_covariates <- matrix_covariates[rows, , drop = FALSE]
+  ans <- matrix_covariates %*% coef_covariates
+  ans <- Matrix::as.matrix(ans)
+  ans
 }
 
 
 ## HAS_TESTS
-#' Calculate the Contribution of Effects to the Linear Predictor
+#' Calculate the Effects Component of the Linear Predictor
 #'
 #' @param mod Object of class "bage_mod"
 #' @param point Whether to return point estimates
 #' or draws from the posterior.
+#' @param rows Rows of 'data' to use for calculations
 #'
 #' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_from_stored_draws_effects <- function(mod, point) {
-  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+make_linpred_from_stored_draws_effects <- function(mod, point, rows) {
+  data <- mod$data
+  if (!is.null(rows))
+    data <- data[rows, , drop = FALSE]
+  dimnames_terms <- mod$dimnames_terms
   if (point)
     effectfree <- mod$point_effectfree
   else
     effectfree <- mod$draws_effectfree
-  effect <- make_effects(mod = mod, effectfree = effectfree)
-  matrix_effect_outcome %*% effect
+  effects <- make_effects(mod = mod,
+                          effectfree = effectfree)
+  matrices <- make_matrices_effect_outcome(data = data,
+                                           dimnames_terms = dimnames_terms)
+  n_effect <- length(effects)
+  ans <- matrices[[1L]] %*% effects[[1L]]
+  if (n_effect > 1L) {
+    for (i_effect in seq.int(from = 2L, to = n_effect)) {
+      ans <- ans + matrices[[i_effect]] %*% effects[[i_effect]]
+    }
+  }
+  ans <- Matrix::as.matrix(ans)
+  ans
 }
 
 
@@ -2087,10 +2069,8 @@ make_point_est_effects <- function(mod) {
   point_effectfree <- mod$point_effectfree
   dimnames_terms <- mod$dimnames_terms
   terms_effects <- make_terms_effects(dimnames_terms)
-  point_effects <- make_effects(mod = mod, effectfree = point_effectfree)
-  point_effects <- as.double(point_effects)
-  ans <- split(x = point_effects, f = terms_effects)
-  ans <- ans[unique(terms_effects)] ## 'split' orders result
+  ans <- make_effects(mod = mod, effectfree = point_effectfree)
+  ans <- lapply(ans, as.double)
   ans
 }
 

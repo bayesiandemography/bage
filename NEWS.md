@@ -1,4 +1,18 @@
 
+# bage 0.9.10
+
+## Changes to internal calculations
+
+* Covariates (as created by `set_covariates()` now use sparse rather
+  than dense matrices, which has significantly speeded up
+  computations, and reduced memory usage, for models with categorical
+  covariates.
+* Internal calculations for post-processing results from TMB have been
+  refactored to speed them up, and reduce memory usage. (More outputs
+  are built piece-by-piece rather than in one go.) Some large models
+  now run significantly faster, and models that previously could not
+  be fitted because of memory limitations now can.
+
 # bage 0.9.9
 
 ## Changes to model behavior

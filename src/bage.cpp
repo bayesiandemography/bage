@@ -1889,7 +1889,7 @@ Type objective_function<Type>::operator() ()
   DATA_FACTOR(terms_consts);
   DATA_STRUCT(matrices_along_by_effectfree, LIST_M_t);
   DATA_SCALAR(mean_disp);
-  DATA_MATRIX(matrix_covariates);
+  DATA_SPARSE_MATRIX(matrix_covariates);
   DATA_INTEGER(i_datamod);
   DATA_VECTOR(datamod_consts);
   DATA_STRUCT(datamod_matrices, LIST_SM_t);

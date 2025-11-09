@@ -1042,39 +1042,47 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
 #'
 #' @noRd
 make_matrices_effect_outcome <- function(data, dimnames_terms) {
-  n_term <- length(dimnames_terms)
-  ans <- vector(mode = "list", length = n_term)
+  ans <- .mapply(make_matrix_effect_outcome,
+                 dots = list(dimnames_term = dimnames_terms),
+                 MoreArgs = list(data = data))
   names(ans) <- names(dimnames_terms)
-  for (i_term in seq_len(n_term)) {
-    dimnames_term <- dimnames_terms[[i_term]]
-    nm <- dimnames_to_nm(dimnames_term)
-    is_intercept <- nm == "(Intercept)"
-    if (is_intercept) {
-      n_data <- nrow(data)
-      i <- seq_len(n_data)
-      j <- rep.int(1L, times = n_data)
-      x <- rep.int(1L, times = n_data)
-      m_term <- Matrix::sparseMatrix(i = i, j = j, x = x)
-    }
-    else {
-      nm_split <- dimnames_to_nm_split(dimnames_term)
-      data_term <- data[nm_split]
-      data_term[] <- .mapply(factor,
-                             dots = list(x = data_term, levels = dimnames_term),
-                             MoreArgs = list())
-      contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
-      formula_term <- paste0("~", nm, "-1")
-      formula_term <- stats::as.formula(formula_term)
-      m_term <- Matrix::sparse.model.matrix(formula_term,
-                                            data = data_term,
-                                            contrasts.arg = contrasts_term,
-                                            row.names = FALSE)
-      colnames(m_term) <- dimnames_to_levels(dimnames_term)
-    }
-    ans[[i_term]] <- m_term
-  }
-  ans        
+  ans
 }
+                      
+          
+##   n_term <- length(dimnames_terms)
+##   ans <- vector(mode = "list", length = n_term)
+##   names(ans) <- names(dimnames_terms)
+##   for (i_term in seq_len(n_term)) {
+##     dimnames_term <- dimnames_terms[[i_term]]
+##     nm <- dimnames_to_nm(dimnames_term)
+##     is_intercept <- nm == "(Intercept)"
+##     if (is_intercept) {
+##       n_data <- nrow(data)
+##       i <- seq_len(n_data)
+##       j <- rep.int(1L, times = n_data)
+##       x <- rep.int(1L, times = n_data)
+##       m_term <- Matrix::sparseMatrix(i = i, j = j, x = x)
+##     }
+##     else {
+##       nm_split <- dimnames_to_nm_split(dimnames_term)
+##       data_term <- data[nm_split]
+##       data_term[] <- .mapply(factor,
+##                              dots = list(x = data_term, levels = dimnames_term),
+##                              MoreArgs = list())
+##       contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
+##       formula_term <- paste0("~", nm, "-1")
+##       formula_term <- stats::as.formula(formula_term)
+##       m_term <- Matrix::sparse.model.matrix(formula_term,
+##                                             data = data_term,
+##                                             contrasts.arg = contrasts_term,
+##                                             row.names = FALSE)
+##       colnames(m_term) <- dimnames_to_levels(dimnames_term)
+##     }
+##     ans[[i_term]] <- m_term
+##   }
+##   ans        
+## }
 
 
 
@@ -1121,21 +1129,25 @@ make_matrices_effectfree_effect <- function(mod) {
 #'
 #' @noRd
 make_matrix_covariates <- function(formula, data) {
-  is_numeric <- vapply(data, is.numeric, FALSE)
-  all_numeric <- all(is_numeric)
-  has_intercept <- attr(stats::terms(formula), "intercept")
+  tt <- stats::terms(formula)
+  has_intercept <- attr(tt, "intercept")
+  var_names <- all.vars(formula)
+  is_in_formula <- names(data) %in% var_names
+  is_numeric <- vapply(data, is.numeric, logical(1L))
   standardize <- function(x) as.numeric(scale(x))
-  data[is_numeric] <- lapply(data[is_numeric], standardize)
+  is_standardize <- is_in_formula & is_numeric
+  data[is_standardize] <- lapply(data[is_standardize], standardize)
+  all_numeric <- all(is_numeric[is_in_formula])
   if (all_numeric) {
-    formula <- stats::update(formula, ~.-1)
-    ans <- stats::model.matrix(formula, data = data)
+    formula <- stats::update(formula, ~ . - 1)
+    ans <- Matrix::sparse.model.matrix(formula, data = data)
   }
   else {
     if (!has_intercept)
       formula <- stats::update(formula, ~ . + 1)
-    ans <- stats::model.matrix(formula, data = data)
+    ans <- Matrix::sparse.model.matrix(formula, data = data)
     if (!identical(colnames(ans)[[1L]], "(Intercept)"))
-      cli::cli_abort("Internal error: First column is not intercept.") ## nocov
+      cli::cli_abort("Internal error: First column is not intercept.")  # nocov
     ans <- ans[, -1L, drop = FALSE]
   }
   attr(ans, "assign") <- NULL
@@ -1296,7 +1308,10 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
                                                 data = data_df)
   else
-    matrix_covariates <- matrix(NA_real_, nrow = 0, ncol = 0)
+    matrix_covariates <- Matrix::Matrix(0,
+                                        nrow = 0L,
+                                        ncol = 0L,
+                                        sparse = TRUE)
   list(outcome = outcome,
        offset = offset,
        matrices_effect_outcome = matrices_effect_outcome,
