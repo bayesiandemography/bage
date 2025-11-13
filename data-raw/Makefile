@@ -8,10 +8,11 @@ all: ../data/isl_deaths.rda \
      ../data/nzl_injuries.rda \
      ../data/prt_deaths.rda \
      ../data/usa_deaths.rda \
+     ../data/CSA.rda \
+     ../data/HFD.rda \
      ../data/HIMD_P1.rda \
      ../data/HIMD_P5.rda \
      ../data/HIMD_R.rda \
-     ../data/HFD.rda \
      ../data/HMD.rda \
      ../data/LFP.rda \
      ../data/WMD_C.rda \
@@ -79,6 +80,16 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
 
 ## 'bage_ssvd' objects
 
+../data/CSA.rda: ssvd_csa/CSA.R \
+  ssvd_csa/UNdata_Export_20251022_221132488.csv.zip \
+  ssvd_csa/UNdata_Export_20251022_221508651.csv.zip
+	Rscript $^ $@
+
+../data/HFD.rda: ssvd_hfd/HFD.R \
+  ssvd_hfd/asfrRR_20240523.txt.zip \
+  ssvd_hfd/asfrRR_20250724.txt.zip
+	Rscript $^ $@
+
 ../data/HIMD_P1.rda: ssvd_himd/HIMD_P1.R \
   ssvd_himd/himd_20241023.zip
 	Rscript $^ $@
@@ -89,11 +100,6 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
 
 ../data/HIMD_R.rda: ssvd_himd/HIMD_R.R \
   ssvd_himd/himd_20241023.zip
-	Rscript $^ $@
-
-../data/HFD.rda: ssvd_hfd/HFD.R \
-  ssvd_hfd/asfrRR_20240523.txt.zip \
-  ssvd_hfd/asfrRR_20250724.txt.zip
 	Rscript $^ $@
 
 ../data/HMD.rda: ssvd_hmd/HMD.R \
