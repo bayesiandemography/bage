@@ -42,6 +42,18 @@ from the
 downloadd on 5 November 2025
 }
 }
+\section{Warning}{
+
+
+Compared other demographic processes, such as
+mortality, age-sex patterns in school attendance
+have more variation across populations. More
+components may be needed to obtain satisfactory
+representations of actual age-sex patterns
+for school attendance than for other processes,
+and even then the accuracy may not be as high.
+}
+
 \seealso{
 \itemize{
 \item \link[=svds]{Scaled SVDs} Overview of scaled SVDs

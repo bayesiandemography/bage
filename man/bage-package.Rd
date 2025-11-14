@@ -29,27 +29,25 @@ and is fast.
 \item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
 \item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for main effect or interaction
-\item \link{priors} List of available priors for main effects or interactions
+\item \link{priors} Overview of priors for main effects or interactions
 \item \code{\link[=set_disp]{set_disp()}} Specify prior for dispersion/variance
-\item \code{\link[=set_var_age]{set_var_age()}} Identify age variable in data
-\item \code{\link[=set_var_sexgender]{set_var_sexgender()}} Identify sex or gender variable in data
-\item \code{\link[=set_var_time]{set_var_time()}} Identify time variable in data
+\item \code{\link[=set_covariates]{set_covariates()}} Add covariates to model
+\item \link{datamods} Overview of data models (measurement error models)
+\item \link{confidential} Overview of confidentialization models
 }
 
 \strong{Fit model}
 \itemize{
 \item \code{\link[=fit]{fit()}} Derive posterior distribution
-\item \code{\link[=is_fitted]{is_fitted()}} See if model has been fitted
 }
 
 \strong{Extract results}
 \itemize{
-\item \code{\link[=augment]{augment()}} Add cell-level estimates to data
+\item \code{\link[=augment]{augment()}} Original data, plus observation-level estimates
 \item \link[=components.bage_mod]{components()} Hyper-parameters
-\item \code{\link[=dispersion]{dispersion()}} Dispersion parameter
+\item \code{\link[=dispersion]{dispersion()}} Dispersion parameter (a type of hyper-parameter)
 \item \code{\link[=tidy]{tidy()}} One-line summary
 \item \code{\link[=set_n_draw]{set_n_draw()}} Specify number of prior or posterior draws
-\item \link[=n_draw.bage_mod]{n_draw()} Get number of prior or posterior draws
 }
 
 \strong{Forecast}
@@ -65,26 +63,7 @@ and is fast.
 
 \strong{SVD-based modelling of age profiles}
 \itemize{
-\item \link[=components.bage_ssvd]{components()} Matrices and offsets from scaled SVD
-\item \link[=generate.bage_ssvd]{generate()} Random profiles
-\item \link{HFD} Scaled SVD of fertility rates from Human Fertility Database
-\item \link{HIMD_R},\link{HIMD_P1},\link{HIMD_P5} Scaled SVD of mortality rates from
-Human Internal Migration Database
-\item \link{HMD} Scaled SVD of mortality rates from Human Mortality Database
-\item \link{LFP} Scaled SVD of labor force participation rates from OECD
-\item \link{WMD_C},\link{WMD_E} Scaled SVD of World Marriage Data
-}
-
-\strong{Data}
-\itemize{
-\item \link{isl_deaths} Deaths in Iceland
-\item \link{kor_births} Births in South Korea
-\item \link{nld_expenditure} Health expenditure in the Netherlands
-\item \link{nzl_divorces} Divorces in New Zealand
-\item \link{nzl_households} One-person households in New Zealand
-\item \link{nzl_injuries} Fatal injuries in New Zealand
-\item \link{swe_infant} Infant mortality in Sweden
-\item \link{usa_deaths} Accidental deaths in the USA
+\item \link{svds} Overview of scaled SVDs
 }
 }
 
