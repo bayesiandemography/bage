@@ -24,6 +24,7 @@ An object of class \code{"bage_ssvd"}
 holding components extracted from labor force participation
 data from the
 \href{https://data-explorer.oecd.org}{OECD Data Explorer}.
+\code{LFP} holds 5 components.
 }
 \details{
 \strong{Versions:}

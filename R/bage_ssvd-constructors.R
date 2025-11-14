@@ -37,18 +37,12 @@
 #' @returns An object of class `"bage_ssvd"`.
 #'
 #' @seealso
-#' - `bssvd::data_ssvd_hfd()` Prepare data from Human Fertility Database
-#' - `bssvd::data_ssvd_hmd()` Prepare data from Human Mortality Database
-#' - `bssvd::data_ssvd_lfp()` Prepare OECD data on labor force participation
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
+#' - [SVD()] Prior based on scaled SVD
 #'
 #' @examples
-#' library(bssvd)
-#' library(dplyr)
-#' data <- oecd_lfp_subset |>
-#'   data_ssvd_lfp() |>
-#'   mutate(version = "v1")
-#' LFP_subset <- ssvd(data)
-#' LFP_subset
+#' ssvd(data_wmd)
 #' @export
 ssvd <- function(data) {
   nms_valid <- c("version",

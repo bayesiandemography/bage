@@ -20,25 +20,23 @@
 #' - [mod_binom()] Specify a binomial model
 #' - [mod_norm()] Specify a normal model
 #' - [set_prior()] Specify prior for main effect or interaction
-#' - [priors] List of available priors for main effects or interactions
+#' - [priors] Overview of priors for main effects or interactions
 #' - [set_disp()] Specify prior for dispersion/variance
-#' - [set_var_age()] Identify age variable in data
-#' - [set_var_sexgender()] Identify sex or gender variable in data
-#' - [set_var_time()] Identify time variable in data
+#' - [set_covariates()] Add covariates to model
+#' - [datamods] Overview of data models (measurement error models)
+#' - [confidential] Overview of confidentialization models
 #'
 #' **Fit model**
 #'
-#' - [fit()] Derive posterior distribution
-#' - [is_fitted()] See if model has been fitted
+#' - [bage::fit()] Derive posterior distribution
 #'
 #' **Extract results**
 #'
-#' - [augment()] Add cell-level estimates to data
+#' - [augment()] Original data, plus observation-level estimates
 #' - [components()][bage::components.bage_mod] Hyper-parameters
-#' - [dispersion()] Dispersion parameter
+#' - [dispersion()] Dispersion parameter (a type of hyper-parameter)
 #' - [tidy()] One-line summary
 #' - [set_n_draw()] Specify number of prior or posterior draws
-#' - [n_draw()][bage::n_draw.bage_mod] Get number of prior or posterior draws
 #'
 #' **Forecast**
 #'
@@ -51,25 +49,8 @@
 #'
 #' **SVD-based modelling of age profiles**
 #'
-#' - [components()][bage::components.bage_ssvd] Matrices and offsets from scaled SVD
-#' - [generate()][bage::generate.bage_ssvd] Random profiles
-#' - [HFD] Scaled SVD of fertility rates from Human Fertility Database
-#' - [HIMD_R],[HIMD_P1],[HIMD_P5] Scaled SVD of mortality rates from
-#'   Human Internal Migration Database
-#' - [HMD] Scaled SVD of mortality rates from Human Mortality Database
-#' - [LFP] Scaled SVD of labor force participation rates from OECD
-#' - [WMD_C],[WMD_E] Scaled SVD of World Marriage Data
+#' - [svds] Overview of scaled SVDs
 #'
-#' **Data**
-#'
-#' - [isl_deaths] Deaths in Iceland
-#' - [kor_births] Births in South Korea
-#' - [nld_expenditure] Health expenditure in the Netherlands
-#' - [nzl_divorces] Divorces in New Zealand
-#' - [nzl_households] One-person households in New Zealand
-#' - [nzl_injuries] Fatal injuries in New Zealand
-#' - [swe_infant] Infant mortality in Sweden
-#' - [usa_deaths] Accidental deaths in the USA
 #' 
 #' @keywords internal
 "_PACKAGE"

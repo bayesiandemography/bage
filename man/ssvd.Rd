@@ -46,18 +46,12 @@ element of \code{matrix}.
 in package \href{https://bayesiandemography.github.io/bssvd/}{bssvd}.
 }
 \examples{
-library(bssvd)
-library(dplyr)
-data <- oecd_lfp_subset |>
-  data_ssvd_lfp() |>
-  mutate(version = "v1")
-LFP_subset <- ssvd(data)
-LFP_subset
+ssvd(data_wmd)
 }
 \seealso{
 \itemize{
-\item \code{bssvd::data_ssvd_hfd()} Prepare data from Human Fertility Database
-\item \code{bssvd::data_ssvd_hmd()} Prepare data from Human Mortality Database
-\item \code{bssvd::data_ssvd_lfp()} Prepare OECD data on labor force participation
+\item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
+implemented in \pkg{bage}
+\item \code{\link[=SVD]{SVD()}} Prior based on scaled SVD
 }
 }

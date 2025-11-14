@@ -8,19 +8,23 @@ library(ggplot2)
 
 ## SVD tests ------------------------------------------------------------------
 
-nms_svd <- c("HFD",
+nms_svd <- c("CSA",
+             "HFD",
              "HIMD_R", "HIMD_P1", "HIMD_P5",
              "HMD",
              "LFP",
              "WMD_C", "WMD_E")
 
-transforms <- list(exp,
+transforms <- list(invlogit,
+                   exp,
                    exp, invlogit, invlogit,
                    identity,
                    invlogit,
                    invlogit, invlogit)
 
 has_sex_var <- function(x) "indep" %in% x$data$type
+
+n_comp <- 5
 
 ## components
 
@@ -34,7 +38,7 @@ for (nm in nms_svd) {
   obj <- get(nm)
   has_sex <- has_sex_var(obj)
   indep <- if (has_sex) FALSE else NULL
-  comp <- components(obj, n_comp = 5, indep = indep)
+  comp <- components(obj, n_comp = n_comp, indep = indep)
   if (has_sex) {
     p <- ggplot(comp, aes(x = age_mid(age), y = value, color = sex))
   } else {
@@ -65,7 +69,7 @@ for (i in seq_along(nms_svd)) {
   obj <- get(nm)
   has_sex <- has_sex_var(obj)
   indep <- if (has_sex) FALSE else NULL
-  gen <- generate(obj, indep = indep, n_comp = 5)
+  gen <- generate(obj, indep = indep, n_comp = n_comp)
   gen$value <- transform(gen$value)
   if (has_sex) {
     p <- ggplot(gen, aes(x = age_mid(age), y = value, color = sex))

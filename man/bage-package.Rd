@@ -72,7 +72,7 @@ and is fast.
 Human Internal Migration Database
 \item \link{HMD} Scaled SVD of mortality rates from Human Mortality Database
 \item \link{LFP} Scaled SVD of labor force participation rates from OECD
-\item \link{WMD_C},\link{WMD_E} Scaled SVD of World Migration Data
+\item \link{WMD_C},\link{WMD_E} Scaled SVD of World Marriage Data
 }
 
 \strong{Data}

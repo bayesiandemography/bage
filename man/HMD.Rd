@@ -26,7 +26,7 @@ An object of class \code{"bage_ssvd"}
 holding scaled SVD components derived from
 data from the
 \href{https://www.mortality.org}{Human Mortality Database}.
-The object holds 5 components.
+\code{HMD} holds 5 components.
 }
 \details{
 \strong{Versions:}

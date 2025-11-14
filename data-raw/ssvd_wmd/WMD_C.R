@@ -6,7 +6,7 @@ suppressPackageStartupMessages({
   library(command)
 })
 
-cmd_assign(.wmd19 = "undesa_pd_2019_wmd_marital_status.xlsx",
+cmd_assign(.wmd19 = "ssvd_wmd/undesa_pd_2019_wmd_marital_status.xlsx",
            .out = "../data/WMD_C.rda")
 
 WMD_C <- data_ssvd_wmd(.wmd19, status = "current") |>

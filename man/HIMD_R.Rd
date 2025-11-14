@@ -36,7 +36,8 @@ Objects of class \code{"bage_ssvd"}
 holding scaled SVD components derived from
 data from the
 \href{https://osf.io/vmrfk/}{Human Internal Migration Database}.
-Each object holds 5 components
+\code{HIMD_P1}, \code{HIMD_P5}, and \code{HIMD_R} each
+object hold 5 components
 }
 \details{
 \itemize{

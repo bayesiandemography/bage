@@ -237,13 +237,62 @@
 
 ## SVD ------------------------------------------------------------------------
 
+#' Scaled SVD Components from Census School Attendance Data
+#'
+#' An object of class `"bage_ssvd"`
+#' holding scaled SVD components derived from
+#' census data on school attendance.
+#' The attendance data is assembed by
+#' by the United Nations Statistics Division,
+#' and presented in the
+#' "Population 5 to 24 years of age by school
+#' attendance, sex and urban/rural residence" table in
+#' from the
+#' [Population Censuses' Datasets](https://unstats.un.org/unsd/demographic-social/products/dyb/index.cshtml#censusdatasets). 
+#' `CSA` holds 5 components.
+#'
+#' **Versions:**
+#'
+#' - `"v2025"` (default) version of data
+#'   downloadd on 5 November 2025
+#'
+#' @section Warning:
+#'
+#' Compared other demographic processes, such as
+#' mortality, age-sex patterns in school attendance
+#' have more variation across populations. More
+#' components may be needed to obtain satisfactory
+#' representations of actual age-sex patterns
+#' for school attendance than for other processes,
+#' and even then the accuracy may not be as high.
+#' 
+#' @format
+#' Object of class `"bage_ssvd"`.
+#'
+#' @seealso
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
+#'
+#' @source Derived from data in the
+#' "Population 5 to 24 years of age by school
+#' attendance, sex and urban/rural residence" table in
+#' from the "Population Censuses' Datasets"
+#' database assembled by the United Nations
+#' Statistics Division.
+#' Code to create `CSA`
+#' is in folder 'data-raw/ssvd_csa'
+#' in the source code for the \pkg{bage}
+#' package.
+"CSA"
+
+
 #' Scaled SVD Components from Human Fertility Database
 #'
 #' An object of class `"bage_ssvd"`
 #' holding scaled SVD components derived from
 #' data from the
 #' [Human Fertility Database](https://www.humanfertility.org).
-#' The object holds 5 components.
+#' `HFD` holds 5 components.
 #'
 #' **Versions:**
 #'
@@ -275,7 +324,8 @@
 #' holding scaled SVD components derived from
 #' data from the
 #' [Human Internal Migration Database](https://osf.io/vmrfk/).
-#' Each object holds 5 components
+#' `HIMD_P1`, `HIMD_P5`, and `HIMD_R` each
+#' object hold 5 components
 #'
 #' - `HIMD_P1` is derived from data on
 #'   1-year migration probabilities, ie the
@@ -324,7 +374,7 @@
 #' holding scaled SVD components derived from
 #' data from the
 #' [Human Mortality Database](https://www.mortality.org).
-#' The object holds 5 components.
+#' `HMD` holds 5 components.
 #'
 #' **Versions:**
 #'
@@ -360,6 +410,7 @@
 #' holding components extracted from labor force participation
 #' data from the
 #' [OECD Data Explorer](https://data-explorer.oecd.org).
+#' `LFP` holds 5 components.
 #'
 #' **Versions:**
 #'
@@ -388,7 +439,7 @@
 #' holding scaled SVD components derived from
 #' data from the
 #' [World Marriage Data database](https://www.un.org/development/desa/pd/data/world-marriage-data).
-#' Each object holds 5 components.
+#' `WMD_C` and `WMD_E` each hold 5 components.
 #'
 #' - `WMD_C` is based on data on the proportion
 #'   of the population that is currently married.
@@ -427,3 +478,34 @@
 
 #' @rdname WMD_C
 "WMD_E"
+
+
+## Data for SVD ---------------------------------------------------------------
+
+#' Data to Create Scaled SVD Object
+#' Based on World Marriage Database
+#'
+#' A subset of the data needed to produce
+#' a scaled SVD object, derived from
+#' data from the World Marriage Database.
+#' The data is formatted using function
+#' `data_ssvd_wmd()` in package \pkg{bssvd}.
+#'
+#' @format
+#' A tibble with 6 rows and with columns
+#' `version`, `type`, `labels_age`,
+#' `labels_sexgender`, `matrix`, and `offset`.
+#'
+#' @seealso
+#' - [ssvd()] Function to create scaled SVD objects
+#' - [WMD_C] Scaled SVD object based on a
+#'   full set of World Marriage Database data.
+#' - [Scaled SVDs][svds] Overview of scaled SVDs
+#'   implemented in \pkg{bage}
+#'
+#' @source Derived from data from the
+#' [World Marriage Data](https://www.un.org/development/desa/pd/data/world-marriage-data)
+#' 2019 database,
+#' which is assembled by the UN Population
+#' Division from national census and survey data.
+"data_wmd"

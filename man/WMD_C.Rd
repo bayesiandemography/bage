@@ -31,7 +31,7 @@ Object of class \code{"bage_ssvd"}
 holding scaled SVD components derived from
 data from the
 \href{https://www.un.org/development/desa/pd/data/world-marriage-data}{World Marriage Data database}.
-Each object holds 5 components.
+\code{WMD_C} and \code{WMD_E} each hold 5 components.
 }
 \details{
 \itemize{

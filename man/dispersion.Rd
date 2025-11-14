@@ -20,7 +20,7 @@ scale or the transformed scale.
 Default is \code{FALSE}.}
 }
 \value{
-An \link[rvec:rvec]{rvecs}
+An \link[rvec:rvec]{rvec}
 (or \code{NULL} if the model does not
 include a dispersion parameter.)
 }

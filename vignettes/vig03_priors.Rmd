@@ -77,7 +77,7 @@ plot_cor_many <- function(draws) {
 
 ```{r}
 plot_svd_one <- function(draws) {
-  ggplot(draws, aes(x = age_mid(age), y = value, color = sexgender)) +
+  ggplot(draws, aes(x = age_mid(age), y = value, color = sex)) +
     facet_wrap(vars(draw), nrow = 1) +
     geom_line() +
     scale_color_manual(values = c("darkgreen", "darkorange")) +
@@ -94,7 +94,7 @@ plot_svd_one <- function(draws) {
 plot_svd_many <- function(draws) {
   draws |>
     mutate(element = paste("Unit", element)) |>
-    ggplot(aes(x = age_mid(age), y = value, color = sexgender)) +
+    ggplot(aes(x = age_mid(age), y = value, color = sex)) +
     facet_grid(vars(element), vars(draw)) +
     geom_line() +
     scale_color_manual(values = c("darkgreen", "darkorange")) +
@@ -780,7 +780,7 @@ SVD_AR(HMD, indep = FALSE, s = 0.1) |>
   generate(n_draw = 6, n_along = 5) |>
     ggplot(aes(x = age_mid(age), 
                       y = value, 
-                      color = sexgender)) +
+                      color = sex)) +
       facet_grid(vars(draw), vars(along)) +
       geom_line() +
       scale_color_manual(values = c("darkgreen", "darkorange")) +

@@ -119,6 +119,11 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
   ssvd_wmd/undesa_pd_2019_wmd_marital_status.xlsx
 	Rscript $^ $@
 
+## Data for creating scaled SVD object
+
+../data/data_wmd.rda: ssvd_wmd/data_wmd.R \
+  ssvd_wmd/undesa_pd_2019_wmd_marital_status.xlsx
+	Rscript $^ $@
 
 ## update help files
 
