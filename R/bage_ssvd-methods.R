@@ -15,11 +15,12 @@
 #' The default is half the total number of
 #' components of `object`.
 #' @param indep Whether to use independent or
-#' joint SVDs for each sex/gender. If
-#' no value is supplied, and `object`
-#' includes type `"total"`, then an SVD with no
-#' sex/gender dimension is used. Note that this
-#' default is different from [SVD()].
+#' joint SVDs for each sex/gender, if the
+#' data contains a sex/gender variable.
+#' The default is to use independent SVDs.
+#' To obtain results for the total population
+#' when the data contains a sex/gender variable,
+#' set `indep` to `NA`.
 #' @param age_labels Age labels for the
 #' desired age or age-sex profile.
 #' If no labels are supplied, the
@@ -38,14 +39,14 @@
 #' - [poputils::age_labels()] Generate age labels.
 #'
 #' @examples
-#' ## females and males combined
+#' ## females and males modeled independently
 #' components(LFP, n_comp = 3)
 #'
-#' ## females and males modelled independently
-#' components(LFP, indep = TRUE, n_comp = 3)
-#' 
 #' ## joint model for females and males
 #' components(LFP, indep = FALSE, n_comp = 3)
+#'
+#' ## females and males combined
+#' components(LFP, indep = NA, n_comp = 3)
 #'
 #' ## specify age groups
 #' labels <- poputils::age_labels(type = "five", min = 15, max = 60)
@@ -77,18 +78,29 @@ components.bage_ssvd <- function(object,
   }
   has_indep_arg <- !is.null(indep)
   if (has_indep_arg) {
-    check_flag(x = indep, nm_x = "indep")
-    if (!has_sexgender(object))
-      cli::cli_abort(paste("Value supplied for {.arg indep}, but {.arg object}",
-                           "does not have a sex/gender dimension."))
-    type <- if (indep) "indep" else "joint"
+    if (identical(length(indep), 1L) && is.na(indep)) {
+      has_total <- "total" %in% data$type
+      if (has_total)
+        type <- "total"
+      else
+        cli::cli_abort(paste("{.arg indep} is {.val {NA}} but {.arg object}",
+                             "does not have results for total population."))
+    }
+    else {
+      check_flag(x = indep, nm_x = "indep")
+      if (!has_sexgender(object))
+        cli::cli_abort(paste("Value supplied for {.arg indep}, but",
+                             "{.arg object} does not have a sex/gender",
+                             "dimension."))
+      type <- if (indep) "indep" else "joint"
+    }
   }
   else {
-    has_total <- "total" %in% data$type
-    if (has_total)
-      type <- "total"
-    else
+    has_indep <- "indep" %in% data$type
+    if (has_indep)
       type <- "indep"
+    else
+      type <- "total"
   }
   has_age <- !is.null(age_labels)
   if (has_age) {
@@ -205,11 +217,14 @@ components.bage_ssvd <- function(object,
 #' - [poputils::age_labels()] Generate age labels.
 #'
 #' @examples
-#' ## SVD for females and males combined
-#' generate(HMD)
+#' ## females and males modeled independently
+#' generate(HMD) 
 #'
-#' ## separate SVDs for females and males
-#' generate(HMD, indep = TRUE) 
+#' ## joint model for females and males
+#' generate(HMD, indep = FALSE) 
+#' 
+#' ## SVD for females and males combined
+#' generate(HMD, indep = NA)
 #'
 #' ## specify age groups
 #' labels <- poputils::age_labels(type = "lt", max = 60)

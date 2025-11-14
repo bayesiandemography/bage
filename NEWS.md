@@ -1,4 +1,23 @@
 
+# bage 0.10.0
+
+## Extending facilities for scaled SVD priors
+
+* Added new scaled SVDs `CSA`, `HIMD_R`, `HIMD_P1`, `HIMD_P5`,
+  `WMD_C`, `WMD_E`, for use in modeling school attendance, internal
+  migration, and marriage.
+* `generate()` method for scaled SVDs uses the term `sex` rather than
+  `sexgender` in results, for consistency with `components()`.
+* `generate()` and `components()` methods for scaled SVDs default to
+  showing results disaggregated by sex/gender, rather than results for
+  the total population.
+* Function `ssvd()`, for creating scaled SVDs, now visible to users.
+* Version information has been added to scaled SVDs. Functions for
+  creating SVD-based priors, such as [SVD()] and [SVD_AR()] now
+  include an argument `v` that can be used to specify a version.
+
+
+
 # bage 0.9.10
 
 ## Changes to internal calculations

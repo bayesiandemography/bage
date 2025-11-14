@@ -26,11 +26,12 @@ The default is half the total number of
 components of \code{object}.}
 
 \item{indep}{Whether to use independent or
-joint SVDs for each sex/gender. If
-no value is supplied, and \code{object}
-includes type \code{"total"}, then an SVD with no
-sex/gender dimension is used. Note that this
-default is different from \code{\link[=SVD]{SVD()}}.}
+joint SVDs for each sex/gender, if the
+data contains a sex/gender variable.
+The default is to use independent SVDs.
+To obtain results for the total population
+when the data contains a sex/gender variable,
+set \code{indep} to \code{NA}.}
 
 \item{age_labels}{Age labels for the
 desired age or age-sex profile.
@@ -62,11 +63,14 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 }
 
 \examples{
-## SVD for females and males combined
-generate(HMD)
+## females and males modeled independently
+generate(HMD) 
 
-## separate SVDs for females and males
-generate(HMD, indep = TRUE) 
+## joint model for females and males
+generate(HMD, indep = FALSE) 
+
+## SVD for females and males combined
+generate(HMD, indep = NA)
 
 ## specify age groups
 labels <- poputils::age_labels(type = "lt", max = 60)

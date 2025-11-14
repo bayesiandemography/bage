@@ -192,9 +192,9 @@ test_that("'generate_prior_svd_helper' works with valid inputs - n_by = 1", {
 })
 
 
-## 'generate_ssvd_helper' -----------------------------------------------------------------
+## 'generate_ssvd_helper' -----------------------------------------------------
 
-test_that("'generate_ssvd_helper' works with valid inputs - indep = NULL, n_element = 1", {
+test_that("'generate_ssvd_helper' works with valid inputs - indep = NA, n_element = 1", {
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
                               v = "v2025",
@@ -202,13 +202,13 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = NULL, n_elem
                               n_element = 1,
                               n_draw = 3,
                               n_comp = 2,
-                              indep = NULL,
+                              indep = NA,
                               age_labels = NULL)
   expect_identical(nrow(ans$matrix), length(unique(ans$ans$age)))
   expect_identical(ncol(ans$matrix), 2L)
 })
 
-test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by = 1, n_along = 3", {
+test_that("'generate_ssvd_helper' works with valid inputs - indep = NULL, n_by = 1, n_along = 3", {
   set.seed(0)
   ans <- generate_ssvd_helper(ssvd = LFP,
                               v = NULL,
@@ -221,6 +221,21 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by =
                               age_labels = NULL)
   expect_identical(nrow(ans$matrix), 3L * nrow(unique(ans$ans[c("age", "sex")])))
   expect_identical(ncol(ans$matrix), 12L)
+})
+
+test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by = 1, n_along = 3", {
+  set.seed(0)
+  ans <- generate_ssvd_helper(ssvd = LFP,
+                              v = NULL,
+                              nm_ssvd = "LFP",
+                              n_along = 3,
+                              n_by = 1,
+                              n_draw = 3,
+                              n_comp = NULL,
+                              indep = TRUE,
+                              age_labels = NULL)
+  expect_identical(nrow(ans$matrix), 3L * nrow(unique(ans$ans[c("age", "sex")])))
+  expect_identical(ncol(ans$matrix), 18L)
 })
 
 test_that("'generate_ssvd_helper' works with valid inputs - indep = FALSE, n_by = 1", {
@@ -253,6 +268,21 @@ test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by =
   expect_identical(ncol(ans$matrix), 24L)
   expect_identical(nrow(ans$matrix_along_by), 3L)
 })
+
+test_that("'generate_ssvd_helper' throws appropriate error when 'n_comp' too large", {
+  set.seed(0)
+  expect_error(generate_ssvd_helper(ssvd = LFP,
+                              v = NULL,
+                              nm_ssvd = "LFP",
+                              n_along = 3,
+                              n_by = 2,
+                              n_draw = 3,
+                              n_comp = 6,
+                              indep = TRUE,
+                              age_labels = NULL),
+               "`n_comp` larger than number of components of `x`.")
+})
+
 
 test_that("'generate_ssvd_helper' gives appropriate error when v invalid", {
   expect_error(generate_ssvd_helper(ssvd = HMD,

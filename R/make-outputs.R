@@ -339,18 +339,28 @@ generate_ssvd_helper <- function(ssvd,
   n_comp <- as.integer(n_comp)
   has_indep_arg <- !is.null(indep)
   if (has_indep_arg) {
-    check_flag(x = indep, nm_x = "indep")
-    if (!has_sexgender(ssvd))
-      cli::cli_abort(paste("Value supplied for {.arg indep}, but {.arg x}",
-                           "does not have a sex/gender dimension."))
-    type <- if (indep) "indep" else "joint"
+    if (identical(length(indep), 1L) && is.na(indep)) {
+      has_total <- "total" %in% data$type
+      if (has_total)
+        type <- "total"
+      else
+        cli::cli_abort(paste("{.arg indep} is {.val {NA}} but {.arg x}",
+                             "does not have results for total population."))
+    }
+    else {
+      check_flag(x = indep, nm_x = "indep")
+      if (!has_sexgender(ssvd))
+        cli::cli_abort(paste("Value supplied for {.arg indep}, but {.arg x}",
+                             "does not have a sex/gender dimension."))
+      type <- if (indep) "indep" else "joint"
+    }
   }
   else {
-    has_total <- "total" %in% data$type
-    if (has_total)
-      type <- "total"
-    else
+    has_indep <- "indep" %in% data$type
+    if (has_indep)
       type <- "indep"
+    else
+      type <- "total"
   }
   has_age <- !is.null(age_labels)
   if (has_age) {
@@ -458,7 +468,7 @@ generate_ssvd_helper <- function(ssvd,
 ## HAS_TESTS
 #' Get Values for 'disp' for a Data Model
 #'
-#' @param datamod Object of class "bage_datamod"
+#' @param datamod Objoect of class "bage_datamod"
 #'
 #' @returns A numeric vector, the same length as 'outcome'
 #'

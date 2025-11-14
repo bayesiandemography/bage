@@ -3,14 +3,24 @@
 
 test_that("'components' works with ssvd - all defaults", {
   ssvd <- sim_ssvd()
-  ans <- components(ssvd)
+  ans <- components(ssvd, n_comp = 3)
+  expect_identical(names(ans), c("component", "sex", "age", "value"))
+  expect_identical(ans$value,
+                   c(as.numeric(ssvd$data$offset[[3]]),
+                     as.numeric(rbind(ssvd$data$matrix[[3]][1:2,1:3],
+                                      ssvd$data$matrix[[3]][3:4,11:13]))))
+})
+
+test_that("'components' works with ssvd - indep is NA", {
+  ssvd <- sim_ssvd()
+  ans <- components(ssvd, indep = NA)
   expect_identical(names(ans), c("component", "age", "value"))
   expect_identical(ans$value,
                    c(as.numeric(ssvd$data$offset[[1]]),
                      as.numeric(ssvd$data$matrix[[1L]][,1:5])))
 })
 
-test_that("'components' works with ssvd - indep", {
+test_that("'components' works with ssvd - indep is TRUE", {
   ssvd <- sim_ssvd()
   ans <- components(ssvd, indep = TRUE, n_comp = 3)
   expect_identical(names(ans), c("component", "sex", "age", "value"))
@@ -35,6 +45,22 @@ test_that("'components' works with no 'total' type", {
   expect_setequal(names(ans), c("component", "sex", "age", "value"))
 })
 
+test_that("'components' works with no sex", {
+  ans <- components(HFD)
+  expect_setequal(names(ans), c("component", "age", "value"))
+})
+
+test_that("'components' gives expected error when version not present - has single versions", {
+  expect_error(components(CSA, v = "wrong"),
+               "Invalid value for version parameter `v`")
+})
+
+test_that("'components' gives expected error when version not present - has multiple versions", {
+  expect_error(components(HFD, v = "wrong"),
+               "Invalid value for version parameter `v`")
+})
+
+
 test_that("'components' method for ssvd - gives expected error with invalid age labels", {
   age_labels <- poputils::age_labels(type = "lt", max = 65)
   age_labels[10] <- "wrong"
@@ -54,12 +80,20 @@ test_that("'components' method for ssvd - gives expected error with age labels n
                "Can't find labels from `age_labels` in `object`")
 })
 
-test_that("'components' method for ssvd - gives expected error when joint supplied by no sex/gender", {
+test_that("'components' method for ssvd - gives expected error when joint supplied but no sex/gender", {
   ssvd <- sim_ssvd()
   ssvd$data <- ssvd$data[1,]
   expect_error(components(ssvd, age_labels = c("0-4", "5-9"), n_comp = 3, indep = FALSE),
                "Value supplied for `indep`, but `object` does not have a sex/gender dimension.")
 })
+
+
+test_that("'components' throws error when 'indep' is NA but no 'total' type", {
+  expect_error(components(WMD_E, indep = NA),
+               paste("`indep` is NA but `object` does not have results for",
+                     "total population"))
+})
+
 
 
 ## 'generate' -----------------------------------------------------------------
@@ -70,15 +104,20 @@ test_that("'generate' works with ssvd - all defaults", {
   set.seed(0)
   ans_obtained <- generate(ssvd, n_comp = 2)
   set.seed(0)
-  ans_expected <- ssvd$data$matrix[[1]][,1:2] %*% matrix(rnorm(40), nr = 2) + ssvd$data$offset[[1]]
-  ans_expected <- tibble::tibble(draw = rep(paste("Draw", 1:20), each = 2),
-                                 age = poputils::reformat_age(rep(c("0-4", "5-9"), times = 20)),
+  ans_expected <- (ssvd$data$matrix[[3]][,c(1:2, 11:12)] %*% matrix(rnorm(80), nr = 4)
+    + ssvd$data$offset[[3]])
+  ans_expected <- tibble::tibble(draw = rep(paste("Draw", 1:20), each = 4),
+                                 sex = rep(c("Female", "Female", "Male", "Male"),
+                                                 times = 20),
+                                 age = rep(c("0-4", "5-9"), times = 40),
                                  value = as.double(ans_expected))
   ans_expected$draw <- factor(ans_expected$draw, levels = unique(ans_expected$draw))
-  expect_identical(ans_obtained, ans_expected)
+  ans_expected$sex <- factor(ans_expected$sex, levels = unique(ans_expected$sex))
+  ans_expected$age <- factor(ans_expected$age, levels = unique(ans_expected$age))
+  expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'generate' works with ssvd - indep", {
+test_that("'generate' works with ssvd - indep is TRUE (same as default)", {
   set.seed(0)
   ssvd <- sim_ssvd()
   set.seed(0)
@@ -95,6 +134,20 @@ test_that("'generate' works with ssvd - indep", {
   ans_expected$sex <- factor(ans_expected$sex, levels = unique(ans_expected$sex))
   ans_expected$age <- factor(ans_expected$age, levels = unique(ans_expected$age))
   expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with ssvd - indep is NA (so total population)", {
+  set.seed(0)
+  ssvd <- sim_ssvd()
+  set.seed(0)
+  ans_obtained <- generate(ssvd, indep = NA, n_comp = 2)
+  set.seed(0)
+  ans_expected <- ssvd$data$matrix[[1]][,1:2] %*% matrix(rnorm(40), nr = 2) + ssvd$data$offset[[1]]
+  ans_expected <- tibble::tibble(draw = rep(paste("Draw", 1:20), each = 2),
+                                 age = poputils::reformat_age(rep(c("0-4", "5-9"), times = 20)),
+                                 value = as.double(ans_expected))
+  ans_expected$draw <- factor(ans_expected$draw, levels = unique(ans_expected$draw))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'generate' works with ssvd - joint", {
@@ -163,6 +216,13 @@ test_that("'generate' works with no 'total' type", {
   ans <- generate(WMD_E)
   expect_setequal(names(ans), c("draw", "sex", "age", "value"))
 })
+
+test_that("'generate' throws error when 'indep' is NA but no 'total' type", {
+  expect_error(generate(WMD_E, indep = NA),
+               paste("`indep` is NA but `x` does not have results for",
+                     "total population"))
+})
+
 
 ## 'print' --------------------------------------------------------------------
 
