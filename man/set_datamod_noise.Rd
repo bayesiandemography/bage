@@ -51,8 +51,7 @@ do so.
 \section{The Skellam distribution}{
 
 
-The \href{https://en.wikipedia.org/wiki/Skellam_distribution}{Skellam}
-distribution is confined to integers,
+The Skellam distribution is restricted to integers,
 but can take positive and negative values.
 
 If
