@@ -683,8 +683,7 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #'
 #' @section The Skellam distribution:
 #'
-#' The [Skellam](https://en.wikipedia.org/wiki/Skellam_distribution)
-#' distribution is confined to integers,
+#' The Skellam distribution is restricted to integers,
 #' but can take positive and negative values.
 #'
 #' If

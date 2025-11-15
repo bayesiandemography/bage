@@ -243,44 +243,40 @@
 #' holding scaled SVD components derived from
 #' census data on school attendance.
 #' The attendance data is assembed by
-#' by the United Nations Statistics Division,
-#' and presented in the
-#' "Population 5 to 24 years of age by school
-#' attendance, sex and urban/rural residence" table in
-#' from the
-#' [Population Censuses' Datasets](https://unstats.un.org/unsd/demographic-social/products/dyb/index.cshtml#censusdatasets). 
+#' the United Nations Statistics Division.
 #' `CSA` holds 5 components.
-#'
-#' **Versions:**
-#'
-#' - `"v2025"` (default) version of data
-#'   downloadd on 5 November 2025
 #'
 #' @section Warning:
 #'
-#' Compared other demographic processes, such as
-#' mortality, age-sex patterns in school attendance
-#' have more variation across populations. More
+#' Compared other age-sex patterns for
+#' other demographic processes such as
+#' mortality, age-sex patterns for school attendance
+#' show substantial variation across populations. More
 #' components may be needed to obtain satisfactory
-#' representations of actual age-sex patterns
-#' for school attendance than for other processes,
-#' and even then the accuracy may not be as high.
+#' models of age-sex patterns
+#' for school attendance than for other processes.
 #' 
 #' @format
 #' Object of class `"bage_ssvd"`.
 #'
+#' Versions:
+#'
+#' - `"v2025"` (default). Data downloaded on 2025-11-05
+#'
 #' @seealso
 #' - [Scaled SVDs][svds] Overview of scaled SVDs
 #'   implemented in \pkg{bage}
+#' - [SVD()] A prior based on a scaled SVD
 #'
 #' @source Derived from data in the
 #' "Population 5 to 24 years of age by school
-#' attendance, sex and urban/rural residence" table in
-#' from the "Population Censuses' Datasets"
+#' attendance, sex and urban/rural residence" table
+#' from the
+#' [Population Censuses' Datasets](https://unstats.un.org/unsd/demographic-social/products/dyb/index.cshtml#censusdatasets) 
 #' database assembled by the United Nations
 #' Statistics Division.
 #' Code to create `CSA`
-#' is in folder 'data-raw/ssvd_csa'
+#' is in folder \file{data-raw/ssvd_csa}
 #' in the source code for the \pkg{bage}
 #' package.
 "CSA"
@@ -290,28 +286,29 @@
 #'
 #' An object of class `"bage_ssvd"`
 #' holding scaled SVD components derived from
-#' data from the
-#' [Human Fertility Database](https://www.humanfertility.org).
+#' data from the Human Fertility Database.
 #' `HFD` holds 5 components.
-#'
-#' **Versions:**
-#'
-#' - `"v2024"` (default) version of data from
-#'   23 October 2024
 #'
 #' @format
 #' Object of class `"bage_ssvd"`.
 #'
+#' Versions:
+#'
+#' - `"v2025"` (default) Data published on 2025-07-24
+#' - `"v2024"` Data published on October 2024-10-23
+#'
 #' @seealso
 #' - [Scaled SVDs][svds] Overview of scaled SVDs
 #'   implemented in \pkg{bage}
+#' - [SVD()] A prior based on a scaled SVD
 #'
 #' @source Derived from data from the
-#' Human Fertility Database.Max Planck Institute
+#' [Human Fertility Database](https://www.humanfertility.org).
+#' Max Planck Institute
 #' for Demographic Research (Germany) and Vienna
-#' Institute of Demography (Austria). .
+#' Institute of Demography (Austria).
 #' Code to create `HFD`
-#' is in folder 'data-raw/ssvd_hfd'
+#' is in folder \file{data-raw/ssvd_hfd}
 #' in the source code for the \pkg{bage}
 #' package.
 "HFD"
@@ -322,48 +319,52 @@
 #'
 #' Objects of class `"bage_ssvd"`
 #' holding scaled SVD components derived from
-#' data from the
-#' [Human Internal Migration Database](https://osf.io/vmrfk/).
+#' data from the Human Internal Migration Database.
 #' `HIMD_P1`, `HIMD_P5`, and `HIMD_R` each
-#' object hold 5 components
+#'  hold 5 components
 #'
 #' - `HIMD_P1` is derived from data on
 #'   1-year migration probabilities, ie the
 #'   probability that a person will migrate
-#'   during an interval of 1 year.
+#'   during a time interval of 1 year.
 #' - `HIMD_P5` is derived from data on
 #'   5-year migration probabilities, ie the
 #'   probability that a person will migrate
-#'   during an interval of 5 years.
+#'   during a time interval of 5 years.
 #' - `HIMD_R` is derived from data on 1-year
 #'   migration probabilities, using the
-#'   formula \eqn{r = \log(1 - p)}.
+#'   formula \eqn{r = -\log(1 - p)}.
 #'
-#' **Versions:**
-#'
-#' - `"v2024"` Data from 23 October 2024 (the default)
-#' 
 #' @format
-#' An object of class bage_ssvd of length 1.
+#' Object of class `"bage_ssvd"`.
+#'
+#' Versions:
+#'
+#' - `"v2024"` (default) Data published on 2024-10-23
 #'
 #' @seealso
 #' - [Scaled SVDs][svds] Overview of scaled SVDs
 #'   implemented in \pkg{bage}
+#' - [SVD()] A prior based on a scaled SVD
 #'
 #' @source Dyrting, S. (2024, October 23).
-#' Data from: Estimating Complete Migration Probabilities
-#' from Grouped Data. Retrieved from osf.io/vmrfk
-#' on 1 September 2025. Code to create `HIMD_R`,
+#' Data from: [Estimating Complete Migration Probabilities
+#' from Grouped Data](https://osf.io/vmrfk/).
+#' Retrieved from osf.io/vmrfk
+#' on 1 September 2025.
+#' Code to create `HIMD_R`,
 #' `HIMD_P1` and `HIMD_P5`
-#' is in folder 'data-raw/ssvd_himd'
+#' is in folder \file{data-raw/ssvd_himd}
 #' in the source code for the \pkg{bage}
 #' package.
 "HIMD_R"
 
 #' @rdname HIMD_R
+#' @format NULL
 "HIMD_P1"
 
 #' @rdname HIMD_R
+#' @format NULL
 "HIMD_P5"
 
 
@@ -373,31 +374,33 @@
 #' An object of class `"bage_ssvd"`
 #' holding scaled SVD components derived from
 #' data from the
-#' [Human Mortality Database](https://www.mortality.org).
+#' Human Mortality Database.
 #' `HMD` holds 5 components.
-#'
-#' **Versions:**
-#'
-#' - `"v2025"` (default) data published on
-#'   2025-09-25, all countries and years
-#' - `"v2025-50"` data published on
-#'   2025-09-25, all countries, 1950 and later
-#' - `"v2024"` data published on
-#'   2024-02-26, all countries and years
 #'
 #' @format
 #' Object of class `"bage_ssvd"`.
+#'
+#' Versions:
+#'
+#' - `"v2025"` (default) Data published on
+#'   2025-09-25, all years
+#' - `"v2025-50"` Data published on
+#'   2025-09-25, 1950 and later
+#' - `"v2024"` Data published on
+#'   2024-02-26, all years
 #' 
 #' @seealso
 #' - [Scaled SVDs][svds] Overview of scaled SVDs
 #'   implemented in \pkg{bage}
+#' - [SVD()] A prior based on a scaled SVD
 #'
 #' @source Derived from data from the
-#' Human Mortality Database. Max Planck Institute for
+#' [Human Mortality Database](https://www.mortality.org).
+#' Max Planck Institute for
 #' Demographic Research (Germany), University of California,
 #' Berkeley (USA), and French Institute for Demographic Studies
 #' (France). Code to create `HMD`
-#' is in folder 'data-raw/ssvd_hmd'
+#' is in folder \file{data-raw/ssvd_hmd}
 #' in the source code for the \pkg{bage}
 #' package.
 "HMD"
@@ -407,26 +410,28 @@
 #' Labor Force Participation Data
 #'
 #' An object of class `"bage_ssvd"`
-#' holding components extracted from labor force participation
-#' data from the
-#' [OECD Data Explorer](https://data-explorer.oecd.org).
+#' holding scaled SVD components
+#' derived from labor force participation data
+#' assembled by the OECD.
 #' `LFP` holds 5 components.
-#'
-#' **Versions:**
-#'
-#' - `"v2025"` data downloaded on 2025-10-17
 #' 
 #' @format
 #' Object of class `"bage_ssvd"`.
 #'
+#' Versions:
+#'
+#' - `"v2025"` Data downloaded on 2025-10-17
+#' 
 #' @seealso
 #' - [Scaled SVDs][svds] Overview of scaled SVDs
 #'   implemented in \pkg{bage}
+#' - [SVD()] A prior based on a scaled SVD
 #'
 #' @source Derived from data in the "Labor Force Indicators"
-#' table of the OECD Data Explorer.
+#' table of the
+#' [OECD Data Explorer](https://data-explorer.oecd.org).
 #' Code to create `LFS`
-#' is in folder 'data-raw/ssvd_lfp' in
+#' is in folder \file{data-raw/ssvd_lfp} in
 #' the source code for the \pkg{bage}
 #' package.
 "LFP"
@@ -437,8 +442,9 @@
 #'
 #' Object of class `"bage_ssvd"`
 #' holding scaled SVD components derived from
-#' data from the
-#' [World Marriage Data database](https://www.un.org/development/desa/pd/data/world-marriage-data).
+#' data from the census and survey data on marriage
+#' assembled by the United Nations
+#' Population Division.
 #' `WMD_C` and `WMD_E` each hold 5 components.
 #'
 #' - `WMD_C` is based on data on the proportion
@@ -453,30 +459,33 @@
 #'   "Ever Married".
 #'
 #' In both cases "marriage" includes de facto
-#' marriages and consensual unions.
-#'
-#' **Versions:**
-#'
-#' - `"v2019"` (default) data published in 2019
+#' marriages and consensual unions, in addition
+#' to legal marriages.
 #'
 #' @format
 #' Object of class `"bage_ssvd"`.
 #'
+#' Versions:
+#'
+#' - `"v2019"` (default) Data published in 2019
+#' 
 #' @seealso
 #' - [Scaled SVDs][svds] Overview of scaled SVDs
 #'   implemented in \pkg{bage}
+#' - [SVD()] A prior based on a scaled SVD
 #'
 #' @source Derived from data from the
-#' World Marriage Data 2019 database,
-#' which is assembled by the UN Population
+#' [World Marriage Data 2019](https://www.un.org/development/desa/pd/data/world-marriage-data),
+#' created by the United Nations Population
 #' Division from national census and survey data.
 #' Code to create `WMD`
-#' is in folder 'data-raw/ssvd_wmd'
+#' is in folder \file{data-raw/ssvd_wmd}
 #' in the source code for thet \pkg{bage}
 #' package.
 "WMD_C"
 
 #' @rdname WMD_C
+#' @format NULL
 "WMD_E"
 
 

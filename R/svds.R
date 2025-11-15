@@ -2,8 +2,8 @@
 #' Scaled SVDs
 #'
 #' @description 
-#' Scaled SVDs contain information on typical age-patterns,
-#' or age-sex patterns, for demographic processes,
+#' Scaled SVDs contain information on typical age-patterns
+#' or age-sex patterns for demographic processes,
 #' extracted from international databases. The
 #' information is extracted using a singular
 #' value decomposition (SVD), and then scaled to make
@@ -18,9 +18,10 @@
 #'
 #' @details
 #'
-#' | **Scaled SVD** | **Process**                              | **Source data**                   | **Versions**                    | **Sex** |
+#' | **Scaled SVD** | **Process**                              | **Source**                   | **Versions**                    | **Sex dimension** |
 #' |----------------|------------------------------------------|-----------------------------------|---------------------------------|---------|
-#' | [HFD]          | Fertility                                | Human Fertility Database          | `"v2025"`, `"v2024"`             | No      |
+#' | [CSA]          | School attendance                        | Census data assembled by UN       | `"v2025"`, `"v2024"`            | Yes      |
+#' | [HFD]          | Fertility                                | Human Fertility Database          | `"v2025"`, `"v2024"`            | No      |
 #' | [HIMD_R]       | Internal migration: annual rates         | Human Internal Migration Database | `"v2024"`                       | No      |
 #' | [HIMD_P1]      | Internal migration: 1-year probabilities | Human Internal Migration Database | `"v2024"`                       | No      |
 #' | [HIMD_P5]      | Internal migration: 5-year probabilities | Human Internal Migration Database | `"v2024"`                       | No      |

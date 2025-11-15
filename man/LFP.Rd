@@ -7,12 +7,18 @@
 Labor Force Participation Data}
 \format{
 Object of class \code{"bage_ssvd"}.
+
+Versions:
+\itemize{
+\item \code{"v2025"} Data downloaded on 2025-10-17
+}
 }
 \source{
 Derived from data in the "Labor Force Indicators"
-table of the OECD Data Explorer.
+table of the
+\href{https://data-explorer.oecd.org}{OECD Data Explorer}.
 Code to create \code{LFS}
-is in folder 'data-raw/ssvd_lfp' in
+is in folder \file{data-raw/ssvd_lfp} in
 the source code for the \pkg{bage}
 package.
 }
@@ -21,21 +27,16 @@ LFP
 }
 \description{
 An object of class \code{"bage_ssvd"}
-holding components extracted from labor force participation
-data from the
-\href{https://data-explorer.oecd.org}{OECD Data Explorer}.
+holding scaled SVD components
+derived from labor force participation data
+assembled by the OECD.
 \code{LFP} holds 5 components.
-}
-\details{
-\strong{Versions:}
-\itemize{
-\item \code{"v2025"} data downloaded on 2025-10-17
-}
 }
 \seealso{
 \itemize{
 \item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
 implemented in \pkg{bage}
+\item \code{\link[=SVD]{SVD()}} A prior based on a scaled SVD
 }
 }
 \keyword{datasets}

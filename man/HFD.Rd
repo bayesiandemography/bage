@@ -6,14 +6,21 @@
 \title{Scaled SVD Components from Human Fertility Database}
 \format{
 Object of class \code{"bage_ssvd"}.
+
+Versions:
+\itemize{
+\item \code{"v2025"} (default) Data published on 2025-07-24
+\item \code{"v2024"} Data published on October 2024-10-23
+}
 }
 \source{
 Derived from data from the
-Human Fertility Database.Max Planck Institute
+\href{https://www.humanfertility.org}{Human Fertility Database}.
+Max Planck Institute
 for Demographic Research (Germany) and Vienna
-Institute of Demography (Austria). .
+Institute of Demography (Austria).
 Code to create \code{HFD}
-is in folder 'data-raw/ssvd_hfd'
+is in folder \file{data-raw/ssvd_hfd}
 in the source code for the \pkg{bage}
 package.
 }
@@ -23,21 +30,14 @@ HFD
 \description{
 An object of class \code{"bage_ssvd"}
 holding scaled SVD components derived from
-data from the
-\href{https://www.humanfertility.org}{Human Fertility Database}.
+data from the Human Fertility Database.
 \code{HFD} holds 5 components.
-}
-\details{
-\strong{Versions:}
-\itemize{
-\item \code{"v2024"} (default) version of data from
-23 October 2024
-}
 }
 \seealso{
 \itemize{
 \item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
 implemented in \pkg{bage}
+\item \code{\link[=SVD]{SVD()}} A prior based on a scaled SVD
 }
 }
 \keyword{datasets}

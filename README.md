@@ -56,7 +56,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.79     0.80      0.58   13      TRUE   relative convergence (4)
+#>        0.52     0.08      0.09   13      TRUE   relative convergence (4)
 ```
 
 Extract model-based and direct estimates

@@ -8,19 +8,21 @@
 \title{Scaled SVD Components from Human
 Internal Migration Database}
 \format{
-An object of class bage_ssvd of length 1.
+Object of class \code{"bage_ssvd"}.
 
-An object of class \code{bage_ssvd} of length 1.
-
-An object of class \code{bage_ssvd} of length 1.
+Versions:
+\itemize{
+\item \code{"v2024"} (default) Data published on 2024-10-23
+}
 }
 \source{
 Dyrting, S. (2024, October 23).
-Data from: Estimating Complete Migration Probabilities
-from Grouped Data. Retrieved from osf.io/vmrfk
-on 1 September 2025. Code to create \code{HIMD_R},
+Data from: \href{https://osf.io/vmrfk/}{Estimating Complete Migration Probabilities from Grouped Data}.
+Retrieved from osf.io/vmrfk
+on 1 September 2025.
+Code to create \code{HIMD_R},
 \code{HIMD_P1} and \code{HIMD_P5}
-is in folder 'data-raw/ssvd_himd'
+is in folder \file{data-raw/ssvd_himd}
 in the source code for the \pkg{bage}
 package.
 }
@@ -34,35 +36,30 @@ HIMD_P5
 \description{
 Objects of class \code{"bage_ssvd"}
 holding scaled SVD components derived from
-data from the
-\href{https://osf.io/vmrfk/}{Human Internal Migration Database}.
+data from the Human Internal Migration Database.
 \code{HIMD_P1}, \code{HIMD_P5}, and \code{HIMD_R} each
-object hold 5 components
+hold 5 components
 }
 \details{
 \itemize{
 \item \code{HIMD_P1} is derived from data on
 1-year migration probabilities, ie the
 probability that a person will migrate
-during an interval of 1 year.
+during a time interval of 1 year.
 \item \code{HIMD_P5} is derived from data on
 5-year migration probabilities, ie the
 probability that a person will migrate
-during an interval of 5 years.
+during a time interval of 5 years.
 \item \code{HIMD_R} is derived from data on 1-year
 migration probabilities, using the
-formula \eqn{r = \log(1 - p)}.
-}
-
-\strong{Versions:}
-\itemize{
-\item \code{"v2024"} Data from 23 October 2024 (the default)
+formula \eqn{r = -\log(1 - p)}.
 }
 }
 \seealso{
 \itemize{
 \item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
 implemented in \pkg{bage}
+\item \code{\link[=SVD]{SVD()}} A prior based on a scaled SVD
 }
 }
 \keyword{datasets}

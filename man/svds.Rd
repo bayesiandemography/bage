@@ -4,8 +4,8 @@
 \alias{svds}
 \title{Scaled SVDs}
 \description{
-Scaled SVDs contain information on typical age-patterns,
-or age-sex patterns, for demographic processes,
+Scaled SVDs contain information on typical age-patterns
+or age-sex patterns for demographic processes,
 extracted from international databases. The
 information is extracted using a singular
 value decomposition (SVD), and then scaled to make
@@ -20,7 +20,8 @@ on age but not on sex or gender.
 }
 \details{
 \tabular{lllll}{
-   \strong{Scaled SVD} \tab \strong{Process} \tab \strong{Source data} \tab \strong{Versions} \tab \strong{Sex} \cr
+   \strong{Scaled SVD} \tab \strong{Process} \tab \strong{Source} \tab \strong{Versions} \tab \strong{Sex dimension} \cr
+   \link{CSA} \tab School attendance \tab Census data assembled by UN \tab \code{"v2025"}, \code{"v2024"} \tab Yes \cr
    \link{HFD} \tab Fertility \tab Human Fertility Database \tab \code{"v2025"}, \code{"v2024"} \tab No \cr
    \link{HIMD_R} \tab Internal migration: annual rates \tab Human Internal Migration Database \tab \code{"v2024"} \tab No \cr
    \link{HIMD_P1} \tab Internal migration: 1-year probabilities \tab Human Internal Migration Database \tab \code{"v2024"} \tab No \cr

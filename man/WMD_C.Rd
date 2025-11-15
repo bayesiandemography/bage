@@ -9,15 +9,18 @@ World Marriage Database}
 \format{
 Object of class \code{"bage_ssvd"}.
 
-An object of class \code{bage_ssvd} of length 1.
+Versions:
+\itemize{
+\item \code{"v2019"} (default) Data published in 2019
+}
 }
 \source{
 Derived from data from the
-World Marriage Data 2019 database,
-which is assembled by the UN Population
+\href{https://www.un.org/development/desa/pd/data/world-marriage-data}{World Marriage Data 2019},
+created by the United Nations Population
 Division from national census and survey data.
 Code to create \code{WMD}
-is in folder 'data-raw/ssvd_wmd'
+is in folder \file{data-raw/ssvd_wmd}
 in the source code for thet \pkg{bage}
 package.
 }
@@ -29,8 +32,9 @@ WMD_E
 \description{
 Object of class \code{"bage_ssvd"}
 holding scaled SVD components derived from
-data from the
-\href{https://www.un.org/development/desa/pd/data/world-marriage-data}{World Marriage Data database}.
+data from the census and survey data on marriage
+assembled by the United Nations
+Population Division.
 \code{WMD_C} and \code{WMD_E} each hold 5 components.
 }
 \details{
@@ -48,17 +52,14 @@ of people whose marital status is
 }
 
 In both cases "marriage" includes de facto
-marriages and consensual unions.
-
-\strong{Versions:}
-\itemize{
-\item \code{"v2019"} (default) data published in 2019
-}
+marriages and consensual unions, in addition
+to legal marriages.
 }
 \seealso{
 \itemize{
 \item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
 implemented in \pkg{bage}
+\item \code{\link[=SVD]{SVD()}} A prior based on a scaled SVD
 }
 }
 \keyword{datasets}

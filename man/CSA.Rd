@@ -6,16 +6,22 @@
 \title{Scaled SVD Components from Census School Attendance Data}
 \format{
 Object of class \code{"bage_ssvd"}.
+
+Versions:
+\itemize{
+\item \code{"v2025"} (default). Data downloaded on 2025-11-05
+}
 }
 \source{
 Derived from data in the
 "Population 5 to 24 years of age by school
-attendance, sex and urban/rural residence" table in
-from the "Population Censuses' Datasets"
+attendance, sex and urban/rural residence" table
+from the
+\href{https://unstats.un.org/unsd/demographic-social/products/dyb/index.cshtml#censusdatasets}{Population Censuses' Datasets}
 database assembled by the United Nations
 Statistics Division.
 Code to create \code{CSA}
-is in folder 'data-raw/ssvd_csa'
+is in folder \file{data-raw/ssvd_csa}
 in the source code for the \pkg{bage}
 package.
 }
@@ -27,37 +33,26 @@ An object of class \code{"bage_ssvd"}
 holding scaled SVD components derived from
 census data on school attendance.
 The attendance data is assembed by
-by the United Nations Statistics Division,
-and presented in the
-"Population 5 to 24 years of age by school
-attendance, sex and urban/rural residence" table in
-from the
-\href{https://unstats.un.org/unsd/demographic-social/products/dyb/index.cshtml#censusdatasets}{Population Censuses' Datasets}.
+the United Nations Statistics Division.
 \code{CSA} holds 5 components.
-}
-\details{
-\strong{Versions:}
-\itemize{
-\item \code{"v2025"} (default) version of data
-downloadd on 5 November 2025
-}
 }
 \section{Warning}{
 
 
-Compared other demographic processes, such as
-mortality, age-sex patterns in school attendance
-have more variation across populations. More
+Compared other age-sex patterns for
+other demographic processes such as
+mortality, age-sex patterns for school attendance
+show substantial variation across populations. More
 components may be needed to obtain satisfactory
-representations of actual age-sex patterns
-for school attendance than for other processes,
-and even then the accuracy may not be as high.
+models of age-sex patterns
+for school attendance than for other processes.
 }
 
 \seealso{
 \itemize{
 \item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
 implemented in \pkg{bage}
+\item \code{\link[=SVD]{SVD()}} A prior based on a scaled SVD
 }
 }
 \keyword{datasets}

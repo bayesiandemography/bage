@@ -5,17 +5,20 @@
 
 * Added new scaled SVDs `CSA`, `HIMD_R`, `HIMD_P1`, `HIMD_P5`,
   `WMD_C`, `WMD_E`, for use in modeling school attendance, internal
-  migration, and marriage.
-* `generate()` method for scaled SVDs uses the term `sex` rather than
-  `sexgender` in results, for consistency with `components()`.
-* `generate()` and `components()` methods for scaled SVDs default to
-  showing results disaggregated by sex/gender, rather than results for
-  the total population.
-* Function `ssvd()`, for creating scaled SVDs, now visible to users.
+  migration, and marriage. Also added help page for all scaled SVDs.
+* Function `ssvd()`, for creating scaled SVDs is now
+  exported. (Previously it was an internal function.)
 * Version information has been added to scaled SVDs. Functions for
   creating SVD-based priors, such as [SVD()] and [SVD_AR()] now
   include an argument `v` that can be used to specify a version.
+  
+## Changes to interface
 
+* `generate()` method for scaled SVDs now use the term `sex` rather
+  than`sexgender` in results, for consistency with `components()`.
+* `generate()` and `components()` methods for scaled SVDs now default
+  to showing results disaggregated by sex/gender. Previously the
+  default was to show results for the total population.
 
 
 # bage 0.9.10

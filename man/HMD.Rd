@@ -7,14 +7,25 @@
 Human Mortality Database}
 \format{
 Object of class \code{"bage_ssvd"}.
+
+Versions:
+\itemize{
+\item \code{"v2025"} (default) Data published on
+2025-09-25, all years
+\item \code{"v2025-50"} Data published on
+2025-09-25, 1950 and later
+\item \code{"v2024"} Data published on
+2024-02-26, all years
+}
 }
 \source{
 Derived from data from the
-Human Mortality Database. Max Planck Institute for
+\href{https://www.mortality.org}{Human Mortality Database}.
+Max Planck Institute for
 Demographic Research (Germany), University of California,
 Berkeley (USA), and French Institute for Demographic Studies
 (France). Code to create \code{HMD}
-is in folder 'data-raw/ssvd_hmd'
+is in folder \file{data-raw/ssvd_hmd}
 in the source code for the \pkg{bage}
 package.
 }
@@ -25,24 +36,14 @@ HMD
 An object of class \code{"bage_ssvd"}
 holding scaled SVD components derived from
 data from the
-\href{https://www.mortality.org}{Human Mortality Database}.
+Human Mortality Database.
 \code{HMD} holds 5 components.
-}
-\details{
-\strong{Versions:}
-\itemize{
-\item \code{"v2025"} (default) data published on
-2025-09-25, all countries and years
-\item \code{"v2025-50"} data published on
-2025-09-25, all countries, 1950 and later
-\item \code{"v2024"} data published on
-2024-02-26, all countries and years
-}
 }
 \seealso{
 \itemize{
 \item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
 implemented in \pkg{bage}
+\item \code{\link[=SVD]{SVD()}} A prior based on a scaled SVD
 }
 }
 \keyword{datasets}
