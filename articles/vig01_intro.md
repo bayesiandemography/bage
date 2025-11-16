@@ -194,7 +194,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.80     0.32      0.38   11      TRUE   relative convergence (4)
+#>        0.78     0.31      0.37   11      TRUE   relative convergence (4)
 ```
 
 Among other things, a new row appears at the bottom of the printout,
@@ -520,7 +520,7 @@ mod_births
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.60     1.52      0.97   22      TRUE   relative convergence (4)
+#>        2.58     1.50      0.96   22      TRUE   relative convergence (4)
 ```
 
 ## 7 Covariates

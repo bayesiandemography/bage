@@ -7,15 +7,13 @@
   };
 </script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Scaled SVD Components from Human Internal Migration Database — HIMD_R"><meta name="description" content='Objects of class "bage_ssvd"
 holding scaled SVD components derived from
-data from the
-Human Internal Migration Database.
+data from the Human Internal Migration Database.
 HIMD_P1, HIMD_P5, and HIMD_R each
-object hold 5 components'><meta property="og:description" content='Objects of class "bage_ssvd"
+hold 5 components'><meta property="og:description" content='Objects of class "bage_ssvd"
 holding scaled SVD components derived from
-data from the
-Human Internal Migration Database.
+data from the Human Internal Migration Database.
 HIMD_P1, HIMD_P5, and HIMD_R each
-object hold 5 components'></head><body>
+hold 5 components'></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -65,10 +63,9 @@ object hold 5 components'></head><body>
     <div class="ref-description section level2">
     <p>Objects of class <code>"bage_ssvd"</code>
 holding scaled SVD components derived from
-data from the
-<a href="https://osf.io/vmrfk/" class="external-link">Human Internal Migration Database</a>.
+data from the Human Internal Migration Database.
 <code>HIMD_P1</code>, <code>HIMD_P5</code>, and <code>HIMD_R</code> each
-object hold 5 components</p>
+hold 5 components</p>
     </div>
 
     <div class="section level2">
@@ -82,18 +79,18 @@ object hold 5 components</p>
 
     <div class="section level2">
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
-    <p>An object of class bage_ssvd of length 1.</p>
-<p>An object of class <code>bage_ssvd</code> of length 1.</p>
-<p>An object of class <code>bage_ssvd</code> of length 1.</p>
-    </div>
+    <p>Object of class <code>"bage_ssvd"</code>.</p>
+<p>Versions:</p><ul><li><p><code>"v2024"</code> (default) Data published on 2024-10-23</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="source">Source<a class="anchor" aria-label="anchor" href="#source"></a></h2>
     <p>Dyrting, S. (2024, October 23).
-Data from: Estimating Complete Migration Probabilities
-from Grouped Data. Retrieved from osf.io/vmrfk
-on 1 September 2025. Code to create <code>HIMD_R</code>,
+Data from: <a href="https://osf.io/vmrfk/" class="external-link">Estimating Complete Migration Probabilities from Grouped Data</a>.
+Retrieved from osf.io/vmrfk
+on 1 September 2025.
+Code to create <code>HIMD_R</code>,
 <code>HIMD_P1</code> and <code>HIMD_P5</code>
-is in folder 'data-raw/ssvd_himd'
+is in folder <code class="file">data-raw/ssvd_himd</code>
 in the source code for the <span class="pkg">bage</span>
 package.</p>
     </div>
@@ -103,21 +100,21 @@ package.</p>
 <ul><li><p><code>HIMD_P1</code> is derived from data on
 1-year migration probabilities, ie the
 probability that a person will migrate
-during an interval of 1 year.</p></li>
+during a time interval of 1 year.</p></li>
 <li><p><code>HIMD_P5</code> is derived from data on
 5-year migration probabilities, ie the
 probability that a person will migrate
-during an interval of 5 years.</p></li>
+during a time interval of 5 years.</p></li>
 <li><p><code>HIMD_R</code> is derived from data on 1-year
 migration probabilities, using the
-formula \(r = \log(1 - p)\).</p></li>
-</ul><p><strong>Versions:</strong></p><ul><li><p><code>"v2024"</code> Data from 23 October 2024 (the default)</p></li>
+formula \(r = -\log(1 - p)\).</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
 <ul><li><p><a href="svds.html">Scaled SVDs</a> Overview of scaled SVDs
 implemented in <span class="pkg">bage</span></p></li>
+<li><p><code><a href="SVD.html">SVD()</a></code> A prior based on a scaled SVD</p></li>
 </ul></div>
     </div>
 

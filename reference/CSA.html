@@ -5,27 +5,17 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Scaled SVD Components from Census School Attendance Data — CSA"><meta name="description" content="An object of class &quot;bage_ssvd&quot;
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Scaled SVD Components from Census School Attendance Data — CSA"><meta name="description" content='An object of class "bage_ssvd"
 holding scaled SVD components derived from
 census data on school attendance.
 The attendance data is assembed by
-by the United Nations Statistics Division,
-and presented in the
-&quot;Population 5 to 24 years of age by school
-attendance, sex and urban/rural residence&quot; table in
-from the
-Population Censuses' Datasets.
-CSA holds 5 components."><meta property="og:description" content="An object of class &quot;bage_ssvd&quot;
+the United Nations Statistics Division.
+CSA holds 5 components.'><meta property="og:description" content='An object of class "bage_ssvd"
 holding scaled SVD components derived from
 census data on school attendance.
 The attendance data is assembed by
-by the United Nations Statistics Division,
-and presented in the
-&quot;Population 5 to 24 years of age by school
-attendance, sex and urban/rural residence&quot; table in
-from the
-Population Censuses' Datasets.
-CSA holds 5 components."></head><body>
+the United Nations Statistics Division.
+CSA holds 5 components.'></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -77,12 +67,7 @@ CSA holds 5 components."></head><body>
 holding scaled SVD components derived from
 census data on school attendance.
 The attendance data is assembed by
-by the United Nations Statistics Division,
-and presented in the
-"Population 5 to 24 years of age by school
-attendance, sex and urban/rural residence" table in
-from the
-<a href="https://unstats.un.org/unsd/demographic-social/products/dyb/index.cshtml#censusdatasets" class="external-link">Population Censuses' Datasets</a>.
+the United Nations Statistics Division.
 <code>CSA</code> holds 5 components.</p>
     </div>
 
@@ -94,43 +79,41 @@ from the
     <div class="section level2">
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
     <p>Object of class <code>"bage_ssvd"</code>.</p>
-    </div>
+<p>Versions:</p><ul><li><p><code>"v2025"</code> (default). Data downloaded on 2025-11-05</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="source">Source<a class="anchor" aria-label="anchor" href="#source"></a></h2>
     <p>Derived from data in the
 "Population 5 to 24 years of age by school
-attendance, sex and urban/rural residence" table in
-from the "Population Censuses' Datasets"
+attendance, sex and urban/rural residence" table
+from the
+<a href="https://unstats.un.org/unsd/demographic-social/products/dyb/index.cshtml#censusdatasets" class="external-link">Population Censuses' Datasets</a>
 database assembled by the United Nations
 Statistics Division.
 Code to create <code>CSA</code>
-is in folder 'data-raw/ssvd_csa'
+is in folder <code class="file">data-raw/ssvd_csa</code>
 in the source code for the <span class="pkg">bage</span>
 package.</p>
     </div>
-    <div class="section level2">
-    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><strong>Versions:</strong></p><ul><li><p><code>"v2025"</code> (default) version of data
-downloadd on 5 November 2025</p></li>
-</ul></div>
     <div class="section level2">
     <h2 id="warning">Warning<a class="anchor" aria-label="anchor" href="#warning"></a></h2>
 
 
 
-<p>Compared other demographic processes, such as
-mortality, age-sex patterns in school attendance
-have more variation across populations. More
+<p>Compared other age-sex patterns for
+other demographic processes such as
+mortality, age-sex patterns for school attendance
+show substantial variation across populations. More
 components may be needed to obtain satisfactory
-representations of actual age-sex patterns
-for school attendance than for other processes,
-and even then the accuracy may not be as high.</p>
+models of age-sex patterns
+for school attendance than for other processes.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
 <ul><li><p><a href="svds.html">Scaled SVDs</a> Overview of scaled SVDs
 implemented in <span class="pkg">bage</span></p></li>
+<li><p><code><a href="SVD.html">SVD()</a></code> A prior based on a scaled SVD</p></li>
 </ul></div>
     </div>
 

@@ -55,13 +55,16 @@
 <h2 class="pkg-version" data-toc-text="0.10.0" id="bage-0100">bage 0.10.0<a class="anchor" aria-label="anchor" href="#bage-0100"></a></h2>
 <div class="section level3">
 <h3 id="extending-facilities-for-scaled-svd-priors-0-10-0">Extending facilities for scaled SVD priors<a class="anchor" aria-label="anchor" href="#extending-facilities-for-scaled-svd-priors-0-10-0"></a></h3>
-<ul><li>Added new scaled SVDs <code>CSA</code>, <code>HIMD_R</code>, <code>HIMD_P1</code>, <code>HIMD_P5</code>, <code>WMD_C</code>, <code>WMD_E</code>, for use in modeling school attendance, internal migration, and marriage.</li>
-<li>
-<code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> method for scaled SVDs uses the term <code>sex</code> rather than <code>sexgender</code> in results, for consistency with <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>.</li>
-<li>
-<code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> and <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> methods for scaled SVDs default to showing results disaggregated by sex/gender, rather than results for the total population.</li>
-<li>Function <code><a href="../reference/ssvd.html">ssvd()</a></code>, for creating scaled SVDs, now visible to users.</li>
+<ul><li>Added new scaled SVDs <code>CSA</code>, <code>HIMD_R</code>, <code>HIMD_P1</code>, <code>HIMD_P5</code>, <code>WMD_C</code>, <code>WMD_E</code>, for use in modeling school attendance, internal migration, and marriage. Also added help page for all scaled SVDs.</li>
+<li>Function <code><a href="../reference/ssvd.html">ssvd()</a></code>, for creating scaled SVDs is now exported. (Previously it was an internal function.)</li>
 <li>Version information has been added to scaled SVDs. Functions for creating SVD-based priors, such as [SVD()] and [SVD_AR()] now include an argument <code>v</code> that can be used to specify a version.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-to-interface-0-10-0">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-10-0"></a></h3>
+<ul><li>
+<code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> method for scaled SVDs now use the term <code>sex</code> rather than<code>sexgender</code> in results, for consistency with <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>.</li>
+<li>
+<code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> and <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> methods for scaled SVDs now default to showing results disaggregated by sex/gender. Previously the default was to show results for the total population.</li>
 </ul></div>
 </div>
     <div class="section level2">

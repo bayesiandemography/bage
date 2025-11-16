@@ -7,12 +7,14 @@
   };
 </script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Scaled SVD Components from World Marriage Database — WMD_C"><meta name="description" content='Object of class "bage_ssvd"
 holding scaled SVD components derived from
-data from the
-World Marriage Data database.
+data from the census and survey data on marriage
+assembled by the United Nations
+Population Division.
 WMD_C and WMD_E each hold 5 components.'><meta property="og:description" content='Object of class "bage_ssvd"
 holding scaled SVD components derived from
-data from the
-World Marriage Data database.
+data from the census and survey data on marriage
+assembled by the United Nations
+Population Division.
 WMD_C and WMD_E each hold 5 components.'></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -63,8 +65,9 @@ WMD_C and WMD_E each hold 5 components.'></head><body>
     <div class="ref-description section level2">
     <p>Object of class <code>"bage_ssvd"</code>
 holding scaled SVD components derived from
-data from the
-<a href="https://www.un.org/development/desa/pd/data/world-marriage-data" class="external-link">World Marriage Data database</a>.
+data from the census and survey data on marriage
+assembled by the United Nations
+Population Division.
 <code>WMD_C</code> and <code>WMD_E</code> each hold 5 components.</p>
     </div>
 
@@ -78,16 +81,16 @@ data from the
     <div class="section level2">
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
     <p>Object of class <code>"bage_ssvd"</code>.</p>
-<p>An object of class <code>bage_ssvd</code> of length 1.</p>
-    </div>
+<p>Versions:</p><ul><li><p><code>"v2019"</code> (default) Data published in 2019</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="source">Source<a class="anchor" aria-label="anchor" href="#source"></a></h2>
     <p>Derived from data from the
-World Marriage Data 2019 database,
-which is assembled by the UN Population
+<a href="https://www.un.org/development/desa/pd/data/world-marriage-data" class="external-link">World Marriage Data 2019</a>,
+created by the United Nations Population
 Division from national census and survey data.
 Code to create <code>WMD</code>
-is in folder 'data-raw/ssvd_wmd'
+is in folder <code class="file">data-raw/ssvd_wmd</code>
 in the source code for thet <span class="pkg">bage</span>
 package.</p>
     </div>
@@ -105,14 +108,15 @@ It should be used for modelling the proportion
 of people whose marital status is
 "Ever Married".</p></li>
 </ul><p>In both cases "marriage" includes de facto
-marriages and consensual unions.</p>
-<p><strong>Versions:</strong></p><ul><li><p><code>"v2019"</code> (default) data published in 2019</p></li>
-</ul></div>
+marriages and consensual unions, in addition
+to legal marriages.</p>
+    </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
 <ul><li><p><a href="svds.html">Scaled SVDs</a> Overview of scaled SVDs
 implemented in <span class="pkg">bage</span></p></li>
+<li><p><code><a href="SVD.html">SVD()</a></code> A prior based on a scaled SVD</p></li>
 </ul></div>
     </div>
 

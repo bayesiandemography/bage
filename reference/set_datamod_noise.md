@@ -52,9 +52,8 @@ though `set_datamod_noise()` will also do so.
 
 ## The Skellam distribution
 
-The [Skellam](https://en.wikipedia.org/wiki/Skellam_distribution)
-distribution is confined to integers, but can take positive and negative
-values.
+The Skellam distribution is restricted to integers, but can take
+positive and negative values.
 
 If
 
@@ -169,7 +168,7 @@ mod
 #>    1000     year     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.38     0.15      0.20   20      TRUE   relative convergence (4)
+#>        0.39     0.15      0.21   20      TRUE   relative convergence (4)
 #> 
 
 ## create new aggregated diagnositic
