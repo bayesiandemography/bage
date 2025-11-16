@@ -475,9 +475,10 @@
 #' - [SVD()] A prior based on a scaled SVD
 #'
 #' @source Derived from data from the
-#' [World Marriage Data 2019](https://www.un.org/development/desa/pd/data/world-marriage-data),
-#' created by the United Nations Population
-#' Division from national census and survey data.
+#' *World Marriage Data 2019* database
+#' available on the United Nations Population
+#' Division website, and assembled by the
+#' UNPD from national census and survey data.
 #' Code to create `WMD`
 #' is in folder \file{data-raw/ssvd_wmd}
 #' in the source code for thet \pkg{bage}
