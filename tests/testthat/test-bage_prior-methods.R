@@ -10260,6 +10260,7 @@ test_that("'make_param_hyper' works with 'bage_prior_svd_rw2zero'", {
 ## 'print' --------------------------------------------------------------------
 
 test_that("'print' works", {
+  skip_on_cran()
   expect_snapshot(print(AR()))
   expect_snapshot(print(AR1(min = 0.2)))
   expect_snapshot(print(Known(c(0.2, -0.2))))

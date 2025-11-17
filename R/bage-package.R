@@ -47,8 +47,9 @@
 #' - [replicate_data()] Compare real and simulated data
 #' - [report_sim()] Simulation study of model
 #'
-#' **SVD-based modelling of age profiles**
+#' @section Data:
 #'
+#' - [datasets] Overview of datasets
 #' - [svds] Overview of scaled SVDs
 #'
 #' 

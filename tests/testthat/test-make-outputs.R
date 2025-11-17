@@ -1074,6 +1074,7 @@ test_that("'make_draws_hyperrandfree' works - no hyperrandfree", {
 ## 'make_draws_post' ------------------------------------------------------
 
 test_that("'make_draws_post' works with valid inputs - has R_prec", {
+  skip_on_cran()
   set.seed(0)
   est <- list(effectfree = c("(Intercept)" = -3,
                              sex = c(-1, 1),

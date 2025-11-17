@@ -1,10 +1,12 @@
 
-library(readr)
-library(dplyr, warn.conflicts = FALSE)
-library(tidyr)
-library(forcats)
-library(poputils)
-library(command)
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(forcats)
+  library(poputils)
+  library(command)
+})
 
 cmd_assign(.raw = "nzl_households/TABLECODE8420_Data.csv.gz",
            .out = "../data/nzl_households.rda")

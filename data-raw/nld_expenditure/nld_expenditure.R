@@ -1,9 +1,11 @@
 
-library(readr)
-library(dplyr, warn.conflicts = FALSE)
-library(forcats)
-library(poputils)
-library(command)
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(forcats)
+  library(poputils)
+  library(command)
+})
 
 cmd_assign(.expenditure_raw = "nld_expenditure/EBDAG_24052016055802288.csv.gz",
            .popn_raw = "nld_expenditure/POP_PROJ_04062016225548685.csv.gz",

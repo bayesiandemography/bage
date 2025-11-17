@@ -6,7 +6,92 @@ library(dplyr)
 library(poputils)
 library(ggplot2)
 
-## SVD tests ------------------------------------------------------------------
+## Datasets -------------------------------------------------------------------
+
+p_isl_deaths <- ggplot(isl_deaths, aes(x = age_mid(age), y = deaths / popn, col = sex)) +
+  facet_wrap(vars(time)) +
+  geom_line() +
+  scale_y_log10() +
+  ggtitle("isl_deaths - rates")
+
+p_kor_births <- ggplot(kor_births, aes(x = time, y = births / popn)) +
+  facet_grid(vars(age), vars(region)) +
+  geom_line() +
+  ggtitle("kor_births - rates")
+
+p_nld_expenditure <- ggplot(nld_expenditure,
+                            aes(x = age_mid(age), y = value)) +
+  facet_grid(vars(diag), vars(year), scale = "free_y") +
+  geom_line() +
+  ggtitle("nld_expenditure - expenditures")
+
+p_nzl_divorces <- ggplot(nzl_divorces,
+                         aes(x = age_mid(age), y = divorces / population, color = sex)) +
+  facet_wrap(vars(time)) +
+  geom_line() +
+  ggtitle("nzl_divorces - rates")
+
+p_nzl_households <- ggplot(nzl_households,
+                           aes(x = age_mid(age),
+                               y = oneperson / total,
+                               color = factor(year))) +
+  facet_wrap(vars(region)) +
+  geom_line() +
+  ggtitle("nzl_households - rates one-person")
+
+p_nzl_injuries <- ggplot(nzl_injuries,
+                         aes(x = age_mid(age),
+                             y = injuries / popn,
+                             linetype = sex,
+                             color = ethnicity)) +
+  facet_wrap(vars(year)) +
+  geom_line() +
+  ggtitle("nzl_injuries - rates")
+
+p_prt_deaths <- ggplot(prt_deaths,
+                         aes(x = age_mid(age),
+                             y = deaths / exposure,
+                             color = sex)) +
+  facet_wrap(vars(time)) +
+  geom_line() +
+  scale_y_log10() +
+  ggtitle("prt_deaths - rates")
+
+p_swe_infant <- ggplot(swe_infant,
+                       aes(x = time,
+                           y = deaths / births)) +
+  facet_wrap(vars(county)) +
+  geom_line() +
+  ggtitle("swe_infant - rates")
+
+
+p_usa_deaths <- ggplot(usa_deaths,
+         aes(x = as.Date(paste0(month, "-01"), format = "%Y-%b-%d"),
+             y = deaths)) +
+  geom_line() +
+  ggtitle("usa_deaths - counts")
+
+
+graphics.off()
+pdf(file = "manual-checks-datasets.pdf",
+    w = 10,
+    h = 10,
+    onefile = TRUE)
+plot(p_isl_deaths)
+plot(p_kor_births)
+plot(p_nld_expenditure)
+plot(p_nzl_divorces)
+plot(p_nzl_households)
+plot(p_nzl_injuries)
+plot(p_prt_deaths)
+plot(p_swe_infant)
+plot(p_usa_deaths)
+dev.off()
+
+file.remove("manual-checks-datasets.pdf")
+
+
+## Scaled SVDs ----------------------------------------------------------------
 
 nms_svd <- c("CSA",
              "HFD",

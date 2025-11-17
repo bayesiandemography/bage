@@ -24,6 +24,7 @@ knitr::opts_chunk$set(
   fig.height = 4,
   message = FALSE
 )
+is_cran <- identical(Sys.getenv("NOT_CRAN"), "false")
 set.seed(0)
 ```
 
@@ -394,7 +395,7 @@ prob_under <- data.frame(sex =  c("Female", "Male"),
                          mean = c(0.05,     0.06),
 			 disp = c(0.02,     0.02))
 
-mod_under <- mod_base |>
+mod_under <- mod |>
   set_datamod_undercount(prob = prob_under) 
 ```
 
@@ -499,8 +500,7 @@ mod |>
 
 `bage` is a new package, and still under very active development. Some features that are next on the list are:
 
-- **Priors** More options for priors, eg a damped linear trend.
-- **Sets of priors** Pre-specified collections of priors for specific purposes such as modelling fertility rates
+- **Priors** More options for priors, eg a damped randomw walk.
 - **Documentation** More vignettes and examples.
 - **Model choice** Tools for model comparison and model choice
 

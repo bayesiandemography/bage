@@ -1257,6 +1257,7 @@ test_that("extreme pi values behave sensibly", {
 })
 
 test_that("recovers distribution", {
+  skip_on_cran()
   set.seed(0)
   n <- 1000
   mu <- 0.4

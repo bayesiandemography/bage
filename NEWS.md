@@ -1,4 +1,22 @@
 
+# bage 0.10.1
+
+## vignettes
+
+* All but the first vignette have been changed to 'articles', so that
+  they appear on the pkgdown-derived website on GitHub, but are not
+  part of the package itself. Rebuilding the vignettes was taking too
+  long, and checking times were exceeding CRAN limits.
+
+## datasets
+
+* Fixed bug in `prt_deaths` where deaths and population datasets had
+  not merged properly.
+* Fixed bug in `usa_deaths`, where the deaths column had class `"ts"`
+  rather than `"numeric"`.
+* Added a `datasets' overview page.
+
+
 # bage 0.10.0
 
 ## Extending facilities for scaled SVD priors
