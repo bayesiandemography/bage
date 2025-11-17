@@ -38,3 +38,8 @@ and Forecasting*.
 
 Bryant J and Zhang J. 2018. *Bayesian Demographic Estimation and
 Forecasting*. CRC Press.
+
+## See also
+
+- [datasets](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  Overview of datasets in bage

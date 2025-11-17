@@ -21,3 +21,8 @@ with 72 rows and the following columns:
 
 Reformatted version of
 [`datasets::USAccDeaths`](https://rdrr.io/r/datasets/USAccDeaths.html).
+
+## See also
+
+- [datasets](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  Overview of datasets in bage

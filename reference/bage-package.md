@@ -83,7 +83,10 @@ uses [TMB](https://CRAN.R-project.org/package=TMB), and is fast.
 - [`report_sim()`](https://bayesiandemography.github.io/bage/reference/report_sim.md)
   Simulation study of model
 
-**SVD-based modelling of age profiles**
+## Data
+
+- [datasets](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  Overview of datasets
 
 - [svds](https://bayesiandemography.github.io/bage/reference/svds.md)
   Overview of scaled SVDs

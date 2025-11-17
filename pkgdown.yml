@@ -3,16 +3,16 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   vig01_intro: vig01_intro.html
-  vig02_math: vig02_math.html
-  vig03_priors: vig03_priors.html
-  vig04_svd: vig04_svd.html
-  vig05_bdef: vig05_bdef.html
-  vig06_mortality: vig06_mortality.html
-  vig07_simulation: vig07_simulation.html
-  vig08_workflow: vig08_workflow.html
-  vig09_covariates: vig09_covariates.html
-  vig10_datamod: vig10_datamod.html
-last_built: 2025-11-16T00:17Z
+  articles/vig02_math: vig02_math.html
+  articles/vig03_priors: vig03_priors.html
+  articles/vig04_svd: vig04_svd.html
+  articles/vig05_bdef: vig05_bdef.html
+  articles/vig06_mortality: vig06_mortality.html
+  articles/vig07_simulation: vig07_simulation.html
+  articles/vig08_workflow: vig08_workflow.html
+  articles/vig09_covariates: vig09_covariates.html
+  articles/vig10_datamod: vig10_datamod.html
+last_built: 2025-11-17T08:15Z
 urls:
   reference: https://bayesiandemography.github.io/bage/reference
   article: https://bayesiandemography.github.io/bage/articles

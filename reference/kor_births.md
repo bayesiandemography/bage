@@ -38,3 +38,8 @@ Korean Statistical Information Service website. Data downloaded on 24
 September 2024. Data on GDP per capita and population density from
 Wikipedia https://w.wiki/DMFA, data downloaded on 8 March 2025, and
 https://w.wiki/DMF9, data downloaded on 8 March 2025.
+
+## See also
+
+- [datasets](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  Overview of datasets in bage

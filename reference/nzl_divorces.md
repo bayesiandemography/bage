@@ -33,3 +33,8 @@ Population estimates derived from data in table "Estimated Resident
 Population by Age and Sex (1991+) (Annual-Dec)" in the online database
 Infoshare on the Statistics New Zealand website. Data downloaded on 26
 March 2023.
+
+## See also
+
+- [datasets](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  Overview of datasets in bage

@@ -66,6 +66,8 @@
   : Data to Create Scaled SVD Object Based on World Marriage Database
 - [`datamods`](https://bayesiandemography.github.io/bage/reference/datamods.md)
   : Data Models
+- [`datasets`](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  : Datasets
 - [`dispersion()`](https://bayesiandemography.github.io/bage/reference/dispersion.md)
   : Extract Values for Dispersion
 - [`fit(`*`<bage_mod>`*`)`](https://bayesiandemography.github.io/bage/reference/fit.bage_mod.md)

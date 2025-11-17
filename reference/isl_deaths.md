@@ -30,3 +30,8 @@ Tables "Deaths by municipalities, sex and age 1981-2022", and "Average
 annual population by municipality, age and sex 1998-2022 - Current
 municipalities", on the Statistics Iceland website. Data downloaded on
 12 July 2023.
+
+## See also
+
+- [datasets](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  Overview of datasets in bage

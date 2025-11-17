@@ -35,3 +35,8 @@ Infoshare, and table "Count of fatal and serious non-fatal injuries by
 sex, age group, ethnicity, cause, and severity of injury, 2000-2021" in
 the online database NZ.Stat, on the Statistics New Zealand website. Data
 downloaded on 1 January 2023.
+
+## See also
+
+- [datasets](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  Overview of datasets in bage

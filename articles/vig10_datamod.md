@@ -69,7 +69,7 @@ mod_base
 #>    1000     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged
-#>        0.82     0.05      0.05   15      TRUE
+#>        0.84     0.05      0.05   15      TRUE
 #>                                            message
 #>    both X-convergence and relative convergence (5)
 ```

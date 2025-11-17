@@ -194,7 +194,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.78     0.31      0.37   11      TRUE   relative convergence (4)
+#>        0.80     0.32      0.38   11      TRUE   relative convergence (4)
 ```
 
 Among other things, a new row appears at the bottom of the printout,
@@ -520,7 +520,7 @@ mod_births
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.58     1.50      0.96   22      TRUE   relative convergence (4)
+#>        2.62     1.52      0.97   22      TRUE   relative convergence (4)
 ```
 
 ## 7 Covariates
@@ -726,7 +726,7 @@ prob_under <- data.frame(sex =  c("Female", "Male"),
                          mean = c(0.05,     0.06),
              disp = c(0.02,     0.02))
 
-mod_under <- mod_base |>
+mod_under <- mod |>
   set_datamod_undercount(prob = prob_under) 
 ```
 
@@ -931,9 +931,7 @@ mod |>
 `bage` is a new package, and still under very active development. Some
 features that are next on the list are:
 
-- **Priors** More options for priors, eg a damped linear trend.
-- **Sets of priors** Pre-specified collections of priors for specific
-  purposes such as modelling fertility rates
+- **Priors** More options for priors, eg a damped randomw walk.
 - **Documentation** More vignettes and examples.
 - **Model choice** Tools for model comparison and model choice
 

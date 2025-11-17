@@ -30,3 +30,8 @@ Derived from data in table "Household composition by age group, for
 people in households in occupied private dwellings, 2006, 2013, and 2018
 Censuses (RC, TA, DHB, SA2)" in the online database NZ.Stat, on the
 Statistics New Zealand website. Data downloaded on 3 January 2023.
+
+## See also
+
+- [datasets](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  Overview of datasets in bage

@@ -34,3 +34,8 @@ Max Planck Institute for Demographic Research (Germany). Available at
 The data are from the Human Mortality Database. Deaths are rounded to
 the nearest integer. More recent versions, and a comprehensive
 description of the data, are available at the HMD website.
+
+## See also
+
+- [datasets](https://bayesiandemography.github.io/bage/reference/datasets.md)
+  Overview of datasets in bage

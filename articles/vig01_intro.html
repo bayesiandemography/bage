@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -228,7 +228,7 @@
 <span><span class="co">#&gt;    1000     year     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        0.78     0.31      0.37   11      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.80     0.32      0.38   11      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Among other things, a new row appears at the bottom of the printout, providing information about the fitting process. The most important value piece of information is whether the calculations have converged.</p>
 <p>One thing the printout does not include is estimates for the model parameters. The reason for excluding them is that there are too many. Statistical models in other R packages often focus on one or two key parameters, such a parameter measuring a treatment effect. In contrast, models in <code>bage</code> often estimate values for thousands, or tens of thousands, of parameters.</p>
 <p>To obtain the estimates from a fitted model, we need specialised extractor functions, which we discuss next.</p>
@@ -479,7 +479,7 @@
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.58     1.50      0.96   22      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.62     1.52      0.97   22      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2" number="7">
@@ -636,7 +636,7 @@
 <span>                         mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>,     <span class="fl">0.06</span><span class="op">)</span>,</span>
 <span>             disp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.02</span>,     <span class="fl">0.02</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">mod_under</span> <span class="op">&lt;-</span> <span class="va">mod_base</span> <span class="op">|&gt;</span></span>
+<span><span class="va">mod_under</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_datamod_undercount.html">set_datamod_undercount</a></span><span class="op">(</span>prob <span class="op">=</span> <span class="va">prob_under</span><span class="op">)</span> </span></code></pre></div>
 <p>The current choice of data models in <code>bage</code> can be views by calling <code>help(datamod)</code>.</p>
 </div>
@@ -805,9 +805,7 @@
 <p><code>bage</code> is a new package, and still under very active development. Some features that are next on the list are:</p>
 <ul>
 <li>
-<strong>Priors</strong> More options for priors, eg a damped linear trend.</li>
-<li>
-<strong>Sets of priors</strong> Pre-specified collections of priors for specific purposes such as modelling fertility rates</li>
+<strong>Priors</strong> More options for priors, eg a damped randomw walk.</li>
 <li>
 <strong>Documentation</strong> More vignettes and examples.</li>
 <li>

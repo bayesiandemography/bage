@@ -17,10 +17,9 @@ A tibble with 6 rows and with columns `version`, `type`, `labels_age`,
 
 ## Source
 
-Derived from data from the [World Marriage
-Data](https://www.un.org/development/desa/pd/data/world-marriage-data)
-2019 database, which is assembled by the UN Population Division from
-national census and survey data.
+Derived from data from the *World Marriage Data 2019* database available
+on the United Nations Population Division website, and assembled by the
+UNPD from national census and survey data.
 
 ## See also
 
