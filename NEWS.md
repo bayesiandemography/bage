@@ -1,6 +1,13 @@
 
 # bage 0.10.1
 
+## vignettes
+
+* All but the first vignette have been changed to 'articles', so that
+  they appear on the pkgdown-derived website on GitHub, but are not
+  part of the package itself. Rebuilding the vignettes was taking too
+  long, and checking times were exceeding CRAN limits.
+
 ## datasets
 
 * Fixed bug in `prt_deaths` where deaths and population datasets had
