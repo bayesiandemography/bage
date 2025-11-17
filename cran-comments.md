@@ -1,4 +1,26 @@
 
+# Submission, 17 November 2025, version 0.10.1
+
+* In response to version 0.10.0 exceeding the 10 minute limit, I have
+  substantially reduced the time required for tests and vignettes.
+
+* My previous submission, version v.10.1 failed the CRAN
+  pre-checks. If I have understood the logs correctly, this is because
+  the checktime exceeded the 10 minute limit:
+  
+  the Flavor: r-devel-windows-x86_64
+  Check: Overall checktime, Result: NOTE
+  Overall checktime 12 min > 10 min
+  
+* I have added `skip_on_cran()` calls to all tests that take more than
+  0.5 second on my machine, and also moved 9 of the 10 vignettes that
+  come with the packages into an 'articles' folder, so that now only
+  one vignette is built on CRAN. After these changes the running time
+  for tests has decreased by 50% on my machine, and the compilation
+  time for vignettes has reduced by 80%. Hopefully this will be enough
+  to bring CRAN checktime below 10 minutes.
+
+
 # Submission, 16 November 2025, version 0.10.0
 
 * Current CRAN checks have notes for the three r-oldrel systems. All
