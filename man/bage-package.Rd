@@ -60,9 +60,12 @@ and is fast.
 \item \code{\link[=replicate_data]{replicate_data()}} Compare real and simulated data
 \item \code{\link[=report_sim]{report_sim()}} Simulation study of model
 }
+}
 
-\strong{SVD-based modelling of age profiles}
+\section{Data}{
+
 \itemize{
+\item \link{datasets} Overview of datasets
 \item \link{svds} Overview of scaled SVDs
 }
 }

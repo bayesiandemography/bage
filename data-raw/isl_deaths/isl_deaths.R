@@ -1,9 +1,11 @@
 
-library(command)
-library(dplyr, warn.conflicts = FALSE)
-library(tidyr)
-library(readr)
-library(poputils)
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(readr)
+  library(poputils)
+  library(command)
+})
 
 cmd_assign(popn_raw = "isl_deaths/MAN02008_20230712-132130.csv.zip",
            deaths_raw = "isl_deaths/MAN05221_20230712-131721.csv.zip",
@@ -38,14 +40,6 @@ isl_deaths <- deaths_raw |>
 
 save(isl_deaths, file = .out, compress = "bzip2")
 
-
-## library(ggplot2)
-## ggplot(popn, aes(x = age_mid(age), y = popn, col = sex)) +
-##     facet_wrap(vars(time)) +
-##     geom_line()
-## ggplot(deaths, aes(x = age_mid(age), y = deaths, col = sex)) +
-##     facet_wrap(vars(time)) +
-##     geom_line()
 
 
 

@@ -1,10 +1,12 @@
 
-library(tidyr, warn.conflicts = FALSE)
-library(dplyr, warn.conflicts = FALSE)
-library(readr)
-library(stringi)
-library(forcats)
-library(command)
+suppressPackageStartupMessages({
+  library(tidyr)
+  library(dplyr)
+  library(readr)
+  library(stringi)
+  library(forcats)
+  library(command)
+})
 
 cmd_assign(.births = "swe_infant/BE0101E2.csv.gz",
            .deaths = "swe_infant/BE0101D9.csv.gz",

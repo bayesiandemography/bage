@@ -1,9 +1,11 @@
 
-library(readr)
-library(dplyr, warn.conflicts = FALSE)
-library(tidyr)
-library(poputils)
-library(command)
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(poputils)
+  library(command)
+})
 
 cmd_assign(.raw = "divorces/VSM480501_20230322_102557_40.csv.gz",
            .out = "divorces/divorces_raw.rds")

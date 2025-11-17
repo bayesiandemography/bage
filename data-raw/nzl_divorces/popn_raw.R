@@ -1,13 +1,14 @@
 
-library(readr)
-library(dplyr, warn.conflicts = FALSE)
-library(tidyr)
-library(poputils)
-library(command)
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(poputils)
+  library(command)
+})
 
 cmd_assign(.raw = "divorces/DPE403905_20230322_103055_56.csv.gz",
            .out = "divorces/popn_raw.rds")
-
 
 age_labels <- age_labels(type = "single", max = 95)
 col_names <- c("time",

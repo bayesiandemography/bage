@@ -1,9 +1,11 @@
 
-library(readr)
-library(dplyr, warn.conflicts = FALSE)
-library(tidyr)
-library(poputils)
-library(command)
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(poputils)
+  library(command)
+})
 
 cmd_assign(.injuries_raw = "nzl_injuries/TABLECODE7935_Data.csv.gz",
            .popn_maori_raw = "nzl_injuries/DPE479901_20230101_021445_73.csv.gz",

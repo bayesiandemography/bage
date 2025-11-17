@@ -1,10 +1,12 @@
 
-library(readr)
-library(command)
-library(dplyr, warn.conflicts = FALSE)
-library(poputils)
-library(tidyr)
-library(forcats)
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(poputils)
+  library(tidyr)
+  library(forcats)
+  library(command)
+})
 
 
 cmd_assign(.births = "kor_births/101_DT_1B81A12_20240924103050.csv.gz",
@@ -112,19 +114,5 @@ kor_births <- kor_births |>
 
 
 save(kor_births, file = .out, compress = "bzip2")
-
-## library(ggplot2)
-## ggplot(kor_births, aes(x = time, y = births / popn, color = age)) +
-##   facet_wrap(vars(region)) +
-##   geom_line()
-
-
-## kor_births |>
-## mutate(rate = births / popn) |>
-## group_by(region, time) |>
-## summarise(tfr = 5 * sum(rate)) |>
-## ggplot(aes(x = time, y = tfr)) +
-##   facet_wrap(vars(region)) +
-##   geom_line()
 
 

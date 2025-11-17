@@ -1,4 +1,15 @@
 
+# bage 0.10.1
+
+## datasets
+
+* Fixed bug in `prt_deaths` where deaths and population datasets had
+  not merged properly.
+* Fixed bug in `usa_deaths`, where the deaths column had class `"ts"`
+  rather than `"numeric"`.
+* Added a `datasets' overview page.
+
+
 # bage 0.10.0
 
 ## Extending facilities for scaled SVD priors
