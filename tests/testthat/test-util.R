@@ -1434,6 +1434,7 @@ test_that("warn_not_aggregating returns TRUE with duplicates, but always is FALS
 })
 
 test_that("warn_not_aggregating raises warning with duplicates, but only first time", {
+  skip_if_not(interactive())
   dir_cache <- tools::R_user_dir(package = "bage", which = "cache")
   dir.create(dir_cache, showWarnings = FALSE, recursive = TRUE)
   path <- file.path(dir_cache, "aggregation.txt")
@@ -1454,18 +1455,14 @@ test_that("warn_not_aggregating raises warning with duplicates, but only first t
 })
 
 test_that("warn_not_aggregating uses covariages", {
-  dir_cache <- tools::R_user_dir(package = "bage", which = "cache")
-  dir.create(dir_cache, showWarnings = FALSE, recursive = TRUE)
-  path <- file.path(dir_cache, "aggregation.txt")
-  unlink(path)
   formula <- deaths ~ age
   data <- expand.grid(age = 0:2, sex = c("f", "m"))
   data$deaths <- 1
   formula_covariates <- ~ sex
   expect_true(warn_not_aggregating(formula = formula,
-                                      data = data,
-                                      formula_covariates = formula_covariates,
-                                      always = TRUE))
+                                   data = data,
+                                   formula_covariates = formula_covariates,
+                                   always = TRUE))
 })
 
               
