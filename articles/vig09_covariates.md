@@ -1,4 +1,4 @@
-# 9. Covariates
+# Covariates
 
 ## 1 Introduction
 
@@ -274,7 +274,7 @@ mod_dragon_age
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.88     0.42      0.41   22      TRUE   relative convergence (4)
+#>        0.87     0.41      0.41   22      TRUE   relative convergence (4)
 ```
 
 Rather than a single dragon-year coefficient, we have a coefficient for

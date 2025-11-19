@@ -1,4 +1,4 @@
-# 4. Singular Value Decomposition
+# Singular Value Decomposition
 
 ``` r
 library(bage)

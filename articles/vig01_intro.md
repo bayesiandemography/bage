@@ -1,29 +1,34 @@
-# 1. Overview
+# Overview
 
 ## 1 Introduction
 
-`bage` (= “Bayesian” + “age”) implements Bayesian hierarchical models
-for rates, probabilities, and means. The rates, probabilities, and means
-are cross-classified by variables such as age, sex, region, and time.
-Models in `bage` can be used for estimation and for forecasting.
+(= “Bayesian” + “age”) implements Bayesian hierarchical models for
+rates, probabilities, and means. The rates, probabilities, and means are
+cross-classified by variables such as age, sex, region, and time. Models
+in can be used for estimation and for forecasting.
 
-`bage` models are built out of smaller submodels. A model for mortality
-rates, for instance, might contain submodels describing how rates vary
-over age, sex, and time.
+models are built out of smaller submodels. A model for mortality rates,
+for instance, might contain submodels describing how rates vary over
+age, sex, and time.
 
-Internally, `bage` draws on package
+Internally, draws on package
 [TMB](https://CRAN.R-project.org/package=TMB) for fitting. `TMB` is fast
 and can handle large datasets.
 
-This vignette introduces the main features of `bage`, using data on
-injuries as a case study.
+This vignette introduces the main features of , using data on injuries
+as a case study.
+
+For more details, see the
+[website](https://bayesiandemography.github.io/bage/). The [Mathematical
+Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+article, for instance, provides mathematical descriptions of the models.
 
 ## 2 Preliminaries
 
 ### 2.1 Packages
 
 We begin by loading the packages that we will need for analysing the
-injuries data. Loading `bage` automatically loads package `rvec`, which
+injuries data. Loading automatically loads package `rvec`, which
 contains functions for working with draws from probability
 distributions. Package `poputils` contains functions for working with
 demographic data. Packages `dplyr` and `tidyr` are core
@@ -40,9 +45,9 @@ library(ggplot2)
 
 ### 2.2 Data
 
-We analyse a dataset called `nzl_injuries`. The dataset is included in
-`bage`. It contains counts of fatal injuries and population in New
-Zealand, classified by age, sex, ethnicity, and year.
+We analyse a dataset called `nzl_injuries`. The dataset is included in .
+It contains counts of fatal injuries and population in New Zealand,
+classified by age, sex, ethnicity, and year.
 
 ``` r
 head(nzl_injuries)
@@ -97,9 +102,9 @@ The resulting model has the following structure:
 
 The number of injuries occurring within each combination of age, sex,
 ethnicity, and time reflects (i) the population at risk and (ii) an
-underlying rate that in `bage` is referred to as `.fitted`. The expected
-value for `.fitted` is obtained by summing up values for the intercept,
-age effect, sex effect, and so forth. The actual value of `.fitted` can
+underlying rate that in is referred to as `.fitted`. The expected value
+for `.fitted` is obtained by summing up values for the intercept, age
+effect, sex effect, and so forth. The actual value of `.fitted` can
 diverge from `.expected`: the amount of divergence is governed by the
 `disp` (dispersion) parameter.
 
@@ -146,9 +151,8 @@ The bottom row of the printed object shows various model settings.
 `n_draw` is the number of random draws produced by extractor functions,
 which we discuss in Section [5](#sec:outputs). `var_time`, `var_age`,
 and `var_sexgender` are the names of the variables in `nzl_injuries`
-that represent time, age, and sex or gender. If `bage` fails to
-correctly identify these variables, they can be identified using
-functions such as
+that represent time, age, and sex or gender. If fails to correctly
+identify these variables, they can be identified using functions such as
 [`set_var_time()`](https://bayesiandemography.github.io/bage/reference/set_var_time.md).
 
 ## 4 Fitting a model
@@ -205,8 +209,8 @@ One thing the printout does not include is estimates for the model
 parameters. The reason for excluding them is that there are too many.
 Statistical models in other R packages often focus on one or two key
 parameters, such a parameter measuring a treatment effect. In contrast,
-models in `bage` often estimate values for thousands, or tens of
-thousands, of parameters.
+models in often estimate values for thousands, or tens of thousands, of
+parameters.
 
 To obtain the estimates from a fitted model, we need specialised
 extractor functions, which we discuss next.
@@ -215,7 +219,7 @@ extractor functions, which we discuss next.
 
 ### 5.1 Extractor functions
 
-The two most important extractor functions in `bage` are
+The two most important extractor functions in are
 [`augment()`](https://generics.r-lib.org/reference/augment.html) and
 [`components()`](https://generics.r-lib.org/reference/components.html).
 Both of these are generic functions that work on many sorts of R objects
@@ -342,9 +346,9 @@ unknown quantities in the model after the combining model assumptions
 ### 5.5 Rvecs
 
 Draws from probability distributions can be awkward to work with, so
-`bage` uses a special type of vector called an “rvec”, implemented by
-package `rvec`. An rvec contains multiple draws, but tries to behave as
-much as possible like a standard vector. The printout of `.fitted` and
+uses a special type of vector called an “rvec”, implemented by package
+`rvec`. An rvec contains multiple draws, but tries to behave as much as
+possible like a standard vector. The printout of `.fitted` and
 `.expected` in the `aug` object above shows medians and 95% credible
 intervals.
 
@@ -380,7 +384,7 @@ data_plot |>
 
 We then use
 [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html) to
-visualise the outputs. A good way to display `bage` output is to use
+visualise the outputs. A good way to display output is to use
 [`geom_ribbon()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html)
 to plot credible intervals,
 [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
@@ -419,7 +423,7 @@ information about the future.
 ### 6.2 Current priors in bage
 
 [`help(priors)`](https://bayesiandemography.github.io/bage/reference/priors.md)
-produces a list of priors that have been implemented in `bage`.
+produces a list of priors that have been implemented in .
 
 Some examples:
 
@@ -441,8 +445,7 @@ Some examples:
 
 ### 6.3 Defaults
 
-`bage` uses the following rules to assign default priors to a model
-term:
+uses the following rules to assign default priors to a model term:
 
 - if the term has less than 3 elements, use
   [`NFix()`](https://bayesiandemography.github.io/bage/reference/NFix.md);
@@ -480,8 +483,8 @@ mod <- mod |>
 
 ### 6.4 SVD-based priors
 
-`bage` implements a special type of prior based on applying a singular
-value decomposition (SVD) to data from an international database. These
+implements a special type of prior based on applying a singular value
+decomposition (SVD) to data from an international database. These
 SVD-based priors represent the age-sex patterns in demographic processes
 such as fertility, mortality, and labor force participation in a
 parsimonious way. The model below, for instance, uses SVD-based priors
@@ -520,16 +523,16 @@ mod_births
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.62     1.52      0.97   22      TRUE   relative convergence (4)
+#>        2.62     1.52      0.98   22      TRUE   relative convergence (4)
 ```
 
 ## 7 Covariates
 
-The main predictors in a `bage` model are the variables, such as age and
-sex, that are used to classify the outcome. However, `bage` does allow
-additional variables in `data` to be used as predictors. We refer to
-these additional variables as covariates, and we add them to a model
-using function
+The main predictors in a model are the variables, such as age and sex,
+that are used to classify the outcome. However, does allow additional
+variables in `data` to be used as predictors. We refer to these
+additional variables as covariates, and we add them to a model using
+function
 [`set_covariates()`](https://bayesiandemography.github.io/bage/reference/set_covariates.md):
 
 ``` r
@@ -633,9 +636,9 @@ ggplot(data_forecast, aes(x = year)) +
 
 ## 9 Imputation
 
-`bage` automatically accommodates missing values in the outcome
-variables. We illustrate with a version of the injuries dataset where
-values for 2010–2014 are set to `NA`.
+automatically accommodates missing values in the outcome variables. We
+illustrate with a version of the injuries dataset where values for
+2010–2014 are set to `NA`.
 
 ``` r
 years_mis <- 2010:2014
@@ -653,8 +656,8 @@ mod_mis <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
   fit()
 ```
 
-`bage` creates a new variable, called `.injuries` containing imputed
-values for the missing outcomes.
+creates a new variable, called `.injuries` containing imputed values for
+the missing outcomes.
 
 ``` r
 mod_mis |>
@@ -712,9 +715,9 @@ variables are skipped over in the same way.
 
 Many datasets in applied demography have some sort of measurement error:
 units within the target population are missed, for instance, or are
-double-counted. In `bage`, measurement error can be explicitly
-incorporated into the analysis by adding a “data model” (also known as a
-measurement error model) to the base model.
+double-counted. In , measurement error can be explicitly incorporated
+into the analysis by adding a “data model” (also known as a measurement
+error model) to the base model.
 
 Consider, for example, as dataset where, because of errors in the data
 collection process, responses for females are expected to be inflated by
@@ -730,7 +733,7 @@ mod_under <- mod |>
   set_datamod_undercount(prob = prob_under) 
 ```
 
-The current choice of data models in `bage` can be views by calling
+The current choice of data models in can be views by calling
 `help(datamod)`.
 
 ## 11 Confidentialization
@@ -897,8 +900,8 @@ report_sim(mod_est = mod_rw2,
 
 Another way of gaining insights about a model is to look at estimates
 based purely on the priors, without using data on the outcome variable.
-This is referred to as a ‘prior predictive check’. In `bage`, prior
-predictive checks can be done by calling
+This is referred to as a ‘prior predictive check’. In , prior predictive
+checks can be done by calling
 [`augment()`](https://generics.r-lib.org/reference/augment.html),
 [`components()`](https://generics.r-lib.org/reference/components.html)
 or [`forecast()`](https://generics.r-lib.org/reference/forecast.html) on
@@ -928,8 +931,8 @@ mod |>
 
 ### 13.1 Future features
 
-`bage` is a new package, and still under very active development. Some
-features that are next on the list are:
+is a new package, and still under very active development. Some features
+that are next on the list are:
 
 - **Priors** More options for priors, eg a damped randomw walk.
 - **Documentation** More vignettes and examples.
@@ -937,11 +940,11 @@ features that are next on the list are:
 
 ### 13.2 Experimental status
 
-`bage` currently has an [![Lifecycle:
+currently has an [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-life cycle badge, to warn users that some features of the `bage`
-interface, such as function arguments, are still evolving. We hope to
-graduate from experimental status by the end of 2025.
+life cycle badge, to warn users that some features of the interface,
+such as function arguments, are still evolving. We hope to graduate from
+experimental status by the end of 2025.
 
 ### 13.3 Bug reports and feature requests
 

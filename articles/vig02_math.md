@@ -1,4 +1,4 @@
-# 2. Mathematical Details
+# Mathematical Details
 
 ## 1 Introduction
 

@@ -151,13 +151,6 @@ mod |>
 ## fit model
 mod <- mod |>
   fit()
-#> Warning: `data` has multiple rows with the same values for the predictors (`age`, `sex`,
-#> and `year`). Model behavior when predictors are duplicated has changed since
-#> version 0.9.8.
-#> ℹ Up to version 0.9.8, rows with duplicated values were aggregated before
-#>   fitting. From version 0.9.9 no aggregation occurs.
-#> ℹ See help for `fit()` for details.
-#> ℹ (This warning will only be shown once every 8 hours).
 #> Building log-posterior function...
 #> Finding maximum...
 #> Drawing values for hyper-parameters...

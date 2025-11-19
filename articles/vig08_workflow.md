@@ -1,4 +1,4 @@
-# 8. Bayesian Workflow
+# Bayesian Workflow
 
 ``` r
 library(bage)

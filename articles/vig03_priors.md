@@ -1,4 +1,4 @@
-# 3. Priors
+# Priors
 
 ## 1 Set-up
 

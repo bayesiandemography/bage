@@ -1,4 +1,4 @@
-# 6. Modelling Mortality
+# Modelling Mortality
 
 ## 1 Introduction
 
@@ -282,7 +282,7 @@ mod_base
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        3.00     1.45      1.35   14      TRUE   relative convergence (4)
+#>        3.00     1.44      1.36   14      TRUE   relative convergence (4)
 ```
 
 ### 3.4 Extracting rates

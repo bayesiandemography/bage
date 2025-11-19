@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>1. Overview • bage</title>
+<title>Overview • bage</title>
 <!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
   window.MathJax = {
     chtml: {
@@ -16,7 +16,7 @@
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="1. Overview">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Overview">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,21 +36,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/vig01_intro.html">1. Overview</a></li>
-    <li><a class="dropdown-item" href="../articles/vig02_math.html">2. Mathematical Details</a></li>
-    <li><a class="dropdown-item" href="../articles/vig03_priors.html">3. Priors</a></li>
-    <li><a class="dropdown-item" href="../articles/vig04_svd.html">4. Singular Value Decomposition</a></li>
-    <li><a class="dropdown-item" href="../articles/vig05_bdef.html">5. Examples from BDEF Book</a></li>
-    <li><a class="dropdown-item" href="../articles/vig06_mortality.html">6. Modelling Mortality</a></li>
-    <li><a class="dropdown-item" href="../articles/vig07_simulation.html">7. Simulation</a></li>
-    <li><a class="dropdown-item" href="../articles/vig08_workflow.html">8. Bayesian Workflow</a></li>
-    <li><a class="dropdown-item" href="../articles/vig09_covariates.html">9. Covariates</a></li>
-    <li><a class="dropdown-item" href="../articles/vig10_datamod.html">10. Data Models</a></li>
-  </ul>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -69,7 +55,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>1. Overview</h1>
+      <h1>Overview</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/bayesiandemography/bage/blob/main/vignettes/vig01_intro.Rmd" class="external-link"><code>vignettes/vig01_intro.Rmd</code></a></small>
@@ -82,10 +68,11 @@
 <h2 id="introduction">
 <span class="header-section-number">1</span> Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p><code>bage</code> (= “Bayesian” + “age”) implements Bayesian hierarchical models for rates, probabilities, and means. The rates, probabilities, and means are cross-classified by variables such as age, sex, region, and time. Models in <code>bage</code> can be used for estimation and for forecasting.</p>
-<p><code>bage</code> models are built out of smaller submodels. A model for mortality rates, for instance, might contain submodels describing how rates vary over age, sex, and time.</p>
-<p>Internally, <code>bage</code> draws on package <a href="https://CRAN.R-project.org/package=TMB" class="external-link">TMB</a> for fitting. <code>TMB</code> is fast and can handle large datasets.</p>
-<p>This vignette introduces the main features of <code>bage</code>, using data on injuries as a case study.</p>
+<p> (= “Bayesian” + “age”) implements Bayesian hierarchical models for rates, probabilities, and means. The rates, probabilities, and means are cross-classified by variables such as age, sex, region, and time. Models in can be used for estimation and for forecasting.</p>
+<p> models are built out of smaller submodels. A model for mortality rates, for instance, might contain submodels describing how rates vary over age, sex, and time.</p>
+<p>Internally, draws on package <a href="https://CRAN.R-project.org/package=TMB" class="external-link">TMB</a> for fitting. <code>TMB</code> is fast and can handle large datasets.</p>
+<p>This vignette introduces the main features of , using data on injuries as a case study.</p>
+<p>For more details, see the <a href="https://bayesiandemography.github.io/bage/">website</a>. The <a href="https://bayesiandemography.github.io/bage/articles/vig02_math.html">Mathematical Details</a> article, for instance, provides mathematical descriptions of the models.</p>
 </div>
 <div class="section level2" number="2">
 <h2 id="preliminaries">
@@ -95,7 +82,7 @@
 <h3 id="packages">
 <span class="header-section-number">2.1</span> Packages<a class="anchor" aria-label="anchor" href="#packages"></a>
 </h3>
-<p>We begin by loading the packages that we will need for analysing the injuries data. Loading <code>bage</code> automatically loads package <code>rvec</code>, which contains functions for working with draws from probability distributions. Package <code>poputils</code> contains functions for working with demographic data. Packages <code>dplyr</code> and <code>tidyr</code> are core <a href="https://tidyverse.org/" class="external-link">tidyverse</a> packages for manipulating data. We use <code>ggplot2</code> for graphics.</p>
+<p>We begin by loading the packages that we will need for analysing the injuries data. Loading automatically loads package <code>rvec</code>, which contains functions for working with draws from probability distributions. Package <code>poputils</code> contains functions for working with demographic data. Packages <code>dplyr</code> and <code>tidyr</code> are core <a href="https://tidyverse.org/" class="external-link">tidyverse</a> packages for manipulating data. We use <code>ggplot2</code> for graphics.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/poputils/" class="external-link">poputils</a></span><span class="op">)</span></span>
@@ -107,7 +94,7 @@
 <h3 id="data">
 <span class="header-section-number">2.2</span> Data<a class="anchor" aria-label="anchor" href="#data"></a>
 </h3>
-<p>We analyse a dataset called <code>nzl_injuries</code>. The dataset is included in <code>bage</code>. It contains counts of fatal injuries and population in New Zealand, classified by age, sex, ethnicity, and year.</p>
+<p>We analyse a dataset called <code>nzl_injuries</code>. The dataset is included in . It contains counts of fatal injuries and population in New Zealand, classified by age, sex, ethnicity, and year.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">nzl_injuries</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 6</span></span></span>
@@ -152,7 +139,7 @@
 </h3>
 <p>The resulting model has the following structure:</p>
 <p><img src="vig01_dag.png" width="90%"></p>
-<p>The number of injuries occurring within each combination of age, sex, ethnicity, and time reflects (i) the population at risk and (ii) an underlying rate that in <code>bage</code> is referred to as <code>.fitted</code>. The expected value for <code>.fitted</code> is obtained by summing up values for the intercept, age effect, sex effect, and so forth. The actual value of <code>.fitted</code> can diverge from <code>.expected</code>: the amount of divergence is governed by the <code>disp</code> (dispersion) parameter.</p>
+<p>The number of injuries occurring within each combination of age, sex, ethnicity, and time reflects (i) the population at risk and (ii) an underlying rate that in is referred to as <code>.fitted</code>. The expected value for <code>.fitted</code> is obtained by summing up values for the intercept, age effect, sex effect, and so forth. The actual value of <code>.fitted</code> can diverge from <code>.expected</code>: the amount of divergence is governed by the <code>disp</code> (dispersion) parameter.</p>
 <p>The model terms are all given “prior distributions”. A prior distribution is a submodel capturing features of the unknown quantity or quantities being estimated. Possible features include the range within which the quantity is likely to fall, or the amount of smoothness expected in series of values. Priors distributions are a distinctive feature of Bayesian methods.</p>
 </div>
 <div class="section level3" number="3.3">
@@ -183,7 +170,7 @@
 <span><span class="co">#&gt;  n_draw var_time var_age var_sexgender</span></span>
 <span><span class="co">#&gt;    1000     year     age           sex</span></span></code></pre></div>
 <p>The table in the the middle of the printout above shows the default prior distribution assigned to each term. We return to priors in Section <a href="#sec:priors">6</a>.</p>
-<p>The bottom row of the printed object shows various model settings. <code>n_draw</code> is the number of random draws produced by extractor functions, which we discuss in Section <a href="#sec:outputs">5</a>. <code>var_time</code>, <code>var_age</code>, and <code>var_sexgender</code> are the names of the variables in <code>nzl_injuries</code> that represent time, age, and sex or gender. If <code>bage</code> fails to correctly identify these variables, they can be identified using functions such as <code><a href="../reference/set_var_time.html">set_var_time()</a></code>.</p>
+<p>The bottom row of the printed object shows various model settings. <code>n_draw</code> is the number of random draws produced by extractor functions, which we discuss in Section <a href="#sec:outputs">5</a>. <code>var_time</code>, <code>var_age</code>, and <code>var_sexgender</code> are the names of the variables in <code>nzl_injuries</code> that represent time, age, and sex or gender. If fails to correctly identify these variables, they can be identified using functions such as <code><a href="../reference/set_var_time.html">set_var_time()</a></code>.</p>
 </div>
 </div>
 <div class="section level2" number="4">
@@ -230,7 +217,7 @@
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
 <span><span class="co">#&gt;        0.80     0.32      0.38   11      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Among other things, a new row appears at the bottom of the printout, providing information about the fitting process. The most important value piece of information is whether the calculations have converged.</p>
-<p>One thing the printout does not include is estimates for the model parameters. The reason for excluding them is that there are too many. Statistical models in other R packages often focus on one or two key parameters, such a parameter measuring a treatment effect. In contrast, models in <code>bage</code> often estimate values for thousands, or tens of thousands, of parameters.</p>
+<p>One thing the printout does not include is estimates for the model parameters. The reason for excluding them is that there are too many. Statistical models in other R packages often focus on one or two key parameters, such a parameter measuring a treatment effect. In contrast, models in often estimate values for thousands, or tens of thousands, of parameters.</p>
 <p>To obtain the estimates from a fitted model, we need specialised extractor functions, which we discuss next.</p>
 </div>
 </div>
@@ -242,7 +229,7 @@
 <h3 id="extractor-functions">
 <span class="header-section-number">5.1</span> Extractor functions<a class="anchor" aria-label="anchor" href="#extractor-functions"></a>
 </h3>
-<p>The two most important extractor functions in <code>bage</code> are <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> and <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>. Both of these are generic functions that work on many sorts of R objects (see <a href="https://generics.r-lib.org/index.html" class="external-link">here</a> and <a href="https://www.tidymodels.org/learn/develop/broom/#glossary" class="external-link">here</a>).</p>
+<p>The two most important extractor functions in are <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> and <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>. Both of these are generic functions that work on many sorts of R objects (see <a href="https://generics.r-lib.org/index.html" class="external-link">here</a> and <a href="https://www.tidymodels.org/learn/develop/broom/#glossary" class="external-link">here</a>).</p>
 </div>
 <div class="section level3" number="5.2">
 <h3 id="augment">
@@ -352,7 +339,7 @@
 <h3 id="rvecs">
 <span class="header-section-number">5.5</span> Rvecs<a class="anchor" aria-label="anchor" href="#rvecs"></a>
 </h3>
-<p>Draws from probability distributions can be awkward to work with, so <code>bage</code> uses a special type of vector called an “rvec”, implemented by package <code>rvec</code>. An rvec contains multiple draws, but tries to behave as much as possible like a standard vector. The printout of <code>.fitted</code> and <code>.expected</code> in the <code>aug</code> object above shows medians and 95% credible intervals.</p>
+<p>Draws from probability distributions can be awkward to work with, so uses a special type of vector called an “rvec”, implemented by package <code>rvec</code>. An rvec contains multiple draws, but tries to behave as much as possible like a standard vector. The printout of <code>.fitted</code> and <code>.expected</code> in the <code>aug</code> object above shows medians and 95% credible intervals.</p>
 </div>
 <div class="section level3" number="5.6">
 <h3 id="graphing-outputs">
@@ -379,7 +366,7 @@
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 0.00028 (0.00022, 0.00037)     0.000<span style="text-decoration: underline;">215</span>    0.000<span style="text-decoration: underline;">281</span>      0.000<span style="text-decoration: underline;">372</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0.00024 (0.00018, 0.00031)     0.000<span style="text-decoration: underline;">179</span>    0.000<span style="text-decoration: underline;">236</span>      0.000<span style="text-decoration: underline;">312</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 38 more rows</span></span></span></code></pre></div>
-<p>We then use <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot()</a></code> to visualise the outputs. A good way to display <code>bage</code> output is to use <code><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon()</a></code> to plot credible intervals, <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> to plot model-based point estimates, and <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> to plot direct estimates.</p>
+<p>We then use <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot()</a></code> to visualise the outputs. A good way to display output is to use <code><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon()</a></code> to plot credible intervals, <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> to plot model-based point estimates, and <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> to plot direct estimates.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data_plot</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/age_lower.html" class="external-link">age_mid</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -408,7 +395,7 @@
 <h3 id="current-priors-in-bage">
 <span class="header-section-number">6.2</span> Current priors in bage<a class="anchor" aria-label="anchor" href="#current-priors-in-bage"></a>
 </h3>
-<p><code><a href="../reference/priors.html">help(priors)</a></code> produces a list of priors that have been implemented in <code>bage</code>.</p>
+<p><code><a href="../reference/priors.html">help(priors)</a></code> produces a list of priors that have been implemented in .</p>
 <p>Some examples:</p>
 <ul>
 <li>
@@ -425,7 +412,7 @@
 <h3 id="defaults">
 <span class="header-section-number">6.3</span> Defaults<a class="anchor" aria-label="anchor" href="#defaults"></a>
 </h3>
-<p><code>bage</code> uses the following rules to assign default priors to a model term:</p>
+<p> uses the following rules to assign default priors to a model term:</p>
 <ul>
 <li>if the term has less than 3 elements, use <code><a href="../reference/NFix.html">NFix()</a></code>;</li>
 <li>otherwise, if the term involves time, use <code><a href="../reference/RW.html">RW()</a></code>, with time as the `along’ dimension;</li>
@@ -449,7 +436,7 @@
 <h3 id="svd-based-priors">
 <span class="header-section-number">6.4</span> SVD-based priors<a class="anchor" aria-label="anchor" href="#svd-based-priors"></a>
 </h3>
-<p><code>bage</code> implements a special type of prior based on applying a singular value decomposition (SVD) to data from an international database. These SVD-based priors represent the age-sex patterns in demographic processes such as fertility, mortality, and labor force participation in a parsimonious way. The model below, for instance, uses SVD-based priors for age effects and age-time interactions in a model of regional fertility rates in Korea. Note that the number of free parameters (denoted <code>n_par_free</code>) for <code>age</code> and <code>age:time</code> in the printout below is much less than the total number of parameters (denoted <code>n_par</code>) for <code>age</code> and <code>age:time</code>.</p>
+<p> implements a special type of prior based on applying a singular value decomposition (SVD) to data from an international database. These SVD-based priors represent the age-sex patterns in demographic processes such as fertility, mortality, and labor force participation in a parsimonious way. The model below, for instance, uses SVD-based priors for age effects and age-time interactions in a model of regional fertility rates in Korea. Note that the number of free parameters (denoted <code>n_par_free</code>) for <code>age</code> and <code>age:time</code> in the printout below is much less than the total number of parameters (denoted <code>n_par</code>) for <code>age</code> and <code>age:time</code>.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_births</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">births</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">region</span> <span class="op">+</span> <span class="va">age</span> <span class="op">*</span> <span class="va">time</span>,</span>
 <span>                       data <span class="op">=</span> <span class="va">kor_births</span>,</span>
@@ -479,14 +466,14 @@
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.62     1.52      0.97   22      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.62     1.52      0.98   22      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2" number="7">
 <h2 id="covariates">
 <span class="header-section-number">7</span> Covariates<a class="anchor" aria-label="anchor" href="#covariates"></a>
 </h2>
-<p>The main predictors in a <code>bage</code> model are the variables, such as age and sex, that are used to classify the outcome. However, <code>bage</code> does allow additional variables in <code>data</code> to be used as predictors. We refer to these additional variables as covariates, and we add them to a model using function <code><a href="../reference/set_covariates.html">set_covariates()</a></code>:</p>
+<p>The main predictors in a model are the variables, such as age and sex, that are used to classify the outcome. However, does allow additional variables in <code>data</code> to be used as predictors. We refer to these additional variables as covariates, and we add them to a model using function <code><a href="../reference/set_covariates.html">set_covariates()</a></code>:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">births</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">region</span> <span class="op">+</span> <span class="va">age</span> <span class="op">*</span> <span class="va">time</span>,</span>
 <span>         data <span class="op">=</span> <span class="va">kor_births</span>,</span>
@@ -571,7 +558,7 @@
 <h2 id="imputation">
 <span class="header-section-number">9</span> Imputation<a class="anchor" aria-label="anchor" href="#imputation"></a>
 </h2>
-<p><code>bage</code> automatically accommodates missing values in the outcome variables. We illustrate with a version of the injuries dataset where values for 2010–2014 are set to <code>NA</code>.</p>
+<p> automatically accommodates missing values in the outcome variables. We illustrate with a version of the injuries dataset where values for 2010–2014 are set to <code>NA</code>.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">years_mis</span> <span class="op">&lt;-</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2014</span></span>
 <span></span>
@@ -583,7 +570,7 @@
 <span>                    data <span class="op">=</span> <span class="va">injuries_mis</span>,</span>
 <span>                    exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><code>bage</code> creates a new variable, called <code>.injuries</code> containing imputed values for the missing outcomes.</p>
+<p> creates a new variable, called <code>.injuries</code> containing imputed values for the missing outcomes.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_mis</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -629,7 +616,7 @@
 <h2 id="data-models">
 <span class="header-section-number">10</span> Data models<a class="anchor" aria-label="anchor" href="#data-models"></a>
 </h2>
-<p>Many datasets in applied demography have some sort of measurement error: units within the target population are missed, for instance, or are double-counted. In <code>bage</code>, measurement error can be explicitly incorporated into the analysis by adding a “data model” (also known as a measurement error model) to the base model.</p>
+<p>Many datasets in applied demography have some sort of measurement error: units within the target population are missed, for instance, or are double-counted. In , measurement error can be explicitly incorporated into the analysis by adding a “data model” (also known as a measurement error model) to the base model.</p>
 <p>Consider, for example, as dataset where, because of errors in the data collection process, responses for females are expected to be inflated by 5% and responses for males are expected to be inflated by 6%. We might extend our base model as follows:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prob_under</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Female"</span>, <span class="st">"Male"</span><span class="op">)</span>,</span>
@@ -638,7 +625,7 @@
 <span></span>
 <span><span class="va">mod_under</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_datamod_undercount.html">set_datamod_undercount</a></span><span class="op">(</span>prob <span class="op">=</span> <span class="va">prob_under</span><span class="op">)</span> </span></code></pre></div>
-<p>The current choice of data models in <code>bage</code> can be views by calling <code>help(datamod)</code>.</p>
+<p>The current choice of data models in can be views by calling <code>help(datamod)</code>.</p>
 </div>
 <div class="section level2" number="11">
 <h2 id="confidentialization">
@@ -773,7 +760,7 @@
 <h3 id="prior-predictive-checks">
 <span class="header-section-number">12.3</span> Prior predictive checks<a class="anchor" aria-label="anchor" href="#prior-predictive-checks"></a>
 </h3>
-<p>Another way of gaining insights about a model is to look at estimates based purely on the priors, without using data on the outcome variable. This is referred to as a ‘prior predictive check’. In <code>bage</code>, prior predictive checks can be done by calling <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>, <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> or <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> on an unfitted version of the model.</p>
+<p>Another way of gaining insights about a model is to look at estimates based purely on the priors, without using data on the outcome variable. This is referred to as a ‘prior predictive check’. In , prior predictive checks can be done by calling <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>, <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> or <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> on an unfitted version of the model.</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/unfit.html">unfit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -802,7 +789,7 @@
 <h3 id="future-features">
 <span class="header-section-number">13.1</span> Future features<a class="anchor" aria-label="anchor" href="#future-features"></a>
 </h3>
-<p><code>bage</code> is a new package, and still under very active development. Some features that are next on the list are:</p>
+<p> is a new package, and still under very active development. Some features that are next on the list are:</p>
 <ul>
 <li>
 <strong>Priors</strong> More options for priors, eg a damped randomw walk.</li>
@@ -816,7 +803,7 @@
 <h3 id="experimental-status">
 <span class="header-section-number">13.2</span> Experimental status<a class="anchor" aria-label="anchor" href="#experimental-status"></a>
 </h3>
-<p><code>bage</code> currently has an <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> life cycle badge, to warn users that some features of the <code>bage</code> interface, such as function arguments, are still evolving. We hope to graduate from experimental status by the end of 2025.</p>
+<p> currently has an <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> life cycle badge, to warn users that some features of the interface, such as function arguments, are still evolving. We hope to graduate from experimental status by the end of 2025.</p>
 </div>
 <div class="section level3" number="13.3">
 <h3 id="bug-reports-and-feature-requests">

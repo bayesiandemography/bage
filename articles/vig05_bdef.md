@@ -1,4 +1,4 @@
-# 5. Examples from BDEF Book
+# Examples from BDEF Book
 
 ## 1 Introduction
 

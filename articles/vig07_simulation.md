@@ -1,4 +1,4 @@
-# 7. Simulation
+# Simulation
 
 ## 1 Introduction
 
