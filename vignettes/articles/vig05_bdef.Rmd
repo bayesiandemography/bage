@@ -1,5 +1,5 @@
 ---
-title: "5. Examples from BDEF Book"
+title: "Examples from BDEF Book"
 template:
   math-rendering: katex
 output:
@@ -11,7 +11,7 @@ output:
 pkgdown:
   as_is: true
 vignette: >
-  %\VignetteIndexEntry{5. Examples from BDEF Book}
+  %\VignetteIndexEntry{Examples from BDEF Book}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

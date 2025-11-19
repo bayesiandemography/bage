@@ -1,5 +1,5 @@
 ---
-title: "3. Priors"
+title: "Priors"
 template:
   math-rendering: katex
 output:
@@ -11,7 +11,7 @@ output:
 pkgdown:
   as_is: true
 vignette: >
-  %\VignetteIndexEntry{3. Priors}
+  %\VignetteIndexEntry{Priors}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -1,5 +1,5 @@
 ---
-title: "7. Simulation"
+title: "Simulation"
 template:
   math-rendering: katex
 output:
@@ -11,7 +11,7 @@ output:
 pkgdown:
   as_is: true
 vignette: >
-  %\VignetteIndexEntry{7. Simulation}
+  %\VignetteIndexEntry{Simulation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib

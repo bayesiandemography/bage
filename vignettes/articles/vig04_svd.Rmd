@@ -1,5 +1,5 @@
 ---
-title: "4. Singular Value Decomposition"
+title: "Singular Value Decomposition"
 template:
   math-rendering: katex
 output:
@@ -11,7 +11,7 @@ output:
 pkgdown:
   as_is: true    
 vignette: >
-  %\VignetteIndexEntry{4. Singular Value Decomposition}
+  %\VignetteIndexEntry{Singular Value Decomposition}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

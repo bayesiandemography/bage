@@ -1,5 +1,5 @@
 ---
-title: "10. Data Models"
+title: "Data Models"
 template:
   math-rendering: katex
 output:
@@ -11,7 +11,7 @@ output:
 pkgdown:
   as_is: true
 vignette: >
-  %\VignetteIndexEntry{10. Data Models}
+  %\VignetteIndexEntry{Data Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib

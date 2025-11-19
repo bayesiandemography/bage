@@ -3,3 +3,16 @@ template:
   bootstrap: 5
   math-rendering: mathjax
 
+articles:
+  - title: "Articles"
+    contents:
+      - vig01_intro
+      - articles/vig02_math
+      - articles/vig03_priors
+      - articles/vig04_svd
+      - articles/vig05_bdef
+      - articles/vig06_mortality
+      - articles/vig07_simulation
+      - articles/vig08_workflow
+      - articles/vig09_covariates
+      - articles/vig10_datamod

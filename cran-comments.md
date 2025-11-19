@@ -1,4 +1,14 @@
 
+# Submission, 19 November 2025, version 0.10.2
+
+* This is a re-submission, responding to a problem picked up by one of
+  Professor Ripley's checks on 17 November. Unit tests in version
+  0.10.1 were leaving behind a file in the R_USER_CACHE directory. I
+  have reproduced this problem, and fixed it.
+* The error is not showing up in today's check results
+  (https://cran.r-project.org/web/checks/check_results_bage.html) but
+  the problem was definitely there, and required fixing.
+
 # Submission, 17 November 2025, version 0.10.1
 
 * In response to version 0.10.0 exceeding the 10 minute limit, I have

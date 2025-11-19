@@ -1,4 +1,18 @@
 
+
+# bage 0.10.2
+
+## Bug fix
+
+* A test was leaving a file behind in the R_USER_CACHE_DIR. Problem
+  fixed.
+  
+## vignettes
+
+* Removed numbers from titles, and used pkgdown yaml, rather than
+  numbers in front of files, to control the order of articles in the
+  website.
+
 # bage 0.10.1
 
 ## vignettes

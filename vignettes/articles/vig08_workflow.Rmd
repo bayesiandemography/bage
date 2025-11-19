@@ -1,5 +1,5 @@
 ---
-title: "8. Bayesian Workflow"
+title: "Bayesian Workflow"
 template:
   math-rendering: katex
 output:
@@ -9,7 +9,7 @@ output:
     toc_depth: 2
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{8. Bayesian Workflow}
+  %\VignetteIndexEntry{Bayesian Workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

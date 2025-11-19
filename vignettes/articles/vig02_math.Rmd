@@ -1,5 +1,5 @@
 ---
-title: "2. Mathematical Details"
+title: "Mathematical Details"
 template:
   math-rendering: katex
 output:
@@ -11,7 +11,7 @@ output:
 pkgdown:
   as_is: true    
 vignette: >
-  %\VignetteIndexEntry{2. Mathematical Details}
+  %\VignetteIndexEntry{Mathematical Details}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 bibliography: references.bib
