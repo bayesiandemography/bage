@@ -3,9 +3,10 @@
 
 * This is a re-submission, responding to a problem picked up by one of
   Professor Ripley's checks on 17 November. Unit tests in version
-  0.10.1 were leaving behind a file in the R_USER_CACHE directory. I
-  have reproduced this problem, and fixed it.
-* The error is not showing up in today's check results
+  0.10.1 were leaving behind a file in the cache directory for the
+  package. I have reproduced this problem under CRAN settings, and
+  fixed it.
+* For some reason, the error is not showing up in today's check results
   (https://cran.r-project.org/web/checks/check_results_bage.html) but
   the problem was definitely there, and required fixing.
 
