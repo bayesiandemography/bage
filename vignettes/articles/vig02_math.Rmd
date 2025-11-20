@@ -1059,103 +1059,127 @@ Principles:
 - Can have data model for outcome, or for exposure, but not both
 - But *can* have data model and confidentialization (eg model of undercount, combined with RR3)
 - Models must scale well -- cannot use direct approach of treating true outcome, or true exposure, as parameter to be estimated directly
-- Poisson cannot include dispersion terms for rates, and binomial models cannot include dispersion terms for probabilities
+
 
 Notation:
 
 - When modelling errors in outcome, distinguish between $y^{\text{true}}$ and $y^{\text{obs}}$. When modelling errors in exposure, distinguish between $w^{\text{true}}$ and $w^{\text{obs}}$.
 
-
 ```{r, echo = FALSE}
 library(tibble)
+library(knitr)
+
+# helper to build an aligned display-math block
+align_block <- function(...) {
+  lines <- c(...)
+  body <- paste(lines, collapse = " \\\\ ")
+  paste0("$$\\begin{aligned}", body, "\\end{aligned}$$")
+}
 
 models <- tibble(
-  Model = c("Poisson undercount", "Poisson overcount", "Poisson miscount",
-  "Poisson noise", "Poisson exposure", "Binomial undercount", "Normal noise"),
-  `System model` = c(
-    paste(
-    "$$",
-    "y_i^{\\text{true}} \\sim \\text{Poisson}(\\gamma_i w_i) \\\\",
-    "\\gamma_i \\sim \\text{Gamma}(\\xi^{-1}, (\\xi \\mu_i)^{-1})",
-    "$$"
-    ),
-    paste(
-    "$$",
-    "y_i^{\\text{true}} \\sim \\text{Poisson}(\\gamma_i w_i) \\\\",
-    "\\gamma_i \\sim \\text{Gamma}(\\xi^{-1}, (\\xi \\mu_i)^{-1})",
-    "$$"
-    ),
-    paste(
-    "$$",
-    "y_i^{\\text{true}} \\sim \\text{Poisson}(\\gamma_i w_i) \\\\",
-    "\\gamma_i \\sim \\text{Gamma}(\\xi^{-1}, (\\xi \\mu_i)^{-1})",
-    "$$"
-    ),
-    "$$ y_i^{\\text{true}} \\sim \\text{Poisson}(\\mu_i w_i) $$",
-    "$$ y_i \\sim \\text{Poisson}(\\mu_i w_i^{\\text{true}}) $$",
-    paste(
-    "$$",
-    "y_i^{\\text{true}} \\sim \\text{Binomial}(w_i, \\gamma_i) \\\\",
-    "\\gamma_i \\sim \\text{Beta}(\\mu_i \\xi^{-1}, (1-\\mu_i)\\xi^{-1})",
-    "$$"
-    ),
-    "$$ y_i^{\\text{true}} \\sim \\text{N}(\\gamma_i, w_i^{-1} \\sigma^2) $$"
+  Model = c(
+    "Poisson undercount",
+    "Poisson overcount",
+    "Poisson miscount",
+    "Poisson noise",
+    "Poisson exposure",
+    "Binomial undercount",
+    "Normal noise"
   ),
+
+  `System model` = c(
+    # Poisson undercount
+    align_block(
+      "y_i^{\\text{true}} \\sim \\text{Poisson}(\\gamma_i w_i)",
+      "\\gamma_i \\sim \\text{Gamma}(\\xi^{-1}, (\\xi \\mu_i)^{-1})"
+    ),
+
+    # Poisson overcount
+    align_block(
+      "y_i^{\\text{true}} \\sim \\text{Poisson}(\\gamma_i w_i)",
+      "\\gamma_i \\sim \\text{Gamma}(\\xi^{-1}, (\\xi \\mu_i)^{-1})"
+    ),
+
+    # Poisson miscount
+    align_block(
+      "y_i^{\\text{true}} \\sim \\text{Poisson}(\\gamma_i w_i)",
+      "\\gamma_i \\sim \\text{Gamma}(\\xi^{-1}, (\\xi \\mu_i)^{-1})"
+    ),
+
+    # Poisson noise (single line; aligned not strictly needed)
+    "$$ y_i^{\\text{true}} \\sim \\text{Poisson}(\\mu_i w_i) $$",
+
+    # Poisson exposure (single line)
+    "$$ y_i \\sim \\text{Poisson}(\\mu_i w_i^{\\text{true}}) $$",
+
+    # Binomial undercount
+    align_block(
+      "y_i^{\\text{true}} \\sim \\text{Binomial}(w_i, \\gamma_i)",
+      "\\gamma_i \\sim \\text{Beta}(\\mu_i \\xi^{-1}, (1-\\mu_i)\\xi^{-1})"
+    ),
+
+    # Normal noise (single line)
+    "$$ y_i^{\\text{true}} \\sim \\text{N}(\\gamma_i, w_i^{-1}\\sigma^2) $$"
+  ),
+
   `Data model` = c(
-    paste(
-      "$$",
-      "y_i^{\\text{obs}} \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]}) \\\\",
-      "\\pi_g \\sim \\text{Beta}(a_g, b_g)",
-      "$$"
+    # Poisson undercount
+    align_block(
+      "y_i^{\\text{obs}} \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]})",
+      "\\pi_g \\sim \\text{Beta}(a_g, b_g)"
     ),
-    paste(
-      "$$",
-      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i \\\\",
-      "\\epsilon_i \\sim \\text{Poisson}(\\kappa_{g[i]} \\gamma_i w_i) \\\\",
-      "\\kappa_g \\sim \\text{Gamma}(a_g, b_g)",
-      "$$"
+
+    # Poisson overcount
+    align_block(
+      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i",
+      "\\epsilon_i \\sim \\text{Poisson}(\\kappa_{g[i]} \\gamma_i w_i)",
+      "\\kappa_g \\sim \\text{Gamma}(a_g, b_g)"
     ),
-    paste(
-      "$$",
-      "y_i^{\\text{obs}} = u_i + v_i \\\\",
-      "u_i \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]}) \\\\",
-      "v_i \\sim \\text{Poisson}(\\kappa_{h[i]} \\gamma_i w_i) \\\\",
-      "\\pi_g \\sim \\text{Beta}(a_g^{(\\pi)}, b_g^{(\\pi)}) \\\\",
-      "\\kappa_h \\sim \\text{Gamma}(a_h^{(\\kappa)},  b_h^{(\\kappa)})",
-      "$$"
+
+    # Poisson miscount
+    align_block(
+      "y_i^{\\text{obs}} = u_i + v_i",
+      "u_i \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]})",
+      "v_i \\sim \\text{Poisson}(\\kappa_{h[i]} \\gamma_i w_i)",
+      "\\pi_g \\sim \\text{Beta}(a_g^{(\\pi)}, b_g^{(\\pi)})",
+      "\\kappa_h \\sim \\text{Gamma}(a_h^{(\\kappa)},  b_h^{(\\kappa)})"
     ),
-    paste(
-      "$$",
-      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i \\\\",
-      "\\epsilon_i \\sim \\text{Skellam}(m_{g[i]}, m_{g[i]})",
-      "$$"
+
+    # Poisson noise
+    align_block(
+      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i",
+      "\\epsilon_i \\sim \\text{Skellam}(m_{g[i]}, m_{g[i]})"
     ),
-    paste(
-      "$$",
-      "w_i^{\\text{obs}} \\sim \\text{InvGamma}(2 + d_{g[i]}^{-1}, [1 + d_{g[i]}^{-1}] w_i^{\\text{true}})",
-      "$$"
+
+    # Poisson exposure
+    align_block(
+      "w_i^{\\text{obs}} \\sim \\text{InvGamma}(2 + d_{g[i]}^{-1},",
+      "  [1 + d_{g[i]}^{-1}] w_i^{\\text{true}})"
     ),
-    paste(
-    "$$",
-    "y_i^{\\text{obs}} \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]}) \\\\",
-    "\\pi_g \\sim \\text{Beta}(a_g, b_g)",
-    "$$"
+
+    # Binomial undercount
+    align_block(
+      "y_i^{\\text{obs}} \\sim \\text{Binomial}(y_i^{\\text{true}}, \\pi_{g[i]})",
+      "\\pi_g \\sim \\text{Beta}(a_g, b_g)"
     ),
-    paste(
-      "$$",
-      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i \\\\",
-      "\\epsilon_i \\sim \\text{N}(0, s_{g[i]}^2) ",
-      "$$"
+
+    # Normal noise
+    align_block(
+      "y_i^{\\text{obs}} = y_i^{\\text{true}} + \\epsilon_i",
+      "\\epsilon_i \\sim \\text{N}(0, s_{g[i]}^2)"
     )
   )
 )
 
-kable(models,
-      format = "pipe",
-      align = c("l", "c", "c"),
-      escape = FALSE,
-      caption = "System models and data models")
+kable(
+  models,
+  format = "pipe",
+  align = c("l", "c", "c"),
+  escape = FALSE,
+  caption = "System models and data models"
+)
 ```
+
 
 
 ## Poisson with undercount in outcome variable {#sec:datamod-pois-under}
