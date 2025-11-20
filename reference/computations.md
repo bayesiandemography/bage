@@ -65,5 +65,5 @@ computations(mod)
 #> # A tibble: 1 × 6
 #>   time_total time_max time_draw  iter converged message                 
 #>        <dbl>    <dbl>     <dbl> <int> <lgl>     <chr>                   
-#> 1      0.196   0.0937    0.0821    13 TRUE      relative convergence (4)
+#> 1      0.195   0.0937    0.0816    13 TRUE      relative convergence (4)
 ```

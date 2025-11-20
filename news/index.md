@@ -1,6 +1,15 @@
 # Changelog
 
+## bage 0.10.3
+
+### Articles
+
+- Tidying of package website
+- Tidying of description of data model in Mathematical Details article.
+
 ## bage 0.10.2
+
+CRAN release: 2025-11-19
 
 ### Bug fix
 

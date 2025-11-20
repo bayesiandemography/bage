@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -1305,7 +1305,6 @@ or are supplied by the user.</li>
 <li>Can have data model for outcome, or for exposure, but not both</li>
 <li>But <em>can</em> have data model and confidentialization (eg model of undercount, combined with RR3)</li>
 <li>Models must scale well – cannot use direct approach of treating true outcome, or true exposure, as parameter to be estimated directly</li>
-<li>Poisson cannot include dispersion terms for rates, and binomial models cannot include dispersion terms for probabilities</li>
 </ul>
 <p>Notation:</p>
 <ul>
@@ -1316,8 +1315,8 @@ or are supplied by the user.</li>
 <span id="tab:unnamed-chunk-2">Table 8.1: </span>System models and data models</caption>
 <colgroup>
 <col width="4%">
-<col width="30%">
-<col width="64%">
+<col width="32%">
+<col width="62%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Model</th>
@@ -1327,38 +1326,38 @@ or are supplied by the user.</li>
 <tbody>
 <tr class="odd">
 <td align="left">Poisson undercount</td>
-<td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1}) \]</span></td>
-<td align="center"><span class="math display">\[ y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\ \pi_g \sim \text{Beta}(a_g, b_g) \]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})\end{aligned}\]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\ \pi_g \sim \text{Beta}(a_g, b_g)\end{aligned}\]</span></td>
 </tr>
 <tr class="even">
 <td align="left">Poisson overcount</td>
-<td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1}) \]</span></td>
-<td align="center"><span class="math display">\[ y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{Poisson}(\kappa_{g[i]} \gamma_i w_i) \\ \kappa_g \sim \text{Gamma}(a_g, b_g) \]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})\end{aligned}\]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{Poisson}(\kappa_{g[i]} \gamma_i w_i) \\ \kappa_g \sim \text{Gamma}(a_g, b_g)\end{aligned}\]</span></td>
 </tr>
 <tr class="odd">
 <td align="left">Poisson miscount</td>
-<td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1}) \]</span></td>
-<td align="center"><span class="math display">\[ y_i^{\text{obs}} = u_i + v_i \\ u_i \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\ v_i \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i) \\ \pi_g \sim \text{Beta}(a_g^{(\pi)}, b_g^{(\pi)}) \\ \kappa_h \sim \text{Gamma}(a_h^{(\kappa)},  b_h^{(\kappa)}) \]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})\end{aligned}\]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{obs}} = u_i + v_i \\ u_i \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\ v_i \sim \text{Poisson}(\kappa_{h[i]} \gamma_i w_i) \\ \pi_g \sim \text{Beta}(a_g^{(\pi)}, b_g^{(\pi)}) \\ \kappa_h \sim \text{Gamma}(a_h^{(\kappa)},  b_h^{(\kappa)})\end{aligned}\]</span></td>
 </tr>
 <tr class="even">
 <td align="left">Poisson noise</td>
 <td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{Poisson}(\mu_i w_i) \]</span></td>
-<td align="center"><span class="math display">\[ y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{Skellam}(m_{g[i]}, m_{g[i]}) \]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{Skellam}(m_{g[i]}, m_{g[i]})\end{aligned}\]</span></td>
 </tr>
 <tr class="odd">
 <td align="left">Poisson exposure</td>
 <td align="center"><span class="math display">\[ y_i \sim \text{Poisson}(\mu_i w_i^{\text{true}}) \]</span></td>
-<td align="center"><span class="math display">\[ w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g[i]}^{-1}, [1 + d_{g[i]}^{-1}] w_i^{\text{true}}) \]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}w_i^{\text{obs}} \sim \text{InvGamma}(2 + d_{g[i]}^{-1}, \\   [1 + d_{g[i]}^{-1}] w_i^{\text{true}})\end{aligned}\]</span></td>
 </tr>
 <tr class="even">
 <td align="left">Binomial undercount</td>
-<td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{Binomial}(w_i, \gamma_i) \\ \gamma_i \sim \text{Beta}(\mu_i \xi^{-1}, (1-\mu_i)\xi^{-1}) \]</span></td>
-<td align="center"><span class="math display">\[ y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\ \pi_g \sim \text{Beta}(a_g, b_g) \]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{true}} \sim \text{Binomial}(w_i, \gamma_i) \\ \gamma_i \sim \text{Beta}(\mu_i \xi^{-1}, (1-\mu_i)\xi^{-1})\end{aligned}\]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi_{g[i]}) \\ \pi_g \sim \text{Beta}(a_g, b_g)\end{aligned}\]</span></td>
 </tr>
 <tr class="odd">
 <td align="left">Normal noise</td>
-<td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{N}(\gamma_i, w_i^{-1} \sigma^2) \]</span></td>
-<td align="center"><span class="math display">\[ y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{N}(0, s_{g[i]}^2)  \]</span></td>
+<td align="center"><span class="math display">\[ y_i^{\text{true}} \sim \text{N}(\gamma_i, w_i^{-1}\sigma^2) \]</span></td>
+<td align="center"><span class="math display">\[\begin{aligned}y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{N}(0, s_{g[i]}^2)\end{aligned}\]</span></td>
 </tr>
 </tbody>
 </table>
