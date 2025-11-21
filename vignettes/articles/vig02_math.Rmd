@@ -497,7 +497,7 @@ When $U_m > 1$, constraints (Section \@ref(sec:constraints)) can be applied.
 ```
 RW2_Seas(n_seas,
          s = 1,
-	 sd = 1,
+         sd = 1,
 	 sd_slope = 1,
 	 s_seas = 0,
 	 sd_seas = 1,
@@ -513,6 +513,126 @@ RW2_Seas(n_seas,
 - `sd_seas` is $A_{\lambda}^{(m)}$
 - `along` used to identify 'along' and 'by' dimensions
 - if `con` is `"by"`, sum-to-zero constraints are applied
+
+
+
+## DRW() {#sec:pr-drw}
+
+### Model
+
+Damped Random walk
+
+\begin{align}
+  \beta_{u,1}^{(m)} & \sim \text{N}\left(0, (A_0^{(m)})^2\right) \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(\phi_m \beta_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\
+  \phi_m & = a_{0m} + (a_{1m} - a_{0m}) \phi_m^{\prime} \\
+  \phi_m^{\prime} & \sim \text{Beta}(S_1^{(m)}, S_2^{(m)})
+\end{align}
+
+$A_0^{(m)}$ can be 0, implying that $\beta_{u,1}^{(m)}$ is fixed at 0.
+
+-1 \le a_{0m} < a{1m} \le 1.
+
+When $U_m > 1$, constraints (Section \@ref(sec:constraints)) can be applied.
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2\right) \prod_{v=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
+\end{equation}
+
+### Forecasting
+
+\begin{equation}
+  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\phi_m \beta_{u,V_m+h-1}^{(m)}, \tau_m^2)
+\end{equation}
+
+If the prior includes sum-to-zero constraints, means are subtracted from the forecasted values within each combination of 'along' and 'by' variables. 
+
+
+### Code
+
+```
+DRW(s = 1,
+    shape1 = 5,
+    shape2 = 5,
+    min = 0.8,
+    max = 0.98,
+    along = NULL,
+    con = c("none", "by"))
+```
+
+- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `sd` is $A_0^{(m)}$. Defaults to 1.
+- `shape1` is $S_1^{(m)}$
+- `shape2` is $S_2^{(m)}$
+- `min` is $a_{0m}$
+- `max` is $a_{1m}$
+- `along` used to identify 'along' and 'by' dimensions.
+- if `con` is `"by"`, sum-to-zero constraints are applied.
+
+
+## DRW2() {#sec:pr-drw2}
+
+### Model
+
+Damped second-order random walk
+
+\begin{align}
+  \beta_{u,1}^{(m)} & \sim \text{N}\left(0, (A_0^{(m)})^2\right) \\
+  \beta_{u,2}^{(m)} & \sim \text{N}\left(\beta_{u,1}, (A_{\eta}^{(m)})^2\right) \\
+  \beta_{u,v}^{(m)} & \sim \text{N}\left(\beta_{u,v-1}^{(m)} + \phi_m (\beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}), \tau_m^2\right), \quad v = 3, \cdots, V_m \\
+  \phi_m & = a_{0m} + (a_{1m} - a_{0m}) \phi_m^{\prime} \\
+  \phi_m^{\prime} & \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}) \\
+  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
+\end{align}
+
+$A_0^{(m)}$ can be 0, implying that $\beta_{u,1}^{(m)}$ is fixed at 0.
+
+-1 \le a_{0m} < a{1m} \le 1.
+
+When $U_m > 1$, constraints (Section \@ref(sec:constraints)) can be applied.
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2) \text{N}(\beta_{u,2}^{(m)} \mid \beta_{u,1}^{(m)}, (A_{\eta}^{(m)})^2) \prod_{v=3}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid 2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2 \right) 
+\end{equation}
+
+
+### Forecasting
+
+\begin{equation}
+  \beta_{u,V_m+h}^{(m)} \sim \text{N}( \beta_{u,V_m+h-1}^{(m)} + \phi_m (\beta_{u,V_m+h-1}^{(m)} - \beta_{u,V_m+h-2}^{(m)}), \tau_m^2)
+\end{equation}
+
+If the prior includes sum-to-zero constraints, means are subtracted from the forecasted values within each combination of 'along' and 'by' variables. 
+
+
+### Code
+
+```
+DRW2(s = 1,
+     sd = 1,
+     sd_slope = 1,
+     shape1 = 5,
+     shape2 = 5,
+     min = 0.8,
+     max = 0.98,
+     along = NULL,
+     con = c("none", "by"))
+```
+
+- `s` is $A_{\tau}^{(m)}$
+- `sd` is $A_0^{(m)}$
+- `sd_slope` is $A_{\eta}^{(m)}$
+- `shape1` is $S_1^{(m)}$
+- `shape2` is $S_2^{(m)}$
+- `min` is $a_{0m}$
+- `max` is $a_{1m}$
+- `along` used to identify 'along' and 'by' dimensions
+- if `con` is `"by"`, sum-to-zero constraints are applied
+
 
 
 ## AR() {#sec:pr-ar}
