@@ -30,17 +30,19 @@ between 'along' and 'by' dimensions.
    \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Forecast} \tab \strong{Along} \cr
    \code{\link[=N]{N()}} \tab Elements drawn from normal distribution \tab Term with no natural order \tab Yes \tab No \cr
    \code{\link[=NFix]{NFix()}} \tab \code{N()} with standard deviation fixed \tab Term with few elements \tab Yes \tab No \cr
-   \code{\link[=Known]{Known()}} \tab Values treated as known \tab Simulations,  prior knowledge \tab No \tab No \cr
+   \code{\link[=Known]{Known()}} \tab Values treated as known \tab Simulations, prior knowledge \tab No \tab No \cr
    \code{\link[=RW]{RW()}} \tab Random walk \tab Smoothing \tab Yes \tab Yes \cr
-   \code{\link[=RW2]{RW2()}} \tab Second-order random walk \tab Like \code{RW()}, but smoother \tab Yes \tab Yes \cr
+   \code{\link[=RW2]{RW2()}} \tab Second-order random walk \tab Like \code{RW()}, but with trends \tab Yes \tab Yes \cr
+   \code{\link[=DRW]{DRW()}} \tab Damped random walk \tab Smoothing, forecasting \tab Yes \tab Yes \cr
+   \code{\link[=DRW2]{DRW2()}} \tab Damped second-order random walk \tab Like \code{DRW()}, but with trends \tab Yes \tab Yes \cr
    \code{\link[=RW2_Infant]{RW2_Infant()}} \tab \code{RW2()} with infant indicator \tab Mortality age profiles \tab No \tab Yes \cr
    \code{\link[=RW_Seas]{RW_Seas()}} \tab \code{RW()}, with seasonal effect \tab Terms involving time \tab Yes \tab Yes \cr
    \code{\link[=RW2_Seas]{RW2_Seas()}} \tab \code{RW2()}, with seasonal effect \tab Term involving time \tab Yes \tab Yes \cr
-   \code{\link[=AR]{AR()}} \tab Auto-regressive prior of order \emph{k} \tab Mean reversion \tab Yes \tab Yes \cr
-   \code{\link[=AR1]{AR1()}} \tab Special case of \code{AR()} \tab Mean reversion \tab Yes \tab Yes \cr
+   \code{\link[=AR]{AR()}} \tab Auto-regressive prior of order \emph{k} \tab Mean reversion, forecasting \tab Yes \tab Yes \cr
+   \code{\link[=AR1]{AR1()}} \tab Special case of \code{AR()} \tab Mean reversion, forecasting \tab Yes \tab Yes \cr
    \code{\link[=Lin]{Lin()}} \tab Linear trend, with independent errors \tab Parsimonious model for time \tab Yes \tab Yes \cr
-   \code{\link[=Lin_AR]{Lin_AR()}} \tab Linear trend, with AR errors \tab Term involving time \tab Yes \tab Yes \cr
-   \code{\link[=Lin_AR1]{Lin_AR1()}} \tab Linear trend, with AR1 errors \tab Terms involving time \tab Yes \tab Yes \cr
+   \code{\link[=Lin_AR]{Lin_AR()}} \tab Linear trend, with AR errors \tab Term involving time, forecasting \tab Yes \tab Yes \cr
+   \code{\link[=Lin_AR1]{Lin_AR1()}} \tab Linear trend, with AR1 errors \tab Terms involving time, forecasting \tab Yes \tab Yes \cr
    \code{\link[=Sp]{Sp()}} \tab P-Spline (penalised spline) \tab Smoothing, eg over age \tab No \tab Yes \cr
    \code{\link[=SVD]{SVD()}} \tab Age-sex profile based on SVD \tab Age or age-sex \tab No \tab No \cr
    \code{\link[=SVD_AR]{SVD_AR()}} \tab \code{SVD()}, but coefficients follow \code{AR()} \tab Age or age-sex and time \tab Yes \tab Yes \cr

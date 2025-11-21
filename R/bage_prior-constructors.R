@@ -259,6 +259,290 @@ AR1 <- function(s = 1,
 
 
 ## HAS_TESTS
+#' Damped Random Walk Prior
+#'
+#' Use a damped random walk as a model for
+#' a main effect, or use multiple damped random walks
+#' as a model for an interaction.
+#' Typically used with terms that involve time,
+#' particularly in forecasts.
+#' Damping often improves forecast accuracy.
+#'
+#' If `DRW()` is used with an interaction,
+#' a separate damped random walk is constructed
+#' within each combination of the
+#' 'by' variables.
+#'
+#' Arguments `min` and `max` can be used to control
+#' the amount of damping that occurs.
+#'
+#' Argument `s` controls the size of innovations.
+#' Smaller values for `s` tend to produce smoother series.
+#'
+#' Argument `sd` controls variance in
+#' initial values. Setting `sd` to `0` fixes initial
+#' values at 0.
+#' 
+#' @section Mathematical details:
+#'
+#' When `DRW()` is used with a main effect,
+#'
+#' \deqn{\beta_1 \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\beta_j \sim \text{N}(\phi \beta_{j-1}, \tau^2), \quad j > 1}
+#'
+#' and when it is used with an interaction,
+#'
+#' \deqn{\beta_{u,1} \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\beta_{u,v} \sim \text{N}(\phi \beta_{u,v-1}, \tau^2), \quad v > 1}
+#' 
+#' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{\phi} is the damping coefficient;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+#'
+#' Coefficient \eqn{\phi} is constrained
+#' to lie between `min` and `max`.
+#' Its prior distribution is
+#' 
+#' \deqn{\phi = (\mathtt{max} - \mathtt{min}) \phi' - \mathtt{min}}
+#' 
+#' where
+#' 
+#' \deqn{\phi' \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
+#' 
+#' Standard deviation \eqn{\tau}
+#' has a half-normal prior
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
+#' where `s` is provided by the user.
+#'
+#' @inheritSection AR Constraints
+#' 
+#' @inheritParams AR
+#' @param sd Standard deviation
+#' of initial value. Default is `1`.
+#' Can be `0`.
+#' @param shape1,shape2 Parameters for beta-distribution prior
+#' for damping coefficient. Defaults are `5` and `5`.
+#' @param min,max Minimum and maximum values
+#' for damping coefficient.
+#' Defaults are `0.8` and `0.98`.
+#'
+#' @returns An object of class `"bage_prior_drwrandom"`
+#' or `"bage_prior_drwzero"`.
+#'
+#' @seealso
+#' - [DRW2()] Damped second-order random walk
+#' - [RW()] Random walk, without damping
+#' - [RW2()] Second-order random walk, without damping
+#' - [RW_Seas()] Random walk with seasonal effect
+#' - [AR()] Autoregressive with order k
+#' - [AR1()] Autoregressive with order 1
+#' - [Sp()] Smoothing via splines
+#' - [SVD()] Smoothing over age using singular value decomposition
+#' - [priors] Overview of priors implemented in \pkg{bage}
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   vignette
+#'
+#' @examples
+#' DRW()
+#' DRW(min = 0, max = 1)
+#' DRW(sd = 0)
+#' @export
+DRW <- function(s = 1,
+                sd = 1,
+                shape1 = 5,
+                shape2 = 5,
+                min = 0.8,
+                max = 0.98,
+                along = NULL,
+                con = c("none", "by")) {
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
+  check_min_max_ar(min = min, max = max)
+  scale <- as.double(s)
+  sd <- as.double(sd)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  con <- match.arg(con)
+  if (sd > 0)
+    new_bage_prior_drwrandom(scale = scale,
+                             sd = sd,
+                             shape1 = shape1,
+                             shape2 = shape2,
+                             min = min,
+                             max = max,
+                             along = along,
+                             con = con)
+  else
+    new_bage_prior_drwzero(scale = scale,
+                           shape1 = shape1,
+                           shape2 = shape2,
+                           min = min,
+                           max = max,
+                           along = along,
+                           con = con)
+}
+
+
+## HAS_TESTS
+#' Damped Second-Order Random Walk Prior
+#'
+#' Use a damped second-order random walk as a model for
+#' a main effect, or use multiple second-order random walks
+#' as a model for an interaction.
+#' A damped second-order random walk is
+#' a random walk with drift where the
+#' drift term varies, with a tendency to
+#' converge on zero.
+#' It is typically
+#' used with terms that involve time,
+#' where there are sustained
+#' trends upward or downward.
+#' Damping often improves forecast accuracy.
+#'
+#' If `DRW2()` is used with an interaction,
+#' a separate damped random walk is constructed
+#' within each combination of the
+#' 'by' variables.
+#'
+#' Arguments `min` and `max` can be used to control
+#' the amount of damping that occurs.
+#'
+#' Argument `s` controls the size of innovations.
+#' Smaller values for `s` tend to give smoother series.
+#'
+#' Argument `sd` controls variance in
+#' initial values. Setting `sd` to `0` fixes
+#' initial values at `0`.
+#'
+#' Argument `sd_slope` controls variance in the
+#' initial slope.
+#'
+#' @section Mathematical details:
+#'
+#' When `DRW2()` is used with a main effect,
+#'
+#' \deqn{\beta_1 \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\beta_2 \sim \text{N}(\beta_1, \mathtt{sd\_slope}^2)} 
+#' \deqn{\beta_j \sim \text{N}(\beta_{j-1} + \phi (\beta_{j-1} \beta_{j-2}), \tau^2), \quad j = 2, \cdots, J}
+#'
+#' and when it is used with an interaction,
+#'
+#' \deqn{\beta_{u,1} \sim \text{N}(0, \mathtt{sd}^2)} 
+#' \deqn{\beta_{u,2} \sim \text{N}(\beta_{u,1}, \mathtt{sd\_slope}^2)} 
+#' \deqn{\beta_{u,v} \sim \text{N}(\beta_{u,v-1} + \phi (\beta_{u,v-1} - \beta_{u,v-2}), \tau^2), \quad v = 3, \cdots, V}
+#' 
+#' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{\phi} is the damping coefficient;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+#'
+#' Coefficient \eqn{\phi} is constrained
+#' to lie between `min` and `max`.
+#' Its prior distribution is
+#' 
+#' \deqn{\phi = (\mathtt{max} - \mathtt{min}) \phi' - \mathtt{min}}
+#' 
+#' where
+#' 
+#' \deqn{\phi' \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
+#' 
+#' Standard deviation \eqn{\tau}
+#' has a half-normal prior
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
+#' where `s` is provided by the user.
+#'
+#' @inheritSection AR Constraints
+#' 
+#' @inheritParams AR
+#' @param sd Standard deviation
+#' of initial value. Default is `1`. Can be `0`.
+#' @param sd_slope Standard deviation
+#' of initial slope. Default is `1`.
+#' @param shape1,shape2 Parameters for beta-distribution prior
+#' for damping coefficient. Defaults are `5` and `5`.
+#' @param min,max Minimum and maximum values
+#' for damping coefficient.
+#' Defaults are `0.8` and `0.98`.
+#'
+#' @returns An object of class `"bage_prior_drw2random"`
+#' or `"bage_prior_drw2zero"`.
+#'
+#' @seealso
+#' - [DRW()] Damped first-order random walk
+#' - [RW2()] Second-order random walk, without damping
+#' - [RW2_Seas()] Second order random walk with seasonal effect
+#' - [AR()] Autoregressive with order k
+#' - [AR1()] Autoregressive with order 1
+#' - [Sp()] Smoothing via splines
+#' - [SVD()] Smoothing over age via singular value decomposition
+#' - [priors] Overview of priors implemented in \pkg{bage}
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   vignette
+#'
+#' @examples
+#' DRW2()
+#' DRW2(s = 0.5)
+#' DRW2(min = 0, max = 1)
+#' @export
+DRW2 <- function(s = 1,
+                 sd = 1,
+                 sd_slope = 1,
+                 shape1 = 5,
+                 shape2 = 5,
+                 min = 0.8,
+                 max = 0.98,
+                 along = NULL,
+                 con = c("none", "by")) {
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
+  check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
+  check_min_max_ar(min = min, max = max)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  con <- match.arg(con)
+  scale <- as.double(s)
+  sd <- as.double(sd)
+  sd_slope <- as.double(sd_slope)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
+  if (sd > 0)
+    new_bage_prior_drw2random(scale = scale,
+                              sd = sd,
+                              sd_slope = sd_slope,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              along = along,
+                              con = con)
+  else
+    new_bage_prior_drw2zero(scale = scale,
+                            sd_slope = sd_slope,
+                            shape1 = shape1,
+                            shape2 = shape2,
+                            min = min,
+                            max = max,
+                            along = along,
+                            con = con)
+}
+
+
+## HAS_TESTS
 #' Known Prior
 #'
 #' Treat an intercept, a main effect, or an interaction
@@ -761,7 +1045,7 @@ NFix <- function(sd = 1) {
 #' as a model for an interaction.
 #' Typically used with terms that involve age or time.
 #'
-#' If `RW2()` is used with an interaction,
+#' If `RW()` is used with an interaction,
 #' a separate random walk is constructed
 #' within each combination of the
 #' 'by' variables.
@@ -2031,6 +2315,119 @@ new_bage_prior_ar <- function(n_coef,
                               con = con,
                               nm = nm))
   class(ans) <- c("bage_prior_ar", "bage_prior")
+  ans
+}
+
+
+## HAS_TESTS
+new_bage_prior_drwrandom <- function(scale,
+                                     sd,
+                                     shape1,
+                                     shape2,
+                                     min,
+                                     max,
+                                     along,
+                                     con) {
+  ans <- list(i_prior = 28L,
+              const = c(scale = scale,
+                        sd = sd,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max),
+              specific = list(scale = scale,
+                              sd = sd,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              along = along,
+                              con = con))
+  class(ans) <- c("bage_prior_drwrandom", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_drwzero <- function(scale,
+                                   shape1,
+                                   shape2,
+                                   min,
+                                   max,
+                                   along,
+                                   con) {
+  ans <- list(i_prior = 27L,
+              const = c(scale = scale,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max),
+              specific = list(scale = scale,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              along = along,
+                              con = con))
+  class(ans) <- c("bage_prior_drwzero", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_drw2random <- function(scale,
+                                      sd,
+                                      sd_slope,
+                                      shape1,
+                                      shape2,
+                                      min,
+                                      max,
+                                      along,
+                                      con) {
+  ans <- list(i_prior = 30L,
+              const = c(scale = scale,
+                        sd = sd,
+                        sd_slope = sd_slope,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max),
+              specific = list(scale = scale,
+                              sd = sd,
+                              sd_slope = sd_slope,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              along = along,
+                              con = con))
+  class(ans) <- c("bage_prior_drw2random", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_drw2zero <- function(scale,
+                                    sd_slope,
+                                    shape1,
+                                    shape2,
+                                    min,
+                                    max,
+                                    along,
+                                    con) {
+  ans <- list(i_prior = 29L,
+              const = c(scale = scale,
+                        sd_slope = sd_slope,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max),
+              specific = list(scale = scale,
+                              sd_slope = sd_slope,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              along = along,
+                              con = con))
+  class(ans) <- c("bage_prior_drw2zero", "bage_prior")
   ans
 }
 

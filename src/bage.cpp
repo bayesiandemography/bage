@@ -549,6 +549,152 @@ Type logpost_ar(const vector<Type>& effectfree,
 }
 
 template <class Type>
+Type logpost_drwrandom(const vector<Type>& rw,
+		       const vector<Type>& hyper,
+		       const vector<Type>& consts,
+		       const matrix<int>& matrix_along_by) {
+  Type scale_innov = consts[0];
+  Type sd_init = consts[1];
+  Type shape1 = consts[2];
+  Type shape2 = consts[3];
+  Type min = consts[4];
+  Type max = consts[5];
+  Type log_sd_innov = hyper[0];
+  Type logit_coef = hyper[1];
+  Type sd_innov = exp(log_sd_innov);
+  Type coef_raw = invlogit(logit_coef);
+  Type coef = (max - min) * coef_raw + min;
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = Type(0);
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  ans += dbeta(coef_raw, shape1, shape2, true) +
+    (log(coef_raw) + log1p(-coef_raw));
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i = matrix_along_by(0, i_by);
+    ans += dnorm(rw[i], Type(0), sd_init, true);
+    for (int i_along = 1; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - 1, i_by);
+      ans += dnorm(rw[i_curr], coef * rw[i_prev], sd_innov, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_drwzero(const vector<Type>& rw,
+		     const vector<Type>& hyper,
+		     const vector<Type>& consts,
+		     const matrix<int>& matrix_along_by) {
+  Type scale_innov = consts[0];
+  Type shape1 = consts[1];
+  Type shape2 = consts[2];
+  Type min = consts[3];
+  Type max = consts[4];
+  Type log_sd_innov = hyper[0];
+  Type logit_coef = hyper[1];
+  Type sd_innov = exp(log_sd_innov);
+  Type coef_raw = invlogit(logit_coef);
+  Type coef = (max - min) * coef_raw + min;
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = Type(0);
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  ans += dbeta(coef_raw, shape1, shape2, true) +
+    (log(coef_raw) + log1p(-coef_raw));
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i = matrix_along_by(0, i_by);
+    ans += dnorm(rw[i], Type(0), sd_innov, true);
+    for (int i_along = 1; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - 1, i_by);
+      ans += dnorm(rw[i_curr], coef * rw[i_prev], sd_innov, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_drw2random(const vector<Type>& rw,
+			const vector<Type>& hyper,
+			const vector<Type>& consts,
+			const matrix<int>& matrix_along_by) {
+  Type scale_innov = consts[0];
+  Type sd_init = consts[1];
+  Type sd_slope = consts[2];
+  Type shape1 = consts[3];
+  Type shape2 = consts[4];
+  Type min = consts[5];
+  Type max = consts[6];
+  Type log_sd_innov = hyper[0];
+  Type logit_coef = hyper[1];
+  Type sd_innov = exp(log_sd_innov);
+  Type coef_raw = invlogit(logit_coef);
+  Type coef = (max - min) * coef_raw + min;
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = Type(0);
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  ans += dbeta(coef_raw, shape1, shape2, true) +
+    (log(coef_raw) + log1p(-coef_raw));
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_0 = matrix_along_by(0, i_by);
+    int i_1 = matrix_along_by(1, i_by);
+    ans += dnorm(rw[i_0], Type(0), sd_init, true);
+    Type diff = rw[i_1] - rw[i_0];
+    ans += dnorm(diff, Type(0), sd_slope, true);
+    for (int i_along = 2; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by(i_along, i_by);
+      int i_1 = matrix_along_by(i_along - 1, i_by);
+      int i_0 = matrix_along_by(i_along - 2, i_by);
+      Type diff = rw[i_2] - (1 + coef) * rw[i_1] + rw[i_0];
+      ans += dnorm(diff, Type(0), sd_innov, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_drw2zero(const vector<Type>& rw,
+		      const vector<Type>& hyper,
+		      const vector<Type>& consts,
+		      const matrix<int>& matrix_along_by) {
+  Type scale_innov = consts[0];
+  Type sd_slope = consts[1];
+  Type shape1 = consts[2];
+  Type shape2 = consts[3];
+  Type min = consts[4];
+  Type max = consts[5];
+  Type log_sd_innov = hyper[0];
+  Type logit_coef = hyper[1];
+  Type sd_innov = exp(log_sd_innov);
+  Type coef_raw = invlogit(logit_coef);
+  Type coef = (max - min) * coef_raw + min;
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = Type(0);
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  ans += dbeta(coef_raw, shape1, shape2, true) +
+    (log(coef_raw) + log1p(-coef_raw));
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_0 = matrix_along_by(0, i_by);
+    int i_1 = matrix_along_by(1, i_by);
+    ans += dnorm(rw[i_0], Type(0), sd_slope, true);
+    Type diff = rw[i_1] - 2 * rw[i_0];
+    ans += dnorm(diff, Type(0), sd_innov, true);
+    for (int i_along = 2; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by(i_along, i_by);
+      int i_1 = matrix_along_by(i_along - 1, i_by);
+      int i_0 = matrix_along_by(i_along - 2, i_by);
+      Type diff = rw[i_2] - (1 + coef) * rw[i_1] + rw[i_0];
+      ans += dnorm(diff, Type(0), sd_innov, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
 Type logpost_lin(const vector<Type>& effectfree,
 		 const vector<Type>& hyper,
 		 const vector<Type>& hyperrandfree, // slope
@@ -1057,6 +1203,19 @@ Type logpost_has_hyper(const vector<Type>& effectfree,
   case 26:
     ans = logpost_svd_rw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
+  case 27:
+    ans = logpost_drwzero(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 28:
+    ans = logpost_drwrandom(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 29:
+    ans = logpost_drw2zero(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 30:
+    ans = logpost_drw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+    
   default:                                                                                      // # nocov
     Rf_error("Internal error: function 'logpost_has_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }

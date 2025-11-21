@@ -43,6 +43,101 @@ test_that("'AR1' throws current error when min >= max", {
                  "`max` is less than or equal to `min`")
 })
 
+
+test_that("'DRW' works with valid inputs", {
+  expect_identical(DRW(),
+                   new_bage_prior_drwrandom(scale = 1,
+                                            sd = 1,
+                                            shape1 = 5,
+                                            shape2 = 5,
+                                            min = 0.8,
+                                            max = 0.98,
+                                            along = NULL,
+                                            con = "none"))
+  expect_identical(DRW(s = 0.3,
+                       sd = 0.2,
+                       min = 0,
+                       con = "by",
+                       along = "reg"),
+                   new_bage_prior_drwrandom(scale = 0.3,
+                                            sd = 0.2,
+                                            shape1 = 5,
+                                            shape2 = 5,
+                                            min = 0,
+                                            max = 0.98,
+                                            along = "reg",
+                                            con = "by"))
+  expect_identical(DRW(sd = 0),
+                   new_bage_prior_drwzero(scale = 1,
+                                          shape1 = 5,
+                                          shape2 = 5,
+                                          min = 0.8,
+                                          max = 0.98,
+                                          along = NULL,
+                                          con = "none"))
+  expect_identical(DRW(s = 0.3,
+                       sd = 0,
+                       min = 0,
+                       con = "by",
+                       along = "reg"),
+                   new_bage_prior_drwzero(scale = 0.3,
+                                          shape1 = 5,
+                                          shape2 = 5,
+                                          min = 0,
+                                          max = 0.98,
+                                          along = "reg",
+                                          con = "by"))
+})
+
+test_that("'DRW2' works with valid inputs", {
+  expect_identical(DRW2(),
+                   new_bage_prior_drw2random(scale = 1,
+                                             sd = 1,
+                                             sd_slope = 1,
+                                             shape1 = 5,
+                                             shape2 = 5,
+                                             min = 0.8,
+                                             max = 0.98,
+                                             along = NULL,
+                                             con = "none"))
+  expect_identical(DRW2(s = 0.3,
+                        sd = 0.2,
+                        min = 0,
+                        con = "by",
+                        along = "reg"),
+                   new_bage_prior_drw2random(scale = 0.3,
+                                             sd = 0.2,
+                                             sd_slope = 1,
+                                             shape1 = 5,
+                                             shape2 = 5,
+                                             min = 0,
+                                             max = 0.98,
+                                             along = "reg",
+                                             con = "by"))
+  expect_identical(DRW2(sd = 0),
+                   new_bage_prior_drw2zero(scale = 1,
+                                           sd_slope = 1,
+                                           shape1 = 5,
+                                           shape2 = 5,
+                                           min = 0.8,
+                                           max = 0.98,
+                                           along = NULL,
+                                           con = "none"))
+  expect_identical(DRW2(s = 0.3,
+                        sd = 0,
+                        min = 0,
+                        con = "by",
+                        along = "reg"),
+                   new_bage_prior_drw2zero(scale = 0.3,
+                                           sd_slope = 1,
+                                           shape1 = 5,
+                                           shape2 = 5,
+                                           min = 0,
+                                           max = 0.98,
+                                           along = "reg",
+                                           con = "by"))
+})
+
 test_that("'Known' works with valid inputs", {
     expect_identical(Known(values = 1:3),
                      new_bage_prior_known(values = as.double(1:3)))
@@ -540,6 +635,118 @@ test_that("'new_bage_prior_ar' works - AR1 interface", {
                         along = NULL,
                         con = "none",
                         nm = "AR1"))
+})
+
+test_that("'new_bage_prior_drwzero' works", {
+  obj <- new_bage_prior_drwzero(scale = 1,
+                                shape1 = 5,
+                                shape2 = 5,
+                                min = 0.8,
+                                max = 0.98,
+                                along = NULL,
+                                con = "none")
+  expect_s3_class(obj, "bage_prior_drwzero")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 27L)
+  expect_identical(obj$const, c(scale = 1,
+                                shape1 = 5,
+                                shape2 = 5,
+                                min = 0.8,
+                                max = 0.98))
+  expect_identical(obj$specific, list(scale = 1,
+                                      shape1 = 5,
+                                      shape2 = 5,
+                                      min = 0.8,
+                                      max = 0.98,
+                                      along = NULL,
+                                      con = "none"))
+})
+
+test_that("'new_bage_prior_drwrandom' works", {
+  obj <- new_bage_prior_drwrandom(scale = 1,
+                                  sd = 1,
+                                  shape1 = 5,
+                                  shape2 = 5,
+                                  min = 0.8,
+                                  max = 0.98,
+                                  along = NULL,
+                                  con = "none")
+  expect_s3_class(obj, "bage_prior_drwrandom")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 28L)
+  expect_identical(obj$const, c(scale = 1,
+                                sd = 1,
+                                shape1 = 5,
+                                shape2 = 5,
+                                min = 0.8,
+                                max = 0.98))
+  expect_identical(obj$specific, list(scale = 1,
+                                      sd = 1,
+                                      shape1 = 5,
+                                      shape2 = 5,
+                                      min = 0.8,
+                                      max = 0.98,
+                                      along = NULL,
+                                      con = "none"))
+})
+
+test_that("'new_bage_prior_drw2zero' works", {
+  obj <- new_bage_prior_drw2zero(scale = 1,
+                                 sd_slope = 1,
+                                 shape1 = 5,
+                                 shape2 = 5,
+                                 min = 0.8,
+                                 max = 0.98,
+                                 along = NULL,
+                                 con = "none")
+  expect_s3_class(obj, "bage_prior_drw2zero")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 29L)
+  expect_identical(obj$const, c(scale = 1,
+                                sd_slope = 1,
+                                shape1 = 5,
+                                shape2 = 5,
+                                min = 0.8,
+                                max = 0.98))
+  expect_identical(obj$specific, list(scale = 1,
+                                      sd_slope = 1,
+                                      shape1 = 5,
+                                      shape2 = 5,
+                                      min = 0.8,
+                                      max = 0.98,
+                                      along = NULL,
+                                      con = "none"))
+})
+
+test_that("'new_bage_prior_drw2random' works", {
+  obj <- new_bage_prior_drw2random(scale = 1,
+                                   sd = 1,
+                                   sd_slope = 1,
+                                   shape1 = 5,
+                                   shape2 = 5,
+                                   min = 0.8,
+                                   max = 0.98,
+                                   along = NULL,
+                                   con = "none")
+  expect_s3_class(obj, "bage_prior_drw2random")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 30L)
+  expect_identical(obj$const, c(scale = 1,
+                                sd = 1,
+                                sd_slope = 1,
+                                shape1 = 5,
+                                shape2 = 5,
+                                min = 0.8,
+                                max = 0.98))
+  expect_identical(obj$specific, list(scale = 1,
+                                      sd = 1,
+                                      sd_slope = 1,
+                                      shape1 = 5,
+                                      shape2 = 5,
+                                      min = 0.8,
+                                      max = 0.98,
+                                      along = NULL,
+                                      con = "none"))
 })
 
 test_that("'new_bage_prior_known' works", {

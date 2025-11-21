@@ -554,6 +554,7 @@ If the prior includes sum-to-zero constraints, means are subtracted from the for
 
 ```
 DRW(s = 1,
+    sd = 1,
     shape1 = 5,
     shape2 = 5,
     min = 0.8,
