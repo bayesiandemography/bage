@@ -531,14 +531,14 @@ Damped Random walk
 
 $A_0^{(m)}$ can be 0, implying that $\beta_{u,1}^{(m)}$ is fixed at 0.
 
--1 \le a_{0m} < a{1m} \le 1.
+We require that $-1 \le a_{0m} < a_{1m} \le 1$.
 
 When $U_m > 1$, constraints (Section \@ref(sec:constraints)) can be applied.
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2\right) \prod_{v=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2\right) \prod_{v=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \phi_m \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 ### Forecasting
@@ -589,15 +589,16 @@ Damped second-order random walk
 
 $A_0^{(m)}$ can be 0, implying that $\beta_{u,1}^{(m)}$ is fixed at 0.
 
--1 \le a_{0m} < a{1m} \le 1.
+We require that $-1 \le a_{0m} < a_{1m} \le 1$.
 
 When $U_m > 1$, constraints (Section \@ref(sec:constraints)) can be applied.
 
 ### Contribution to posterior density
 
-\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2) \text{N}(\beta_{u,2}^{(m)} \mid \beta_{u,1}^{(m)}, (A_{\eta}^{(m)})^2) \prod_{v=3}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid 2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2 \right) 
-\end{equation}
+\begin{align}
+  & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2) \text{N}(\beta_{u,2}^{(m)} \mid \beta_{u,1}^{(m)}, (A_{\eta}^{(m)})^2) \\
+  & \quad \quad \times \prod_{v=3}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid  \beta_{u,v-1}^{(m)} + \phi_m (\beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}), \tau_m^2 \right) 
+\end{align}
 
 
 ### Forecasting
