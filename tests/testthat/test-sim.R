@@ -319,6 +319,20 @@ test_that("'draw_vals_coef' works with n = 10", {
 })
 
 
+## 'draw_vals_coef_drw' -------------------------------------------------------
+
+test_that("'draw_vals_coef_drw' works with valid inputs", {
+  set.seed(0)
+  prior <- DRW()
+  ans <- draw_vals_coef_drw(prior, n_sim = 5)
+  expect_true(all(ans > 0.8))
+  expect_true(all(ans < 0.98))
+  prior <- DRW2(min = 0, max = 1)
+  ans <- draw_vals_coef_drw(prior, n_sim = 10000)
+  expect_equal(mean(ans), 0.5, tolerance = 0.01)
+})
+
+
 ## 'draw_vals_components_unfitted' --------------------------------------------
 
 test_that("'draw_vals_components_unfitted' works", {
@@ -405,7 +419,46 @@ test_that("'draw_vals_disp' works with 'bage_mod_norm'", {
 })
 
 
-## draw_vals_effect_mod ----------------------------------------------------------
+## 'draw_vals_drw' ------------------------------------------------------------
+
+test_that("'draw_vals_drw' works with bage_prior_drwrandom", {
+  prior <- DRW()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters
+  matrix_along_by <- matrix(0:25, nr = 13, dimnames = list(letters[1:13], 1:2))
+  ans <- draw_vals_drw(sd = vals_hyper$sd,
+                       sd_init = prior$specific$sd,
+                       coef = vals_hyper$coef,
+                       matrix_along_by = matrix_along_by,
+                       levels_effect = levels_effect)
+  expect_identical(dimnames(ans), list(letters, NULL))
+})
+
+
+## 'draw_vals_drw2' ------------------------------------------------------------
+
+test_that("'draw_vals_drw2' works with bage_prior_drw2random", {
+  prior <- DRW2()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters
+  matrix_along_by <- matrix(0:25, nr = 13, dimnames = list(letters[1:13], 1:2))
+  ans <- draw_vals_drw2(sd = vals_hyper$sd,
+                        sd_init = prior$specific$sd,
+                        sd_slope = prior$specific$sd_slope,
+                        coef = vals_hyper$coef,
+                        matrix_along_by = matrix_along_by,
+                        levels_effect = levels_effect)
+  expect_identical(dimnames(ans), list(letters, NULL))
+})
+
+
+## draw_vals_effect_mod -------------------------------------------------------
 
 test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   set.seed(0)

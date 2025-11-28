@@ -624,9 +624,9 @@ test_that("'impute_outcome_true' raises error with invalid nm_distn", {
 
 
 
-## 'infer_trend_cyc_seas_err_forecast' ----------------------------------------
+## 'infer_trend_seas_err_forecast' ----------------------------------------
 
-test_that("'infer_trend_cyc_seas_err_forecast' works", {
+test_that("'infer_trend_seas_err_forecast' works", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -646,7 +646,7 @@ test_that("'infer_trend_cyc_seas_err_forecast' works", {
                                                           var_time = mod$var_time,
                                                           labels_forecast = 2006:2007,
                                                           time_only = TRUE)
-  ans_obtained <- infer_trend_cyc_seas_err_forecast(components = comp_forecast,
+  ans_obtained <- infer_trend_seas_err_forecast(components = comp_forecast,
                                                     priors = mod$priors,
                                                     dimnames_terms = dimnames_terms_forecast,
                                                     var_time = mod$var_time,
@@ -655,9 +655,9 @@ test_that("'infer_trend_cyc_seas_err_forecast' works", {
 })
 
 
-## 'infer_trend_cyc_seas_err_seasfix_forecast' --------------------------------
+## 'infer_trend_seas_err_seasfix_forecast' --------------------------------
 
-test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
+test_that("'infer_trend_seas_err_seasfix_forecast' works", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -670,7 +670,7 @@ test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
                   set_n_draw(n = 10) |>
                   fit()
   components <- components(mod)
-  ans <- infer_trend_cyc_seas_err_seasfix_forecast(prior = mod$priors[["sex:time"]],
+  ans <- infer_trend_seas_err_seasfix_forecast(prior = mod$priors[["sex:time"]],
                                                    dimnames_term = mod$dimnames_terms[["sex:time"]],
                                                    var_time = mod$var_time,
                                                    var_age = mod$var_age,
@@ -682,9 +682,9 @@ test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
 })
 
 
-## 'infer_trend_cyc_seas_err_seasvary_forecast' -------------------------------
+## 'infer_trend_seas_err_seasvary_forecast' -------------------------------
 
-test_that("'infer_trend_cyc_seas_err_seasvary_forecast' works", {
+test_that("'infer_trend_seas_err_seasvary_forecast' works", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -697,7 +697,7 @@ test_that("'infer_trend_cyc_seas_err_seasvary_forecast' works", {
                   set_n_draw(n = 10) |>
                   fit()
   components <- components(mod)
-  ans <- infer_trend_cyc_seas_err_seasvary_forecast(prior = mod$priors[["sex:time"]],
+  ans <- infer_trend_seas_err_seasvary_forecast(prior = mod$priors[["sex:time"]],
                                                     dimnames_term = mod$dimnames_terms[["sex:time"]],
                                                     var_time = mod$var_time,
                                                     var_age = mod$var_age,

@@ -2,6 +2,10 @@
 % Please edit documentation in R/bage_prior-methods.R
 \name{generate.bage_prior_ar}
 \alias{generate.bage_prior_ar}
+\alias{generate.bage_prior_drwrandom}
+\alias{generate.bage_prior_drwzero}
+\alias{generate.bage_prior_drw2random}
+\alias{generate.bage_prior_drw2zero}
 \alias{generate.bage_prior_known}
 \alias{generate.bage_prior_lin}
 \alias{generate.bage_prior_linar}
@@ -30,6 +34,14 @@
 \title{Generate Values from Priors}
 \usage{
 \method{generate}{bage_prior_ar}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_drwrandom}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_drwzero}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_drw2random}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_drw2zero}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
 \method{generate}{bage_prior_known}(x, n_element = 20, n_draw = 25, ...)
 

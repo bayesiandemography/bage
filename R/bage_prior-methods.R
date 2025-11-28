@@ -129,7 +129,7 @@ const <- function(prior) {
 const.bage_prior <- function(prior) prior$const
 
 
-## 'draw_vals_effect' ------------------------------------------------------------
+## 'draw_vals_effect' ---------------------------------------------------------
 
 #' Draw Values for Main Effect or Interactions
 #'
@@ -200,6 +200,161 @@ draw_vals_effect.bage_prior_ar <- function(prior,
     ans <- Matrix::as.matrix(ans)
   }
   ans
+}
+
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_drwrandom <- function(prior,
+                                                  vals_hyper,
+                                                  vals_hyperrand,
+                                                  vals_spline,
+                                                  vals_svd,
+                                                  dimnames_term,
+                                                  var_time,
+                                                  var_age,
+                                                  var_sexgender,
+                                                  n_sim) {
+  sd_init <- prior$specific$sd
+  con <- prior$specific$con
+  sd <- vals_hyper$sd
+  coef <- vals_hyper$coef
+  i_along <- make_i_along(prior = prior,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  matrix_along_by_effect <- make_matrix_along_by_inner(i_along = i_along,
+                                                       dim = dim)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  ans <- draw_vals_drw(sd = sd,
+                       sd_init = sd_init,
+                       coef = coef,
+                       matrix_along_by = matrix_along_by_effect,
+                       levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = i_along,
+                            dim = dim)
+    ans <- m %*% ans
+    ans <- Matrix::as.matrix(ans)
+  }
+  ans  
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_drwzero <- function(prior,
+                                                vals_hyper,
+                                                vals_hyperrand,
+                                                vals_spline,
+                                                vals_svd,
+                                                dimnames_term,
+                                                var_time,
+                                                var_age,
+                                                var_sexgender,
+                                                n_sim) {
+  con <- prior$specific$con
+  sd <- vals_hyper$sd
+  coef <- vals_hyper$coef
+  i_along <- make_i_along(prior = prior,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  matrix_along_by_effect <- make_matrix_along_by_inner(i_along = i_along,
+                                                       dim = dim)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  ans <- draw_vals_drw(sd = sd,
+                       sd_init = 0,
+                       coef = coef,
+                       matrix_along_by = matrix_along_by_effect,
+                       levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = i_along,
+                            dim = dim)
+    ans <- m %*% ans
+    ans <- Matrix::as.matrix(ans)
+  }
+  ans  
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_drw2random <- function(prior,
+                                                   vals_hyper,
+                                                   vals_hyperrand,
+                                                   vals_spline,
+                                                   vals_svd,
+                                                   dimnames_term,
+                                                   var_time,
+                                                   var_age,
+                                                   var_sexgender,
+                                                   n_sim) {
+  sd_init <- prior$specific$sd
+  sd_slope <- prior$specific$sd_slope
+  con <- prior$specific$con
+  sd <- vals_hyper$sd
+  coef <- vals_hyper$coef
+  i_along <- make_i_along(prior = prior,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  matrix_along_by_effect <- make_matrix_along_by_inner(i_along = i_along,
+                                                       dim = dim)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  ans <- draw_vals_drw2(sd = sd,
+                        sd_init = sd_init,
+                        sd_slope = sd_slope,
+                        coef = coef,
+                        matrix_along_by = matrix_along_by_effect,
+                        levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = i_along,
+                            dim = dim)
+    ans <- m %*% ans
+    ans <- Matrix::as.matrix(ans)
+  }
+  ans  
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_drw2zero <- function(prior,
+                                                 vals_hyper,
+                                                 vals_hyperrand,
+                                                 vals_spline,
+                                                 vals_svd,
+                                                 dimnames_term,
+                                                 var_time,
+                                                 var_age,
+                                                 var_sexgender,
+                                                 n_sim) {
+  sd_slope <- prior$specific$sd_slope
+  con <- prior$specific$con
+  sd <- vals_hyper$sd
+  coef <- vals_hyper$coef
+  i_along <- make_i_along(prior = prior,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  matrix_along_by_effect <- make_matrix_along_by_inner(i_along = i_along,
+                                                       dim = dim)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  ans <- draw_vals_drw2(sd = sd,
+                        sd_init = 0,
+                        sd_slope = sd_slope,
+                        coef = coef,
+                        matrix_along_by = matrix_along_by_effect,
+                        levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = i_along,
+                            dim = dim)
+    ans <- m %*% ans
+    ans <- Matrix::as.matrix(ans)
+  }
+  ans  
 }
 
 ## HAS_TESTS
@@ -889,6 +1044,42 @@ draw_vals_hyper.bage_prior_ar <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(coef = coef,
        sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_drwrandom <- function(prior, n_sim) {
+  coef <- draw_vals_coef_drw(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd,
+       coef = coef)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_drwzero <- function(prior, n_sim) {
+  coef <- draw_vals_coef_drw(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd,
+       coef = coef)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_drw2random <- function(prior, n_sim) {
+  coef <- draw_vals_coef_drw(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd,
+       coef = coef)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_drw2zero <- function(prior, n_sim) {
+  coef <- draw_vals_coef_drw(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd,
+       coef = coef)
 }
 
 ## HAS_TESTS
@@ -1892,7 +2083,7 @@ forecast_term.bage_prior_ar <- function(prior,
                                         components,
                                         labels_forecast) {
   con <- prior$specific$con
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -1903,15 +2094,9 @@ forecast_term.bage_prior_ar <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_ar <- with(components,
-                term == nm & component == "effect")
-  is_coef <- with(components,
-                  term == nm & component == "hyper" & startsWith(level, "coef"))
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
-  ar_est <- components$.fitted[is_ar]
-  coef <- components$.fitted[is_coef]
-  sd <- components$.fitted[is_sd]
+  ar_est <- get_from_comp_effect(components = components, term = term)
+  coef <- get_from_comp_coef(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   .fitted <- forecast_ar(ar_est = ar_est,
                          coef = coef,
                          sd = sd,
@@ -1919,15 +2104,92 @@ forecast_term.bage_prior_ar <- function(prior,
                          matrix_along_by_forecast = matrix_along_by_forecast)
   if (con == "by")
     .fitted <- con_by_fitted(prior = prior,
-                               fitted = .fitted,
-                               dimnames_term = dimnames_forecast,
-                               var_time = var_time,
-                               var_age = var_age)
-  tibble::tibble(term = nm,
+                             fitted = .fitted,
+                             dimnames_term = dimnames_forecast,
+                             var_time = var_time,
+                             var_age = var_age)
+  tibble::tibble(term = term,
                  component = "effect",
                  level = levels_forecast,
                  .fitted = .fitted)
 }
+
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_drwrandom <- function(prior,
+                                               dimnames_term,
+                                               var_time,
+                                               var_age,
+                                               var_sexgender,
+                                               components,
+                                               labels_forecast) {
+  forecast_term_drw(prior = prior,
+                    dimnames_term = dimnames_term,
+                    var_time = var_time,
+                    var_age = var_age,
+                    var_sexgender = var_sexgender,
+                    components = components,
+                    labels_forecast = labels_forecast)
+}
+
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_drwzero <- function(prior,
+                                             dimnames_term,
+                                             var_time,
+                                             var_age,
+                                             var_sexgender,
+                                             components,
+                                             labels_forecast) {
+  forecast_term_drw(prior = prior,
+                    dimnames_term = dimnames_term,
+                    var_time = var_time,
+                    var_age = var_age,
+                    var_sexgender = var_sexgender,
+                    components = components,
+                    labels_forecast = labels_forecast)
+}
+
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_drw2random <- function(prior,
+                                                dimnames_term,
+                                                var_time,
+                                                var_age,
+                                                var_sexgender,
+                                                components,
+                                                labels_forecast) {
+  forecast_term_drw2(prior = prior,
+                     dimnames_term = dimnames_term,
+                     var_time = var_time,
+                     var_age = var_age,
+                     var_sexgender = var_sexgender,
+                     components = components,
+                     labels_forecast = labels_forecast)
+}
+
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_drw2zero <- function(prior,
+                                              dimnames_term,
+                                              var_time,
+                                              var_age,
+                                              var_sexgender,
+                                              components,
+                                              labels_forecast) {
+  forecast_term_drw2(prior = prior,
+                     dimnames_term = dimnames_term,
+                     var_time = var_time,
+                     var_age = var_age,
+                     var_sexgender = var_sexgender,
+                     components = components,
+                     labels_forecast = labels_forecast)
+}
+
 
 ## HAS_TESTS
 #' @export
@@ -1939,7 +2201,7 @@ forecast_term.bage_prior_lin <- function(prior,
                                          components,
                                          labels_forecast) {
   con <- prior$specific$con
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -1950,10 +2212,8 @@ forecast_term.bage_prior_lin <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_slope <- with(components, term == nm & component == "hyper" & startsWith(level, "slope"))
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  slope <- components$.fitted[is_slope]
-  sd <- components$.fitted[is_sd]
+  slope <- get_from_comp_slope(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   .fitted <- forecast_lin(slope = slope,
                           sd = sd,
                           matrix_along_by_est = matrix_along_by_est,
@@ -1964,7 +2224,7 @@ forecast_term.bage_prior_lin <- function(prior,
                                dimnames_term = dimnames_forecast,
                                var_time = var_time,
                                var_age = var_age)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = "effect",
                  level = levels_forecast,
                  .fitted = .fitted)
@@ -1980,7 +2240,7 @@ forecast_term.bage_prior_linar <- function(prior,
                                            components,
                                            labels_forecast) {
   con <- prior$specific$con
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -1991,14 +2251,10 @@ forecast_term.bage_prior_linar <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_effect <- with(components, term == nm & component == "effect")
-  is_coef <- with(components, term == nm & component == "hyper" & startsWith(level, "coef"))
-  is_slope <- with(components, term == nm & component == "hyper" & startsWith(level, "slope"))
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  effect_est <- components$.fitted[is_effect]
-  coef <- components$.fitted[is_coef]
-  slope <- components$.fitted[is_slope]
-  sd <- components$.fitted[is_sd]
+  effect_est <- get_from_comp_effect(components = components, term = term)
+  coef <- get_from_comp_coef(components = components, term = term)
+  slope <- get_from_comp_slope(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   trend_est <- make_lin_trend(slope = slope,
                               matrix_along_by = matrix_along_by_est)
   trend_forecast <- forecast_lin_trend(slope = slope,
@@ -2024,7 +2280,7 @@ forecast_term.bage_prior_linar <- function(prior,
   component <- rep(c("effect", "trend", "error"), each = length(effect_forecast))
   level <- rep(levels_forecast, times = 3L)
   .fitted <- c(effect_forecast, trend_forecast, error_forecast)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = component,
                  level = level,
                  .fitted = .fitted)
@@ -2040,7 +2296,7 @@ forecast_term.bage_prior_linex <- function(prior,
                                            components,
                                            labels_forecast) {
   con <- prior$specific$con
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2051,8 +2307,7 @@ forecast_term.bage_prior_linex <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_effect <- with(components, term == nm & component == "effect")
-  effect <- components$.fitted[is_effect]
+  effect <- get_from_comp_effect(components = components, term = term)
   n_by <- ncol(matrix_along_by_est)
   n_draw <- rvec::n_draw(effect)
   slope <- rvec::new_rvec(length = n_by, n_draw = n_draw)
@@ -2070,7 +2325,7 @@ forecast_term.bage_prior_linex <- function(prior,
                                dimnames_term = dimnames_forecast,
                                var_time = var_time,
                                var_age = var_age)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = "effect",
                  level = levels_forecast,
                  .fitted = .fitted)
@@ -2085,14 +2340,13 @@ forecast_term.bage_prior_norm <- function(prior,
                                         var_sexgender,
                                         components,
                                         labels_forecast) {
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   n_forecast <- length(levels_forecast)
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  sd <- components$.fitted[is_sd]
+  sd <- get_from_comp_sd(components = components, term = term)
   .fitted <- rvec::rnorm_rvec(n = n_forecast, sd = sd)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = "effect",
                  level = levels_forecast,
                  .fitted = .fitted)
@@ -2107,7 +2361,7 @@ forecast_term.bage_prior_normfixed <- function(prior,
                                                var_sexgender,
                                                components,
                                                labels_forecast) {
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   n_forecast <- length(levels_forecast)
@@ -2116,7 +2370,7 @@ forecast_term.bage_prior_normfixed <- function(prior,
   .fitted <- rvec::rnorm_rvec(n = n_forecast,
                               sd = sd,
                               n_draw = n_draw)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = "effect",
                  level = levels_forecast,
                  .fitted = .fitted)
@@ -2132,7 +2386,7 @@ forecast_term.bage_prior_rwrandom <- function(prior,
                                               components,
                                               labels_forecast) {
   con <- prior$specific$con
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2143,10 +2397,8 @@ forecast_term.bage_prior_rwrandom <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_effect <- with(components, term == nm & component == "effect")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw_est <- components$.fitted[is_effect]
-  sd <- components$.fitted[is_sd]
+  rw_est <- get_from_comp_effect(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   .fitted <- forecast_rw(rw_est = rw_est,
                          sd = sd,
                          matrix_along_by_est = matrix_along_by_est,
@@ -2157,7 +2409,7 @@ forecast_term.bage_prior_rwrandom <- function(prior,
                              dimnames_term = dimnames_forecast,
                              var_time = var_time,
                              var_age = var_age)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = "effect",
                  level = levels_forecast,
                  .fitted = .fitted)
@@ -2174,7 +2426,7 @@ forecast_term.bage_prior_rwrandomseasfix <- function(prior,
                                                    labels_forecast) {
   con <- prior$specific$con
   n_seas <- prior$specific$n_seas
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2185,12 +2437,9 @@ forecast_term.bage_prior_rwrandomseasfix <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_trend <- with(components, term == nm & component == "trend")
-  is_season <- with(components, term == nm & component == "season")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw_est <- components$.fitted[is_trend]
-  seas_est <- components$.fitted[is_season]
-  sd <- components$.fitted[is_sd]
+  rw_est <- get_from_comp_trend(components = components, term = term)
+  seas_est <- get_from_comp_season(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   rw_forecast <- forecast_rw(rw_est = rw_est,
                              sd = sd,
                              matrix_along_by_est = matrix_along_by_est,
@@ -2214,7 +2463,7 @@ forecast_term.bage_prior_rwrandomseasfix <- function(prior,
   }
   effect_forecast <- rw_forecast + seas_forecast
   n_level <- length(effect_forecast)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = rep(c("effect", "trend", "season"), each = n_level),
                  level = rep(levels_forecast, times = 3L),
                  .fitted = c(effect_forecast, rw_forecast, seas_forecast))
@@ -2223,15 +2472,15 @@ forecast_term.bage_prior_rwrandomseasfix <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rwrandomseasvary <- function(prior,
-                                                dimnames_term,
-                                                var_time,
-                                                var_age,
-                                                var_sexgender,
-                                                components,
-                                                labels_forecast) {
+                                                      dimnames_term,
+                                                      var_time,
+                                                      var_age,
+                                                      var_sexgender,
+                                                      components,
+                                                      labels_forecast) {
   con <- prior$specific$con
   n_seas <- prior$specific$n_seas
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2242,14 +2491,10 @@ forecast_term.bage_prior_rwrandomseasvary <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_trend <- with(components, term == nm & component == "trend")
-  is_season <- with(components, term == nm & component == "season")
-  is_sd_seas <- with(components, term == nm & component == "hyper" & level == "sd_seas")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw_est <- components$.fitted[is_trend]
-  seas_est <- components$.fitted[is_season]
-  sd_seas <- components$.fitted[is_sd_seas]
-  sd <- components$.fitted[is_sd]
+  rw_est <- get_from_comp_trend(components = components, term = term)
+  seas_est <- get_from_comp_season(components = components, term = term)
+  sd_seas <- get_from_comp_sd_seas(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   rw_forecast <- forecast_rw(rw_est = rw_est,
                              sd = sd,
                              matrix_along_by_est = matrix_along_by_est,
@@ -2261,37 +2506,36 @@ forecast_term.bage_prior_rwrandomseasvary <- function(prior,
                                      matrix_along_by_forecast = matrix_along_by_forecast)
   if (con == "by") {
     rw_forecast <- con_by_fitted(prior = prior,
-                                   fitted = rw_forecast,
+                                 fitted = rw_forecast,
+                                 dimnames_term = dimnames_forecast,
+                                 var_time = var_time,
+                                 var_age = var_age)
+    seas_forecast <- con_by_fitted(prior = prior,
+                                   fitted = seas_forecast,
                                    dimnames_term = dimnames_forecast,
                                    var_time = var_time,
                                    var_age = var_age)
-    seas_forecast <- con_by_fitted(prior = prior,
-                                     fitted = seas_forecast,
-                                     dimnames_term = dimnames_forecast,
-                                     var_time = var_time,
-                                     var_age = var_age)
   }
   effect_forecast <- rw_forecast + seas_forecast
   n_level <- length(effect_forecast)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = rep(c("effect", "trend", "season"), each = n_level),
                  level = rep(levels_forecast, times = 3L),
                  .fitted = c(effect_forecast, rw_forecast, seas_forecast))
 }
 
 
-
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rwzero <- function(prior,
-                                        dimnames_term,
-                                        var_time,
-                                        var_age,
-                                        var_sexgender,
-                                        components,
-                                        labels_forecast) {
+                                            dimnames_term,
+                                            var_time,
+                                            var_age,
+                                            var_sexgender,
+                                            components,
+                                            labels_forecast) {
   con <- prior$specific$con
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2302,21 +2546,19 @@ forecast_term.bage_prior_rwzero <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_effect <- with(components, term == nm & component == "effect")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw_est <- components$.fitted[is_effect]
-  sd <- components$.fitted[is_sd]
+  rw_est <- get_from_comp_effect(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   .fitted <- forecast_rw(rw_est = rw_est,
                          sd = sd,
                          matrix_along_by_est = matrix_along_by_est,
                          matrix_along_by_forecast = matrix_along_by_forecast)
   if (con == "by")
     .fitted <- con_by_fitted(prior = prior,
-                               fitted = .fitted,
-                               dimnames_term = dimnames_forecast,
-                               var_time = var_time,
-                               var_age = var_age)
-  tibble::tibble(term = nm,
+                             fitted = .fitted,
+                             dimnames_term = dimnames_forecast,
+                             var_time = var_time,
+                             var_age = var_age)
+  tibble::tibble(term = term,
                  component = "effect",
                  level = levels_forecast,
                  .fitted = .fitted)
@@ -2333,7 +2575,7 @@ forecast_term.bage_prior_rwzeroseasfix <- function(prior,
                                                    labels_forecast) {
   con <- prior$specific$con
   n_seas <- prior$specific$n_seas
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2344,12 +2586,9 @@ forecast_term.bage_prior_rwzeroseasfix <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_trend <- with(components, term == nm & component == "trend")
-  is_season <- with(components, term == nm & component == "season")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw_est <- components$.fitted[is_trend]
-  seas_est <- components$.fitted[is_season]
-  sd <- components$.fitted[is_sd]
+  rw_est <- get_from_comp_trend(components = components, term = term)
+  seas_est <- get_from_comp_season(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   rw_forecast <- forecast_rw(rw_est = rw_est,
                              sd = sd,
                              matrix_along_by_est = matrix_along_by_est,
@@ -2373,7 +2612,7 @@ forecast_term.bage_prior_rwzeroseasfix <- function(prior,
   }
   effect_forecast <- rw_forecast + seas_forecast
   n_level <- length(effect_forecast)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = rep(c("effect", "trend", "season"), each = n_level),
                  level = rep(levels_forecast, times = 3L),
                  .fitted = c(effect_forecast, rw_forecast, seas_forecast))
@@ -2382,15 +2621,15 @@ forecast_term.bage_prior_rwzeroseasfix <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rwzeroseasvary <- function(prior,
-                                                dimnames_term,
-                                                var_time,
-                                                var_age,
-                                                var_sexgender,
-                                                components,
-                                                labels_forecast) {
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    var_sexgender,
+                                                    components,
+                                                    labels_forecast) {
   con <- prior$specific$con
   n_seas <- prior$specific$n_seas
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2401,14 +2640,10 @@ forecast_term.bage_prior_rwzeroseasvary <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_trend <- with(components, term == nm & component == "trend")
-  is_season <- with(components, term == nm & component == "season")
-  is_sd_seas <- with(components, term == nm & component == "hyper" & level == "sd_seas")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw_est <- components$.fitted[is_trend]
-  seas_est <- components$.fitted[is_season]
-  sd_seas <- components$.fitted[is_sd_seas]
-  sd <- components$.fitted[is_sd]
+  rw_est <- get_from_comp_trend(components = components, term = term)
+  seas_est <- get_from_comp_season(components = components, term = term)
+  sd_seas <- get_from_comp_sd_seas(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   rw_forecast <- forecast_rw(rw_est = rw_est,
                              sd = sd,
                              matrix_along_by_est = matrix_along_by_est,
@@ -2420,26 +2655,23 @@ forecast_term.bage_prior_rwzeroseasvary <- function(prior,
                                      matrix_along_by_forecast = matrix_along_by_forecast)
   if (con == "by") {
     rw_forecast <- con_by_fitted(prior = prior,
-                                   fitted = rw_forecast,
+                                 fitted = rw_forecast,
+                                 dimnames_term = dimnames_forecast,
+                                 var_time = var_time,
+                                 var_age = var_age)
+    seas_forecast <- con_by_fitted(prior = prior,
+                                   fitted = seas_forecast,
                                    dimnames_term = dimnames_forecast,
                                    var_time = var_time,
                                    var_age = var_age)
-    seas_forecast <- con_by_fitted(prior = prior,
-                                     fitted = seas_forecast,
-                                     dimnames_term = dimnames_forecast,
-                                     var_time = var_time,
-                                     var_age = var_age)
   }
   effect_forecast <- rw_forecast + seas_forecast
   n_level <- length(effect_forecast)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = rep(c("effect", "trend", "season"), each = n_level),
                  level = rep(levels_forecast, times = 3L),
                  .fitted = c(effect_forecast, rw_forecast, seas_forecast))
 }
-
-
-
 
 
 ## HAS_TESTS
@@ -2452,7 +2684,7 @@ forecast_term.bage_prior_rw2random <- function(prior,
                                                components,
                                                labels_forecast) {
   con <- prior$specific$con
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2463,10 +2695,8 @@ forecast_term.bage_prior_rw2random <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_effect <- with(components, term == nm & component == "effect")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw2_est <- components$.fitted[is_effect]
-  sd <- components$.fitted[is_sd]
+  rw2_est <- get_from_comp_effect(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   .fitted <- forecast_rw2(rw2_est = rw2_est,
                           sd = sd,
                           matrix_along_by_est = matrix_along_by_est,
@@ -2477,7 +2707,7 @@ forecast_term.bage_prior_rw2random <- function(prior,
                                dimnames_term = dimnames_forecast,
                                var_time = var_time,
                                var_age = var_age)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = "effect",
                  level = levels_forecast,
                  .fitted = .fitted)
@@ -2494,7 +2724,7 @@ forecast_term.bage_prior_rw2randomseasfix <- function(prior,
                                                       labels_forecast) {
   con <- prior$specific$con
   n_seas <- prior$specific$n_seas
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2505,12 +2735,9 @@ forecast_term.bage_prior_rw2randomseasfix <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_trend <- with(components, term == nm & component == "trend")
-  is_season <- with(components, term == nm & component == "season")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw2_est <- components$.fitted[is_trend]
-  seas_est <- components$.fitted[is_season]
-  sd <- components$.fitted[is_sd]
+  rw2_est <- get_from_comp_trend(components = components, term = term)
+  seas_est <- get_from_comp_season(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   rw2_forecast <- forecast_rw2(rw2_est = rw2_est,
                                sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
@@ -2533,7 +2760,7 @@ forecast_term.bage_prior_rw2randomseasfix <- function(prior,
   }
   effect_forecast <- rw2_forecast + seas_forecast
   n_level <- length(effect_forecast)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = rep(c("effect", "trend", "season"), each = n_level),
                  level = rep(levels_forecast, times = 3L),
                  .fitted = c(effect_forecast, rw2_forecast, seas_forecast))
@@ -2550,7 +2777,7 @@ forecast_term.bage_prior_rw2randomseasvary <- function(prior,
                                                        labels_forecast) {
   con <- prior$specific$con
   n_seas <- prior$specific$n_seas
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2561,14 +2788,10 @@ forecast_term.bage_prior_rw2randomseasvary <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_trend <- with(components, term == nm & component == "trend")
-  is_season <- with(components, term == nm & component == "season")
-  is_sd_seas <- with(components, term == nm & component == "hyper" & level == "sd_seas")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw2_est <- components$.fitted[is_trend]
-  seas_est <- components$.fitted[is_season]
-  sd_seas <- components$.fitted[is_sd_seas]
-  sd <- components$.fitted[is_sd]
+  rw2_est <- get_from_comp_trend(components = components, term = term)
+  seas_est <- get_from_comp_season(components = components, term = term)
+  sd_seas <- get_from_comp_sd_seas(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   rw2_forecast <- forecast_rw2(rw2_est = rw2_est,
                                sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
@@ -2592,7 +2815,7 @@ forecast_term.bage_prior_rw2randomseasvary <- function(prior,
   }
   effect_forecast <- rw2_forecast + seas_forecast
   n_level <- length(effect_forecast)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = rep(c("effect", "trend", "season"), each = n_level),
                  level = rep(levels_forecast, times = 3L),
                  .fitted = c(effect_forecast, rw2_forecast, seas_forecast))
@@ -2608,7 +2831,7 @@ forecast_term.bage_prior_rw2zero <- function(prior,
                                              components,
                                              labels_forecast) {
   con <- prior$specific$con
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2619,10 +2842,8 @@ forecast_term.bage_prior_rw2zero <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_effect <- with(components, term == nm & component == "effect")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw2_est <- components$.fitted[is_effect]
-  sd <- components$.fitted[is_sd]
+  rw2_est <- get_from_comp_effect(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   .fitted <- forecast_rw2(rw2_est = rw2_est,
                           sd = sd,
                           matrix_along_by_est = matrix_along_by_est,
@@ -2633,7 +2854,7 @@ forecast_term.bage_prior_rw2zero <- function(prior,
                                dimnames_term = dimnames_forecast,
                                var_time = var_time,
                                var_age = var_age)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = "effect",
                  level = levels_forecast,
                  .fitted = .fitted)
@@ -2650,7 +2871,7 @@ forecast_term.bage_prior_rw2zeroseasfix <- function(prior,
                                                     labels_forecast) {
   con <- prior$specific$con
   n_seas <- prior$specific$n_seas
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2661,12 +2882,9 @@ forecast_term.bage_prior_rw2zeroseasfix <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_trend <- with(components, term == nm & component == "trend")
-  is_season <- with(components, term == nm & component == "season")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw2_est <- components$.fitted[is_trend]
-  seas_est <- components$.fitted[is_season]
-  sd <- components$.fitted[is_sd]
+  rw2_est <- get_from_comp_trend(components = components, term = term)
+  seas_est <- get_from_comp_season(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   rw2_forecast <- forecast_rw2(rw2_est = rw2_est,
                                sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
@@ -2689,7 +2907,7 @@ forecast_term.bage_prior_rw2zeroseasfix <- function(prior,
   }
   effect_forecast <- rw2_forecast + seas_forecast
   n_level <- length(effect_forecast)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = rep(c("effect", "trend", "season"), each = n_level),
                  level = rep(levels_forecast, times = 3L),
                  .fitted = c(effect_forecast, rw2_forecast, seas_forecast))
@@ -2706,7 +2924,7 @@ forecast_term.bage_prior_rw2zeroseasvary <- function(prior,
                                                      labels_forecast) {
   con <- prior$specific$con
   n_seas <- prior$specific$n_seas
-  nm <- dimnames_to_nm(dimnames_term)
+  term <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
   levels_forecast <- dimnames_to_levels(dimnames_forecast)
   matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
@@ -2717,14 +2935,10 @@ forecast_term.bage_prior_rw2zeroseasvary <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_trend <- with(components, term == nm & component == "trend")
-  is_season <- with(components, term == nm & component == "season")
-  is_sd_seas <- with(components, term == nm & component == "hyper" & level == "sd_seas")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  rw2_est <- components$.fitted[is_trend]
-  seas_est <- components$.fitted[is_season]
-  sd_seas <- components$.fitted[is_sd_seas]
-  sd <- components$.fitted[is_sd]
+  rw2_est <- get_from_comp_trend(components = components, term = term)
+  seas_est <- get_from_comp_season(components = components, term = term)
+  sd_seas <- get_from_comp_sd_seas(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   rw2_forecast <- forecast_rw2(rw2_est = rw2_est,
                                sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
@@ -2748,7 +2962,7 @@ forecast_term.bage_prior_rw2zeroseasvary <- function(prior,
   }
   effect_forecast <- rw2_forecast + seas_forecast
   n_level <- length(effect_forecast)
-  tibble::tibble(term = nm,
+  tibble::tibble(term = term,
                  component = rep(c("effect", "trend", "season"), each = n_level),
                  level = rep(levels_forecast, times = 3L),
                  .fitted = c(effect_forecast, rw2_forecast, seas_forecast))
@@ -3093,6 +3307,146 @@ generate.bage_prior_ar <- function(x,
   ans$value <- as.double(value)
   ans
 }
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_drwrandom <- function(x,
+                                          n_along = 20,
+                                          n_by = 1,
+                                          n_draw = 25,
+                                          ...) {
+  check_has_no_dots(...)
+  sd_init <- x$specific$sd
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(prior = x, n_sim = n_draw)
+  value <- draw_vals_drw(sd = sd,
+                         sd_init = sd_init,
+                         coef = coef,
+                         matrix_along_by = matrix_along_by,
+                         levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_drwzero <- function(x,
+                                        n_along = 20,
+                                        n_by = 1,
+                                        n_draw = 25,
+                                        ...) {
+  check_has_no_dots(...)
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(prior = x, n_sim = n_draw)
+  value <- draw_vals_drw(sd = sd,
+                         sd_init = 0,
+                         coef = coef,
+                         matrix_along_by = matrix_along_by,
+                         levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_drw2random <- function(x,
+                                           n_along = 20,
+                                           n_by = 1,
+                                           n_draw = 25,
+                                           ...) {
+  check_has_no_dots(...)
+  sd_init <- x$specific$sd
+  sd_slope <- x$specific$sd_slope
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(prior = x, n_sim = n_draw)
+  value <- draw_vals_drw2(sd = sd,
+                          sd_init = sd_init,
+                          sd_slope = sd_slope,
+                          coef = coef,
+                          matrix_along_by = matrix_along_by,
+                          levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_drw2zero <- function(x,
+                                        n_along = 20,
+                                        n_by = 1,
+                                        n_draw = 25,
+                                        ...) {
+  check_has_no_dots(...)
+  sd_slope <- x$specific$sd_slope  
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(prior = x, n_sim = n_draw)
+  value <- draw_vals_drw2(sd = sd,
+                          sd_init = 0,
+                          sd_slope = sd_slope,
+                          coef = coef,
+                          matrix_along_by = matrix_along_by,
+                          levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
 
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
@@ -4027,7 +4381,7 @@ has_hyperrandfree.bage_prior_rw2zeroseasfix <- function(prior) TRUE
 has_hyperrandfree.bage_prior_rw2zeroseasvary <- function(prior) TRUE
 
 
-## 'infer_trend_cyc_seas_err_forecast_one' ---------------------------------------------------
+## 'infer_trend_seas_err_forecast_one' ----------------------------------------
 
 #' Derive Parts of 'Components' Output Dealing with a
 #' Prior that has Hyper-Parameters Treated as Random Effects - Forecasts
@@ -4045,30 +4399,30 @@ has_hyperrandfree.bage_prior_rw2zeroseasvary <- function(prior) TRUE
 #' @returns A modifed version of 'components'
 #'
 #' @noRd
-infer_trend_cyc_seas_err_forecast_one <- function(prior,
-                                                  dimnames_term,
-                                                  var_time,
-                                                  var_age,
-                                                  components) {
-  UseMethod("infer_trend_cyc_seas_err_forecast_one")
+infer_trend_seas_err_forecast_one <- function(prior,
+                                              dimnames_term,
+                                              var_time,
+                                              var_age,
+                                              components) {
+  UseMethod("infer_trend_seas_err_forecast_one")
 }
 
 ## HAS_TESTS
 #' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior <- function(prior,
-                                                             dimnames_term,
-                                                             var_time,
-                                                             var_age,
-                                                             components)
+infer_trend_seas_err_forecast_one.bage_prior <- function(prior,
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
+                                                         components)
   components
 
 ## HAS_TESTS
 #' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior_linar <- function(prior,
-                                                                   dimnames_term,
-                                                                   var_time,
-                                                                   var_age,
-                                                                   components) {
+infer_trend_seas_err_forecast_one.bage_prior_linar <- function(prior,
+                                                               dimnames_term,
+                                                               var_time,
+                                                               var_age,
+                                                               components) {
   nm <- dimnames_to_nm(dimnames_term)
   is_effect <- with(components, (term == nm) & (component == "effect"))
   is_trend <- with(components, (term == nm) & (component == "trend"))
@@ -4082,106 +4436,106 @@ infer_trend_cyc_seas_err_forecast_one.bage_prior_linar <- function(prior,
 
 ## HAS_TESTS
 #' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior_rwrandomseasfix <- function(prior,
-                                                                             dimnames_term,
-                                                                             var_time,
-                                                                             var_age,
-                                                                             components)
-  infer_trend_cyc_seas_err_seasfix_forecast(prior = prior,
-                                            dimnames_term = dimnames_term,
-                                            var_time = var_time,
-                                            var_age = var_age,
-                                            components = components)
+infer_trend_seas_err_forecast_one.bage_prior_rwrandomseasfix <- function(prior,
+                                                                         dimnames_term,
+                                                                         var_time,
+                                                                         var_age,
+                                                                         components)
+  infer_trend_seas_err_seasfix_forecast(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        components = components)
 
 ## HAS_TESTS
 #' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior_rwrandomseasvary <- function(prior,
-                                                                              dimnames_term,
-                                                                              var_time,
-                                                                              var_age,
-                                                                              components)
-  infer_trend_cyc_seas_err_seasvary_forecast(prior = prior,
-                                             dimnames_term = dimnames_term,
-                                             var_time = var_time,
-                                             var_age = var_age,
-                                             components = components)
+infer_trend_seas_err_forecast_one.bage_prior_rwrandomseasvary <- function(prior,
+                                                                          dimnames_term,
+                                                                          var_time,
+                                                                          var_age,
+                                                                          components)
+  infer_trend_seas_err_seasvary_forecast(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         components = components)
 ## HAS_TESTS
 #' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior_rwzeroseasfix <- function(prior,
+infer_trend_seas_err_forecast_one.bage_prior_rwzeroseasfix <- function(prior,
+                                                                       dimnames_term,
+                                                                       var_time,
+                                                                       var_age,
+                                                                       components)
+  infer_trend_seas_err_seasfix_forecast(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        components = components)
+
+## HAS_TESTS
+#' @export
+infer_trend_seas_err_forecast_one.bage_prior_rwzeroseasvary <- function(prior,
+                                                                        dimnames_term,
+                                                                        var_time,
+                                                                        var_age,
+                                                                        components)
+  infer_trend_seas_err_seasvary_forecast(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         components = components)
+
+## HAS_TESTS
+#' @export
+infer_trend_seas_err_forecast_one.bage_prior_rw2randomseasfix <- function(prior,
+                                                                          dimnames_term,
+                                                                          var_time,
+                                                                          var_age,
+                                                                          components)
+  infer_trend_seas_err_seasfix_forecast(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        components = components)
+
+## HAS_TESTS
+#' @export
+infer_trend_seas_err_forecast_one.bage_prior_rw2randomseasvary <- function(prior,
                                                                            dimnames_term,
                                                                            var_time,
                                                                            var_age,
                                                                            components)
-  infer_trend_cyc_seas_err_seasfix_forecast(prior = prior,
-                                            dimnames_term = dimnames_term,
-                                            var_time = var_time,
-                                            var_age = var_age,
-                                            components = components)
+  infer_trend_seas_err_seasvary_forecast(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         components = components)
 
 ## HAS_TESTS
 #' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior_rwzeroseasvary <- function(prior,
-                                                                            dimnames_term,
-                                                                            var_time,
-                                                                            var_age,
-                                                                            components)
-  infer_trend_cyc_seas_err_seasvary_forecast(prior = prior,
-                                             dimnames_term = dimnames_term,
-                                             var_time = var_time,
-                                             var_age = var_age,
-                                             components = components)
+infer_trend_seas_err_forecast_one.bage_prior_rw2zeroseasfix <- function(prior,
+                                                                        dimnames_term,
+                                                                        var_time,
+                                                                        var_age,
+                                                                        components)
+  infer_trend_seas_err_seasfix_forecast(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        components = components)
 
 ## HAS_TESTS
 #' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior_rw2randomseasfix <- function(prior,
-                                                                              dimnames_term,
-                                                                              var_time,
-                                                                              var_age,
-                                                                              components)
-  infer_trend_cyc_seas_err_seasfix_forecast(prior = prior,
-                                            dimnames_term = dimnames_term,
-                                            var_time = var_time,
-                                            var_age = var_age,
-                                            components = components)
-
-## HAS_TESTS
-#' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior_rw2randomseasvary <- function(prior,
-                                                                               dimnames_term,
-                                                                               var_time,
-                                                                               var_age,
-                                                                               components)
-  infer_trend_cyc_seas_err_seasvary_forecast(prior = prior,
-                                             dimnames_term = dimnames_term,
-                                             var_time = var_time,
-                                             var_age = var_age,
-                                             components = components)
-
-## HAS_TESTS
-#' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior_rw2zeroseasfix <- function(prior,
-                                                                            dimnames_term,
-                                                                            var_time,
-                                                                            var_age,
-                                                                            components)
-  infer_trend_cyc_seas_err_seasfix_forecast(prior = prior,
-                                            dimnames_term = dimnames_term,
-                                            var_time = var_time,
-                                            var_age = var_age,
-                                            components = components)
-
-## HAS_TESTS
-#' @export
-infer_trend_cyc_seas_err_forecast_one.bage_prior_rw2zeroseasvary <- function(prior,
-                                                                             dimnames_term,
-                                                                             var_time,
-                                                                             var_age,
-                                                                             components)
-  infer_trend_cyc_seas_err_seasvary_forecast(prior = prior,
-                                             dimnames_term = dimnames_term,
-                                             var_time = var_time,
-                                             var_age = var_age,
-                                             components = components)
+infer_trend_seas_err_forecast_one.bage_prior_rw2zeroseasvary <- function(prior,
+                                                                         dimnames_term,
+                                                                         var_time,
+                                                                         var_age,
+                                                                         components)
+  infer_trend_seas_err_seasvary_forecast(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         components = components)
 
 
 ## 'is_known' -----------------------------------------------------------------

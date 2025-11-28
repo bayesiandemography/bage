@@ -648,7 +648,7 @@ Type logpost_drw2random(const vector<Type>& rw,
       int i_2 = matrix_along_by(i_along, i_by);
       int i_1 = matrix_along_by(i_along - 1, i_by);
       int i_0 = matrix_along_by(i_along - 2, i_by);
-      Type diff = rw[i_2] - (1 + coef) * rw[i_1] + rw[i_0];
+      Type diff = rw[i_2] - rw[i_1] - coef * (rw[i_1] - rw[i_0]);
       ans += dnorm(diff, Type(0), sd_innov, true);
     }
   }
@@ -687,7 +687,7 @@ Type logpost_drw2zero(const vector<Type>& rw,
       int i_2 = matrix_along_by(i_along, i_by);
       int i_1 = matrix_along_by(i_along - 1, i_by);
       int i_0 = matrix_along_by(i_along - 2, i_by);
-      Type diff = rw[i_2] - (1 + coef) * rw[i_1] + rw[i_0];
+      Type diff = rw[i_2] - rw[i_1] - coef * (rw[i_1] -  rw[i_0]);
       ans += dnorm(diff, Type(0), sd_innov, true);
     }
   }

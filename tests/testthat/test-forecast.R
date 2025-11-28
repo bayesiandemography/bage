@@ -320,6 +320,214 @@ test_that("'forecast_components' ignore data model if can't forecast is and is_f
 })
 
 
+## 'forecast_drw' -------------------------------------------------------------
+
+test_that("'forecast_drw' works, n_by = 1", {
+  set.seed(0)
+  rw_est <- rvec::rnorm_rvec(n = 5, n_draw = 10)
+  coef <- rvec::runif_rvec(n = 1, min = 0.8, max = 0.98, n_draw = 10)
+  sd <- rvec::runif_rvec(n = 1, n_draw = 10)
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  set.seed(1)
+  ans_obtained <- forecast_drw(rw_est = rw_est,
+                               coef = coef,
+                               sd = sd,
+                               matrix_along_by_est = matrix_along_by_est,
+                               matrix_along_by_forecast = matrix_along_by_forecast)
+  set.seed(1)
+  ans_expected <- rep(rw_est[1], 6)
+  ans_expected[1] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * rw_est[5],
+                                      sd = sd)
+  ans_expected[2] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[1],
+                                      sd = sd)
+  ans_expected[3] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[2],
+                                      sd = sd)
+  ans_expected[4] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[3],
+                                      sd = sd)
+  ans_expected[5] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[4],
+                                      sd = sd)
+  ans_expected[6] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[5],
+                                      sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_drw' works, n_by = 2", {
+  set.seed(0)
+  rw_est <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  coef <- rvec::runif_rvec(n = 1, n_draw = 10)
+  sd <- rvec::runif_rvec(n = 1, n_draw = 10)
+  matrix_along_by_est <- matrix(0:9, nr = 5)
+  matrix_along_by_forecast <- matrix(0:11, nr = 6)
+  levels_forecast <- letters[11:22]
+  set.seed(1)
+  ans_obtained <- forecast_drw(rw_est = rw_est,
+                               coef = coef,
+                               sd = sd,
+                               matrix_along_by_est = matrix_along_by_est,
+                               matrix_along_by_forecast = matrix_along_by_forecast)
+  ans_expected <- rvec::rnorm_rvec(n = 12, n_draw = 10)
+  set.seed(1)
+  ans_expected[1] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * rw_est[5],
+                                      sd = sd)
+  ans_expected[2] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[1],
+                                      sd = sd)
+  ans_expected[3] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[2],
+                                      sd = sd)
+  ans_expected[4] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[3],
+                                      sd = sd)
+  ans_expected[5] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[4],
+                                      sd = sd)
+  ans_expected[6] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[5],
+                                      sd = sd)
+  ans_expected[7] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * rw_est[10],
+                                      sd = sd)
+  ans_expected[8] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[7],
+                                      sd = sd)
+  ans_expected[9] <- rvec::rnorm_rvec(n = 1,
+                                      mean = coef * ans_expected[8],
+                                      sd = sd)
+  ans_expected[10] <- rvec::rnorm_rvec(n = 1,
+                                       mean = coef * ans_expected[9],
+                                       sd = sd)
+  ans_expected[11] <- rvec::rnorm_rvec(n = 1,
+                                       mean = coef * ans_expected[10],
+                                       sd = sd)
+  ans_expected[12] <- rvec::rnorm_rvec(n = 1,
+                                       mean = coef * ans_expected[11],
+                                       sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'forecast_drw2' ------------------------------------------------------------
+
+test_that("'forecast_drw2' works, n_by = 1", {
+  set.seed(0)
+  rw_est <- rvec::rnorm_rvec(n = 5, n_draw = 10)
+  coef <- rvec::runif_rvec(n = 1, min = 0.8, max = 0.98, n_draw = 10)
+  sd <- rvec::runif_rvec(n = 1, n_draw = 10)
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  set.seed(1)
+  ans_obtained <- forecast_drw2(rw_est = rw_est,
+                                coef = coef,
+                                sd = sd,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast)
+  set.seed(1)
+  ans_expected <- rep(rw_est[1], 6)
+  ans_expected[1] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * rw_est[5] -
+                                        coef * rw_est[4],
+                                      sd = sd)
+  ans_expected[2] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[1] -
+                                        coef * rw_est[5],
+                                      sd = sd)
+  ans_expected[3] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[2] -
+                                        coef * ans_expected[1],
+                                      sd = sd)
+  ans_expected[4] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[3] -
+                                        coef * ans_expected[2],
+                                      sd = sd)
+  ans_expected[5] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[4] -
+                                        coef * ans_expected[3],
+                                      sd = sd)
+  ans_expected[6] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[5] -
+                                        coef * ans_expected[4],
+                                      sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_drw2' works, n_by = 2", {
+  set.seed(0)
+  rw_est <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  coef <- rvec::runif_rvec(n = 1, n_draw = 10)
+  sd <- rvec::runif_rvec(n = 1, n_draw = 10)
+  matrix_along_by_est <- matrix(0:9, nr = 5)
+  matrix_along_by_forecast <- matrix(0:11, nr = 6)
+  levels_forecast <- letters[11:22]
+  set.seed(1)
+  ans_obtained <- forecast_drw2(rw_est = rw_est,
+                                coef = coef,
+                                sd = sd,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast)
+  ans_expected <- rvec::rnorm_rvec(n = 12, n_draw = 10)
+  set.seed(1)
+  ans_expected[1] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * rw_est[5] -
+                                     coef * rw_est[4],
+                                      sd = sd)
+  ans_expected[2] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[1] -
+                                        coef * rw_est[5],
+                                      sd = sd)
+  ans_expected[3] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[2] -
+                                        coef * ans_expected[1],
+                                      sd = sd)
+  ans_expected[4] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[3] -
+                                        coef * ans_expected[2],
+                                      sd = sd)
+  ans_expected[5] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[4] -
+                                        coef * ans_expected[3],
+                                      sd = sd)
+  ans_expected[6] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[5] -
+                                        coef * ans_expected[4],
+                                      sd = sd)
+  ans_expected[7] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * rw_est[10] -
+                                        coef * rw_est[9],
+                                      sd = sd)
+  ans_expected[8] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[7] -
+                                        coef * rw_est[10],
+                                      sd = sd)
+  ans_expected[9] <- rvec::rnorm_rvec(n = 1,
+                                      mean = (1 + coef) * ans_expected[8] -
+                                        coef * ans_expected[7],
+                                      sd = sd)
+  ans_expected[10] <- rvec::rnorm_rvec(n = 1,
+                                       mean = (1 + coef) * ans_expected[9] -
+                                         coef * ans_expected[8],
+                                       sd = sd)
+  ans_expected[11] <- rvec::rnorm_rvec(n = 1,
+                                       mean = (1 + coef) * ans_expected[10] -
+                                         coef * ans_expected[9],
+                                       sd = sd)
+  ans_expected[12] <- rvec::rnorm_rvec(n = 1,
+                                       mean = (1 + coef) * ans_expected[11] -
+                                         coef * ans_expected[10],
+                                       sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'forecast_lin' -------------------------------------------------------------
 
 test_that("'forecast_lin' works with n_by = 1", {
@@ -674,6 +882,302 @@ test_that("'forecast_seasvary' works", {
                                         mean = ans_expected[i-2],
                                         sd = sd)
   expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'forecast_term_drw' --------------------------------------------------------
+
+test_that("'forecast_term_drw' works n_by = 1", {
+  set.seed(0)
+  prior <- DRW()
+  dimnames_term <- list(year = 2001:2005)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = "coef",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = as.character(2001:2005),
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_term_drw(prior = prior,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender,
+                                    components = components,
+                                    labels_forecast = labels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = "effect",
+                                 level = as.character(2006:2011))
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd <- components$.fitted[components$level == "sd"]
+  coef <- components$.fitted[components$level == "coef"]
+  set.seed(1)
+  ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
+                                              mean = coef * components$.fitted[7],
+                                              sd = sd)
+  for (i in 2:6)
+    ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
+                                                mean = coef * ans_expected$.fitted[i-1],
+                                                sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_term_dpm' works with n_by = 2, con is 'none'", {
+  set.seed(0)
+  prior <- DRW()
+  dimnames_term <- list(year = 2001:2005,
+                        reg = 1:2)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "coef",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_term_drw(prior = prior,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender,
+                                    components = components,
+                                    labels_forecast = labels_forecast)
+  ans_expected <- tibble::tibble(term = "year:reg",
+                                 component = "effect",
+                                 level = paste(2006:2011,
+                                               rep(1:2, each = 6),
+                                               sep = "."))
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 12, n_draw = 10)
+  sd <- components$.fitted[components$level == "sd"]
+  coef <- components$.fitted[components$level == "coef"]
+  set.seed(1)
+  ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
+                                              mean = coef * components$.fitted[1 + 5],
+                                              sd = sd)
+  for (i in 2:6)
+    ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
+                                                mean = coef * ans_expected$.fitted[i-1],
+                                                sd = sd)
+  ans_expected$.fitted[7] <- rvec::rnorm_rvec(n = 1,
+                                              mean = coef * components$.fitted[1 + 10],
+                                              sd = sd)
+  for (i in 8:12)
+    ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
+                                                mean = coef * ans_expected$.fitted[i-1],
+                                                sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_term_drw' works with n_by = 2, con is 'by'", {
+  set.seed(0)
+  prior <- DRW(con = 'by')
+  dimnames_term <- list(year = 2001:2005,
+                        reg = 1:2)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "coef",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)))
+  set.seed(1)
+  ans <- forecast_term_drw(prior = prior,
+                           dimnames_term = dimnames_term,
+                           var_time = var_time,
+                           var_age = var_age,
+                           var_sexgender = var_sexgender,
+                           components = components,
+                           labels_forecast = labels_forecast)
+  expect_equal(ans$.fitted[6], -ans$.fitted[12])
+})
+
+
+## 'forecast_term_drw2' --------------------------------------------------------
+
+test_that("'forecast_term_drw2' works n_by = 1", {
+  set.seed(0)
+  prior <- DRW2()
+  dimnames_term <- list(year = 2001:2005)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = "coef",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = as.character(2001:2005),
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_term_drw2(prior = prior,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender,
+                                    components = components,
+                                    labels_forecast = labels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = "effect",
+                                 level = as.character(2006:2011))
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd <- components$.fitted[components$level == "sd"]
+  coef <- components$.fitted[components$level == "coef"]
+  set.seed(1)
+  ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
+                                              mean = components$.fitted[7] +
+                                                coef * (components$.fitted[7] - components$.fitted[6]),
+                                              sd = sd)
+  ans_expected$.fitted[2] <- rvec::rnorm_rvec(n = 1,
+                                              mean = ans_expected$.fitted[1] +
+                                                coef * (ans_expected$.fitted[1] - components$.fitted[7]),
+                                              sd = sd)
+  for (i in 3:6)
+    ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
+                                                mean = ans_expected$.fitted[i-1] +
+                                                  coef * (ans_expected$.fitted[i-1] - ans_expected$.fitted[i-2]),
+                                                sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_term_dpm' works with n_by = 2, con is 'none'", {
+  set.seed(0)
+  prior <- DRW2()
+  dimnames_term <- list(year = 2001:2005,
+                        reg = 1:2)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "coef",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_term_drw2(prior = prior,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender,
+                                     components = components,
+                                     labels_forecast = labels_forecast)
+  ans_expected <- tibble::tibble(term = "year:reg",
+                                 component = "effect",
+                                 level = paste(2006:2011,
+                                               rep(1:2, each = 6),
+                                               sep = "."))
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 12, n_draw = 10)
+  sd <- components$.fitted[components$level == "sd"]
+  coef <- components$.fitted[components$level == "coef"]
+  set.seed(1)
+  ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
+                                              mean = components$.fitted[1 + 5] +
+                                                coef * (components$.fitted[1 + 5] - components$.fitted[1 + 4]),
+                                              sd = sd)
+  ans_expected$.fitted[2] <- rvec::rnorm_rvec(n = 1,
+                                              mean = ans_expected$.fitted[1] +
+                                                coef * (ans_expected$.fitted[1] - components$.fitted[1 + 5]),
+                                              sd = sd)
+  for (i in 3:6)
+    ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
+                                                mean = ans_expected$.fitted[i-1] +
+                                                  coef * (ans_expected$.fitted[i-1] - ans_expected$.fitted[i-2]),
+                                                sd = sd)
+  ans_expected$.fitted[7] <- rvec::rnorm_rvec(n = 1,
+                                              mean = components$.fitted[1 + 10] +
+                                                coef * (components$.fitted[1 + 10] - components$.fitted[1 + 9]),
+                                              sd = sd)
+  ans_expected$.fitted[8] <- rvec::rnorm_rvec(n = 1,
+                                              mean = ans_expected$.fitted[7] +
+                                                coef * (ans_expected$.fitted[7] - components$.fitted[1 + 10]),
+                                              sd = sd)
+  for (i in 9:12)
+    ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
+                                                mean = ans_expected$.fitted[i-1] +
+                                                  coef * (ans_expected$.fitted[i-1] - ans_expected$.fitted[i-2]),
+                                                sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_term_drw2' works with n_by = 2, con is 'by'", {
+  set.seed(0)
+  prior <- DRW2(con = 'by')
+  dimnames_term <- list(year = 2001:2005,
+                        reg = 1:2)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "coef",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)))
+  set.seed(1)
+  ans <- forecast_term_drw2(prior = prior,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            components = components,
+                            labels_forecast = labels_forecast)
+  expect_equal(ans$.fitted[6], -ans$.fitted[12])
 })
 
 

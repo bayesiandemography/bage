@@ -699,7 +699,7 @@ impute_outcome_true <- function(nm_distn,
 #' @returns A modified version of 'components'
 #'
 #' @noRd
-infer_trend_cyc_seas_err_forecast <- function(components,
+infer_trend_seas_err_forecast <- function(components,
                                               priors,
                                               dimnames_terms,
                                               var_time,
@@ -708,7 +708,7 @@ infer_trend_cyc_seas_err_forecast <- function(components,
   for (nm in nms) {
     prior <- priors[[nm]]
     dimnames_term <- dimnames_terms[[nm]]
-    components <- infer_trend_cyc_seas_err_forecast_one(prior = prior,
+    components <- infer_trend_seas_err_forecast_one(prior = prior,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age,
@@ -733,7 +733,7 @@ infer_trend_cyc_seas_err_forecast <- function(components,
 #' @returns A modifed version of 'components'
 #'
 #' @noRd
-infer_trend_cyc_seas_err_seasfix_forecast <- function(prior,
+infer_trend_seas_err_seasfix_forecast <- function(prior,
                                                       dimnames_term,
                                                       var_time,
                                                       var_age,
@@ -764,7 +764,7 @@ infer_trend_cyc_seas_err_seasfix_forecast <- function(prior,
 #' @returns A modifed version of 'components'
 #'
 #' @noRd
-infer_trend_cyc_seas_err_seasvary_forecast <- function(prior,
+infer_trend_seas_err_seasvary_forecast <- function(prior,
                                                        dimnames_term,
                                                        var_time,
                                                        var_age,

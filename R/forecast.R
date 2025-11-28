@@ -77,13 +77,10 @@ forecast_ar_svd <- function(prior,
                                                               var_time = var_time,
                                                               var_age = var_age,
                                                               var_sexgender = var_sexgender)
-  nm <- dimnames_to_nm(dimnames_term)
-  is_svd <- with(components, term == nm & component == "svd")
-  is_coef <- with(components, term == nm & component == "hyper" & startsWith(level, "coef"))
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  svd <- components$.fitted[is_svd]
-  coef <- components$.fitted[is_coef]
-  sd <- components$.fitted[is_sd]
+  term <- dimnames_to_nm(dimnames_term)
+  svd <- get_from_comp_svd(components = components, term = term)
+  coef <- get_from_comp_coef(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   forecast_ar(ar_est = svd,
               coef = coef,
               sd = sd,
@@ -155,6 +152,83 @@ forecast_components <- function(mod,
   ans
 }
 
+## HAS_TESTS
+#' Forecast a Damped Random Walk Process
+#'
+#' @param rw_est Historical estimates. An rvec.
+#' @param coef Damping coefficients. An rvec of length 1.
+#' @param sd Standard deviation. An rvec of length 1.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estimates
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_drw <- function(rw_est,
+                         coef,
+                         sd,
+                         matrix_along_by_est,
+                         matrix_along_by_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  n_draw <- rvec::n_draw(rw_est)
+  ans <- rvec::new_rvec(length = n_along_forecast * n_by, n_draw = n_draw)
+  tmp <- rvec::new_rvec(length = n_along_forecast + 1L, n_draw = n_draw)
+  for (i_by in seq_len(n_by)) {
+    i_est <- matrix_along_by_est[n_along_est, i_by] + 1L ## matrix uses 0-based index
+    tmp[[1L]] <- rw_est[i_est]
+    for (j in seq_len(n_along_forecast)) {
+      mean <- coef * tmp[[j]]
+      tmp[[j + 1L]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
+    }
+    i_ans <- matrix_along_by_forecast[, i_by] + 1L
+    ans[i_ans] <- tmp[-1L]
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Forecast a Damped Second-Order Random Walk Process
+#'
+#' @param rw_est Historical estimates. An rvec.
+#' @param coef Damping coefficients. An rvec of length 1.
+#' @param sd Standard deviation. An rvec of length 1.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estimates
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_drw2 <- function(rw_est,
+                          coef,
+                          sd,
+                          matrix_along_by_est,
+                          matrix_along_by_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  n_draw <- rvec::n_draw(rw_est)
+  ans <- rvec::new_rvec(length = n_along_forecast * n_by, n_draw = n_draw)
+  tmp <- rvec::new_rvec(length = n_along_forecast + 2L, n_draw = n_draw)
+  for (i_by in seq_len(n_by)) {
+    s_est <- c(n_along_est - 1L, n_along_est)
+    i_est <- matrix_along_by_est[s_est, i_by] + 1L ## matrix uses 0-based index
+    tmp[1:2] <- rw_est[i_est]
+    for (j in seq_len(n_along_forecast)) {
+      mean <- tmp[[j + 1L]] + coef * (tmp[[j + 1L]] - tmp[[j]])
+      tmp[[j + 2L]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
+    }
+    i_ans <- matrix_along_by_forecast[, i_by] + 1L
+    ans[i_ans] <- tmp[-(1:2)]
+  }
+  ans
+}
 
 ## HAS_TESTS
 #' Forecast Line or Lines
@@ -289,11 +363,9 @@ forecast_rw_svd <- function(prior,
                                                                     var_age = var_age,
                                                                     var_sexgender = var_sexgender,
                                                                     append_zero = FALSE)
-  nm <- dimnames_to_nm(dimnames_term)
-  is_svd <- with(components, term == nm & component == "svd")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  svd <- components$.fitted[is_svd]
-  sd <- components$.fitted[is_sd]
+  term <- dimnames_to_nm(dimnames_term)
+  svd <- get_from_comp_svd(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   forecast_rw(rw_est = svd,
               sd = sd,
               matrix_along_by_est = matrix_along_by_est,
@@ -376,11 +448,9 @@ forecast_rw2_svd <- function(prior,
                                                                     var_age = var_age,
                                                                     var_sexgender = var_sexgender,
                                                                     append_zero = FALSE)
-  nm <- dimnames_to_nm(dimnames_term)
-  is_svd <- with(components, term == nm & component == "svd")
-  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  svd <- components$.fitted[is_svd]
-  sd <- components$.fitted[is_sd]
+  term <- dimnames_to_nm(dimnames_term)
+  svd <- get_from_comp_svd(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
   forecast_rw2(rw2_est = svd,
                sd = sd,
                matrix_along_by_est = matrix_along_by_est,
@@ -463,6 +533,90 @@ forecast_seasvary <- function(n_seas,
   }
   ans
 }
+
+
+## HAS_TESTS
+#' @export
+forecast_term_drw <- function(prior,
+                              dimnames_term,
+                              var_time,
+                              var_age,
+                              var_sexgender,
+                              components,
+                              labels_forecast) {
+  con <- prior$specific$con
+  term <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(prior = prior,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  rw_est <- get_from_comp_effect(components = components, term = term)
+  coef <- get_from_comp_coef(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
+  .fitted <- forecast_drw(rw_est = rw_est,
+                          coef = coef,
+                          sd = sd,
+                          matrix_along_by_est = matrix_along_by_est,
+                          matrix_along_by_forecast = matrix_along_by_forecast)
+  if (con == "by")
+    .fitted <- con_by_fitted(prior = prior,
+                             fitted = .fitted,
+                             dimnames_term = dimnames_forecast,
+                             var_time = var_time,
+                             var_age = var_age)
+  tibble::tibble(term = term,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term_drw2 <- function(prior,
+                               dimnames_term,
+                               var_time,
+                               var_age,
+                               var_sexgender,
+                               components,
+                               labels_forecast) {
+  con <- prior$specific$con
+  term <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(prior = prior,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(prior = prior,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  rw_est <- get_from_comp_effect(components = components, term = term)
+  coef <- get_from_comp_coef(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
+  .fitted <- forecast_drw2(rw_est = rw_est,
+                           coef = coef,
+                           sd = sd,
+                           matrix_along_by_est = matrix_along_by_est,
+                           matrix_along_by_forecast = matrix_along_by_forecast)
+  if (con == "by")
+    .fitted <- con_by_fitted(prior = prior,
+                             fitted = .fitted,
+                             dimnames_term = dimnames_forecast,
+                             var_time = var_time,
+                             var_age = var_age)
+  tibble::tibble(term = term,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
 
 
 ## HAS_TESTS

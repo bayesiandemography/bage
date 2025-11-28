@@ -1485,7 +1485,7 @@ forecast.bage_mod <- function(object,
                                                            var_time = var_time,
                                                            labels_forecast = labels,
                                                            time_only = TRUE)
-    ans <- infer_trend_cyc_seas_err_forecast(components = comp_forecast,
+    ans <- infer_trend_seas_err_forecast(components = comp_forecast,
                                              priors = priors,
                                              dimnames_terms = dn_terms_forecast_time,
                                              var_time = var_time,

@@ -273,6 +273,30 @@ draw_vals_coef <- function(prior, n_sim) {
 
 
 ## HAS_TESTS
+#' Draw Values for 'coef' for Damped Random Walk
+#'
+#' Includes DRW and DRW2
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param n_sim Number of draws
+#'
+#' @returns A numeric vector of length 'n_sim'
+#'
+#' @noRd
+draw_vals_coef_drw <- function(prior, n_sim) {
+  shape1 <- prior$specific$shape1
+  shape2 <- prior$specific$shape2
+  min <- prior$specific$min
+  max <- prior$specific$max
+  ans_raw <- stats::rbeta(n = n_sim,
+                          shape1 = shape1,
+                          shape2 = shape2)
+  ans <- (max - min) * ans_raw + min
+  ans
+}
+
+
+## HAS_TESTS
 #' Draw Values that Would be Produced by a Call to 'components'
 #'
 #' @param mod Object of class 'bage_mod'
@@ -392,6 +416,73 @@ draw_vals_disp <- function(mod, n_sim) {
   ans
 }
 
+
+## HAS_TESTS
+#' Generate Draws from DRW
+#'
+#' Damped random walk. Each column is one draw.
+#'
+#' @param sd Vector of values
+#' @param sd_init Standard deviation of initial values.
+#' @param coef Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param levels_effect Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_drw <- function(sd, sd_init, coef, matrix_along_by, levels_effect) {
+  n_sim <- length(sd)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- matrix(NA_real_, nrow = n_along, ncol = n_by * n_sim)
+  ans[1L, ] <- stats::rnorm(n = n_by * n_sim, sd = sd_init)
+  sd <- rep(sd, each = n_by)
+  coef <- rep(coef, each = n_by)
+  for (i_along in seq.int(from = 2L, to = n_along))
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = coef * ans[i_along - 1L, ],
+                                   sd = sd)
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(levels_effect, NULL)
+  ans
+}
+
+
+#' Damped second-order random walk. Each column is one draw.
+#'
+#' @param sd Vector of values
+#' @param sd_init Standard deviation of initial values.
+#' @param sd_slope Double
+#' @param coef Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param levels_effect Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_drw2 <- function(sd, sd_init, sd_slope, coef, matrix_along_by, levels_effect) {
+  n_sim <- length(sd)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- matrix(NA_real_, nrow = n_along, ncol = n_by * n_sim)
+  ans[1L, ] <- stats::rnorm(n = n_by * n_sim, sd = sd_init)
+  ans[2L, ] <- stats::rnorm(n = n_by * n_sim, mean = ans[1L, ], sd = sd_slope)
+  sd <- rep(sd, each = n_by)
+  coef <- rep(coef, each = n_by)
+  for (i_along in seq.int(from = 3L, to = n_along))
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = ans[i_along - 1L, ] +
+                                     coef * (ans[i_along - 1L, ] - ans[i_along - 2L, ]),
+                                   sd = sd)
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(levels_effect, NULL)
+  ans
+}
 
 ## HAS_TESTS
 #' Draw Values for all Effects
