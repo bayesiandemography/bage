@@ -536,7 +536,22 @@ forecast_seasvary <- function(n_seas,
 
 
 ## HAS_TESTS
-#' @export
+#' Helper Function for 'forecast_term' Methods for
+#' Damped Random Walk Priors
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#' @param components Tibble with with output
+#' from function 'components'
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns A tibble
+#'
+#' @noRd
 forecast_term_drw <- function(prior,
                               dimnames_term,
                               var_time,
@@ -577,7 +592,22 @@ forecast_term_drw <- function(prior,
 }
 
 ## HAS_TESTS
-#' @export
+#' Helper Function for 'forecast_term' Methods for
+#' Damped Second-Ordewr Random Walk Priors
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#' @param components Tibble with with output
+#' from function 'components'
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns A tibble
+#'
+#' @noRd
 forecast_term_drw2 <- function(prior,
                                dimnames_term,
                                var_time,
@@ -616,7 +646,6 @@ forecast_term_drw2 <- function(prior,
                  level = levels_forecast,
                  .fitted = .fitted)
 }
-
 
 
 ## HAS_TESTS
