@@ -26,6 +26,68 @@
 ---
 
     Code
+      print(DRW())
+    Output
+        DRW() 
+               s: 1
+              sd: 1
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(DRW(sd = 0))
+    Output
+        DRW(sd=0) 
+               s: 1
+              sd: 0
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(DRW2())
+    Output
+        DRW2() 
+               s: 1
+              sd: 1
+        sd_slope: 1
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(DRW2(sd = 0))
+    Output
+        DRW2(sd=0) 
+               s: 1
+              sd: 0
+        sd_slope: 1
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
       print(Known(c(0.2, -0.2)))
     Output
       Known(c(0.2,-0.2)) 

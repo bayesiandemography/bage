@@ -2114,7 +2114,7 @@ Type objective_function<Type>::operator() ()
   
   Type ans = Type(0);
 
-  // contribution to log posterior from priors
+  // contribution to negative log posterior from priors
   for (int i_term = 0; i_term < n_term; i_term++) {
     int i_prior_term = i_prior[i_term];
     if (i_prior_term > 0) { // i_prior_term == 0 when prior is "Known"
@@ -2149,25 +2149,25 @@ Type objective_function<Type>::operator() ()
     }
   }
 
-  // contribution to log posterior from covariates
+  // contribution to negative log posterior from covariates
   if (uses_covariates) {
     ans -= dnorm(coef_covariates, Type(0), Type(1), true).sum();
   }
   
-  // contribution to log posterior from dispersion term
+  // contribution to negative log posterior from dispersion term
   if (has_disp) {
     Type rate_disp = Type(1) / mean_disp;
     ans -= dexp(disp, rate_disp, true);
     ans -= log_disp; // Jacobian
   }
 
-  // contribution to log posterior from data model
+  // contribution to negative log posterior from data model
   if (has_datamod) {
     ans -= logpost_datamod(datamod_param,
 			   i_datamod);
   }
   
-  // contribution to log posterior from data
+  // contribution to negative log posterior from data
   for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
     Type out = outcome[i_outcome];
     Type lin = linpred[i_outcome];
@@ -2186,5 +2186,7 @@ Type objective_function<Type>::operator() ()
 	ans -= loglik_no_disp_no_dm(out, lin, off, i_lik);
     }
   }
+
+  // return negative log posterior
   return ans;
 }

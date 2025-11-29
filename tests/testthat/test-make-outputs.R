@@ -3190,3 +3190,16 @@ test_that("'transform_hyper_ar' works with 'bage_prior_svd_ar - AR'", {
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[3]](0.35), exp(0.35))
 })
+
+
+## 'transform_hyper_drw' ------------------------------------------------------
+
+test_that("'transform_hyper_drw' works", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper_drw(prior = DRW())
+  expect_equal(l[[1]](0.35), exp(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+})

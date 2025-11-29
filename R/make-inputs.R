@@ -736,6 +736,28 @@ make_hyperrandfree <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make 'i_along' for Priors with Value for 'along'
+#' 
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of the time dimension, or NULL
+#' @param var_age Name of the age dimension, or NULL
+#'
+#' @returns A vector of zeros, of type 'double'.
+#'
+#' @noRd
+make_i_along_has_along <- function(prior, dimnames_term, var_time, var_age) {
+  along <- prior$specific$along
+  make_i_along_inner(along = along,
+                     dimnames_term = dimnames_term,
+                     var_time = var_time,
+                     var_age = var_age)
+}
+
+
+
+## HAS_TESTS
 #' Make 'i_prior'
 #'
 #' Make 'i_prior' a vector of integers used to
@@ -1049,42 +1071,6 @@ make_matrices_effect_outcome <- function(data, dimnames_terms) {
   ans
 }
                       
-          
-##   n_term <- length(dimnames_terms)
-##   ans <- vector(mode = "list", length = n_term)
-##   names(ans) <- names(dimnames_terms)
-##   for (i_term in seq_len(n_term)) {
-##     dimnames_term <- dimnames_terms[[i_term]]
-##     nm <- dimnames_to_nm(dimnames_term)
-##     is_intercept <- nm == "(Intercept)"
-##     if (is_intercept) {
-##       n_data <- nrow(data)
-##       i <- seq_len(n_data)
-##       j <- rep.int(1L, times = n_data)
-##       x <- rep.int(1L, times = n_data)
-##       m_term <- Matrix::sparseMatrix(i = i, j = j, x = x)
-##     }
-##     else {
-##       nm_split <- dimnames_to_nm_split(dimnames_term)
-##       data_term <- data[nm_split]
-##       data_term[] <- .mapply(factor,
-##                              dots = list(x = data_term, levels = dimnames_term),
-##                              MoreArgs = list())
-##       contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
-##       formula_term <- paste0("~", nm, "-1")
-##       formula_term <- stats::as.formula(formula_term)
-##       m_term <- Matrix::sparse.model.matrix(formula_term,
-##                                             data = data_term,
-##                                             contrasts.arg = contrasts_term,
-##                                             row.names = FALSE)
-##       colnames(m_term) <- dimnames_to_levels(dimnames_term)
-##     }
-##     ans[[i_term]] <- m_term
-##   }
-##   ans        
-## }
-
-
 
 ## HAS_TESTS
 #' Make list of matrices mapping effectfree to effect
@@ -1958,6 +1944,32 @@ str_call_args_con <- function(prior) {
     sprintf('con="%s"', con)
   else
     ""
+}
+
+## HAS_TESTS
+#' Compile Args for Parameters for Coefficient in Damped Random Walk
+#'
+#' @param prior Damped random walk prior
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_coef_drw <- function(prior) {
+  specific <- prior$specific
+  shape1 <- specific$shape1
+  shape2 <- specific$shape2
+  min <- specific$min
+  max <- specific$max
+  ans <- character(4L)
+  if (shape1 != 5)
+    ans[[1L]] <- sprintf("shape1=%s", shape1)
+  if (shape2 != 5)
+    ans[[2L]] <- sprintf("shape2=%s", shape2)
+  if (min != 0.8)
+    ans[[3L]] <- sprintf("min=%s", min)
+  if (max != 0.98)
+    ans[[4L]] <- sprintf("max=%s", max)
+  ans
 }
 
 ## HAS_TESTS

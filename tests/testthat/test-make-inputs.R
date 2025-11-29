@@ -887,6 +887,24 @@ test_that("'make_hyperrandfree' works with valid inputs - has hyperrandfree", {
 })
 
 
+## 'make_i_along_has_along' ---------------------------------------------------
+
+test_that("'make_i_along_has_along' works", {
+  prior <- AR()
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along_has_along(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_i_prior' -------------------------------------------------------------
 
 test_that("'make_i_prior' works with valid inputs", {
@@ -2202,7 +2220,7 @@ test_that("'set_priors_known' works with valid inputs", {
 })
 
 
-## 'str_call_args_along' ---------------------------------------------------------
+## 'str_call_args_along' ------------------------------------------------------
 
 test_that("'str_call_args_along' works - no along", {
   prior <- RW()
@@ -2232,6 +2250,20 @@ test_that("'str_call_args_svd' works - AR", {
   prior <- AR(n_coef = 3, shape1 = 2, shape2 = 2)
   ans_obtained <- str_call_args_ar(prior)
   ans_expected <- c("n_coef=3", "", "shape1=2", "shape2=2")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_coef_drw' ---------------------------------------------------
+
+test_that("'str_call_args_coef_drw' works", {
+  prior <- DRW()
+  ans_obtained <- str_call_args_coef_drw(prior)
+  ans_expected <- c("", "", "", "")
+  expect_identical(ans_obtained, ans_expected)
+  prior <- DRW(min = 0.9, shape2 = 3)
+  ans_obtained <- str_call_args_coef_drw(prior)
+  ans_expected <- c("", "shape2=3", "min=0.9", "")
   expect_identical(ans_obtained, ans_expected)
 })
 

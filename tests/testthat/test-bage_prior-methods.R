@@ -211,7 +211,7 @@ test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2, con is 'by'",
 })
 
 test_that("'draw_vals_effect' works with bage_prior_drwrandom", {
-  prior <- DRW()
+  prior <- DRW(along = "x")
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -243,7 +243,7 @@ test_that("'draw_vals_effect' works with bage_prior_drwzero", {
   vals_hyperrand <- list()
   vals_spline <- NULL
   vals_svd <- NULL
-  dimnames_term <- list(x = letters)
+  dimnames_term <- list(age = letters)
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
@@ -261,7 +261,7 @@ test_that("'draw_vals_effect' works with bage_prior_drwzero", {
 })
 
 test_that("'draw_vals_effect' works with bage_prior_drw2random", {
-  prior <- DRW2()
+  prior <- DRW2(along = "x")
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -286,7 +286,7 @@ test_that("'draw_vals_effect' works with bage_prior_drw2random", {
 })
 
 test_that("'draw_vals_effect' works with bage_prior_drw2zero", {
-  prior <- DRW2(sd = 0)
+  prior <- DRW2(sd = 0, along = "x")
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -8014,6 +8014,26 @@ test_that("'levels_hyper' works with 'bage_prior_ar'", {
                    c("coef", "sd"))
 })
 
+test_that("'levels_hyper' works with 'bage_prior_drwrandom'", {
+  expect_identical(levels_hyper(prior = DRW()),
+                   c("sd", "coef"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_drwzero'", {
+  expect_identical(levels_hyper(prior = DRW(sd = 0)),
+                   c("sd", "coef"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_drw2random'", {
+  expect_identical(levels_hyper(prior = DRW2()),
+                   c("sd", "coef"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_drw2zero'", {
+  expect_identical(levels_hyper(prior = DRW2(sd = 0)),
+                   c("sd", "coef"))
+})
+
 test_that("'levels_hyper' works with 'bage_prior_known'", {
   expect_identical(levels_hyper(prior = Known(1)),
                    character())
@@ -8166,7 +8186,7 @@ test_that("'levels_hyper' works with 'bage_prior_svd_rw2zero'", {
 })
 
 
-## levels_hyperrand ---------------------------------------------------------------
+## levels_hyperrand -----------------------------------------------------------
 
 test_that("'levels_hyperrand' works with 'bage_prior_ar'", {
   dimnames_term <- list(time = 2001:2010)
@@ -8524,6 +8544,36 @@ test_that("'make_i_along' works with bage_prior_ar", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_i_along' works with bage_prior_drwrandom", {
+  prior <- DRW()
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_drwzero", {
+  prior <- DRW(sd = 0)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
 test_that("'make_i_along' works with bage_prior_lin", {
   prior <- Lin()
   dimnames_term <- list(age = 1:3,
@@ -8855,7 +8905,7 @@ test_that("'make_i_along' works with bage_prior_svd_rw2zero", {
 })
 
 
-## 'make_matrix_along_by_effectfree' ------------------------------------------------
+## 'make_matrix_along_by_effectfree' ------------------------------------------
 
 test_that("default for 'make_matrix_along_by_effectfree' works - intercept", {
   prior <- NFix()
@@ -8899,6 +8949,52 @@ test_that("'make_matrix_along_by_effectfree' works with bage_prior_ar = con is '
                                                   var_age = "age",
                                                   var_sexgender = NULL)
   ans_expected <- matrix(0:9, nr = 10)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_drwrandom", {
+  prior <- DRW()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = 0:4),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:4, nr = 5)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_drwzero', 2 dimensions, con is 'none'", {
+  prior <- DRW(sd = 0)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(time = 0:9, region = c("a", "b")),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:17,
+                         nr = 9)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_drw2random", {
+  prior <- DRW2()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = 0:4),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:4, nr = 5)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_drw2zero', 2 dimensions, con is 'none'", {
+  prior <- DRW2(sd = 0)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(time = 0:9, region = c("a", "b")),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:17,
+                         nr = 9)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -9495,7 +9591,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw2zero", {
 })
 
 
-## 'make_matrix_effectfree_effect' --------------------------------------------------
+## 'make_matrix_effectfree_effect' --------------------------------------------
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1 - con is 'none'", {
   prior <- AR1()
@@ -9524,6 +9620,66 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1 - interacti
                                                 var_age = var_age,
                                                 var_sexgender = var_sexgender)
   ans_expected <- make_matrix_unconstr_constr_along(c(5, 2))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_drwrandom - main effect", {
+  prior <- DRW()
+  dimnames_term <- list(age = 1:10)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- Matrix::.sparseDiagonal(10)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_drwzero - main effect", {
+  prior <- DRW(sd = 0)
+  dimnames_term <- list(age = 1:10)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- rbind(0, Matrix::.sparseDiagonal(9))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_drw2random - main effect", {
+  prior <- DRW2()
+  dimnames_term <- list(age = 1:10)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- Matrix::.sparseDiagonal(10)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_drw2zero - main effect", {
+  prior <- DRW2(sd = 0)
+  dimnames_term <- list(age = 1:10)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- rbind(0, Matrix::.sparseDiagonal(9))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -10465,6 +10621,26 @@ test_that("'make_param_hyper' works with 'bage_prior_ar'", {
                    c(0, log(0.05)))
 })
 
+test_that("'make_param_hyper' works with 'bage_prior_drwrandom'", {
+  expect_identical(make_param_hyper(prior = DRW()),
+                   c(log(0.05), 0))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_drwzero'", {
+  expect_identical(make_param_hyper(prior = DRW(sd = 0)),
+                   c(log(0.05), 0))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_drw2random'", {
+  expect_identical(make_param_hyper(prior = DRW2()),
+                   c(log(0.05), 0))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_drw2zero'", {
+  expect_identical(make_param_hyper(prior = DRW2(sd = 0)),
+                   c(log(0.05), 0))
+})
+
 test_that("'make_param_hyper' works with 'bage_prior_known'", {
   expect_identical(make_param_hyper(prior = Known(1)),
                    numeric())
@@ -10623,6 +10799,10 @@ test_that("'print' works", {
   skip_on_cran()
   expect_snapshot(print(AR()))
   expect_snapshot(print(AR1(min = 0.2)))
+  expect_snapshot(print(DRW()))
+  expect_snapshot(print(DRW(sd=0)))
+  expect_snapshot(print(DRW2()))
+  expect_snapshot(print(DRW2(sd=0)))
   expect_snapshot(print(Known(c(0.2, -0.2))))
   expect_snapshot(print(Lin()))
   expect_snapshot(print(Lin(s = 0)))
@@ -10679,6 +10859,48 @@ test_that("'str_call_prior' works with bage_prior_ar - AR", {
     expect_identical(str_call_prior(AR(s = 0.3, shape1 = 2, shape2 = 2,
                                        con = "by", along = "cohort", n = 2)),
                      "AR(s=0.3,shape1=2,shape2=2,along=\"cohort\",con=\"by\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_drwrandom", {
+    expect_identical(str_call_prior(DRW()), "DRW()")
+    expect_identical(str_call_prior(DRW(min = 0.5)), "DRW(min=0.5)")
+    expect_identical(str_call_prior(DRW(max = 0.95)),"DRW(max=0.95)")
+    expect_identical(str_call_prior(DRW(s = 0.3)), "DRW(s=0.3)")
+    expect_identical(str_call_prior(DRW(min = 0.5, max = 0.95, along = "age",
+                                        s = 0.3, con = 'by', shape2 = 3,
+                                        shape1 = 2,
+                                        sd = 0.2)),                     "DRW(s=0.3,sd=0.2,shape1=2,shape2=3,min=0.5,max=0.95,along=\"age\",con=\"by\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_drwzero", {
+    expect_identical(str_call_prior(DRW(sd = 0)), "DRW(sd=0)")
+    expect_identical(str_call_prior(DRW(min = 0.5, sd = 0)), "DRW(sd=0,min=0.5)")
+    expect_identical(str_call_prior(DRW(max = 0.95,sd=0)),"DRW(sd=0,max=0.95)")
+    expect_identical(str_call_prior(DRW(sd=0,s = 0.3)), "DRW(s=0.3,sd=0)")
+    expect_identical(str_call_prior(DRW(min = 0.5, max = 0.95, along = "age",
+                                        s = 0.3, con = 'by', shape2 = 3,
+                                        shape1 = 2,sd = 0)),                     "DRW(s=0.3,sd=0,shape1=2,shape2=3,min=0.5,max=0.95,along=\"age\",con=\"by\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_drw2random", {
+    expect_identical(str_call_prior(DRW2()), "DRW2()")
+    expect_identical(str_call_prior(DRW2(min = 0.5)), "DRW2(min=0.5)")
+    expect_identical(str_call_prior(DRW2(max = 0.95)),"DRW2(max=0.95)")
+    expect_identical(str_call_prior(DRW2(s = 0.3)), "DRW2(s=0.3)")
+    expect_identical(str_call_prior(DRW2(min = 0.5, max = 0.95, along = "age",
+                                        s = 0.3, con = 'by', shape2 = 3,
+                                        shape1 = 2, sd = 0.2, sd_slope = 0.1)),                     "DRW2(s=0.3,sd=0.2,sd_slope=0.1,shape1=2,shape2=3,min=0.5,max=0.95,along=\"age\",con=\"by\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_drw2zero", {
+    expect_identical(str_call_prior(DRW2(sd = 0)), "DRW2(sd=0)")
+    expect_identical(str_call_prior(DRW2(min = 0.5, sd = 0, sd_slop = 0.1)), "DRW2(sd=0,sd_slope=0.1,min=0.5)")
+    expect_identical(str_call_prior(DRW2(max = 0.95,sd=0)),"DRW2(sd=0,max=0.95)")
+    expect_identical(str_call_prior(DRW2(sd=0,s = 0.3)), "DRW2(s=0.3,sd=0)")
+    expect_identical(str_call_prior(DRW2(min = 0.5, max = 0.95, along = "age",
+                                        s = 0.3, con = 'by', shape2 = 3,
+                                        shape1 = 2,sd = 0,
+                                        sd_slope = 0.5)),                     "DRW2(s=0.3,sd=0,sd_slope=0.5,shape1=2,shape2=3,min=0.5,max=0.95,along=\"age\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_known", {
@@ -10898,6 +11120,22 @@ test_that("'str_nm_prior' works with bage_prior_ar - AR", {
    expect_identical(str_nm_prior(AR(n_coef = 3, s = 0.3)), "AR()")
 })
 
+test_that("'str_nm_prior' works with bage_prior_drwrandom", {
+   expect_identical(str_nm_prior(DRW()), "DRW()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_drwzero", {
+   expect_identical(str_nm_prior(DRW(sd=0)), "DRW()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_drw2random", {
+   expect_identical(str_nm_prior(DRW2()), "DRW2()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_drw2zero", {
+   expect_identical(str_nm_prior(DRW2(sd=0)), "DRW2()")
+})
+
 test_that("'str_nm_prior' works with bage_prior_known", {
     expect_identical(str_nm_prior(Known(1)), "Known()")
     expect_identical(str_nm_prior(Known(c(2, 3, -2, 0,7, 3))), "Known()")
@@ -11063,6 +11301,46 @@ test_that("'transform_hyper' works with 'bage_prior_ar - AR'", {
   expect_equal(l[[3]](0.35), exp(0.35))
 })
 
+test_that("'transform_hyper' works with 'bage_prior_drwrandom'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper(prior = DRW())
+  expect_equal(l[[1]](0.35), exp(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_drwzero'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper(prior = DRW(sd = 0))
+  expect_equal(l[[1]](0.35), exp(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_drw2random'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper(prior = DRW2())
+  expect_equal(l[[1]](0.35), exp(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_drw2zero'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper(prior = DRW2(sd = 0))
+  expect_equal(l[[1]](0.35), exp(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+})
+
 test_that("'transform_hyper' works with 'bage_prior_known'", {
   l <- transform_hyper(prior = Known(1))
   expect_identical(l, list())
@@ -11223,6 +11501,10 @@ test_that("'transform_hyper' works with 'bage_prior_svd_rw2zero'", {
 
 test_that("'uses_along' works with valid inputs", {
   expect_true(uses_along(AR()))
+  expect_true(uses_along(DRW()))
+  expect_true(uses_along(DRW(sd=0)))
+  expect_true(uses_along(DRW2()))
+  expect_true(uses_along(DRW2(sd=0)))
   expect_false(uses_along(Known(c(a = 1))))
   expect_true(uses_along(Lin()))
   expect_true(uses_along(Lin_AR()))
@@ -11288,12 +11570,18 @@ test_that("'uses_hyperrandfree' returns TRUE with priors do use hyperrandfree pa
 ## uses_matrix_effectfree_effect ----------------------------------------------
 
 test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
-  expect_false(uses_matrix_effectfree_effect(N()))
+  expect_false(uses_matrix_effectfree_effect(AR()))
+  expect_true(uses_matrix_effectfree_effect(DRW()))
+  expect_true(uses_matrix_effectfree_effect(DRW(sd=0)))
+  expect_true(uses_matrix_effectfree_effect(DRW2()))
+  expect_true(uses_matrix_effectfree_effect(DRW2(sd=0)))
+  expect_false(uses_matrix_effectfree_effect(Known(c(a = 1))))
   expect_false(uses_matrix_effectfree_effect(Lin()))
   expect_true(uses_matrix_effectfree_effect(Lin(con = "by")))
   expect_true(uses_matrix_effectfree_effect(Lin(s=0)))
   expect_false(uses_matrix_effectfree_effect(Lin_AR()))
   expect_true(uses_matrix_effectfree_effect(Lin_AR(con = "by")))
+  expect_false(uses_matrix_effectfree_effect(N()))
   expect_true(uses_matrix_effectfree_effect(RW()))
   expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2)))
   expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2, s_seas = 1)))

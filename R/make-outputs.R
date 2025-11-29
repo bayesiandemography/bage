@@ -2566,3 +2566,24 @@ transform_hyper_ar <- function(prior) {
   rep(list(coef = shifted_inv_logit, sd = exp),
       times = c(n_coef, 1L))
 }
+
+## HAS_TESTS
+#' Create Functions Needed to Transform Hyper-Parameters
+#' from Damped Random Walk Prior
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns A named list
+#'
+#' @noRd
+transform_hyper_drw <- function(prior) {
+  specific <- prior$specific
+  min <- specific$min
+  max <- specific$max
+  shifted_inv_logit <- function(x) {
+    ans_raw <- exp(x) / (1 + exp(x))
+    ans <- (max - min) * ans_raw + min
+    ans
+  }
+  list(exp, shifted_inv_logit)
+}
