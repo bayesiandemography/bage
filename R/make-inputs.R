@@ -316,6 +316,50 @@ infer_var_time <- function(formula) {
 init_val_sd <- function() log(0.05)
 
 
+
+
+## HAS_TESTS
+#' Helper Function for 'is_prior_ok_for_term' for
+#' Priors with 'along' Dimension
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param min_length_along Minimum length of 'along' dimension
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#'
+#' @returns TRUE or FALSE, invisibly
+#
+#' @noRd
+is_prior_ok_for_term_along <- function(prior,
+                                       min_length_along,
+                                       dimnames_term,
+                                       var_time,
+                                       var_age,
+                                       var_sexgender) {
+  con <- prior$specific$con
+  nm <- dimnames_to_nm(dimnames_term)
+  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
+  check_n_along_ge(n_along = n_along,
+                   min = min_length_along,
+                   nm = nm,
+                   prior = prior)
+  if (!is.null(con)) {
+    check_con_n_by(con = con,
+                   n_by = n_by,
+                   nm = nm)
+  }
+  invisible(TRUE)
+}
+
+
+
 ## HAS_TESTS
 #' Test Whether Row of 'data' is Included in Likelihood
 #'

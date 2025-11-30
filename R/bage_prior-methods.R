@@ -4591,22 +4591,77 @@ is_prior_ok_for_term.bage_prior_ar <- function(prior,
                                                var_age,
                                                var_sexgender) {
   n_coef <- prior$specific$n_coef
-  con <- prior$specific$con
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = n_coef + 1L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- n_coef + 1L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_drwrandom <- function(prior,
+                                                      dimnames_term,
+                                                      var_time,
+                                                      var_age,
+                                                      var_sexgender) {
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_drwzero <- function(prior,
+                                                     dimnames_term,
+                                                     var_time,
+                                                     var_age,
+                                                     var_sexgender) {
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_drw2random <- function(prior,
+                                                      dimnames_term,
+                                                      var_time,
+                                                      var_age,
+                                                      var_sexgender) {
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_drw2zero <- function(prior,
+                                                     dimnames_term,
+                                                     var_time,
+                                                     var_age,
+                                                     var_sexgender) {
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4636,22 +4691,13 @@ is_prior_ok_for_term.bage_prior_lin <- function(prior,
                                                 var_time,
                                                 var_age,
                                                 var_sexgender) {
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 2L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 2L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4661,23 +4707,14 @@ is_prior_ok_for_term.bage_prior_linar <- function(prior,
                                                   var_time,
                                                   var_age,
                                                   var_sexgender) {
-  con <- prior$specific$con  
   n_coef <- prior$specific$n_coef
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = n_coef + 1L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- n_coef + 1L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4687,22 +4724,13 @@ is_prior_ok_for_term.bage_prior_linex <- function(prior,
                                                   var_time,
                                                   var_age,
                                                   var_sexgender) {
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 2L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 2L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4740,26 +4768,17 @@ is_prior_ok_for_term.bage_prior_normfixed <- function(prior,
 ## HAS_TESTS
 #' @export
 is_prior_ok_for_term.bage_prior_rwrandom <- function(prior,
-                                               dimnames_term,
-                                               var_time,
-                                               var_age,
-                                               var_sexgender) {
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 3L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+                                                     dimnames_term,
+                                                     var_time,
+                                                     var_age,
+                                                     var_sexgender) {
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4770,22 +4789,13 @@ is_prior_ok_for_term.bage_prior_rwrandomseasfix <- function(prior,
                                                             var_age,
                                                             var_sexgender) {
   n_seas <- prior$specific$n_seas
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = max(n_seas, 3L),
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- max(n_seas, 3L)
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4796,22 +4806,13 @@ is_prior_ok_for_term.bage_prior_rwrandomseasvary <- function(prior,
                                                              var_age,
                                                              var_sexgender) {
   n_seas <- prior$specific$n_seas
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = max(n_seas, 3L),
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- max(n_seas, 3L)
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4821,22 +4822,13 @@ is_prior_ok_for_term.bage_prior_rwzero <- function(prior,
                                                var_time,
                                                var_age,
                                                var_sexgender) {
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 3L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4847,22 +4839,13 @@ is_prior_ok_for_term.bage_prior_rwzeroseasfix <- function(prior,
                                                             var_age,
                                                             var_sexgender) {
   n_seas <- prior$specific$n_seas
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = max(n_seas, 3L),
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- max(n_seas, 3L)
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4873,22 +4856,13 @@ is_prior_ok_for_term.bage_prior_rwzeroseasvary <- function(prior,
                                                              var_age,
                                                              var_sexgender) {
   n_seas <- prior$specific$n_seas
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = max(n_seas, 3L),
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- max(n_seas, 3L)
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4898,25 +4872,13 @@ is_prior_ok_for_term.bage_prior_rw2infant <- function(prior,
                                                       var_time,
                                                       var_age,
                                                       var_sexgender) {
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_prior_age(prior = prior,
-                  nm = nm,
-                  var_age = var_age)
-  check_n_along_ge(n_along = n_along,
-                   min = 4L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 4L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4926,22 +4888,13 @@ is_prior_ok_for_term.bage_prior_rw2random <- function(prior,
                                                       var_time,
                                                       var_age,
                                                       var_sexgender) {
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 4L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 4L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 
@@ -4953,22 +4906,13 @@ is_prior_ok_for_term.bage_prior_rw2randomseasfix <- function(prior,
                                                              var_age,
                                                              var_sexgender) {
   n_seas <- prior$specific$n_seas
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = max(n_seas, 4L),
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- max(n_seas, 4L)
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -4979,22 +4923,13 @@ is_prior_ok_for_term.bage_prior_rw2randomseasvary <- function(prior,
                                                               var_age,
                                                               var_sexgender) {
   n_seas <- prior$specific$n_seas
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = max(n_seas, 4L),
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- max(n_seas, 4L)
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -5004,22 +4939,13 @@ is_prior_ok_for_term.bage_prior_rw2zero <- function(prior,
                                                       var_time,
                                                       var_age,
                                                       var_sexgender) {
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 4L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 4L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 
@@ -5031,22 +4957,13 @@ is_prior_ok_for_term.bage_prior_rw2zeroseasfix <- function(prior,
                                                              var_age,
                                                              var_sexgender) {
   n_seas <- prior$specific$n_seas
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = max(n_seas, 4L),
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- max(n_seas, 4L)
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -5057,22 +4974,13 @@ is_prior_ok_for_term.bage_prior_rw2zeroseasvary <- function(prior,
                                                               var_age,
                                                               var_sexgender) {
   n_seas <- prior$specific$n_seas
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = max(n_seas, 4L),
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- max(n_seas, 4L)
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -5082,22 +4990,13 @@ is_prior_ok_for_term.bage_prior_spline <- function(prior,
                                                    var_time,
                                                    var_age,
                                                    var_sexgender) {
-  con <- prior$specific$con  
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_length_effect_ge(length_effect = n_along,
-                         min = 4L,
-                         nm = nm,
-                         prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 4L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -5136,22 +5035,14 @@ is_prior_ok_for_term.bage_prior_svd_ar <- function(prior,
   check_prior_time(prior = prior,
                  nm = nm,
                  var_time = var_time)
-  con <- prior$specific$con  
   n_coef <- prior$specific$n_coef
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = n_coef + 1L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- n_coef + 1L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -5172,21 +5063,13 @@ is_prior_ok_for_term.bage_prior_svd_rwrandom <- function(prior,
   check_prior_time(prior = prior,
                    nm = nm,
                    var_time = var_time)
-  con <- prior$specific$con  
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 3L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 
@@ -5208,23 +5091,15 @@ is_prior_ok_for_term.bage_prior_svd_rwzero <- function(prior,
   check_prior_time(prior = prior,
                    nm = nm,
                    var_time = var_time)
-  con <- prior$specific$con  
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 3L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
   invisible(TRUE)
 }
-
 
 ## HAS_TESTS
 #' @export
@@ -5244,21 +5119,13 @@ is_prior_ok_for_term.bage_prior_svd_rw2random <- function(prior,
   check_prior_time(prior = prior,
                    nm = nm,
                    var_time = var_time)
-  con <- prior$specific$con  
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 4L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 4L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -5279,25 +5146,17 @@ is_prior_ok_for_term.bage_prior_svd_rw2zero <- function(prior,
   check_prior_time(prior = prior,
                    nm = nm,
                    var_time = var_time)
-  con <- prior$specific$con  
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  check_n_along_ge(n_along = n_along,
-                   min = 4L,
-                   nm = nm,
-                   prior = prior)
-  check_con_n_by(con = con,
-                 n_by = n_by,
-                 nm = nm)
-  invisible(TRUE)
+  min_length_along <- 4L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 }
 
 
-## 'is_spline' -------------------------------------------------------------------
+## 'is_spline' ----------------------------------------------------------------
 
 #' Test Whether Prior is Spline Prior
 #'

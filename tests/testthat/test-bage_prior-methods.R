@@ -7388,6 +7388,38 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ar - n_by = 3", {
                                      var_sexgender = "sex"))
 })
 
+test_that("'is_prior_ok_for_term' works with bage_prior_drwrandom", {
+    expect_true(is_prior_ok_for_term(prior = DRW(),
+                                     dimnames_term = list(time = 2001:2004),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     var_sexgender = "sex"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_drwzero", {
+    expect_true(is_prior_ok_for_term(prior = DRW(sd = 0),
+                                     dimnames_term = list(time = 2001:2004),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     var_sexgender = "sex"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_drw2random", {
+    expect_true(is_prior_ok_for_term(prior = DRW2(),
+                                     dimnames_term = list(time = 2001:2004),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     var_sexgender = "sex"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_drw2zero", {
+    expect_true(is_prior_ok_for_term(prior = DRW2(sd = 0),
+                                     dimnames_term = list(time = 2001:2004),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     var_sexgender = "sex"))
+})
+
 test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", {
   expect_error(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
                                     dimnames_term = list(sex = c("f", "m", "d")),

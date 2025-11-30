@@ -563,6 +563,20 @@ test_that("'init_val_sd' works", {
 })
 
 
+## 'is_prior_ok_for_term_along' -----------------------------------------------
+
+test_that("'is_prior_ok_for_term_along' works", {
+  expect_true(
+    is_prior_ok_for_term_along(prior = AR1(),
+                               min_length_along = 2L,
+                               dimnames_term = list(time = 2001:2004),
+                               var_time = "time",
+                               var_age = "age",
+                               var_sexgender = "sex")
+  )
+})
+
+
 ## 'make_agesex' --------------------------------------------------------------
 
 test_that("'make_agesex' works with valid inputs", {
@@ -1173,7 +1187,7 @@ test_that("'make_map_effectfree_fixed' works with valid inputs", {
 })
 
 
-## 'make_matrices_along_by_effectfree' ------------------------------------------------
+## 'make_matrices_along_by_effectfree' ----------------------------------------
 
 test_that("'make_matrices_along_by_effectfree' works", {
   set.seed(0)

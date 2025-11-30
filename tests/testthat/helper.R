@@ -1,17 +1,21 @@
 
-make_small_mod_pois <- function(use_exposure) {
+make_small_mod_pois <- function(use_exposure, use_interaction = FALSE) {
   data <- expand.grid(age = 0:4, time = 2021:2025,
                       KEEP.OUT.ATTRS = FALSE)
+  if (use_interaction)
+    formula <- deaths ~ age * time
+  else
+    formula <- deaths ~ age + time
   if (use_exposure) {
     data$popn <- runif(n = nrow(data), min = 1, max = 100)
     data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.2 * data$popn)
-    ans <- mod_pois(deaths ~ age + time,
+    ans <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
   }
   else {
     data$deaths <- 3 * rpois(n = nrow(data), lambda = 20)
-    ans <- mod_pois(deaths ~ age + time,
+    ans <- mod_pois(formula = formula,
                     data = data,
                     exposure = 1)
   }
