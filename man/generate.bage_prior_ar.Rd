@@ -27,6 +27,10 @@
 \alias{generate.bage_prior_spline}
 \alias{generate.bage_prior_svd}
 \alias{generate.bage_prior_svd_ar}
+\alias{generate.bage_prior_svd_drwrandom}
+\alias{generate.bage_prior_svd_drwzero}
+\alias{generate.bage_prior_svd_drw2random}
+\alias{generate.bage_prior_svd_drw2zero}
 \alias{generate.bage_prior_svd_rwrandom}
 \alias{generate.bage_prior_svd_rwzero}
 \alias{generate.bage_prior_svd_rw2random}
@@ -84,6 +88,14 @@
 \method{generate}{bage_prior_svd}(x, n_element = 1, n_draw = 25, ...)
 
 \method{generate}{bage_prior_svd_ar}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_drwrandom}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_drwzero}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_drw2random}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_drw2zero}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
 \method{generate}{bage_prior_svd_rwrandom}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 

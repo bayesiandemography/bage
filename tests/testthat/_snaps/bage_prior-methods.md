@@ -414,6 +414,150 @@
 ---
 
     Code
+      print(SVD_DRW(HMD))
+    Output
+        SVD_DRW(HMD) 
+            ssvd: HMD
+          n_comp: 3
+               s: 1
+              sd: 1
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_DRW(HMD, indep = FALSE))
+    Output
+        SVD_DRW(HMD,indep=FALSE) 
+            ssvd: HMD
+          n_comp: 3
+           indep: FALSE
+               s: 1
+              sd: 1
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_DRW(HMD, sd = 0))
+    Output
+        SVD_DRW(HMD,sd=0) 
+            ssvd: HMD
+          n_comp: 3
+               s: 1
+              sd: 0
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_DRW(HMD, sd = 0, indep = FALSE))
+    Output
+        SVD_DRW(HMD,indep=FALSE,sd=0) 
+            ssvd: HMD
+          n_comp: 3
+           indep: FALSE
+               s: 1
+              sd: 0
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_DRW2(HMD))
+    Output
+        SVD_DRW2(HMD) 
+            ssvd: HMD
+          n_comp: 3
+               s: 1
+              sd: 1
+        sd_slope: 1
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_DRW2(HMD, indep = FALSE))
+    Output
+        SVD_DRW2(HMD,indep=FALSE) 
+            ssvd: HMD
+          n_comp: 3
+           indep: FALSE
+               s: 1
+              sd: 1
+        sd_slope: 1
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_DRW2(HMD, sd = 0))
+    Output
+        SVD_DRW2(HMD,sd=0) 
+            ssvd: HMD
+          n_comp: 3
+               s: 1
+              sd: 0
+        sd_slope: 1
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_DRW2(HMD, sd = 0, indep = FALSE))
+    Output
+        SVD_DRW2(HMD,indep=FALSE,sd=0) 
+            ssvd: HMD
+          n_comp: 3
+           indep: FALSE
+               s: 1
+              sd: 0
+        sd_slope: 1
+          shape1: 5
+          shape2: 5
+             min: 0.8
+             max: 0.98
+           along: NULL
+             con: none
+
+---
+
+    Code
       print(SVD_RW(HMD))
     Output
         SVD_RW(HMD) 

@@ -881,20 +881,92 @@ draw_vals_effect.bage_prior_svd_ar <- function(prior,
                                                var_age,
                                                var_sexgender,
                                                n_sim) {
-  matrix <- make_matrix_effectfree_effect(prior = prior,
-                                          dimnames_term = dimnames_term,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender)
-  offset <- make_offset_effectfree_effect(prior = prior,
-                                          dimnames_term = dimnames_term,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender)
-  ans <- matrix %*% vals_svd + offset
-  ans <- Matrix::as.matrix(ans)
-  rownames(ans) <- dimnames_to_levels(dimnames_term)
-  ans
+  draw_vals_effect_svd_dynamic(prior = prior,
+                               vals_svd = vals_svd,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_svd_drwrandom <- function(prior,
+                                               vals_hyper,
+                                               vals_hyperrand,
+                                               vals_spline,
+                                               vals_svd,
+                                               dimnames_term,
+                                               var_time,
+                                               var_age,
+                                               var_sexgender,
+                                               n_sim) {
+  draw_vals_effect_svd_dynamic(prior = prior,
+                               vals_svd = vals_svd,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_svd_drwzero <- function(prior,
+                                                   vals_hyper,
+                                                   vals_hyperrand,
+                                                   vals_spline,
+                                                   vals_svd,
+                                                   dimnames_term,
+                                                   var_time,
+                                                   var_age,
+                                                   var_sexgender,
+                                                   n_sim) {
+  draw_vals_effect_svd_dynamic(prior = prior,
+                               vals_svd = vals_svd,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_svd_drw2random <- function(prior,
+                                                      vals_hyper,
+                                                      vals_hyperrand,
+                                                      vals_spline,
+                                                      vals_svd,
+                                                      dimnames_term,
+                                                      var_time,
+                                                      var_age,
+                                                      var_sexgender,
+                                                      n_sim) {
+  draw_vals_effect_svd_dynamic(prior = prior,
+                               vals_svd = vals_svd,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_svd_drw2zero <- function(prior,
+                                                    vals_hyper,
+                                                    vals_hyperrand,
+                                                    vals_spline,
+                                                    vals_svd,
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    var_sexgender,
+                                                    n_sim) {
+  draw_vals_effect_svd_dynamic(prior = prior,
+                               vals_svd = vals_svd,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -909,23 +981,12 @@ draw_vals_effect.bage_prior_svd_rwrandom <- function(prior,
                                                var_age,
                                                var_sexgender,
                                                n_sim) {
-  con <- prior$specific$con
-  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
-                                                dimnames_term = dimnames_term,
-                                                var_time = var_time,
-                                                var_age = var_age,
-                                                var_sexgender = var_sexgender,
-                                                append_zero = FALSE,
-                                                con = con)
-  offset <- make_offset_effectfree_effect_svd(prior = prior,
-                                              dimnames_term = dimnames_term,
-                                              var_time = var_time,
-                                              var_age = var_age,
-                                              var_sexgender = var_sexgender)
-  ans <- matrix %*% vals_svd + offset
-  ans <- Matrix::as.matrix(ans)
-  rownames(ans) <- dimnames_to_levels(dimnames_term)
-  ans
+  draw_vals_effect_svd_dynamic(prior = prior,
+                               vals_svd = vals_svd,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -940,23 +1001,12 @@ draw_vals_effect.bage_prior_svd_rwzero <- function(prior,
                                                    var_age,
                                                    var_sexgender,
                                                    n_sim) {
-  con <- prior$specific$con
-  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
-                                                dimnames_term = dimnames_term,
-                                                var_time = var_time,
-                                                var_age = var_age,
-                                                var_sexgender = var_sexgender,
-                                                append_zero = FALSE,
-                                                con = con)
-  offset <- make_offset_effectfree_effect_svd(prior = prior,
-                                              dimnames_term = dimnames_term,
-                                              var_time = var_time,
-                                              var_age = var_age,
-                                              var_sexgender = var_sexgender)
-  ans <- matrix %*% vals_svd + offset
-  ans <- Matrix::as.matrix(ans)
-  rownames(ans) <- dimnames_to_levels(dimnames_term)
-  ans
+  draw_vals_effect_svd_dynamic(prior = prior,
+                               vals_svd = vals_svd,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
 }
 
 ## HAS_TESTS
@@ -971,25 +1021,13 @@ draw_vals_effect.bage_prior_svd_rw2random <- function(prior,
                                                       var_age,
                                                       var_sexgender,
                                                       n_sim) {
-  con <- prior$specific$con
-  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
-                                                dimnames_term = dimnames_term,
-                                                var_time = var_time,
-                                                var_age = var_age,
-                                                var_sexgender = var_sexgender,
-                                                append_zero = FALSE,
-                                                con = con)
-  offset <- make_offset_effectfree_effect_svd(prior = prior,
-                                              dimnames_term = dimnames_term,
-                                              var_time = var_time,
-                                              var_age = var_age,
-                                              var_sexgender = var_sexgender)
-  ans <- matrix %*% vals_svd + offset
-  ans <- Matrix::as.matrix(ans)
-  rownames(ans) <- dimnames_to_levels(dimnames_term)
-  ans
+  draw_vals_effect_svd_dynamic(prior = prior,
+                               vals_svd = vals_svd,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
 }
-
 
 ## HAS_TESTS
 #' @export
@@ -1003,23 +1041,12 @@ draw_vals_effect.bage_prior_svd_rw2zero <- function(prior,
                                                     var_age,
                                                     var_sexgender,
                                                     n_sim) {
-  con <- prior$specific$con
-  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
-                                                dimnames_term = dimnames_term,
-                                                var_time = var_time,
-                                                var_age = var_age,
-                                                var_sexgender = var_sexgender,
-                                                append_zero = FALSE,
-                                                con = con)
-  offset <- make_offset_effectfree_effect_svd(prior = prior,
-                                              dimnames_term = dimnames_term,
-                                              var_time = var_time,
-                                              var_age = var_age,
-                                              var_sexgender = var_sexgender)
-  ans <- matrix %*% vals_svd + offset
-  ans <- Matrix::as.matrix(ans)
-  rownames(ans) <- dimnames_to_levels(dimnames_term)
-  ans
+  draw_vals_effect_svd_dynamic(prior = prior,
+                               vals_svd = vals_svd,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
 }
 
 
@@ -1239,6 +1266,42 @@ draw_vals_hyper.bage_prior_svd_ar <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(coef = coef,
        sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_svd_drwrandom <- function(prior, n_sim) {
+  coef <- draw_vals_coef_drw(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd,
+       coef = coef)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_svd_drwzero <- function(prior, n_sim) {
+  coef <- draw_vals_coef_drw(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd,
+       coef = coef)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_svd_drw2random <- function(prior, n_sim) {
+  coef <- draw_vals_coef_drw(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd,
+       coef = coef)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_svd_drw2zero <- function(prior, n_sim) {
+  coef <- draw_vals_coef_drw(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd,
+       coef = coef)
 }
 
 ## HAS_TESTS
@@ -1922,6 +1985,112 @@ draw_vals_svd.bage_prior_svd_ar <- function(prior,
                sd = sd,
                matrix_along_by = matrix_along_by,
                levels_effect = levels_svd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_svd.bage_prior_svd_drwrandom <- function(prior,
+                                                   vals_hyper,
+                                                   dimnames_term,
+                                                   var_time,
+                                                   var_age,
+                                                   var_sexgender,
+                                                   levels_svd,
+                                                   n_sim) {
+  sd <- vals_hyper$sd
+  coef <- vals_hyper$coef
+  sd_init <- prior$specific$sd
+  matrix_along_by <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                           dimnames_term = dimnames_term,
+                                                           var_time = var_time,
+                                                           var_age = var_age,
+                                                           var_sexgender = var_sexgender,
+                                                           append_zero = FALSE)
+  draw_vals_drw(sd = sd,
+                sd_init = sd_init,
+                coef = coef,
+                matrix_along_by = matrix_along_by,
+                levels_effect = levels_svd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_svd.bage_prior_svd_drwzero <- function(prior,
+                                                 vals_hyper,
+                                                 dimnames_term,
+                                                 var_time,
+                                                 var_age,
+                                                 var_sexgender,
+                                                 levels_svd,
+                                                 n_sim) {
+  sd <- vals_hyper$sd
+  coef <- vals_hyper$coef
+  matrix_along_by <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                           dimnames_term = dimnames_term,
+                                                           var_time = var_time,
+                                                           var_age = var_age,
+                                                           var_sexgender = var_sexgender,
+                                                           append_zero = FALSE)
+  draw_vals_drw(sd = sd,
+                sd_init = 0,
+                coef = coef,
+                matrix_along_by = matrix_along_by,
+                levels_effect = levels_svd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_svd.bage_prior_svd_drw2random <- function(prior,
+                                                    vals_hyper,
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    var_sexgender,
+                                                    levels_svd,
+                                                    n_sim) {
+  sd <- vals_hyper$sd
+  coef <- vals_hyper$coef
+  sd_init <- prior$specific$sd
+  sd_slope <- prior$specific$sd_slope
+  matrix_along_by <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                           dimnames_term = dimnames_term,
+                                                           var_time = var_time,
+                                                           var_age = var_age,
+                                                           var_sexgender = var_sexgender,
+                                                           append_zero = FALSE)
+  draw_vals_drw2(sd = sd,
+                 sd_init = sd_init,
+                 sd_slope = sd_slope,
+                 coef = coef,
+                 matrix_along_by = matrix_along_by,
+                 levels_effect = levels_svd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_svd.bage_prior_svd_drw2zero <- function(prior,
+                                                  vals_hyper,
+                                                  dimnames_term,
+                                                  var_time,
+                                                  var_age,
+                                                  var_sexgender,
+                                                  levels_svd,
+                                                  n_sim) {
+  sd <- vals_hyper$sd
+  coef <- vals_hyper$coef
+  sd_slope <- prior$specific$sd_slope
+  matrix_along_by <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                           dimnames_term = dimnames_term,
+                                                           var_time = var_time,
+                                                           var_age = var_age,
+                                                           var_sexgender = var_sexgender,
+                                                           append_zero = FALSE)
+  draw_vals_drw2(sd = sd,
+                 sd_init = 0,
+                 sd_slope = sd_slope,
+                 coef = coef,
+                 matrix_along_by = matrix_along_by,
+                 levels_effect = levels_svd)
 }
 
 ## HAS_TESTS
@@ -2996,9 +3165,208 @@ forecast_term.bage_prior_svd_ar <- function(prior,
                                           var_time = var_time,
                                           var_age = var_age,
                                           var_sexgender = var_sexgender)
-  ## tricky combining rvecs with sparse matrices
-  effect_forecast <- matrix %*% as.matrix(svd_forecast) + offset
-  effect_forecast <- rvec::rvec_dbl(as.matrix(effect_forecast))
+  effect_forecast <- matrix %*% svd_forecast + offset
+  nm <- dimnames_to_nm(dimnames_term)
+  levels_effect <- dimnames_to_levels(dimnames_forecast)
+  levels_svd <- make_levels_svd_term(prior = prior,
+                                     dimnames_term = dimnames_forecast,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  svd <- tibble::tibble(term = nm,
+                        component = "svd",
+                        level = levels_svd,
+                        .fitted = svd_forecast)
+  effect <- tibble::tibble(term = nm,
+                           component = "effect",
+                           level = levels_effect,
+                           .fitted = effect_forecast)
+  vctrs::vec_rbind(effect, svd)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_svd_drwrandom <- function(prior,
+                                            dimnames_term,
+                                            var_time,
+                                            var_age,
+                                            var_sexgender,
+                                            components,
+                                            labels_forecast) {
+  con <- prior$specific$con
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  svd_forecast <- forecast_drw_svd(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  dimnames_forecast = dimnames_forecast,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  components = components,
+                                  labels_forecast)
+  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
+                                                dimnames_term = dimnames_forecast,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender,
+                                                append_zero = FALSE,
+                                                con = con)
+  offset <- make_offset_effectfree_effect_svd(prior = prior,
+                                              dimnames_term = dimnames_forecast,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
+  effect_forecast <- matrix %*% svd_forecast + offset
+  nm <- dimnames_to_nm(dimnames_term)
+  levels_effect <- dimnames_to_levels(dimnames_forecast)
+  levels_svd <- make_levels_svd_term(prior = prior,
+                                     dimnames_term = dimnames_forecast,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  svd <- tibble::tibble(term = nm,
+                        component = "svd",
+                        level = levels_svd,
+                        .fitted = svd_forecast)
+  effect <- tibble::tibble(term = nm,
+                           component = "effect",
+                           level = levels_effect,
+                           .fitted = effect_forecast)
+  vctrs::vec_rbind(effect, svd)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_svd_drwzero <- function(prior,
+                                            dimnames_term,
+                                            var_time,
+                                            var_age,
+                                            var_sexgender,
+                                            components,
+                                            labels_forecast) {
+  con <- prior$specific$con
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  svd_forecast <- forecast_drw_svd(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  dimnames_forecast = dimnames_forecast,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  components = components,
+                                  labels_forecast)
+  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
+                                                dimnames_term = dimnames_forecast,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender,
+                                                append_zero = FALSE,
+                                                con = con)
+  offset <- make_offset_effectfree_effect_svd(prior = prior,
+                                              dimnames_term = dimnames_forecast,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
+  effect_forecast <- matrix %*% svd_forecast + offset
+  nm <- dimnames_to_nm(dimnames_term)
+  levels_effect <- dimnames_to_levels(dimnames_forecast)
+  levels_svd <- make_levels_svd_term(prior = prior,
+                                     dimnames_term = dimnames_forecast,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  svd <- tibble::tibble(term = nm,
+                        component = "svd",
+                        level = levels_svd,
+                        .fitted = svd_forecast)
+  effect <- tibble::tibble(term = nm,
+                           component = "effect",
+                           level = levels_effect,
+                           .fitted = effect_forecast)
+  vctrs::vec_rbind(effect, svd)
+}
+
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_svd_drw2random <- function(prior,
+                                             dimnames_term,
+                                             var_time,
+                                             var_age,
+                                             var_sexgender,
+                                             components,
+                                             labels_forecast) {
+  con <- prior$specific$con
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  svd_forecast <- forecast_drw2_svd(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   dimnames_forecast = dimnames_forecast,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender,
+                                   components = components,
+                                   labels_forecast)
+  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
+                                                dimnames_term = dimnames_forecast,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender,
+                                                append_zero = FALSE,
+                                                con = con)
+  offset <- make_offset_effectfree_effect_svd(prior = prior,
+                                              dimnames_term = dimnames_forecast,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
+  effect_forecast <- matrix %*% svd_forecast + offset
+  nm <- dimnames_to_nm(dimnames_term)
+  levels_effect <- dimnames_to_levels(dimnames_forecast)
+  levels_svd <- make_levels_svd_term(prior = prior,
+                                     dimnames_term = dimnames_forecast,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  svd <- tibble::tibble(term = nm,
+                        component = "svd",
+                        level = levels_svd,
+                        .fitted = svd_forecast)
+  effect <- tibble::tibble(term = nm,
+                           component = "effect",
+                           level = levels_effect,
+                           .fitted = effect_forecast)
+  vctrs::vec_rbind(effect, svd)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_svd_drw2zero <- function(prior,
+                                                 dimnames_term,
+                                                 var_time,
+                                                 var_age,
+                                                 var_sexgender,
+                                                 components,
+                                                 labels_forecast) {
+  con <- prior$specific$con
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  svd_forecast <- forecast_drw2_svd(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   dimnames_forecast = dimnames_forecast,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender,
+                                   components = components,
+                                   labels_forecast)
+  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
+                                                dimnames_term = dimnames_forecast,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender,
+                                                append_zero = FALSE,
+                                                con = con)
+  offset <- make_offset_effectfree_effect_svd(prior = prior,
+                                              dimnames_term = dimnames_forecast,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
+  effect_forecast <- matrix %*% svd_forecast + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3048,9 +3416,7 @@ forecast_term.bage_prior_svd_rwrandom <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-  ## tricky combining rvecs with sparse matrices
-  effect_forecast <- matrix %*% as.matrix(svd_forecast) + offset
-  effect_forecast <- rvec::rvec_dbl(as.matrix(effect_forecast))
+  effect_forecast <- matrix %*% svd_forecast + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3100,9 +3466,7 @@ forecast_term.bage_prior_svd_rwzero <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-  ## tricky combining rvecs with sparse matrices
-  effect_forecast <- matrix %*% as.matrix(svd_forecast) + offset
-  effect_forecast <- rvec::rvec_dbl(as.matrix(effect_forecast))
+  effect_forecast <- matrix %*% svd_forecast + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3153,9 +3517,7 @@ forecast_term.bage_prior_svd_rw2random <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-  ## tricky combining rvecs with sparse matrices
-  effect_forecast <- matrix %*% as.matrix(svd_forecast) + offset
-  effect_forecast <- rvec::rvec_dbl(as.matrix(effect_forecast))
+  effect_forecast <- matrix %*% svd_forecast + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3205,9 +3567,7 @@ forecast_term.bage_prior_svd_rw2zero <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-  ## tricky combining rvecs with sparse matrices
-  effect_forecast <- matrix %*% as.matrix(svd_forecast) + offset
-  effect_forecast <- rvec::rvec_dbl(as.matrix(effect_forecast))
+  effect_forecast <- matrix %*% svd_forecast + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -4174,6 +4534,164 @@ generate.bage_prior_svd_ar <- function(x,
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
 #' @export
+generate.bage_prior_svd_drwrandom <- function(x,
+                                              n_along = 5,
+                                              n_by = 1,
+                                              n_draw = 25,
+                                              ...) {
+  check_has_no_dots(...)
+  sd_init <- x$specific$sd
+  con <- x$specific$con
+  l <- generate_prior_svd_helper(x = x,
+                                 n_along = n_along,
+                                 n_by = n_by,
+                                 n_draw = n_draw)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  matrix_along_by <- l$matrix_along_by
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(prior = x, n_sim = n_draw)
+  n_level_svd <- length(matrix_along_by)
+  levels_effect_svd <- seq_len(n_level_svd)
+  alpha <- draw_vals_drw(sd = sd_innov,
+                         sd_init = sd_init,
+                         coef = coef,
+                         matrix_along_by = matrix_along_by,
+                         levels_effect = levels_effect_svd)
+  value <- matrix %*% alpha + offset
+  if (con == "by") {
+    n_level_agesex <- nrow(matrix)
+    n_agesex <- n_level_agesex %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_agesex, n_by, n_along))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_svd_drwzero <- function(x,
+                                            n_along = 5,
+                                            n_by = 1,
+                                            n_draw = 25,
+                                            ...) {
+  check_has_no_dots(...)
+  con <- x$specific$con
+  l <- generate_prior_svd_helper(x = x,
+                                 n_along = n_along,
+                                 n_by = n_by,
+                                 n_draw = n_draw)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  matrix_along_by <- l$matrix_along_by
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(prior = x, n_sim = n_draw)
+  n_level_svd <- length(matrix_along_by)
+  levels_effect_svd <- seq_len(n_level_svd)
+  alpha <- draw_vals_drw(sd = sd_innov,
+                         sd_init = 0,
+                         coef = coef,
+                         matrix_along_by = matrix_along_by,
+                         levels_effect = levels_effect_svd)
+  value <- matrix %*% alpha + offset
+  if (con == "by") {
+    n_level_agesex <- nrow(matrix)
+    n_agesex <- n_level_agesex %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_agesex, n_by, n_along))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_svd_drw2random <- function(x,
+                                               n_along = 5,
+                                               n_by = 1,
+                                               n_draw = 25,
+                                               ...) {
+  check_has_no_dots(...)
+  sd_init <- x$specific$sd
+  sd_slope <- x$specific$sd_slope
+  con <- x$specific$con
+  l <- generate_prior_svd_helper(x = x,
+                                 n_along = n_along,
+                                 n_by = n_by,
+                                 n_draw = n_draw)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  matrix_along_by <- l$matrix_along_by
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(prior = x, n_sim = n_draw)
+  n_level_svd <- length(matrix_along_by)
+  levels_effect_svd <- seq_len(n_level_svd)
+  alpha <- draw_vals_drw2(sd = sd_innov,
+                          sd_init = sd_init,
+                          sd_slope = sd_slope,
+                          coef = coef,
+                          matrix_along_by = matrix_along_by,
+                          levels_effect = levels_effect_svd)
+  value <- matrix %*% alpha + offset
+  if (con == "by") {
+    n_level_agesex <- nrow(matrix)
+    n_agesex <- n_level_agesex %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_agesex, n_by, n_along))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_svd_drw2zero <- function(x,
+                                             n_along = 5,
+                                             n_by = 1,
+                                             n_draw = 25,
+                                             ...) {
+  check_has_no_dots(...)
+  sd_slope <- x$specific$sd_slope
+  con <- x$specific$con
+  l <- generate_prior_svd_helper(x = x,
+                                 n_along = n_along,
+                                 n_by = n_by,
+                                 n_draw = n_draw)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  matrix_along_by <- l$matrix_along_by
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(prior = x, n_sim = n_draw)
+  n_level_svd <- length(matrix_along_by)
+  levels_effect_svd <- seq_len(n_level_svd)
+  alpha <- draw_vals_drw2(sd = sd_innov,
+                          sd_init = 0,
+                          sd_slope = sd_slope,
+                          coef = coef,
+                          matrix_along_by = matrix_along_by,
+                          levels_effect = levels_effect_svd)
+  value <- matrix %*% alpha + offset
+  if (con == "by") {
+    n_level_agesex <- nrow(matrix)
+    n_agesex <- n_level_agesex %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_agesex, n_by, n_along))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
 generate.bage_prior_svd_rwrandom <- function(x,
                                              n_along = 5,
                                              n_by = 1,
@@ -5047,6 +5565,116 @@ is_prior_ok_for_term.bage_prior_svd_ar <- function(prior,
 
 ## HAS_TESTS
 #' @export
+is_prior_ok_for_term.bage_prior_svd_drwrandom <- function(prior,
+                                                   dimnames_term,
+                                                   var_time,
+                                                   var_age,
+                                                   var_sexgender) {
+  nm <- dimnames_to_nm(dimnames_term)
+  agesex <- make_agesex(nm = nm,
+                        var_age = var_age,
+                        var_sexgender = var_sexgender)
+  check_svd_agesex(prior = prior,
+                   nm = nm,
+                   var_age = var_age,
+                   agesex = agesex)
+  check_prior_time(prior = prior,
+                   nm = nm,
+                   var_time = var_time)
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
+}
+
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_svd_drwzero <- function(prior,
+                                                       dimnames_term,
+                                                       var_time,
+                                                       var_age,
+                                                       var_sexgender) {
+  nm <- dimnames_to_nm(dimnames_term)
+  agesex <- make_agesex(nm = nm,
+                        var_age = var_age,
+                        var_sexgender = var_sexgender)
+  check_svd_agesex(prior = prior,
+                   nm = nm,
+                   var_age = var_age,
+                   agesex = agesex)
+  check_prior_time(prior = prior,
+                   nm = nm,
+                   var_time = var_time)
+  min_length_along <- 3L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
+  invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_svd_drw2random <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  nm <- dimnames_to_nm(dimnames_term)
+  agesex <- make_agesex(nm = nm,
+                        var_age = var_age,
+                        var_sexgender = var_sexgender)
+  check_svd_agesex(prior = prior,
+                   nm = nm,
+                   var_age = var_age,
+                   agesex = agesex)
+  check_prior_time(prior = prior,
+                   nm = nm,
+                   var_time = var_time)
+  min_length_along <- 4L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_svd_drw2zero <- function(prior,
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        var_sexgender) {
+  nm <- dimnames_to_nm(dimnames_term)
+  agesex <- make_agesex(nm = nm,
+                        var_age = var_age,
+                        var_sexgender = var_sexgender)
+  check_svd_agesex(prior = prior,
+                   nm = nm,
+                   var_age = var_age,
+                   agesex = agesex)
+  check_prior_time(prior = prior,
+                   nm = nm,
+                   var_time = var_time)
+  min_length_along <- 4L
+  is_prior_ok_for_term_along(prior = prior,
+                             min_length_along = min_length_along,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
 is_prior_ok_for_term.bage_prior_svd_rwrandom <- function(prior,
                                                    dimnames_term,
                                                    var_time,
@@ -5202,6 +5830,22 @@ is_svd.bage_prior_svd <- function(prior) TRUE
 ## HAS_TESTS
 #' @export
 is_svd.bage_prior_svd_ar <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+is_svd.bage_prior_svd_drwrandom <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+is_svd.bage_prior_svd_drwzero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+is_svd.bage_prior_svd_drw2random <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+is_svd.bage_prior_svd_drw2zero <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
@@ -5613,6 +6257,26 @@ levels_hyper.bage_prior_svd_ar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+levels_hyper.bage_prior_svd_drwrandom <- function(prior)
+  c("sd", "coef")
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_svd_drwzero <- function(prior)
+  c("sd", "coef")
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_svd_drw2random <- function(prior)
+  c("sd", "coef")
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_svd_drw2zero <- function(prior)
+  c("sd", "coef")
+
+## HAS_TESTS
+#' @export
 levels_hyper.bage_prior_svd_rwrandom <- function(prior)
   "sd"
 
@@ -6008,6 +6672,46 @@ make_i_along.bage_prior_rw2infant <- function(prior, dimnames_term, var_time, va
 ## HAS_TESTS
 #' @export
 make_i_along.bage_prior_svd_ar <- function(prior, dimnames_term, var_time, var_age) {
+  make_i_along_agetime(prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_time = var_time,
+                       var_age = var_age,
+                       agetime = "time")
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_svd_drwrandom <- function(prior, dimnames_term, var_time, var_age) {
+  make_i_along_agetime(prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_time = var_time,
+                       var_age = var_age,
+                       agetime = "time")
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_svd_drwzero <- function(prior, dimnames_term, var_time, var_age) {
+  make_i_along_agetime(prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_time = var_time,
+                       var_age = var_age,
+                       agetime = "time")
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_svd_drw2random <- function(prior, dimnames_term, var_time, var_age) {
+  make_i_along_agetime(prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_time = var_time,
+                       var_age = var_age,
+                       agetime = "time")
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_svd_drw2zero <- function(prior, dimnames_term, var_time, var_age) {
   make_i_along_agetime(prior = prior,
                        dimnames_term = dimnames_term,
                        var_time = var_time,
@@ -6461,11 +7165,71 @@ make_matrix_along_by_effectfree.bage_prior_svd_ar <- function(prior,
 
 ## HAS_TESTS
 #' @export
+make_matrix_along_by_effectfree.bage_prior_svd_drwrandom <- function(prior,
+                                                                     dimnames_term,
+                                                                     var_time,
+                                                                     var_age,
+                                                                     var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_svd_drwzero <- function(prior,
+                                                                   dimnames_term,
+                                                                   var_time,
+                                                                   var_age,
+                                                                   var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = TRUE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_svd_drw2random <- function(prior,
+                                                                      dimnames_term,
+                                                                      var_time,
+                                                                      var_age,
+                                                                      var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_svd_drw2zero <- function(prior,
+                                                                    dimnames_term,
+                                                                    var_time,
+                                                                    var_age,
+                                                                    var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = TRUE)
+}
+
+## HAS_TESTS
+#' @export
 make_matrix_along_by_effectfree.bage_prior_svd_rwrandom <- function(prior,
-                                                              dimnames_term,
-                                                              var_time,
-                                                              var_age,
-                                                              var_sexgender) {
+                                                                    dimnames_term,
+                                                                    var_time,
+                                                                    var_age,
+                                                                    var_sexgender) {
   make_matrix_along_by_effectfree_inner(prior = prior,
                                         dimnames_term = dimnames_term,
                                         var_time = var_time,
@@ -6477,10 +7241,10 @@ make_matrix_along_by_effectfree.bage_prior_svd_rwrandom <- function(prior,
 ## HAS_TESTS
 #' @export
 make_matrix_along_by_effectfree.bage_prior_svd_rwzero <- function(prior,
-                                                              dimnames_term,
-                                                              var_time,
-                                                              var_age,
-                                                              var_sexgender) {
+                                                                  dimnames_term,
+                                                                  var_time,
+                                                                  var_age,
+                                                                  var_sexgender) {
   make_matrix_along_by_effectfree_inner(prior = prior,
                                         dimnames_term = dimnames_term,
                                         var_time = var_time,
@@ -6492,10 +7256,10 @@ make_matrix_along_by_effectfree.bage_prior_svd_rwzero <- function(prior,
 ## HAS_TESTS
 #' @export
 make_matrix_along_by_effectfree.bage_prior_svd_rw2random <- function(prior,
-                                                               dimnames_term,
-                                                               var_time,
-                                                               var_age,
-                                                               var_sexgender) {
+                                                                     dimnames_term,
+                                                                     var_time,
+                                                                     var_age,
+                                                                     var_sexgender) {
   make_matrix_along_by_effectfree_inner(prior = prior,
                                         dimnames_term = dimnames_term,
                                         var_time = var_time,
@@ -6507,10 +7271,10 @@ make_matrix_along_by_effectfree.bage_prior_svd_rw2random <- function(prior,
 ## HAS_TESTS
 #' @export
 make_matrix_along_by_effectfree.bage_prior_svd_rw2zero <- function(prior,
-                                                               dimnames_term,
-                                                               var_time,
-                                                               var_age,
-                                                               var_sexgender) {
+                                                                   dimnames_term,
+                                                                   var_time,
+                                                                   var_age,
+                                                                   var_sexgender) {
   make_matrix_along_by_effectfree_inner(prior = prior,
                                         dimnames_term = dimnames_term,
                                         var_time = var_time,
@@ -6609,6 +7373,70 @@ make_matrix_along_by_effectfree_innermost.bage_prior_svd_ar <- function(prior,
                                                                         var_age,
                                                                         var_sexgender,
                                                                         dim) {
+  make_matrix_along_by_svddynamic(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  dim = dim)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree_innermost.bage_prior_svd_drwrandom <- function(prior, 
+                                                                               dimnames_term,
+                                                                               var_time,
+                                                                               var_age,
+                                                                               var_sexgender,
+                                                                               dim) {
+  make_matrix_along_by_svddynamic(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  dim = dim)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree_innermost.bage_prior_svd_drwzero <- function(prior, 
+                                                                             dimnames_term,
+                                                                             var_time,
+                                                                             var_age,
+                                                                             var_sexgender,
+                                                                             dim) {
+  make_matrix_along_by_svddynamic(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  dim = dim)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree_innermost.bage_prior_svd_drw2random <- function(prior, 
+                                                                                dimnames_term,
+                                                                                var_time,
+                                                                                var_age,
+                                                                                var_sexgender,
+                                                                                dim) {
+  make_matrix_along_by_svddynamic(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  dim = dim)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree_innermost.bage_prior_svd_drw2zero <- function(prior, 
+                                                                              dimnames_term,
+                                                                              var_time,
+                                                                              var_age,
+                                                                              var_sexgender,
+                                                                              dim) {
   make_matrix_along_by_svddynamic(prior = prior,
                                   dimnames_term = dimnames_term,
                                   var_time = var_time,
@@ -6749,6 +7577,62 @@ make_matrix_draws_svd.bage_prior_svd_ar <- function(prior,
 
 ## HAS_TESTS
 #' @export
+make_matrix_draws_svd.bage_prior_svd_drwrandom <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  make_matrix_draws_svd_nozero(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_draws_svd.bage_prior_svd_drwzero <- function(prior,
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    var_sexgender) {
+  make_matrix_draws_svd_appendzero(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_draws_svd.bage_prior_svd_drw2random <- function(prior,
+                                                           dimnames_term,
+                                                           var_time,
+                                                           var_age,
+                                                           var_sexgender) {
+  make_matrix_draws_svd_nozero(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_draws_svd.bage_prior_svd_drw2zero <- function(prior,
+                                                     dimnames_term,
+                                                     var_time,
+                                                     var_age,
+                                                     var_sexgender) {
+  make_matrix_draws_svd_appendzero(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender)
+}
+
+## HAS_TESTS
+#' @export
 make_matrix_draws_svd.bage_prior_svd_rwrandom <- function(prior,
                                                           dimnames_term,
                                                           var_time,
@@ -6764,10 +7648,10 @@ make_matrix_draws_svd.bage_prior_svd_rwrandom <- function(prior,
 ## HAS_TESTS
 #' @export
 make_matrix_draws_svd.bage_prior_svd_rwzero <- function(prior,
-                                                    dimnames_term,
-                                                    var_time,
-                                                    var_age,
-                                                    var_sexgender) {
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        var_sexgender) {
   make_matrix_draws_svd_appendzero(prior = prior,
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
@@ -6792,10 +7676,10 @@ make_matrix_draws_svd.bage_prior_svd_rw2random <- function(prior,
 ## HAS_TESTS
 #' @export
 make_matrix_draws_svd.bage_prior_svd_rw2zero <- function(prior,
-                                                     dimnames_term,
-                                                     var_time,
-                                                     var_age,
-                                                     var_sexgender) {
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
+                                                         var_sexgender) {
   make_matrix_draws_svd_appendzero(prior = prior,
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
@@ -7236,6 +8120,66 @@ make_matrix_effectfree_effect.bage_prior_svd_ar <- function(prior,
 
 ## HAS_TESTS
 #' @export
+make_matrix_effectfree_effect.bage_prior_svd_drwrandom <- function(prior,
+                                                                   dimnames_term,
+                                                                   var_time,
+                                                                   var_age,
+                                                                   var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_svd_drwzero <- function(prior,
+                                                                 dimnames_term,
+                                                                 var_time,
+                                                                 var_age,
+                                                                 var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = TRUE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_svd_drw2random <- function(prior,
+                                                                    dimnames_term,
+                                                                    var_time,
+                                                                    var_age,
+                                                                    var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_svd_drw2zero <- function(prior,
+                                                                  dimnames_term,
+                                                                  var_time,
+                                                                  var_age,
+                                                                  var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = TRUE)
+}
+
+## HAS_TESTS
+#' @export
 make_matrix_effectfree_effect.bage_prior_svd_rwrandom <- function(prior,
                                                             dimnames_term,
                                                             var_time,
@@ -7400,6 +8344,74 @@ make_matrix_sub_orig.bage_prior_svd_ar <- function(prior,
 
 ## HAS_TESTS
 #' @export
+make_matrix_sub_orig.bage_prior_svd_drwrandom <- function(prior,
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
+                                                         var_sexgender,
+                                                         dim_after) {
+  con <- prior$specific$con
+  make_matrix_sub_orig_svd(prior = prior,
+                           dimnames_term = dimnames_term,
+                           var_age = var_age,
+                           var_sexgender = var_sexgender,
+                           dim_after = dim_after,
+                           con = con)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_sub_orig.bage_prior_svd_drwzero <- function(prior,
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
+                                                         var_sexgender,
+                                                         dim_after) {
+  con <- prior$specific$con
+  make_matrix_sub_orig_svd(prior = prior,
+                           dimnames_term = dimnames_term,
+                           var_age = var_age,
+                           var_sexgender = var_sexgender,
+                           dim_after = dim_after,
+                           con = con)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_sub_orig.bage_prior_svd_drw2random <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender,
+                                                          dim_after) {
+  con <- prior$specific$con
+  make_matrix_sub_orig_svd(prior = prior,
+                           dimnames_term = dimnames_term,
+                           var_age = var_age,
+                           var_sexgender = var_sexgender,
+                           dim_after = dim_after,
+                           con = con)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_sub_orig.bage_prior_svd_drw2zero <- function(prior,
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        var_sexgender,
+                                                        dim_after) {
+  con <- prior$specific$con
+  make_matrix_sub_orig_svd(prior = prior,
+                           dimnames_term = dimnames_term,
+                           var_age = var_age,
+                           var_sexgender = var_sexgender,
+                           dim_after = dim_after,
+                           con = con)
+}
+
+## HAS_TESTS
+#' @export
 make_matrix_sub_orig.bage_prior_svd_rwrandom <- function(prior,
                                                          dimnames_term,
                                                          var_time,
@@ -7535,6 +8547,58 @@ make_offset_effectfree_effect.bage_prior_svd_ar <- function(prior,
 
 ## HAS_TESTS
 #' @export
+make_offset_effectfree_effect.bage_prior_svd_drwrandom <- function(prior,
+                                                            dimnames_term,
+                                                            var_time,
+                                                            var_age,
+                                                            var_sexgender)
+  make_offset_effectfree_effect_svd(prior = prior,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender)
+
+## HAS_TESTS
+#' @export
+make_offset_effectfree_effect.bage_prior_svd_drwzero <- function(prior,
+                                                                dimnames_term,
+                                                                var_time,
+                                                                var_age,
+                                                                var_sexgender)
+  make_offset_effectfree_effect_svd(prior = prior,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender)
+
+## HAS_TESTS
+#' @export
+make_offset_effectfree_effect.bage_prior_svd_drw2random <- function(prior,
+                                                                   dimnames_term,
+                                                                   var_time,
+                                                                   var_age,
+                                                                   var_sexgender)
+  make_offset_effectfree_effect_svd(prior = prior,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender)
+
+## HAS_TESTS
+#' @export
+make_offset_effectfree_effect.bage_prior_svd_drw2zero <- function(prior,
+                                                                 dimnames_term,
+                                                                 var_time,
+                                                                 var_age,
+                                                                 var_sexgender)
+  make_offset_effectfree_effect_svd(prior = prior,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender)
+
+## HAS_TESTS
+#' @export
 make_offset_effectfree_effect.bage_prior_svd_rwrandom <- function(prior,
                                                             dimnames_term,
                                                             var_time,
@@ -7553,19 +8617,6 @@ make_offset_effectfree_effect.bage_prior_svd_rwzero <- function(prior,
                                                                 var_time,
                                                                 var_age,
                                                                 var_sexgender)
-  make_offset_effectfree_effect_svd(prior = prior,
-                                    dimnames_term = dimnames_term,
-                                    var_time = var_time,
-                                    var_age = var_age,
-                                    var_sexgender = var_sexgender)
-
-## HAS_TESTS
-#' @export
-make_offset_effectfree_effect.bage_prior_svd_rw2random <- function(prior,
-                                                                   dimnames_term,
-                                                                   var_time,
-                                                                   var_age,
-                                                                   var_sexgender)
   make_offset_effectfree_effect_svd(prior = prior,
                                     dimnames_term = dimnames_term,
                                     var_time = var_time,
@@ -7759,6 +8810,26 @@ make_param_hyper.bage_prior_svd_ar <- function(prior) {
   n_coef <- prior$specific$n_coef
   rep(c(0, init_val_sd()), times = c(n_coef, 1L))
 }
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd_drwrandom <- function(prior)
+  c(init_val_sd(), 0)
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd_drwzero <- function(prior)
+  c(init_val_sd(), 0)
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd_drw2random <- function(prior)
+  c(init_val_sd(), 0)
+
+## HAS_TESTS
+#' @export
+make_param_hyper.bage_prior_svd_drw2zero <- function(prior)
+  c(init_val_sd(), 0)
 
 ## HAS_TESTS
 #' @export
@@ -8116,6 +9187,72 @@ print.bage_prior_svd_ar <- function(x, ...) {
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   print_prior_slot(prior = x, nm = "along", slot = "along")
   print_prior_slot(prior = x, nm = "con", slot = "con")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_svd_drwrandom <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
+  print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
+  indep <- x$specific$indep
+  if (!indep)
+    print_prior_slot(prior = x, nm = "indep", slot = "indep")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  for (nm in c("sd", "shape1", "shape2", "min", "max", "along", "con"))
+    print_prior_slot(prior = x, nm = nm, slot = nm)
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_svd_drwzero <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
+  print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
+  indep <- x$specific$indep
+  if (!indep)
+    print_prior_slot(prior = x, nm = "indep", slot = "indep")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
+  for (nm in c("shape1", "shape2", "min", "max", "along", "con"))
+    print_prior_slot(prior = x, nm = nm, slot = nm)
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_svd_drw2random <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
+  print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
+  indep <- x$specific$indep
+  if (!indep)
+    print_prior_slot(prior = x, nm = "indep", slot = "indep")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  for (nm in c("sd", "sd_slope", "shape1", "shape2", "min", "max", "along", "con"))
+    print_prior_slot(prior = x, nm = nm, slot = nm)
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_svd_drw2zero <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
+  print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
+  indep <- x$specific$indep
+  if (!indep)
+    print_prior_slot(prior = x, nm = "indep", slot = "indep")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
+  for (nm in c("sd_slope", "shape1", "shape2", "min", "max", "along", "con"))
+    print_prior_slot(prior = x, nm = nm, slot = nm)
   invisible(x)
 }
 
@@ -8650,6 +9787,90 @@ str_call_prior.bage_prior_svd_ar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+str_call_prior.bage_prior_svd_drwrandom <- function(prior) {
+  args_svd <- str_call_args_svd(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
+  args_coef <- str_call_args_coef_drw(prior)
+  args_along <- str_call_args_along(prior)
+  args_con <- str_call_args_con(prior)
+  args <- c(args_svd,
+            args_scale,
+            args_sd,
+            args_coef,
+            args_along,
+            args_con)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("SVD_DRW(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_svd_drwzero <- function(prior) {
+  args_svd <- str_call_args_svd(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- "sd=0"
+  args_coef <- str_call_args_coef_drw(prior)
+  args_along <- str_call_args_along(prior)
+  args_con <- str_call_args_con(prior)
+  args <- c(args_svd,
+            args_scale,
+            args_sd,
+            args_coef,
+            args_along,
+            args_con)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("SVD_DRW(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_svd_drw2random <- function(prior) {
+  args_svd <- str_call_args_svd(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
+  args_sd_slope <- str_call_args_sd_slope(prior)
+  args_coef <- str_call_args_coef_drw(prior)
+  args_along <- str_call_args_along(prior)
+  args_con <- str_call_args_con(prior)
+  args <- c(args_svd,
+            args_scale,
+            args_sd,
+            args_sd_slope,
+            args_coef,
+            args_along,
+            args_con)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("SVD_DRW2(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_svd_drw2zero <- function(prior) {
+  args_svd <- str_call_args_svd(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- "sd=0"
+  args_sd_slope <- str_call_args_sd_slope(prior)
+  args_coef <- str_call_args_coef_drw(prior)
+  args_along <- str_call_args_along(prior)
+  args_con <- str_call_args_con(prior)
+  args <- c(args_svd,
+            args_scale,
+            args_sd,
+            args_sd_slope,
+            args_coef,
+            args_along,
+            args_con)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("SVD_DRW2(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
 str_call_prior.bage_prior_svd_rwrandom <- function(prior) {
   args_svd <- str_call_args_svd(prior)
   args_scale <- str_call_args_scale(prior)
@@ -8908,6 +10129,30 @@ str_nm_prior.bage_prior_svd_ar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+str_nm_prior.bage_prior_svd_drwrandom <- function(prior) {
+  "SVD_DRW()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_svd_drwzero <- function(prior) {
+  "SVD_DRW()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_svd_drw2random <- function(prior) {
+  "SVD_DRW2()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_svd_drw2zero <- function(prior) {
+  "SVD_DRW2()"
+}
+
+## HAS_TESTS
+#' @export
 str_nm_prior.bage_prior_svd_rwrandom <- function(prior) {
   "SVD_RW()"
 }
@@ -9086,6 +10331,26 @@ transform_hyper.bage_prior_svd_ar <- function(prior)
 
 ## HAS_TESTS
 #' @export
+transform_hyper.bage_prior_svd_drwrandom <- function(prior)
+  transform_hyper_drw(prior)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_svd_drwzero <- function(prior)
+  transform_hyper_drw(prior)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_svd_drw2random <- function(prior)
+  transform_hyper_drw(prior)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_svd_drw2zero <- function(prior)
+  transform_hyper_drw(prior)
+
+## HAS_TESTS
+#' @export
 transform_hyper.bage_prior_svd_rwrandom <- function(prior)
   list(sd = exp)
 
@@ -9226,6 +10491,22 @@ uses_along.bage_prior_svd <- function(prior) FALSE
 ## HAS_TESTS
 #' @export
 uses_along.bage_prior_svd_ar <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_svd_drwrandom <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_svd_drwzero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_svd_drw2random <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_svd_drw2zero <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
@@ -9420,6 +10701,22 @@ uses_matrix_effectfree_effect.bage_prior_svd_ar <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
+uses_matrix_effectfree_effect.bage_prior_svd_drwrandom <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_svd_drwzero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_svd_drw2random <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_svd_drw2zero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
 uses_matrix_effectfree_effect.bage_prior_svd_rwrandom <- function(prior) TRUE
 
 ## HAS_TESTS
@@ -9459,6 +10756,22 @@ uses_offset_effectfree_effect.bage_prior_svd <- function(prior) TRUE
 ## HAS_TESTS
 #' @export
 uses_offset_effectfree_effect.bage_prior_svd_ar <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_offset_effectfree_effect.bage_prior_svd_drwrandom <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_offset_effectfree_effect.bage_prior_svd_drwzero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_offset_effectfree_effect.bage_prior_svd_drw2random <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_offset_effectfree_effect.bage_prior_svd_drw2zero <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export

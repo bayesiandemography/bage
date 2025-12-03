@@ -526,6 +526,76 @@ draw_vals_effect_mod <- function(mod,
 }
 
 
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_svd_ar <- function(prior,
+                                               vals_hyper,
+                                               vals_hyperrand,
+                                               vals_spline,
+                                               vals_svd,
+                                               dimnames_term,
+                                               var_time,
+                                               var_age,
+                                               var_sexgender,
+                                               n_sim) {
+  matrix <- make_matrix_effectfree_effect(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = var_time,
+                                          var_age = var_age,
+                                          var_sexgender = var_sexgender)
+  offset <- make_offset_effectfree_effect(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = var_time,
+                                          var_age = var_age,
+                                          var_sexgender = var_sexgender)
+  ans <- matrix %*% vals_svd + offset
+  ans <- Matrix::as.matrix(ans)
+  rownames(ans) <- dimnames_to_levels(dimnames_term)
+  ans
+}
+
+#' Draw Values for Main Effect or Interactions
+#' for Dynamic SVD Prior
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param vals_svd Named list of values for free parameters
+#' for SVD-based priors
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#'
+#' @returns A named list.
+#'
+#' @noRd
+draw_vals_effect_svd_dynamic <- function(prior,
+                                         vals_svd,
+                                         dimnames_term,
+                                         var_time,
+                                         var_age,
+                                         var_sexgender) {
+  con <- prior$specific$con
+  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender,
+                                                append_zero = FALSE,
+                                                con = con)
+  offset <- make_offset_effectfree_effect_svd(prior = prior,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
+  ans <- matrix %*% vals_svd + offset
+  ans <- Matrix::as.matrix(ans)
+  rownames(ans) <- dimnames_to_levels(dimnames_term)
+  ans
+}
+
+
+
 ## HAS_TESTS
 #' Draw Values for Ordinary Hyper-Parameters
 #'

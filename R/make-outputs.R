@@ -115,7 +115,6 @@ con_by_fitted <- function(prior,
   dim <- lengths(dimnames_term)
   m <- make_matrix_con_by(i_along = i_along,
                           dim = dim)
-  m <- as.matrix(m)
   fitted <- m %*% fitted
 }
 
@@ -493,7 +492,6 @@ get_datamod_disp <- function(datamod) {
 #' @noRd
 get_datamod_prob <- function(datamod, components) {
   prob_matrix_outcome <- datamod$prob_matrix_outcome
-  prob_matrix_outcome <- as.matrix(prob_matrix_outcome) ## remove after updating rvec
   is_prob <- (components$term == "datamod"
     & components$component == "prob")
   prob <- components$.fitted[is_prob]
@@ -513,7 +511,6 @@ get_datamod_prob <- function(datamod, components) {
 #' @noRd
 get_datamod_rate <- function(datamod, components) {
   rate_matrix_outcome <- datamod$rate_matrix_outcome
-  rate_matrix_outcome <- as.matrix(rate_matrix_outcome) ## remove after updating rvec
   is_rate <- (components$term == "datamod"
     & components$component == "rate")
   rate <- components$.fitted[is_rate]
@@ -1296,12 +1293,8 @@ make_hyperrand_lin <- function(prior,
     trend[i_along] <- hyperrandfree[[i_by]] * v
   }
   error <- effectfree - trend
-  trend <- as.matrix(trend) ## to cope with sparse matrix
-  error <- as.matrix(error) ## to cope with sparse matrix
   trend <- matrix_effectfree_effect %*% trend
   error <- matrix_effectfree_effect %*% error
-  trend <- rvec::rvec_dbl(as.matrix(trend))
-  error <- rvec::rvec_dbl(as.matrix(error))
   ## calculate slope on constrained space
   n_by_constr <- ncol(matrix_along_by_effect)
   slope <- rvec::new_rvec(length = n_by_constr, n_draw = n_draw)
@@ -1370,12 +1363,8 @@ make_hyperrand_randomseasfix <- function(prior,
     }
   }
   trend <- effectfree - season
-  trend <- as.matrix(trend) ## to cope with sparse matrix
-  season <- as.matrix(season) ## to cope with sparse matrix
   trend <- matrix_effectfree_effect %*% trend
   season <- matrix_effectfree_effect %*% season
-  trend <- rvec::rvec_dbl(as.matrix(trend))
-  season <- rvec::rvec_dbl(as.matrix(season))
   vctrs::vec_c(trend, season)
 }
 
@@ -1438,12 +1427,8 @@ make_hyperrand_randomseasvary <- function(prior,
     }
   }
   trend <- effectfree - season
-  trend <- as.matrix(trend) ## to cope with sparse matrix
-  season <- as.matrix(season) ## to cope with sparse matrix
   trend <- matrix_effectfree_effect %*% trend
   season <- matrix_effectfree_effect %*% season
-  trend <- rvec::rvec_dbl(as.matrix(trend))
-  season <- rvec::rvec_dbl(as.matrix(season))
   vctrs::vec_c(trend, season)
 }
 
@@ -1511,12 +1496,8 @@ make_hyperrand_zeroseasfix <- function(prior,
     }
   }
   trend <- effectfree - season
-  trend <- as.matrix(trend) ## to cope with sparse matrix
-  season <- as.matrix(season) ## to cope with sparse matrix
   trend <- matrix_effectfree_effect %*% trend
   season <- matrix_effectfree_effect %*% season
-  trend <- rvec::rvec_dbl(as.matrix(trend))
-  season <- rvec::rvec_dbl(as.matrix(season))
   vctrs::vec_c(trend, season)
 }
 
@@ -1584,12 +1565,8 @@ make_hyperrand_zeroseasvary <- function(prior,
     }
   }
   trend <- effectfree - season
-  trend <- as.matrix(trend) ## to cope with sparse matrix
-  season <- as.matrix(season) ## to cope with sparse matrix
   trend <- matrix_effectfree_effect %*% trend
   season <- matrix_effectfree_effect %*% season
-  trend <- rvec::rvec_dbl(as.matrix(trend))
-  season <- rvec::rvec_dbl(as.matrix(season))
   vctrs::vec_c(trend, season)
 }
 
@@ -1933,7 +1910,8 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
   if (!data_has_intercept)
     data[["(Intercept)"]] <- "(Intercept)"
   n_draw <- rvec::n_draw(fitted)
-  ans <- matrix(0, nrow = nrow(data), ncol = n_draw)
+  ans <- rvec::new_rvec(length = nrow(data), n_draw = n_draw)
+  ans[] <- 0
   for (i_term in seq_along(dimnames_terms)) {
     dimnames_term <- dimnames_terms[[i_term]]
     nm_split <- dimnames_to_nm_split(dimnames_term)
@@ -1945,7 +1923,6 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
     levels_data <- Reduce(paste_dot, data[nm_split])
     indices_term <- match(levels_data, levels_term)
     val_term_linpred <- val_term[indices_term]
-    vals_term_linpred <- as.matrix(val_term_linpred)
     ans <- ans + val_term_linpred
   }
   if (has_covariates(mod)) {
@@ -1956,12 +1933,9 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
     coef_covariates <- fitted[indices_covariates]
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
                                                 data = data)
-    coef_covariates <- as.matrix(coef_covariates) ## coerce from rvec
     val_covariates_linpred <- matrix_covariates %*% coef_covariates
-    val_covariates_linpred <- Matrix::as.matrix(val_covariates_linpred)
     ans <- ans + val_covariates_linpred
   }
-  ans <- rvec::rvec_dbl(ans)
   ans
 }
 
@@ -1991,10 +1965,8 @@ make_linpred_from_stored_draws <- function(mod, point, rows) {
   }
   if (point)
     ans <- as.double(ans)
-  else {
-    ans <- Matrix::as.matrix(ans)
+  else
     ans <- rvec::rvec(ans)
-  }
   ans
 }
 
@@ -2024,7 +1996,10 @@ make_linpred_from_stored_draws_covariates <- function(mod, point, rows) {
   if (!is.null(rows))
     matrix_covariates <- matrix_covariates[rows, , drop = FALSE]
   ans <- matrix_covariates %*% coef_covariates
-  ans <- Matrix::as.matrix(ans)
+  if (point)
+    ans <- as.double(ans)
+  else
+    ans <- rvec::rvec_dbl(ans)
   ans
 }
 
@@ -2060,7 +2035,7 @@ make_linpred_from_stored_draws_effects <- function(mod, point, rows) {
       ans <- ans + matrices[[i_effect]] %*% effects[[i_effect]]
     }
   }
-  ans <- Matrix::as.matrix(ans)
+  ans <- rvec::rvec(ans)
   ans
 }
 

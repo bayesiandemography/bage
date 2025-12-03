@@ -681,7 +681,7 @@ Type logpost_drw2zero(const vector<Type>& rw,
     int i_0 = matrix_along_by(0, i_by);
     int i_1 = matrix_along_by(1, i_by);
     ans += dnorm(rw[i_0], Type(0), sd_slope, true);
-    Type diff = rw[i_1] - 2 * rw[i_0];
+    Type diff = rw[i_1] - rw[i_0] - coef * rw[i_0];
     ans += dnorm(diff, Type(0), sd_innov, true);
     for (int i_along = 2; i_along < n_along; i_along++) {
       int i_2 = matrix_along_by(i_along, i_by);
@@ -1100,6 +1100,22 @@ Type logpost_svd_ar(const vector<Type>& effectfree,
 }
 
 template <class Type>
+Type logpost_svd_drwrandom(const vector<Type>& effectfree,
+			   const vector<Type>& hyper,
+			   const vector<Type>& consts,
+			   const matrix<int>& matrix_along_by_effectfree) {
+  return logpost_drwrandom(effectfree, hyper, consts, matrix_along_by_effectfree);
+}
+
+template <class Type>
+Type logpost_svd_drwzero(const vector<Type>& effectfree,
+			 const vector<Type>& hyper,
+			 const vector<Type>& consts,
+			 const matrix<int>& matrix_along_by_effectfree) {
+  return logpost_drwzero(effectfree, hyper, consts, matrix_along_by_effectfree);
+}
+
+template <class Type>
 Type logpost_svd_rwrandom(const vector<Type>& effectfree,
 			  const vector<Type>& hyper,
 			  const vector<Type>& consts,
@@ -1107,12 +1123,29 @@ Type logpost_svd_rwrandom(const vector<Type>& effectfree,
   return logpost_rwrandom(effectfree, hyper, consts, matrix_along_by_effectfree);
 }
 
+
 template <class Type>
 Type logpost_svd_rwzero(const vector<Type>& effectfree,
 			const vector<Type>& hyper,
 			const vector<Type>& consts,
 			const matrix<int>& matrix_along_by_effectfree) {
   return logpost_rwzero(effectfree, hyper, consts, matrix_along_by_effectfree);
+}
+
+template <class Type>
+Type logpost_svd_drw2random(const vector<Type>& effectfree,
+			   const vector<Type>& hyper,
+			   const vector<Type>& consts,
+			   const matrix<int>& matrix_along_by_effectfree) {
+  return logpost_drw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
+}
+
+template <class Type>
+Type logpost_svd_drw2zero(const vector<Type>& effectfree,
+			 const vector<Type>& hyper,
+			 const vector<Type>& consts,
+			 const matrix<int>& matrix_along_by_effectfree) {
+  return logpost_drw2zero(effectfree, hyper, consts, matrix_along_by_effectfree);
 }
 
 template <class Type>
@@ -1181,6 +1214,18 @@ Type logpost_has_hyper(const vector<Type>& effectfree,
     break;
   case 14:
     ans = logpost_svd_ar(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 31:
+    ans = logpost_svd_drwzero(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 32:
+    ans = logpost_svd_drw2zero(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 33:
+    ans = logpost_svd_drwrandom(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 34:
+    ans = logpost_svd_drw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   case 15:
     ans = logpost_svd_rwzero(effectfree, hyper, consts, matrix_along_by_effectfree);

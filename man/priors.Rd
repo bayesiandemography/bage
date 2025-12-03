@@ -49,6 +49,8 @@ between 'along' and 'by' dimensions.
    \code{\link[=SVD_AR1]{SVD_AR1()}} \tab \code{SVD()}, but coefficients follow \code{AR1()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
    \code{\link[=SVD_RW]{SVD_RW()}} \tab \code{SVD()}, but coefficients follow \code{RW()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
    \code{\link[=SVD_RW2]{SVD_RW2()}} \tab \code{SVD()}, but coefficients follow \code{RW2()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
+   \code{\link[=SVD_DRW]{SVD_DRW()}} \tab \code{SVD()}, but coefficients follow \code{DRW()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
+   \code{\link[=SVD_DRW2]{SVD_DRW2()}} \tab \code{SVD()}, but coefficients follow \code{DRW2()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
 }
 }
 \section{Default prior}{
