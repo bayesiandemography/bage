@@ -235,6 +235,33 @@ test_that("'draw_vals_effect' works with bage_prior_drwrandom", {
   expect_identical(dimnames(ans), list(letters, NULL))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_drwrandom - n_by = 4, con is 'by'", {
+  prior <- DRW(s = 0.01, con = "by")
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
+  dimnames_term <- list(time = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(40L, 10L))
+  a <- array(ans, dim = c(10, 4, 10))
+  expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_drwzero", {
   prior <- DRW(sd = 0)
   n_sim <- 10
@@ -259,6 +286,34 @@ test_that("'draw_vals_effect' works with bage_prior_drwzero", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, NULL))
 })
+
+test_that("'draw_vals_effect' works with bage_prior_drwrandom - n_by = 4, con is 'by'", {
+  prior <- DRW(s = 0.01, con = "by", sd = 0)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
+  dimnames_term <- list(time = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(40L, 10L))
+  a <- array(ans, dim = c(10, 4, 10))
+  expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
+})
+
 
 test_that("'draw_vals_effect' works with bage_prior_drw2random", {
   prior <- DRW2(along = "x")
@@ -285,6 +340,35 @@ test_that("'draw_vals_effect' works with bage_prior_drw2random", {
   expect_identical(dimnames(ans), list(letters, NULL))
 })
 
+
+test_that("'draw_vals_effect' works with bage_prior_drwrandom - n_by = 4, con is 'by'", {
+  prior <- DRW2(s = 0.01, con = "by")
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
+  dimnames_term <- list(time = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(40L, 10L))
+  a <- array(ans, dim = c(10, 4, 10))
+  expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
+})
+
+
 test_that("'draw_vals_effect' works with bage_prior_drw2zero", {
   prior <- DRW2(sd = 0, along = "x")
   n_sim <- 10
@@ -308,6 +392,33 @@ test_that("'draw_vals_effect' works with bage_prior_drw2zero", {
                           var_sexgender = var_sexgender,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, NULL))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_drwrandom - n_by = 4, con is 'by'", {
+  prior <- DRW2(s = 0.01, con = "by", sd = 0)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
+  dimnames_term <- list(time = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(40L, 10L))
+  a <- array(ans, dim = c(10, 4, 10))
+  expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_known", {
