@@ -186,7 +186,6 @@ fit_inner_outer <- function(mod,
   mod_outer <- make_mod_outer(mod = mod,
                               mod_inner = mod_inner,
                               use_term = use_term)
-  aggregate <- can_aggregate(mod_inner)
   mod_outer <- fit_default(mod = mod_outer,
                            optimizer = optimizer,
                            quiet = quiet,

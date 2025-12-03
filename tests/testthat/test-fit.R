@@ -511,6 +511,83 @@ test_that("'fit_inner_outer' throws error when model has data model", {
                "\"inner-outer\" method cannot be used with models that include a data model.")
 })
 
+test_that("'mod_pois' works with constant exposure", {
+  spd <- expand.grid(age = 0:4,
+                     time = 2001:2005,
+                     sex = c("f", "m"),
+                     region = c("a", "b", "c"))
+  spd$y <- rpois(n = nrow(spd), lambda = 10)
+  mod <- mod_pois(y ~ age + time + sex + region,
+                  data = spd,
+                  exposure = 1) |>
+    set_prior(age ~ RW(s = 1, sd = 1)) |>
+    set_prior(time ~ RW(s = 1, sd = 1)) |>
+    set_prior(sex ~ NFix(sd = 1)) |>
+    set_prior(region ~ N(s = 1)) |>
+    set_n_draw(50) |>
+    fit(method = "inner-outer",
+        vars_inner = c("age", "sex", "time"))
+  expect_true(is_fitted(mod))
+})
+
+test_that("'mod_norm' works with constant weights - all 1", {
+  spd <- expand.grid(age = 0:4,
+                     time = 2001:2005,
+                     sex = c("f", "m"),
+                     region = c("a", "b", "c"))
+  spd$log_covratio <- rnorm(n = nrow(spd))
+  mod <- mod_norm(log_covratio ~ age + time + sex + region,
+                  data = spd,
+                  weights = 1) |>
+    set_prior(age ~ RW(s = 1, sd = 1)) |>
+    set_prior(time ~ RW(s = 1, sd = 1)) |>
+    set_prior(sex ~ NFix(sd = 1)) |>
+    set_prior(region ~ N(s = 1)) |>
+    set_n_draw(50) |>
+    fit(method = "inner-outer",
+        vars_inner = c("age", "sex", "time"))
+  expect_true(is_fitted(mod))
+})
+
+test_that("'mod_norm' works with constant weights - all 1.01", {
+  spd <- expand.grid(age = 0:4,
+                     time = 2001:2005,
+                     sex = c("f", "m"),
+                     region = c("a", "b", "c"))
+  spd$log_covratio <- rnorm(n = nrow(spd))
+  spd$wt <- 1.01
+  mod_norm(log_covratio ~ age + time + sex + region,
+           data = spd,
+           weights = wt) |>
+    set_prior(age ~ RW(s = 1, sd = 1)) |>
+    set_prior(time ~ RW(s = 1, sd = 1)) |>
+    set_prior(sex ~ NFix(sd = 1)) |>
+    set_prior(region ~ N(s = 1)) |>
+    set_n_draw(50) |>
+    fit(method = "inner-outer",
+        vars_inner = c("age", "sex", "time"))
+  expect_true(is_fitted(mod))
+})
+
+test_that("'mod_norm' works with constant weights - varying", {
+  spd <- expand.grid(age = 0:4,
+                     time = 2001:2005,
+                     sex = c("f", "m"),
+                     region = c("a", "b", "c"))
+  spd$log_covratio <- rnorm(n = nrow(spd))
+  spd$wt <- runif(nrow(spd), 0.99, 1.01)
+  mod <- mod_norm(log_covratio ~ age + time + sex + region,
+           data = spd,
+           weights = wt) |>
+    set_prior(age ~ RW(s = 1, sd = 1)) |>
+    set_prior(time ~ RW(s = 1, sd = 1)) |>
+    set_prior(sex ~ NFix(sd = 1)) |>
+    set_prior(region ~ N(s = 1)) |>
+    set_n_draw(50) |>
+    fit(method = "inner-outer",
+        vars_inner = c("age", "sex", "time"))
+  expect_true(is_fitted(mod))
+})
 
 
 

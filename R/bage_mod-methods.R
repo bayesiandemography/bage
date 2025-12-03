@@ -643,7 +643,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod, quiet) {
   has_missing_outcome <- anyNA(outcome)
   has_disp <- has_disp(mod)
   has_varying_offset <- has_varying_offset(mod)
-  ## create return object, possibly includin '.observed'
+  ## create return object, possibly including '.observed'
   ans <- mod$data
   if (has_varying_offset)
     ans$.observed <- outcome / offset
@@ -2101,18 +2101,25 @@ has_disp.bage_mod <- function(mod) {
 
 #' Test Whether a Model Includes an Offset
 #'
+#' 'require_name' should be TRUE, except
+#' when fitting outer model in
+#' inner-outer fit.
+#' 
 #' @param x A model object.
+#' @param require_name Whether to require that a
+#' 'nm_offset_data' is non-NULL when
+#' offset is varying.
 #'
 #' @returns `TRUE` or `FALSE`
 #'
 #' @noRd
-has_varying_offset <- function(mod) {
+has_varying_offset <- function(mod, require_name) {
     UseMethod("has_varying_offset")
 }
 
 ## HAS_TESTS
 #' @export
-has_varying_offset.bage_mod <- function(mod) {
+has_varying_offset.bage_mod <- function(mod, require_name) {
   offset <- mod$offset
   nm_offset_data <- mod$nm_offset_data
   if (is.null(offset))
@@ -2123,7 +2130,7 @@ has_varying_offset.bage_mod <- function(mod) {
   has_nm_offset_data <- !is.null(nm_offset_data)
   if (is_all_ones && !has_nm_offset_data)
     FALSE
-  else if (!is_all_ones && !has_nm_offset_data)
+  else if (!is_all_ones && !has_nm_offset_data && require_name)
     cli::cli_abort("Internal error: offset not all ones, but no nm_offset_data")
   else if (is_all_ones && has_nm_offset_data)
     cli::cli_abort("Internal error: offset all ones, but has nm_offset_data")
@@ -2534,7 +2541,6 @@ make_mod_outer.bage_mod_pois <- function(mod, mod_inner, use_term) {
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
   ans$offset <- ans$offset * mu_inner
   ans$mean_disp <- 0
-  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2544,7 +2550,6 @@ make_mod_outer.bage_mod_binom <- function(mod, mod_inner, use_term) {
   point_est_inner <- make_point_est_effects(mod_inner)
   ans <- set_priors_known(mod = mod, prior_values = point_est_inner)
   ans$mean_disp <- 0
-  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2557,7 +2562,6 @@ make_mod_outer.bage_mod_norm <- function(mod, mod_inner, use_term) {
   use_term <- !use_term
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
   ans$outcome <- ans$outcome - linpred_inner
-  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
