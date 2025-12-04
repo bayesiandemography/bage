@@ -2445,22 +2445,20 @@ test_that("'str_call_args_svd' works - joint", {
 })
 
 
-## 'to_factor' ----------------------------------------------------------------
+## 'user_specified_offset' ----------------------------------------------------
 
-test_that("'to_factor' leaves existing factor unchanged", {
-  x <- factor(letters)
-  expect_identical(to_factor(x), x)
+test_that("'user_specified_offset' works with pois", {
+  expect_true(user_specified_offset(make_small_mod_pois(use_exposure = TRUE)))
+  expect_false(user_specified_offset(make_small_mod_pois(use_exposure = FALSE)))
 })
 
-test_that("'to_factor' orders numeric x by values", {
-  x <- c(3, 1, 0.2, 1)
-  expect_identical(to_factor(x), factor(x, levels = c(0.2, 1, 3)))
+test_that("'user_specified_offset' works with binom", {
+  expect_true(user_specified_offset(make_small_mod_binom()))
 })
 
-
-test_that("'to_factor' orders non-numeric non-factor by order of appearance", {
-  x <- c("b", "a", 1, "a")
-  expect_identical(to_factor(x), factor(x, levels = c("b", "a", 1)))
+test_that("'user_specified_offset' works with norm", {
+  expect_true(user_specified_offset(make_small_mod_norm(use_weights = TRUE)))
+  expect_false(user_specified_offset(make_small_mod_norm(use_weights = FALSE)))
 })
 
 

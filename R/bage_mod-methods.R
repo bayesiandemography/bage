@@ -642,10 +642,10 @@ draw_vals_augment_fitted.bage_mod <- function(mod, quiet) {
   has_datamod_offset <- has_datamod && !has_datamod_outcome
   has_missing_outcome <- anyNA(outcome)
   has_disp <- has_disp(mod)
-  has_varying_offset <- has_varying_offset(mod)
-  ## create return object, possibly includin '.observed'
+  user_specified_offset <- user_specified_offset(mod)
+  ## create return object, possibly including '.observed'
   ans <- mod$data
-  if (has_varying_offset)
+  if (user_specified_offset)
     ans$.observed <- outcome / offset
   ## draw values for outcome and offset, where necessary
   if (has_confidential) {
@@ -924,8 +924,8 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, quiet) {
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ## add '.observed', '.fitted', and, in models
   ## with dispersion, '.expected', and return
-  has_varying_offset <- has_varying_offset(mod)
-  if (has_varying_offset)
+  user_specified_offset <- user_specified_offset(mod)
+  if (user_specified_offset)
     ans$.observed <- ans[[nm_outcome_data]] / ans[[nm_offset_data]]
   ans$.fitted <- fitted
   if (has_disp)
@@ -1392,7 +1392,7 @@ forecast.bage_mod <- function(object,
   ## and hence must be included in 'formula',
   ## and hence cannot be included in 'formula_covariates'.
   check_old_version(x = object, nm_x = "object")
-  nm_offset_data <- object$nm_offset_data
+  nm_offset_data <- get_nm_offset_data(object)
   nm_offset_mod <- get_nm_offset_mod(object)
   error_offset_formula_used(nm_offset_data = nm_offset_data,
                             nm_offset_mod = nm_offset_mod,
@@ -1548,7 +1548,7 @@ forecast_augment.bage_mod <- function(mod,
   nm_outcome_data_true <- paste0(".", nm_outcome_data)
   nm_offset_data <- get_nm_offset_data(mod)
   nm_offset_data_true <- paste0(".", nm_offset_data)
-  has_offset_est <- has_varying_offset(mod)
+  has_offset_est <- user_specified_offset(mod)
   has_disp <- has_disp(mod)
   inv_transform <- get_fun_inv_transform(mod)
   var_time <- mod$var_time
@@ -1653,7 +1653,6 @@ forecast_augment.bage_mod_norm <- function(mod,
   nm_outcome_data <- get_nm_outcome_data(mod)
   nm_outcome_data_true <- paste0(".", nm_outcome_data)
   nm_offset_data <- get_nm_offset_data(mod)
-  has_offset_est <- has_varying_offset(mod)
   fun_orig_scale_linpred <- get_fun_orig_scale_linpred(mod)
   fun_orig_scale_disp <- get_fun_orig_scale_disp(mod)
   var_time <- mod$var_time
@@ -1737,8 +1736,8 @@ get_fun_ag_offset <- function(mod) {
 ## HAS_TESTS
 #' @export
 get_fun_ag_offset.bage_mod_pois <- function(mod) {
-  has_varying_offset <- has_varying_offset(mod)
-  if (has_varying_offset)
+  user_specified_offset <- user_specified_offset(mod)
+  if (user_specified_offset)
     return(sum)
   else
     return(function(x) 1)
@@ -2093,56 +2092,6 @@ has_disp <- function(mod) {
 has_disp.bage_mod <- function(mod) {
     mean_disp <- mod$mean_disp
     mean_disp > 0L
-}
-
-
-
-## 'has_varying_offset' ---------------------------------------------------------------
-
-#' Test Whether a Model Includes an Offset
-#'
-#' @param x A model object.
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-has_varying_offset <- function(mod) {
-    UseMethod("has_varying_offset")
-}
-
-## HAS_TESTS
-#' @export
-has_varying_offset.bage_mod <- function(mod) {
-  offset <- mod$offset
-  nm_offset_data <- mod$nm_offset_data
-  if (is.null(offset))
-    cli::cli_abort("Internal error: offset is NULL")
-  if (all(is.na(offset)))
-    cli::cli_abort("Internal error: offset all NA")
-  is_all_ones <- all(abs(offset - 1) < 1e-6, na.rm = TRUE)
-  has_nm_offset_data <- !is.null(nm_offset_data)
-  if (is_all_ones && !has_nm_offset_data)
-    FALSE
-  else if (!is_all_ones && !has_nm_offset_data)
-    cli::cli_abort("Internal error: offset not all ones, but no nm_offset_data")
-  else if (is_all_ones && has_nm_offset_data)
-    cli::cli_abort("Internal error: offset all ones, but has nm_offset_data")
-  else
-    TRUE
-}
-
-## HAS_TESTS
-#' @export
-has_varying_offset.bage_mod_binom <- function(mod) {
-  offset <- mod$offset
-  nm_offset_data <- mod$nm_offset_data
-  if (is.null(offset))
-    cli::cli_abort("Internal error: offset is NULL")
-  if (all(is.na(offset)))
-    cli::cli_abort("Internal error: offset all NA")
-  if (is.null(nm_offset_data))
-    cli::cli_abort("Internal error: nm_offset_data is NULL")
-  TRUE
 }
 
 
@@ -2534,7 +2483,6 @@ make_mod_outer.bage_mod_pois <- function(mod, mod_inner, use_term) {
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
   ans$offset <- ans$offset * mu_inner
   ans$mean_disp <- 0
-  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2544,7 +2492,6 @@ make_mod_outer.bage_mod_binom <- function(mod, mod_inner, use_term) {
   point_est_inner <- make_point_est_effects(mod_inner)
   ans <- set_priors_known(mod = mod, prior_values = point_est_inner)
   ans$mean_disp <- 0
-  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2557,7 +2504,6 @@ make_mod_outer.bage_mod_norm <- function(mod, mod_inner, use_term) {
   use_term <- !use_term
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
   ans$outcome <- ans$outcome - linpred_inner
-  ans$nm_offset_data <- "offset_inner_outer"
   ans
 }
 
@@ -2782,8 +2728,8 @@ print.bage_mod <- function(x, ...) {
                           width = 65L,
                           indent = 3L,
                           exdent = nchar_response + 7L)
-  has_varying_offset <- has_varying_offset(x)
-  if (has_varying_offset) {
+  user_specified_offset <- user_specified_offset(x)
+  if (user_specified_offset) {
     nm_offset_mod <- get_nm_offset_mod(x)
     nm_offset_data <- get_nm_offset_data(x)
     str_offset <- sprintf("% *s: %s",
@@ -2844,7 +2790,7 @@ print.bage_mod <- function(x, ...) {
   cat("\n\n")
   cat(paste(formula_text, collapse = "\n"))
   cat("\n\n")
-  if (has_varying_offset) {
+  if (user_specified_offset) {
     cat(str_offset)
     cat("\n")
   }
