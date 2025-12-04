@@ -312,7 +312,7 @@ set_covariates <- function(mod, formula) {
 #'   set_datamod_exposure(cv = cv_age)
 #' @export
 set_datamod_exposure <- function(mod, cv)  {
-  nm_offset_data <- mod$nm_offset_data
+  nm_offset_data <- get_nm_offset_data(mod)
   nm_offset_mod <- get_nm_offset_mod(mod)
   error_offset_formula_used(nm_offset_data = nm_offset_data,
                             nm_offset_mod = nm_offset_mod,
@@ -331,7 +331,7 @@ set_datamod_exposure <- function(mod, cv)  {
     cli::cli_alert("Setting dispersion to zero. (Required for exposure data model.)")
     mod <- set_disp(mod, mean = 0)
   }
-  if (!has_varying_offset(mod)) {
+  if (!user_specified_offset(mod)) {
     cli::cli_abort(c("{.arg mod} does not include exposure.",
                      i = paste("An exposure data model can only be used",
                                "with a model with exposure.")))

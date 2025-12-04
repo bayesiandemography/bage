@@ -1411,6 +1411,25 @@ test_that("'symmetry_grade' function handles non-Matrix inputs by coercing", {
 })
 
 
+## 'to_factor' ----------------------------------------------------------------
+
+test_that("'to_factor' leaves existing factor unchanged", {
+  x <- factor(letters)
+  expect_identical(to_factor(x), x)
+})
+
+test_that("'to_factor' orders numeric x by values", {
+  x <- c(3, 1, 0.2, 1)
+  expect_identical(to_factor(x), factor(x, levels = c(0.2, 1, 3)))
+})
+
+
+test_that("'to_factor' orders non-numeric non-factor by order of appearance", {
+  x <- c("b", "a", 1, "a")
+  expect_identical(to_factor(x), factor(x, levels = c("b", "a", 1)))
+})
+
+
 ## 'warn_not_aggregating' -----------------------------------------------------
 
 test_that("warn_not_aggregating returns TRUE with no duplicates", {

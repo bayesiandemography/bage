@@ -2542,80 +2542,6 @@ test_that("'has_disp' works with valid inputs", {
 })
 
 
-## 'has_varying_offset' -------------------------------------------------------
-
-test_that("'has_varying_offset' works with Poisson, valid inputs", {
-  data <- data.frame(deaths = 1:10,
-                     popn = 21:30,
-                     time = 2001:2010)
-  mod <- mod_pois(deaths ~ time,
-                  data = data,
-                  exposure = popn)
-  expect_true(has_varying_offset(mod))
-  mod <- mod_pois(deaths ~ time,
-                  data = data,
-                  exposure = 1)
-  expect_false(has_varying_offset(mod))
-})
-
-test_that("'has_varying_offset' raises correct errors with Poisson", {
-  data <- data.frame(deaths = 1:10,
-                     popn = 21:30,
-                     time = 2001:2010)
-  mod <- mod_pois(deaths ~ time,
-                  data = data,
-                  exposure = popn)
-  mod_wrong <- mod
-  mod_wrong$offset <- NULL
-  expect_error(has_varying_offset(mod_wrong),
-               "Internal error: offset is NULL")
-  mod_wrong <- mod
-  mod_wrong$offset <- rep(NA, 10)
-  expect_error(has_varying_offset(mod_wrong),
-               "Internal error: offset all NA")
-  mod_wrong <- mod
-  mod_wrong$nm_offset_data <- NULL
-  expect_error(has_varying_offset(mod_wrong),
-               "Internal error: offset not all ones, but no nm_offset_data")
-  mod_wrong <- mod
-  mod_wrong$offset <- rep(1, 10)
-  mod_wrong$nm_offset_data <- "popn"
-  expect_error(has_varying_offset(mod_wrong),
-               "Internal error: offset all ones, but has nm_offset_data")
-})
-
-test_that("'has_varying_offset' works with binomial, valid inputs", {
-  data <- data.frame(deaths = 1:10,
-                     popn = 21:30,
-                     time = 2001:2010)
-  mod <- mod_binom(deaths ~ time,
-                  data = data,
-                  size = popn)
-  expect_true(has_varying_offset(mod))
-})
-
-test_that("'has_varying_offset' raises correct errors with Poisson", {
-  data <- data.frame(deaths = 1:10,
-                     popn = 21:30,
-                     time = 2001:2010)
-  mod <- mod_binom(deaths ~ time,
-                  data = data,
-                  size = popn)
-  mod_wrong <- mod
-  mod_wrong$offset <- NULL
-  expect_error(has_varying_offset(mod_wrong),
-               "Internal error: offset is NULL")
-  mod_wrong <- mod
-  mod_wrong$offset <- rep(NA, 10)
-  expect_error(has_varying_offset(mod_wrong),
-               "Internal error: offset all NA")
-  mod_wrong <- mod
-  mod_wrong$nm_offset_data <- NULL
-  expect_error(has_varying_offset(mod_wrong),
-               "Internal error: nm_offset_data is NULL")
-})
-
-
 ## 'is_fitted' ----------------------------------------------------------------
 
 test_that("'is_fitted' works with valid inputs", {
@@ -3235,7 +3161,6 @@ test_that("'make_mod_outer' works with pois", {
                                            rows = NULL))
   expect_equal(mod_outer$offset, mod$offset * mu)
   expect_equal(mod_outer$mean_disp, 0)
-  expect_identical(mod_outer$nm_offset_data, "offset_inner_outer")
 })
 
 test_that("'make_mod_outer' keeps covariates", {
@@ -3277,7 +3202,6 @@ test_that("'make_mod_outer' works with binom", {
   expect_s3_class(mod_outer$priors[["age"]], "bage_prior_known")
   expect_equal(mod_outer$offset, mod$offset)
   expect_equal(mod_outer$mean_disp, 0)
-  expect_identical(mod_outer$nm_offset_data, "offset_inner_outer")
 })
 
 test_that("'make_mod_outer' works with norm", {
@@ -3301,7 +3225,6 @@ test_that("'make_mod_outer' works with norm", {
                                        rows = NULL)
   expect_equal(mod_outer$outcome, mod$outcome - mu)
   expect_true(mod_outer$mean_disp > 0)
-  expect_identical(mod_outer$nm_offset_data, "offset_inner_outer")
 })
 
 

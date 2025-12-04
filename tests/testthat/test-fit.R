@@ -556,7 +556,7 @@ test_that("'mod_norm' works with constant weights - all 1.01", {
                      region = c("a", "b", "c"))
   spd$log_covratio <- rnorm(n = nrow(spd))
   spd$wt <- 1.01
-  mod_norm(log_covratio ~ age + time + sex + region,
+  mod <- mod_norm(log_covratio ~ age + time + sex + region,
            data = spd,
            weights = wt) |>
     set_prior(age ~ RW(s = 1, sd = 1)) |>
@@ -588,7 +588,6 @@ test_that("'mod_norm' works with constant weights - varying", {
         vars_inner = c("age", "sex", "time"))
   expect_true(is_fitted(mod))
 })
-
 
 
 ## 'make_f_new' ---------------------------------------------------------------

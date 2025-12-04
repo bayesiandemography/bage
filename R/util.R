@@ -988,7 +988,30 @@ symmetry_grade <- function(Q,
   else
     "severe"
 }
-                                              
+
+
+
+## HAS_TESTS
+#' Function Used to Convert Variables in Data to Factors
+#'
+#' If a variable is already a factor, leave it unchanged.
+#' If a variable is numeric, order levels by value.
+#' Otherwise, order levels by first appearance.
+#'
+#' @param x A vector
+#'
+#' @returns A factor
+#'
+#' @noRd
+to_factor <- function(x) {
+  if (is.factor(x))
+    x
+  else if (is.numeric(x))
+    factor(x)
+  else
+    factor(x, levels = unique(x))
+}  
+
   
 ## HAS_TESTS
 #' Warn the User that Aggregation Behavior Has Changed
