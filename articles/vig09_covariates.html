@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -207,7 +207,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.23     0.65      0.49   30      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.15     0.63      0.44   30      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>To obtain estimates of the coefficients (ie estimates of the <span class="math inline">\(\zeta_p\)</span>) we call function <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> and filter out rows for the <code>"covariates"</code> term.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_gdp_dens</span> <span class="op">|&gt;</span></span>
@@ -217,7 +217,7 @@ where</p>
 <span><span class="co">#&gt;   term       component level                      .fitted</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      gdp_pc_2023     -0.23 (-1.4, 0.99)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> covariates coef      dens_2020Medium -0.95 (-2.6, 0.73)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> covariates coef      dens_2020Medium -0.94 (-2.5, 0.69)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="3.3">
 <h3 id="covariates-that-allow-for-unusual-subsets">
@@ -242,7 +242,7 @@ where</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 4</span></span></span>
 <span><span class="co">#&gt;   term       component level                           .fitted</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                      <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      is_dragon_yearTRUE 0.065 (-0.047, 0.18)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      is_dragon_yearTRUE 0.071 (-0.046, 0.18)</span></span></code></pre></div>
 <p>There is some evidence for extra births, though there is substantial uncertainty about the size of the effect.</p>
 <p>Next we expand the model to allow the dragon-year effect to differ across age groups. We create a variable that takes the values <code>"baseline"</code> in all years, except in dragon years, when it takes the name of the age group. We turn this variable into a factor with <code>"baseline"</code> as its first level.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -302,7 +302,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        0.86     0.41      0.40   22      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.83     0.41      0.38   22      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Rather than a single dragon-year coefficient, we have a coefficient for each age group. We extract them and tidy up the labels.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_dragon_age</span> <span class="op">|&gt;</span></span>
@@ -311,17 +311,17 @@ where</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"is_dragon_year_age"</span>, <span class="st">""</span>, <span class="va">level</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">.fitted</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 9 × 2</span></span></span>
-<span><span class="co">#&gt;   age                 .fitted</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 10-14    0.58 (-0.057, 1.3)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 15-19 -0.0071 (-0.21, 0.19)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 20-24   0.045 (-0.16, 0.23)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 25-29   0.062 (-0.11, 0.25)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 30-34   0.086 (-0.12, 0.27)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 35-39   0.043 (-0.15, 0.25)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 40-44   0.072 (-0.12, 0.25)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 45-49   0.096 (-0.17, 0.36)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> 50-54    0.32 (-0.26, 0.86)</span></span></code></pre></div>
+<span><span class="co">#&gt;   age                .fitted</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 10-14   0.58 (-0.031, 1.3)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 15-19 -0.0093 (-0.22, 0.2)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 20-24  0.045 (-0.15, 0.24)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 25-29  0.062 (-0.12, 0.25)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 30-34   0.079 (-0.1, 0.26)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 35-39  0.048 (-0.15, 0.22)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 40-44  0.072 (-0.11, 0.26)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 45-49  0.095 (-0.17, 0.37)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> 50-54   0.33 (-0.25, 0.86)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="3.4">
 <h3 id="forecasting">

@@ -36,9 +36,8 @@ An object of class `"bage_prior_rwrandom"` or `"bage_prior_rwzero"`.
 
 ## Details
 
-If [`RW2()`](https://bayesiandemography.github.io/bage/reference/RW2.md)
-is used with an interaction, a separate random walk is constructed
-within each combination of the 'by' variables.
+If `RW()` is used with an interaction, a separate random walk is
+constructed within each combination of the 'by' variables.
 
 Argument `s` controls the size of innovations. Smaller values for `s`
 tend to produce smoother series.

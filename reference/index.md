@@ -8,6 +8,10 @@
   : Autoregressive Prior of Order 1
 - [`CSA`](https://bayesiandemography.github.io/bage/reference/CSA.md) :
   Scaled SVD Components from Census School Attendance Data
+- [`DRW()`](https://bayesiandemography.github.io/bage/reference/DRW.md)
+  : Damped Random Walk Prior
+- [`DRW2()`](https://bayesiandemography.github.io/bage/reference/DRW2.md)
+  : Damped Second-Order Random Walk Prior
 - [`HFD`](https://bayesiandemography.github.io/bage/reference/HFD.md) :
   Scaled SVD Components from Human Fertility Database
 - [`HIMD_R`](https://bayesiandemography.github.io/bage/reference/HIMD_R.md)
@@ -75,6 +79,10 @@
 - [`forecast(`*`<bage_mod>`*`)`](https://bayesiandemography.github.io/bage/reference/forecast.bage_mod.md)
   : Use a Model to Make a Forecast
 - [`generate(`*`<bage_prior_ar>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_drwrandom>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_drwzero>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_drw2random>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_drw2zero>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_known>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_lin>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_linar>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)

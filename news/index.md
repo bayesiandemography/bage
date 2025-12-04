@@ -2,6 +2,17 @@
 
 ## bage 0.10.3
 
+### Bug fix
+
+- Fixed bug in “inner-outer” calculation method reported by Daniel
+  Timothy (issue
+  [\#106](https://github.com/bayesiandemography/bage/issues/106)). The
+  calculations were doing an indirect check of whether the user has
+  specified an offset, where it would have been better to have done a
+  direct check, leading to failure in some edge cases.
+
+## bage 0.10.3
+
 ### Articles
 
 - Tidying of package website
