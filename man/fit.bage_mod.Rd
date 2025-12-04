@@ -4,7 +4,7 @@
 \alias{fit.bage_mod}
 \title{Fit a Model}
 \usage{
-fit.bage_mod(
+\method{fit}{bage_mod}(
   object,
   method = c("standard", "inner-outer"),
   vars_inner = NULL,

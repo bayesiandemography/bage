@@ -4,7 +4,7 @@
 \alias{forecast.bage_mod}
 \title{Use a Model to Make a Forecast}
 \usage{
-forecast.bage_mod(
+\method{forecast}{bage_mod}(
   object,
   newdata = NULL,
   labels = NULL,

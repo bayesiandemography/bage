@@ -4,7 +4,7 @@
 \alias{generate.bage_ssvd}
 \title{Generate Random Age or Age-Sex Profiles}
 \usage{
-generate.bage_ssvd(
+\method{generate}{bage_ssvd}(
   x,
   v = NULL,
   n_draw = 20,
