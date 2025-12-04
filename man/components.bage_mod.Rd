@@ -4,7 +4,7 @@
 \alias{components.bage_mod}
 \title{Extract Values for Hyper-Parameters}
 \usage{
-\method{components}{bage_mod}(object, quiet = FALSE, original_scale = FALSE, ...)
+components.bage_mod(object, quiet = FALSE, original_scale = FALSE, ...)
 }
 \arguments{
 \item{object}{Object of class \code{"bage_mod"},

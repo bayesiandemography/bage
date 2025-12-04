@@ -33,65 +33,95 @@
 \alias{generate.bage_prior_svd_rw2zero}
 \title{Generate Values from Priors}
 \usage{
-\method{generate}{bage_prior_ar}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_ar(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_drwrandom}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_drwrandom(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_drwzero}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_drwzero(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_drw2random}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_drw2random(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_drw2zero}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_drw2zero(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_known}(x, n_element = 20, n_draw = 25, ...)
+generate.bage_prior_known(x, n_element = 20, n_draw = 25, ...)
 
-\method{generate}{bage_prior_lin}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_lin(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_linar}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_linar(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_linex}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_linex(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_norm}(x, n_element = 20, n_draw = 25, ...)
+generate.bage_prior_norm(x, n_element = 20, n_draw = 25, ...)
 
-\method{generate}{bage_prior_normfixed}(x, n_element = 20, n_draw = 25, ...)
+generate.bage_prior_normfixed(x, n_element = 20, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwrandom}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rwrandom(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwrandomseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rwrandomseasfix(
+  x,
+  n_along = 20,
+  n_by = 1,
+  n_draw = 25,
+  ...
+)
 
-\method{generate}{bage_prior_rwrandomseasvary}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rwrandomseasvary(
+  x,
+  n_along = 20,
+  n_by = 1,
+  n_draw = 25,
+  ...
+)
 
-\method{generate}{bage_prior_rwzero}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rwzero(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwzeroseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rwzeroseasfix(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwzeroseasvary}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rwzeroseasvary(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2random}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rw2random(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2randomseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rw2randomseasfix(
+  x,
+  n_along = 20,
+  n_by = 1,
+  n_draw = 25,
+  ...
+)
 
-\method{generate}{bage_prior_rw2randomseasvary}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rw2randomseasvary(
+  x,
+  n_along = 20,
+  n_by = 1,
+  n_draw = 25,
+  ...
+)
 
-\method{generate}{bage_prior_rw2zero}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rw2zero(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2zeroseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rw2zeroseasfix(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2zeroseasvary}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_rw2zeroseasvary(
+  x,
+  n_along = 20,
+  n_by = 1,
+  n_draw = 25,
+  ...
+)
 
-\method{generate}{bage_prior_spline}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_spline(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_svd}(x, n_element = 1, n_draw = 25, ...)
+generate.bage_prior_svd(x, n_element = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_svd_ar}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_svd_ar(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_svd_rwrandom}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_svd_rwrandom(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_svd_rwzero}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_svd_rwzero(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_svd_rw2random}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_svd_rw2random(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_svd_rw2zero}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+generate.bage_prior_svd_rw2zero(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_prior"}}

@@ -4,7 +4,7 @@
 \alias{components.bage_ssvd}
 \title{Extract Components used by SVD Summary}
 \usage{
-\method{components}{bage_ssvd}(
+components.bage_ssvd(
   object,
   v = NULL,
   n_comp = NULL,

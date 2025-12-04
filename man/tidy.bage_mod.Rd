@@ -4,7 +4,7 @@
 \alias{tidy.bage_mod}
 \title{Summarize Terms from a Fitted Model}
 \usage{
-\method{tidy}{bage_mod}(x, ...)
+tidy.bage_mod(x, ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_mod"}, typically

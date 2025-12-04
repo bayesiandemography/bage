@@ -4,7 +4,7 @@
 \alias{augment.bage_mod}
 \title{Extract Data and Modeled Values}
 \usage{
-\method{augment}{bage_mod}(x, quiet = FALSE, ...)
+augment.bage_mod(x, quiet = FALSE, ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_mod"}, typically
