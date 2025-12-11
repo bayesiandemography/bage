@@ -1,5 +1,5 @@
 
-# bage 0.10.4
+# bage 0.10.5
 
 ## Added 'damped random walk' priors
 
