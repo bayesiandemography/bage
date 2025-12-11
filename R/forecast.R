@@ -175,8 +175,8 @@ forecast_drw <- function(rw_est,
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   n_draw <- rvec::n_draw(rw_est)
-  ans <- rvec::new_rvec(length = n_along_forecast * n_by, n_draw = n_draw)
-  tmp <- rvec::new_rvec(length = n_along_forecast + 1L, n_draw = n_draw)
+  ans <- rvec::new_rvec_dbl(length = n_along_forecast * n_by, n_draw = n_draw)
+  tmp <- rvec::new_rvec_dbl(length = n_along_forecast + 1L, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     i_est <- matrix_along_by_est[n_along_est, i_by] + 1L ## matrix uses 0-based index
     tmp[[1L]] <- rw_est[i_est]
@@ -263,8 +263,8 @@ forecast_drw2 <- function(rw_est,
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   n_draw <- rvec::n_draw(rw_est)
-  ans <- rvec::new_rvec(length = n_along_forecast * n_by, n_draw = n_draw)
-  tmp <- rvec::new_rvec(length = n_along_forecast + 2L, n_draw = n_draw)
+  ans <- rvec::new_rvec_dbl(length = n_along_forecast * n_by, n_draw = n_draw)
+  tmp <- rvec::new_rvec_dbl(length = n_along_forecast + 2L, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     s_est <- c(n_along_est - 1L, n_along_est)
     i_est <- matrix_along_by_est[s_est, i_by] + 1L ## matrix uses 0-based index
@@ -351,7 +351,7 @@ forecast_lin <- function(slope,
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   s <- seq.int(from = n_along_est + 1L, length.out = n_along_forecast)
-  ans <- rvec::new_rvec(length = n_along_forecast * n_by, n_draw = rvec::n_draw(sd))
+  ans <- rvec::new_rvec_dbl(length = n_along_forecast * n_by, n_draw = rvec::n_draw(sd))
   intercept <- -0.5 * (n_along_est + 1) * slope
   for (i_by in seq_len(n_by)) {
     i_ans <- matrix_along_by_forecast[, i_by] + 1L

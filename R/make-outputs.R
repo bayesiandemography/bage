@@ -1287,7 +1287,7 @@ make_hyperrand_lin <- function(prior,
   n_by <- ncol(matrix_along_by_effectfree)
   v <- seq_len(n_along) - 0.5 * (n_along + 1)
   n_draw <- rvec::n_draw(hyperrandfree)
-  trend <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  trend <- rvec::new_rvec_dbl(length = n_along * n_by, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     i_along <- matrix_along_by_effectfree[, i_by] + 1L
     trend[i_along] <- hyperrandfree[[i_by]] * v
@@ -1297,7 +1297,7 @@ make_hyperrand_lin <- function(prior,
   error <- matrix_effectfree_effect %*% error
   ## calculate slope on constrained space
   n_by_constr <- ncol(matrix_along_by_effect)
-  slope <- rvec::new_rvec(length = n_by_constr, n_draw = n_draw)
+  slope <- rvec::new_rvec_dbl(length = n_by_constr, n_draw = n_draw)
   for (i_by in seq_len(n_by_constr)) {
     i_1 <- matrix_along_by_effect[1L, i_by] + 1L
     i_2 <- matrix_along_by_effect[2L, i_by] + 1L
@@ -1344,7 +1344,7 @@ make_hyperrand_randomseasfix <- function(prior,
   n_along <- nrow(matrix_along_by_effectfree)
   n_by <- ncol(matrix_along_by_effectfree)
   n_draw <- rvec::n_draw(hyperrandfree)
-  season <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  season <- rvec::new_rvec_dbl(length = n_along * n_by, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     sum_seas <- 0
     for (i_along in seq_len(n_along)) {
@@ -1406,7 +1406,7 @@ make_hyperrand_randomseasvary <- function(prior,
   n_by <- ncol(matrix_along_by_effectfree)
   n_along_hyper <- length(hyperrandfree) %/% n_by
   n_draw <- rvec::n_draw(hyperrandfree)
-  season <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  season <- rvec::new_rvec_dbl(length = n_along * n_by, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     i_along_hyper <- 1L
     sum_seas <- 0
@@ -1472,7 +1472,7 @@ make_hyperrand_zeroseasfix <- function(prior,
   n_along <- nrow(matrix_along_by_effectfree)
   n_by <- ncol(matrix_along_by_effectfree)
   n_draw <- rvec::n_draw(hyperrandfree)
-  season <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  season <- rvec::new_rvec_dbl(length = n_along * n_by, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     sum_seas <- 0
     for (i_along in seq_len(n_along)) {
@@ -1539,7 +1539,7 @@ make_hyperrand_zeroseasvary <- function(prior,
   n_by <- ncol(matrix_along_by_effectfree)
   n_along_hyper <- length(hyperrandfree) %/% n_by
   n_draw <- rvec::n_draw(hyperrandfree)
-  season <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  season <- rvec::new_rvec_dbl(length = n_along * n_by, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     i_effectfree_first <- matrix_along_by_effectfree[1L, i_by] + 1L
     effectfree_first <- effectfree[[i_effectfree_first]]
@@ -1910,8 +1910,7 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
   if (!data_has_intercept)
     data[["(Intercept)"]] <- "(Intercept)"
   n_draw <- rvec::n_draw(fitted)
-  ans <- rvec::new_rvec(length = nrow(data), n_draw = n_draw)
-  ans[] <- 0
+  ans <- rvec::new_rvec_dbl(length = nrow(data), n_draw = n_draw)
   for (i_term in seq_along(dimnames_terms)) {
     dimnames_term <- dimnames_terms[[i_term]]
     nm_split <- dimnames_to_nm_split(dimnames_term)

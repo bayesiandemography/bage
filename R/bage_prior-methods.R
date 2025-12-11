@@ -2479,7 +2479,7 @@ forecast_term.bage_prior_linex <- function(prior,
   effect <- get_from_comp_effect(components = components, term = term)
   n_by <- ncol(matrix_along_by_est)
   n_draw <- rvec::n_draw(effect)
-  slope <- rvec::new_rvec(length = n_by, n_draw = n_draw)
+  slope <- rvec::new_rvec_dbl(length = n_by, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     i1 <- matrix_along_by_est[1L, i_by] + 1L
     i2 <- matrix_along_by_est[2L, i_by] + 1L
