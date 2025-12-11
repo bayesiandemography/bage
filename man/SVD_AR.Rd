@@ -3,6 +3,8 @@
 \name{SVD_AR}
 \alias{SVD_AR}
 \alias{SVD_AR1}
+\alias{SVD_DRW}
+\alias{SVD_DRW2}
 \alias{SVD_RW}
 \alias{SVD_RW2}
 \title{Dynamic SVD-Based Priors for Age Profiles or Age-Sex Profiles}
@@ -27,6 +29,35 @@ SVD_AR1(
   min = 0.8,
   max = 0.98,
   s = 1,
+  shape1 = 5,
+  shape2 = 5,
+  con = c("none", "by")
+)
+
+SVD_DRW(
+  ssvd,
+  v = NULL,
+  n_comp = NULL,
+  indep = TRUE,
+  s = 1,
+  sd = 1,
+  min = 0.8,
+  max = 0.98,
+  shape1 = 5,
+  shape2 = 5,
+  con = c("none", "by")
+)
+
+SVD_DRW2(
+  ssvd,
+  v = NULL,
+  n_comp = NULL,
+  indep = TRUE,
+  s = 1,
+  sd = 1,
+  sd_slope = 1,
+  min = 0.8,
+  max = 0.98,
   shape1 = 5,
   shape2 = 5,
   con = c("none", "by")
@@ -76,7 +107,7 @@ See below for details.}
 \item{s}{Scale for standard deviations terms.}
 
 \item{shape1, shape2}{Parameters for prior
-for coefficients in \code{SVD_AR()}.
+for coefficients in \code{SVD_AR()}, \code{SVD_DRW()}, and \code{SVD_DRW2()}.
 Defaults are \code{5} and \code{5}.}
 
 \item{con}{Constraints on parameters.
@@ -84,7 +115,8 @@ Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
 
 \item{min, max}{Minimum and maximum values
-for autocorrelation coefficient in \code{SVD_AR1()}.
+for autocorrelation coefficient in \code{SVD_AR1()},
+\code{SVD_DRW()}, and \code{SVD_DRW2()}.
 Defaults are \code{0.8} and \code{0.98}.}
 
 \item{sd}{Standard deviation
@@ -95,8 +127,8 @@ Can be \code{0}.}
 for initial slope. Default is \code{1}.}
 }
 \value{
-An object of class \code{"bage_prior_svd_ar"},
-\code{"bage_prior_svd_rw"}, or \code{"bage_prior_svd_rw2"}.
+An object inheriting from class
+\code{"bage_prior"}.
 }
 \description{
 Use components from a Singular Value Decomposition (SVD)
@@ -104,7 +136,9 @@ to model an interaction involving age and time, or age,
 sex/gender and time, where the coefficients evolve over time.
 }
 \details{
-\code{SVD_AR()}, \code{SVD_AR1()}, \code{SVD_RW()}, and \code{SVD_RW2()}
+\code{SVD_AR()}, \code{SVD_AR1()},
+\code{SVD_RW()}, \code{SVD_RW2()},
+\code{SVD_DRW()}, and \code{SVD_RW2()},
 priors assume that, in any given period,
 the age profiles or age-sex profiles for the quantity
 being modelled looks like they were drawn at random
@@ -178,10 +212,31 @@ and with \code{SVD_RW2()}, it is
 
 or
 
-\deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}.}
+\deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t};}
 
-For details, see \code{\link[=AR]{AR()}}, \code{\link[=AR1]{AR1()}},
-\code{\link[=RW]{RW()}}, and \code{\link[=RW2]{RW2()}}.
+with \code{SVD_DRW()}, it is
+
+\deqn{\alpha_{k,t} = \phi \alpha_{k,t-1} + \epsilon_{k,t}}
+
+or
+
+\deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t};}
+
+and with \code{SVD_DRW2()}, it is
+
+\deqn{\alpha_{k,t} = \alpha_{k,t-1} + \phi (\alpha_{k,t-1} - \alpha_{k,t-2}) + \epsilon_{k,t}}
+
+or
+
+\deqn{\alpha_{k,u,t} = \alpha_{k,u,t-1} + \phi (\alpha_{k,u,t-1} - \alpha_{k,u,t-2}) + \epsilon_{k,u,t}.}
+
+\code{SVD_AR1()} and \code{SVD_DRW()} are almost but not quite identical.
+In \code{SVD_AR1()}, the variance of \eqn{\epsilon_t}
+is chosen so that \eqn{\alpha_t} has marginal variance \eqn{\tau^2},
+while in \code{SVD_DRW()}, \eqn{\epsilon_t} has variance \eqn{\tau^2}.
+
+For details on the time series models, see \code{\link[=AR]{AR()}}, \code{\link[=AR1]{AR1()}},
+\code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=DRW]{DRW()}}, and \code{\link[=DRW2]{DRW2()}}.
 }
 
 \section{Constraints}{
@@ -240,6 +295,8 @@ vignette
 \item \code{\link[=SVD]{SVD()}} SVD prior for non-time-varying terms
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via second-order random walk
+\item \code{\link[=DRW]{DRW()}} Smoothing via damped random walk
+\item \code{\link[=DRW2]{DRW2()}} Smoothing via damped second-order random walk
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
 \item \link[=svds]{Scaled SVDs} Overview of scaled SVDs
 implemented in \pkg{bage}

@@ -48,6 +48,8 @@
 #' | [SVD_AR1()] | `SVD()`, but coefficients follow `AR1()` | Age or age-sex and time | Yes | Yes |
 #' | [SVD_RW()] | `SVD()`, but coefficients follow `RW()` | Age or age-sex and time | Yes | Yes |
 #' | [SVD_RW2()] | `SVD()`, but coefficients follow `RW2()` | Age or age-sex and time | Yes | Yes |
+#' | [SVD_DRW()] | `SVD()`, but coefficients follow `DRW()` | Age or age-sex and time | Yes | Yes |
+#' | [SVD_DRW2()] | `SVD()`, but coefficients follow `DRW2()` | Age or age-sex and time | Yes | Yes |
 #'
 #'
 #' @section Default prior:

@@ -317,6 +317,11 @@ AR1 <- function(s = 1,
 #' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 #' where `s` is provided by the user.
 #'
+#' `DRW()` has the same basic structure as [AR1()]. However,
+#' in `DRW()`, \eqn{\tau} controls the variance of the innovations,
+#' but in [AR1()] \eqn{\tau} controls the marginal
+#' variance of each \eqn{\beta_j} or \eqn{\beta_{u,v}}.
+#' 
 #' @inheritSection AR Constraints
 #' 
 #' @inheritParams AR
@@ -1969,7 +1974,9 @@ SVD <- function(ssvd,
 #' to model an interaction involving age and time, or age,
 #' sex/gender and time, where the coefficients evolve over time.
 #'
-#' `SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, and `SVD_RW2()`
+#' `SVD_AR()`, `SVD_AR1()`,
+#' `SVD_RW()`, `SVD_RW2()`,
+#'  `SVD_DRW()`, and `SVD_RW2()`,
 #' priors assume that, in any given period,
 #' the age profiles or age-sex profiles for the quantity
 #' being modelled looks like they were drawn at random
@@ -2040,10 +2047,31 @@ SVD <- function(ssvd,
 #'
 #' or
 #'
-#' \deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}.}
+#' \deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t};}
+#' 
+#' with `SVD_DRW()`, it is
 #'
-#' For details, see [AR()], [AR1()],
-#' [RW()], and [RW2()].
+#' \deqn{\alpha_{k,t} = \phi \alpha_{k,t-1} + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t};}
+#'
+#' and with `SVD_DRW2()`, it is
+#'
+#' \deqn{\alpha_{k,t} = \alpha_{k,t-1} + \phi (\alpha_{k,t-1} - \alpha_{k,t-2}) + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = \alpha_{k,u,t-1} + \phi (\alpha_{k,u,t-1} - \alpha_{k,u,t-2}) + \epsilon_{k,u,t}.}
+#'
+#' `SVD_AR1()` and `SVD_DRW()` are almost but not quite identical.
+#' In `SVD_AR1()`, the variance of \eqn{\epsilon_t}
+#' is chosen so that \eqn{\alpha_t} has marginal variance \eqn{\tau^2},
+#' while in `SVD_DRW()`, \eqn{\epsilon_t} has variance \eqn{\tau^2}.
+#'
+#' For details on the time series models, see [AR()], [AR1()],
+#' [RW()], [RW2()], [DRW()], and [DRW2()].
 #' 
 #' @inheritSection AR Constraints
 #'
@@ -2059,22 +2087,25 @@ SVD <- function(ssvd,
 #' @param sd_slope Standard deviation in prior
 #' for initial slope. Default is `1`.
 #' @param shape1,shape2 Parameters for prior
-#' for coefficients in `SVD_AR()`.
+#' for coefficients in `SVD_AR()`, `SVD_DRW()`, and `SVD_DRW2()`.
 #' Defaults are `5` and `5`.
 #' @param min,max Minimum and maximum values
-#' for autocorrelation coefficient in `SVD_AR1()`.
+#' for autocorrelation coefficient in `SVD_AR1()`,
+#' `SVD_DRW()`, and `SVD_DRW2()`.
 #' Defaults are `0.8` and `0.98`.
 #' @param con Constraints on parameters.
 #' Current choices are `"none"` and `"by"`.
 #' Default is `"none"`. See below for details.
 #'
-#' @returns An object of class `"bage_prior_svd_ar"`,
-#' `"bage_prior_svd_rw"`, or `"bage_prior_svd_rw2"`.
+#' @returns An object inheriting from class
+#' `"bage_prior"`.
 #'
 #' @seealso
 #' - [SVD()] SVD prior for non-time-varying terms
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via second-order random walk
+#' - [DRW()] Smoothing via damped random walk
+#' - [DRW2()] Smoothing via damped second-order random walk
 #' - [Sp()] Smoothing via splines
 #' - [Scaled SVDs][svds] Overview of scaled SVDs
 #'   implemented in \pkg{bage}
@@ -2183,6 +2214,131 @@ SVD_AR1 <- function(ssvd,
                         nm = "SVD_AR1")
 }
 
+#' @rdname SVD_AR
+#' @export
+SVD_DRW <- function(ssvd,
+                    v = NULL,
+                    n_comp = NULL,
+                    indep = TRUE,
+                    s = 1,
+                    sd = 1,
+                    min = 0.8,
+                    max = 0.98,
+                    shape1 = 5,
+                    shape2 = 5,
+                    con = c("none", "by")) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_flag(x = indep, nm_x = "indep")
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
+  check_min_max_ar(min = min, max = max)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
+  con <- match.arg(con)
+  scale <- as.double(s)
+  sd <- as.double(sd)
+  min <- as.double(min)
+  max <- as.double(max)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
+  if (sd > 0)
+    new_bage_prior_svd_drwrandom(ssvd = ssvd,
+                                 v = v,
+                                 nm_ssvd = nm_ssvd,
+                                 n_comp = n_comp,
+                                 indep = indep,
+                                 scale = scale,
+                                 sd = sd,
+                                 shape1 = shape1,
+                                 shape2 = shape2,
+                                 min = min,
+                                 max = max,
+                                 con = con)
+  else
+    new_bage_prior_svd_drwzero(ssvd = ssvd,
+                               v = v,
+                               nm_ssvd = nm_ssvd,
+                               n_comp = n_comp,
+                               indep = indep,
+                               scale = scale,
+                               shape1 = shape1,
+                               shape2 = shape2,
+                               min = min,
+                               max = max,
+                               con = con)
+}
+
+## HAS_TESTS
+#' @rdname SVD_AR
+#' @export
+SVD_DRW2 <- function(ssvd,
+                     v = NULL,
+                     n_comp = NULL,
+                     indep = TRUE,
+                     s = 1,
+                     sd = 1,
+                     sd_slope = 1,
+                     min = 0.8,
+                     max = 0.98,
+                     shape1 = 5,
+                     shape2 = 5,
+                     con = c("none", "by")) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_flag(x = indep, nm_x = "indep")
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "s", zero_ok = TRUE)
+  check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
+  check_min_max_ar(min = min, max = max)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
+  con <- match.arg(con)
+  scale <- as.double(s)
+  sd <- as.double(sd)
+  sd_slope <- as.double(sd_slope)
+  min <- as.double(min)
+  max <- as.double(max)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
+  if (sd > 0)
+    new_bage_prior_svd_drw2random(ssvd = ssvd,
+                                  v = v,
+                                  nm_ssvd = nm_ssvd,
+                                  n_comp = n_comp,
+                                  indep = indep,
+                                  scale = scale,
+                                  sd = sd,
+                                  sd_slope = sd_slope,
+                                  shape1 = shape1,
+                                  shape2 = shape2,
+                                  min = min,
+                                  max = max,
+                                  con = con)
+  else
+    new_bage_prior_svd_drw2zero(ssvd = ssvd,
+                                v = v,
+                                nm_ssvd = nm_ssvd,
+                                n_comp = n_comp,
+                                indep = indep,
+                                scale = scale,
+                                sd_slope = sd_slope,
+                                shape1 = shape1,
+                                shape2 = shape2,
+                                min = min,
+                                max = max,
+                                con = con)
+}
+
+## HAS_TESTS
 #' @rdname SVD_AR
 #' @export
 SVD_RW <- function(ssvd,
@@ -2872,6 +3028,157 @@ new_bage_prior_svd_ar <- function(ssvd,
   class(ans) <- c("bage_prior_svd_ar", "bage_prior")
   ans
 }
+
+## HAS_TESTS
+new_bage_prior_svd_drwrandom <- function(ssvd,
+                                         v,
+                                         nm_ssvd,
+                                         n_comp,
+                                         indep,
+                                         scale,
+                                         sd,
+                                         shape1,
+                                         shape2,
+                                         min,
+                                         max,
+                                         con) {
+  ans <- list(i_prior = 33L,
+              const = c(scale = scale,
+                        sd = sd,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max),
+              specific = list(ssvd = ssvd,
+                              v = v,
+                              nm_ssvd = nm_ssvd,
+                              n_comp = n_comp,
+                              indep = indep,
+                              scale = scale,
+                              sd = sd,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              along = NULL,
+                              con = con))
+  class(ans) <- c("bage_prior_svd_drwrandom", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_svd_drwzero <- function(ssvd,
+                                       v,
+                                       nm_ssvd,
+                                       n_comp,
+                                       indep,
+                                       scale,
+                                       shape1,
+                                       shape2,
+                                       min,
+                                       max,
+                                       con) {
+  ans <- list(i_prior = 31L,
+              const = c(scale = scale,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max),
+              specific = list(ssvd = ssvd,
+                              v = v,
+                              nm_ssvd = nm_ssvd,
+                              n_comp = n_comp,
+                              indep = indep,
+                              scale = scale,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              along = NULL,
+                              con = con))
+  class(ans) <- c("bage_prior_svd_drwzero", "bage_prior")
+  ans
+}
+ 
+## HAS_TESTS
+new_bage_prior_svd_drw2random <- function(ssvd,
+                                         v,
+                                         nm_ssvd,
+                                         n_comp,
+                                         indep,
+                                         scale,
+                                         sd,
+                                         sd_slope,
+                                         shape1,
+                                         shape2,
+                                         min,
+                                         max,
+                                         con) {
+  ans <- list(i_prior = 34L,
+              const = c(scale = scale,
+                        sd = sd,
+                        sd_slope = sd_slope,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max),
+              specific = list(ssvd = ssvd,
+                              v = v,
+                              nm_ssvd = nm_ssvd,
+                              n_comp = n_comp,
+                              indep = indep,
+                              scale = scale,
+                              sd = sd,
+                              sd_slope = sd_slope,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              along = NULL,
+                              con = con))
+  class(ans) <- c("bage_prior_svd_drw2random", "bage_prior")
+  ans
+}
+
+
+## HAS_TESTS
+new_bage_prior_svd_drw2zero <- function(ssvd,
+                                        v,
+                                        nm_ssvd,
+                                        n_comp,
+                                        indep,
+                                        scale,
+                                        shape1,
+                                        sd_slope = sd_slope,
+                                        shape2,
+                                        min,
+                                        max,
+                                        con) {
+  ans <- list(i_prior = 32L,
+              const = c(scale = scale,
+                        sd_slope = sd_slope,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max),
+              specific = list(ssvd = ssvd,
+                              v = v,
+                              nm_ssvd = nm_ssvd,
+                              n_comp = n_comp,
+                              indep = indep,
+                              scale = scale,
+                              sd_slope = sd_slope,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              along = NULL,
+                              con = con))
+  class(ans) <- c("bage_prior_svd_drw2zero", "bage_prior")
+  ans
+}
+
+
 
 ## HAS_TESTS
 new_bage_prior_svd_rwrandom <- function(ssvd,

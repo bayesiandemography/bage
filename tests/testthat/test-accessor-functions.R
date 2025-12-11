@@ -31,6 +31,21 @@ test_that("'get_from_comp_effect' works", {
                "Internal error")
 })
 
+test_that("'get_from_comp_sd' works", {
+  components <- tibble::tibble(
+    term = "age",
+    component = c(rep("effect", 5), rep("hyper", 2)),
+    level = c(0:4, "sd", "sd_seas"),
+    .fitted = rvec::runif_rvec(n = 7)
+  )
+  expect_identical(get_from_comp_sd(components = components,
+                                         term = "age"),
+                   components$.fitted[[6]])
+  expect_error(get_from_comp_sd(components = components,
+                                     term = "sex"),
+               "Internal error")
+})
+
 test_that("'get_from_comp_sd_seas' works", {
   components <- tibble::tibble(
     term = "age",

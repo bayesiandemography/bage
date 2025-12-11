@@ -102,6 +102,11 @@ Standard deviation \eqn{\tau}
 has a half-normal prior
 \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 where \code{s} is provided by the user.
+
+\code{DRW()} has the same basic structure as \code{\link[=AR1]{AR1()}}. However,
+in \code{DRW()}, \eqn{\tau} controls the variance of the innovations,
+but in \code{\link[=AR1]{AR1()}} \eqn{\tau} controls the marginal
+variance of each \eqn{\beta_j} or \eqn{\beta_{u,v}}.
 }
 
 \section{Constraints}{

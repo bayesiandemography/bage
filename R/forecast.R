@@ -156,8 +156,8 @@ forecast_components <- function(mod,
 #' Forecast a Damped Random Walk Process
 #'
 #' @param rw_est Historical estimates. An rvec.
-#' @param coef Damping coefficients. An rvec of length 1.
 #' @param sd Standard deviation. An rvec of length 1.
+#' @param coef Damping coefficients. An rvec of length 1.
 #' @param matrix_along_by_est Matrix mapping
 #' along and by dimensions to position in estimates
 #' @param matrix_along_by_forecast Matrix mapping
@@ -167,16 +167,16 @@ forecast_components <- function(mod,
 #'
 #' @noRd
 forecast_drw <- function(rw_est,
-                         coef,
                          sd,
+                         coef,
                          matrix_along_by_est,
                          matrix_along_by_forecast) {
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   n_draw <- rvec::n_draw(rw_est)
-  ans <- rvec::new_rvec(length = n_along_forecast * n_by, n_draw = n_draw)
-  tmp <- rvec::new_rvec(length = n_along_forecast + 1L, n_draw = n_draw)
+  ans <- rvec::new_rvec_dbl(length = n_along_forecast * n_by, n_draw = n_draw)
+  tmp <- rvec::new_rvec_dbl(length = n_along_forecast + 1L, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     i_est <- matrix_along_by_est[n_along_est, i_by] + 1L ## matrix uses 0-based index
     tmp[[1L]] <- rw_est[i_est]
@@ -192,11 +192,60 @@ forecast_drw <- function(rw_est,
 
 
 ## HAS_TESTS
+#' Forecast SVD Cofficients that Follow a Damped Random Walk
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param var_age Name of age variable, or NULL
+#' @param var_sexgender Name of sex/gender variable, or NULL
+#' @param components Tibble with with output
+#' from function 'components'
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_drw_svd <- function(prior,
+                             dimnames_term,
+                             dimnames_forecast,
+                             var_time,
+                             var_age,
+                             var_sexgender,
+                             components,
+                             labels_forecast) {
+  matrix_along_by_est <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                               dimnames_term = dimnames_term,
+                                                               var_time = var_time,
+                                                               var_age = var_age,
+                                                               var_sexgender = var_sexgender,
+                                                               append_zero = FALSE)
+  matrix_along_by_forecast <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                                    dimnames_term = dimnames_forecast,
+                                                                    var_time = var_time,
+                                                                    var_age = var_age,
+                                                                    var_sexgender = var_sexgender,
+                                                                    append_zero = FALSE)
+  term <- dimnames_to_nm(dimnames_term)
+  svd <- get_from_comp_svd(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
+  coef <- get_from_comp_coef(components = components, term = term)
+  forecast_drw(rw_est = svd,
+               sd = sd,
+               coef = coef,
+               matrix_along_by_est = matrix_along_by_est,
+               matrix_along_by_forecast = matrix_along_by_forecast)
+}
+
+
+## HAS_TESTS
 #' Forecast a Damped Second-Order Random Walk Process
 #'
 #' @param rw_est Historical estimates. An rvec.
-#' @param coef Damping coefficients. An rvec of length 1.
 #' @param sd Standard deviation. An rvec of length 1.
+#' @param coef Damping coefficients. An rvec of length 1.
 #' @param matrix_along_by_est Matrix mapping
 #' along and by dimensions to position in estimates
 #' @param matrix_along_by_forecast Matrix mapping
@@ -206,16 +255,16 @@ forecast_drw <- function(rw_est,
 #'
 #' @noRd
 forecast_drw2 <- function(rw_est,
-                          coef,
                           sd,
+                          coef,
                           matrix_along_by_est,
                           matrix_along_by_forecast) {
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   n_draw <- rvec::n_draw(rw_est)
-  ans <- rvec::new_rvec(length = n_along_forecast * n_by, n_draw = n_draw)
-  tmp <- rvec::new_rvec(length = n_along_forecast + 2L, n_draw = n_draw)
+  ans <- rvec::new_rvec_dbl(length = n_along_forecast * n_by, n_draw = n_draw)
+  tmp <- rvec::new_rvec_dbl(length = n_along_forecast + 2L, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
     s_est <- c(n_along_est - 1L, n_along_est)
     i_est <- matrix_along_by_est[s_est, i_by] + 1L ## matrix uses 0-based index
@@ -229,6 +278,57 @@ forecast_drw2 <- function(rw_est,
   }
   ans
 }
+
+## HAS_TESTS
+#' Forecast SVD Cofficients that Follow a Damped Second-Order Random Walk
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param var_age Name of age variable, or NULL
+#' @param var_sexgender Name of sex/gender variable, or NULL
+#' @param components Tibble with with output
+#' from function 'components'
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_drw2_svd <- function(prior,
+                              dimnames_term,
+                              dimnames_forecast,
+                              var_time,
+                              var_age,
+                              var_sexgender,
+                              components,
+                              labels_forecast) {
+  matrix_along_by_est <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                               dimnames_term = dimnames_term,
+                                                               var_time = var_time,
+                                                               var_age = var_age,
+                                                               var_sexgender = var_sexgender,
+                                                               append_zero = FALSE)
+  matrix_along_by_forecast <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                                    dimnames_term = dimnames_forecast,
+                                                                    var_time = var_time,
+                                                                    var_age = var_age,
+                                                                    var_sexgender = var_sexgender,
+                                                                    append_zero = FALSE)
+  term <- dimnames_to_nm(dimnames_term)
+  svd <- get_from_comp_svd(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
+  coef <- get_from_comp_coef(components = components, term = term)
+  forecast_drw2(rw_est = svd,
+                sd = sd,
+                coef = coef,
+                matrix_along_by_est = matrix_along_by_est,
+                matrix_along_by_forecast = matrix_along_by_forecast)
+}
+
+
+
 
 ## HAS_TESTS
 #' Forecast Line or Lines
@@ -251,7 +351,7 @@ forecast_lin <- function(slope,
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   s <- seq.int(from = n_along_est + 1L, length.out = n_along_forecast)
-  ans <- rvec::new_rvec(length = n_along_forecast * n_by, n_draw = rvec::n_draw(sd))
+  ans <- rvec::new_rvec_dbl(length = n_along_forecast * n_by, n_draw = rvec::n_draw(sd))
   intercept <- -0.5 * (n_along_est + 1) * slope
   for (i_by in seq_len(n_by)) {
     i_ans <- matrix_along_by_forecast[, i_by] + 1L

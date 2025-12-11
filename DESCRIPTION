@@ -20,7 +20,7 @@ Encoding: UTF-8
 LazyData: true
 Depends:
     R (>= 4.3.0),
-    rvec (>= 0.0.7)
+    rvec (>= 1.0.0)
 Imports:
     cli,
     generics,

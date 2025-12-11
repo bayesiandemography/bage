@@ -2508,8 +2508,8 @@ test_that("'make_linpred_from_stored_draws_covariates' works with valid inputs -
   ans_obtained <- make_linpred_from_stored_draws_covariates(mod,
                                                             point = FALSE,
                                                             rows = NULL)
-  ans_expected <- scale(data$income) %*% mod$draws_coef_covariates
-  expect_equal(as.matrix(ans_obtained), as.matrix(ans_expected))
+  ans_expected <- rvec::rvec(scale(data$income) %*% mod$draws_coef_covariates)
+  expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'make_linpred_from_stored_draws_covariates' works with valid inputs - point is TRUE", {
@@ -2549,7 +2549,7 @@ test_that("'make_linpred_from_stored_draws_covariates' works with valid inputs -
                                                             point = TRUE,
                                                             rows = 1:80)
   ans_expected <- (scale(data$income) %*% mod$point_coef_covariates)[1:80]
-  expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
+  expect_equal(ans_obtained, ans_expected)
 })
 
 
@@ -2574,8 +2574,7 @@ test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - po
                                                components = comp,
                                                data = mod$data,
                                                dimnames_terms = mod$dimnames_terms)
-  ans_expected <- ans_expected
-  expect_equal(as.matrix(ans_obtained), as.matrix(ans_expected))
+  expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - point is TRUE", {
@@ -2629,7 +2628,6 @@ test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - po
   ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree)
   expect_equal(as.numeric(ans_obtained), as.numeric(ans_expected))
 })
-
 
 
 ## 'make_point_est_effects' ---------------------------------------------------

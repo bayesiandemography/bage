@@ -127,7 +127,7 @@ draw_offset_obs_given_true.bage_datamod_exposure <- function(datamod,
                                                              offset_true) {
   n_offset <- length(offset_true)
   n_draw <- rvec::n_draw(components$.fitted)
-  ans <- rvec::new_rvec(length = n_offset, n_draw = n_draw)
+  ans <- rvec::new_rvec_dbl(length = n_offset, n_draw = n_draw)
   is_ok <- !is.na(offset_true)
   n_ok <- sum(is_ok)
   disp <- get_datamod_disp(datamod)
@@ -139,6 +139,7 @@ draw_offset_obs_given_true.bage_datamod_exposure <- function(datamod,
                                rate = rate,
                                n_draw = n_draw)
   ans[is_ok] <- 1 / ans_inv
+  ans[!is_ok] <- NA_real_
   ans
 }
 
