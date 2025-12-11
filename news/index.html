@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,14 @@
       <small>Source: <a href="https://github.com/bayesiandemography/bage/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.5" id="bage-0105">bage 0.10.5<a class="anchor" aria-label="anchor" href="#bage-0105"></a></h2>
+<div class="section level3">
+<h3 id="added-damped-random-walk-priors-0-10-5">Added ‘damped random walk’ priors<a class="anchor" aria-label="anchor" href="#added-damped-random-walk-priors-0-10-5"></a></h3>
+<ul><li>Added priors <code>drw()</code>, <code>drw2()</code> implementing damped versions of random walks and second-order random walks. In the <code>drw()</code> case, the basic idea is <code>x[t] = phi * x[t-1] + error[t]</code>. In the <code>drw2()</code> case it is <code>x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) +   error[t]</code>. These priors are useful for forecasting.</li>
+<li>Added priors <code>svd_drw()</code> and <code>svd_drw2()</code>. As above, but the random walks are on the coefficients for SVDs.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.3" id="bage-0103">bage 0.10.3<a class="anchor" aria-label="anchor" href="#bage-0103"></a></h2>
 <div class="section level3">

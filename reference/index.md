@@ -48,6 +48,8 @@
   : SVD-Based Prior for Age or Age-Sex Profiles
 - [`SVD_AR()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md)
   [`SVD_AR1()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md)
+  [`SVD_DRW()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md)
+  [`SVD_DRW2()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md)
   [`SVD_RW()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md)
   [`SVD_RW2()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md)
   : Dynamic SVD-Based Priors for Age Profiles or Age-Sex Profiles
@@ -104,6 +106,10 @@
   [`generate(`*`<bage_prior_spline>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_svd>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_svd_ar>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_svd_drwrandom>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_svd_drwzero>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_svd_drw2random>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_svd_drw2zero>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_svd_rwrandom>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_svd_rwzero>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_svd_rw2random>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)

@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -115,7 +115,7 @@
 <span><span class="co">#&gt;    1000     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged</span></span>
-<span><span class="co">#&gt;        0.77     0.05      0.07   15      TRUE</span></span>
+<span><span class="co">#&gt;        0.15     0.05      0.05   15      TRUE</span></span>
 <span><span class="co">#&gt;                                            message</span></span>
 <span><span class="co">#&gt;    both X-convergence and relative convergence (5)</span></span></code></pre></div>
 <p>The base model yields the following estimates for birth rates:</p>
@@ -235,7 +235,7 @@ where</p>
 <span><span class="co">#&gt;    1000     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        0.08     0.03      0.04   13      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.06     0.02      0.02   13      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Calling <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> on the fitted model yields the usual estimates of the birth rate, shown in the <code>.fitted</code> and <code>.expected</code> columns, but also estimates of true births, in the <code>.births</code> column:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_under</span> <span class="op">|&gt;</span></span>

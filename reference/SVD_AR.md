@@ -32,6 +32,35 @@ SVD_AR1(
   con = c("none", "by")
 )
 
+SVD_DRW(
+  ssvd,
+  v = NULL,
+  n_comp = NULL,
+  indep = TRUE,
+  s = 1,
+  sd = 1,
+  min = 0.8,
+  max = 0.98,
+  shape1 = 5,
+  shape2 = 5,
+  con = c("none", "by")
+)
+
+SVD_DRW2(
+  ssvd,
+  v = NULL,
+  n_comp = NULL,
+  indep = TRUE,
+  s = 1,
+  sd = 1,
+  sd_slope = 1,
+  min = 0.8,
+  max = 0.98,
+  shape1 = 5,
+  shape2 = 5,
+  con = c("none", "by")
+)
+
 SVD_RW(
   ssvd,
   v = NULL,
@@ -86,8 +115,8 @@ SVD_RW2(
 
 - shape1, shape2:
 
-  Parameters for prior for coefficients in `SVD_AR()`. Defaults are `5`
-  and `5`.
+  Parameters for prior for coefficients in `SVD_AR()`, `SVD_DRW()`, and
+  `SVD_DRW2()`. Defaults are `5` and `5`.
 
 - con:
 
@@ -97,7 +126,8 @@ SVD_RW2(
 - min, max:
 
   Minimum and maximum values for autocorrelation coefficient in
-  `SVD_AR1()`. Defaults are `0.8` and `0.98`.
+  `SVD_AR1()`, `SVD_DRW()`, and `SVD_DRW2()`. Defaults are `0.8` and
+  `0.98`.
 
 - sd:
 
@@ -110,16 +140,15 @@ SVD_RW2(
 
 ## Value
 
-An object of class `"bage_prior_svd_ar"`, `"bage_prior_svd_rw"`, or
-`"bage_prior_svd_rw2"`.
+An object inheriting from class `"bage_prior"`.
 
 ## Details
 
-`SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, and `SVD_RW2()` priors assume that,
-in any given period, the age profiles or age-sex profiles for the
-quantity being modelled looks like they were drawn at random from an
-external demographic database. For instance, the `SVD_AR()` prior
-obtained via
+`SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, `SVD_RW2()`, `SVD_DRW()`, and
+`SVD_RW2()`, priors assume that, in any given period, the age profiles
+or age-sex profiles for the quantity being modelled looks like they were
+drawn at random from an external demographic database. For instance, the
+`SVD_AR()` prior obtained via
 
     SVD_AR(HMD)
 
@@ -192,13 +221,39 @@ and with `SVD_RW2()`, it is
 or
 
 \$\$\alpha\_{k,u,t} = 2 \alpha\_{k,u,t-1} - \alpha\_{k,u,t-2} +
-\epsilon\_{k,u,t}.\$\$
+\epsilon\_{k,u,t};\$\$
 
-For details, see
+with `SVD_DRW()`, it is
+
+\$\$\alpha\_{k,t} = \phi \alpha\_{k,t-1} + \epsilon\_{k,t}\$\$
+
+or
+
+\$\$\alpha\_{k,u,t} = \phi \alpha\_{k,u,t-1} + \epsilon\_{k,u,t};\$\$
+
+and with `SVD_DRW2()`, it is
+
+\$\$\alpha\_{k,t} = \alpha\_{k,t-1} + \phi (\alpha\_{k,t-1} -
+\alpha\_{k,t-2}) + \epsilon\_{k,t}\$\$
+
+or
+
+\$\$\alpha\_{k,u,t} = \alpha\_{k,u,t-1} + \phi (\alpha\_{k,u,t-1} -
+\alpha\_{k,u,t-2}) + \epsilon\_{k,u,t}.\$\$
+
+`SVD_AR1()` and `SVD_DRW()` are almost but not quite identical. In
+`SVD_AR1()`, the variance of \\\epsilon_t\\ is chosen so that
+\\\alpha_t\\ has marginal variance \\\tau^2\\, while in `SVD_DRW()`,
+\\\epsilon_t\\ has variance \\\tau^2\\.
+
+For details on the time series models, see
 [`AR()`](https://bayesiandemography.github.io/bage/reference/AR.md),
 [`AR1()`](https://bayesiandemography.github.io/bage/reference/AR1.md),
-[`RW()`](https://bayesiandemography.github.io/bage/reference/RW.md), and
-[`RW2()`](https://bayesiandemography.github.io/bage/reference/RW2.md).
+[`RW()`](https://bayesiandemography.github.io/bage/reference/RW.md),
+[`RW2()`](https://bayesiandemography.github.io/bage/reference/RW2.md),
+[`DRW()`](https://bayesiandemography.github.io/bage/reference/DRW.md),
+and
+[`DRW2()`](https://bayesiandemography.github.io/bage/reference/DRW2.md).
 
 ## Constraints
 
@@ -250,6 +305,12 @@ Current options for `con` are:
 
 - [`RW2()`](https://bayesiandemography.github.io/bage/reference/RW2.md)
   Smoothing via second-order random walk
+
+- [`DRW()`](https://bayesiandemography.github.io/bage/reference/DRW.md)
+  Smoothing via damped random walk
+
+- [`DRW2()`](https://bayesiandemography.github.io/bage/reference/DRW2.md)
+  Smoothing via damped second-order random walk
 
 - [`Sp()`](https://bayesiandemography.github.io/bage/reference/Sp.md)
   Smoothing via splines

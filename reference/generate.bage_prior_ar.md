@@ -83,6 +83,18 @@ generate(x, n_element = 1, n_draw = 25, ...)
 # S3 method for class 'bage_prior_svd_ar'
 generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
+# S3 method for class 'bage_prior_svd_drwrandom'
+generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+# S3 method for class 'bage_prior_svd_drwzero'
+generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+# S3 method for class 'bage_prior_svd_drw2random'
+generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+# S3 method for class 'bage_prior_svd_drw2zero'
+generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
 # S3 method for class 'bage_prior_svd_rwrandom'
 generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 

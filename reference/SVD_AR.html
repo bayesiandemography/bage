@@ -17,7 +17,7 @@ sex/gender and time, where the coefficients evolve over time."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,6 +72,35 @@ sex/gender and time, where the coefficients evolve over time.</p>
 <span>  min <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  max <span class="op">=</span> <span class="fl">0.98</span>,</span>
 <span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  shape1 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  shape2 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  con <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"by"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">SVD_DRW</span><span class="op">(</span></span>
+<span>  <span class="va">ssvd</span>,</span>
+<span>  v <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_comp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  sd <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  min <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>  max <span class="op">=</span> <span class="fl">0.98</span>,</span>
+<span>  shape1 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  shape2 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  con <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"by"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">SVD_DRW2</span><span class="op">(</span></span>
+<span>  <span class="va">ssvd</span>,</span>
+<span>  v <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_comp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  sd <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  sd_slope <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  min <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>  max <span class="op">=</span> <span class="fl">0.98</span>,</span>
 <span>  shape1 <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  shape2 <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  con <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"by"</span><span class="op">)</span></span>
@@ -138,7 +167,7 @@ See below for details.</p></dd>
 
 <dt id="arg-shape-shape-">shape1, shape2<a class="anchor" aria-label="anchor" href="#arg-shape-shape-"></a></dt>
 <dd><p>Parameters for prior
-for coefficients in <code>SVD_AR()</code>.
+for coefficients in <code>SVD_AR()</code>, <code>SVD_DRW()</code>, and <code>SVD_DRW2()</code>.
 Defaults are <code>5</code> and <code>5</code>.</p></dd>
 
 
@@ -150,7 +179,8 @@ Default is <code>"none"</code>. See below for details.</p></dd>
 
 <dt id="arg-min-max">min, max<a class="anchor" aria-label="anchor" href="#arg-min-max"></a></dt>
 <dd><p>Minimum and maximum values
-for autocorrelation coefficient in <code>SVD_AR1()</code>.
+for autocorrelation coefficient in <code>SVD_AR1()</code>,
+<code>SVD_DRW()</code>, and <code>SVD_DRW2()</code>.
 Defaults are <code>0.8</code> and <code>0.98</code>.</p></dd>
 
 
@@ -167,12 +197,14 @@ for initial slope. Default is <code>1</code>.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An object of class <code>"bage_prior_svd_ar"</code>,
-<code>"bage_prior_svd_rw"</code>, or <code>"bage_prior_svd_rw2"</code>.</p>
+    <p>An object inheriting from class
+<code>"bage_prior"</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><code>SVD_AR()</code>, <code>SVD_AR1()</code>, <code>SVD_RW()</code>, and <code>SVD_RW2()</code>
+    <p><code>SVD_AR()</code>, <code>SVD_AR1()</code>,
+<code>SVD_RW()</code>, <code>SVD_RW2()</code>,
+<code>SVD_DRW()</code>, and <code>SVD_RW2()</code>,
 priors assume that, in any given period,
 the age profiles or age-sex profiles for the quantity
 being modelled looks like they were drawn at random
@@ -221,9 +253,21 @@ of \(\pmb{\alpha}_t\) or \(\pmb{\alpha}_{u,t}\) is</p>
 <p>and with <code>SVD_RW2()</code>, it is</p>
 <p>$$\alpha_{k,t} = 2 \alpha_{k,t-1} - \alpha_{k,t-2} + \epsilon_{k,t}$$</p>
 <p>or</p>
-<p>$$\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}.$$</p>
-<p>For details, see <code><a href="AR.html">AR()</a></code>, <code><a href="AR1.html">AR1()</a></code>,
-<code><a href="RW.html">RW()</a></code>, and <code><a href="RW2.html">RW2()</a></code>.</p>
+<p>$$\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t};$$</p>
+<p>with <code>SVD_DRW()</code>, it is</p>
+<p>$$\alpha_{k,t} = \phi \alpha_{k,t-1} + \epsilon_{k,t}$$</p>
+<p>or</p>
+<p>$$\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t};$$</p>
+<p>and with <code>SVD_DRW2()</code>, it is</p>
+<p>$$\alpha_{k,t} = \alpha_{k,t-1} + \phi (\alpha_{k,t-1} - \alpha_{k,t-2}) + \epsilon_{k,t}$$</p>
+<p>or</p>
+<p>$$\alpha_{k,u,t} = \alpha_{k,u,t-1} + \phi (\alpha_{k,u,t-1} - \alpha_{k,u,t-2}) + \epsilon_{k,u,t}.$$</p>
+<p><code>SVD_AR1()</code> and <code>SVD_DRW()</code> are almost but not quite identical.
+In <code>SVD_AR1()</code>, the variance of \(\epsilon_t\)
+is chosen so that \(\alpha_t\) has marginal variance \(\tau^2\),
+while in <code>SVD_DRW()</code>, \(\epsilon_t\) has variance \(\tau^2\).</p>
+<p>For details on the time series models, see <code><a href="AR.html">AR()</a></code>, <code><a href="AR1.html">AR1()</a></code>,
+<code><a href="RW.html">RW()</a></code>, <code><a href="RW2.html">RW2()</a></code>, <code><a href="DRW.html">DRW()</a></code>, and <code><a href="DRW2.html">DRW2()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="constraints">Constraints<a class="anchor" aria-label="anchor" href="#constraints"></a></h2>
@@ -273,6 +317,8 @@ vignette</p></li>
 <ul><li><p><code><a href="SVD.html">SVD()</a></code> SVD prior for non-time-varying terms</p></li>
 <li><p><code><a href="RW.html">RW()</a></code> Smoothing via random walk</p></li>
 <li><p><code><a href="RW2.html">RW2()</a></code> Smoothing via second-order random walk</p></li>
+<li><p><code><a href="DRW.html">DRW()</a></code> Smoothing via damped random walk</p></li>
+<li><p><code><a href="DRW2.html">DRW2()</a></code> Smoothing via damped second-order random walk</p></li>
 <li><p><code><a href="Sp.html">Sp()</a></code> Smoothing via splines</p></li>
 <li><p><a href="svds.html">Scaled SVDs</a> Overview of scaled SVDs
 implemented in <span class="pkg">bage</span></p></li>

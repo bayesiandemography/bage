@@ -282,7 +282,7 @@ mod_base
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.44     1.21      1.08   14      TRUE   relative convergence (4)
+#>        2.92     1.41      1.32   14      TRUE   relative convergence (4)
 ```
 
 ### 3.4 Extracting rates
@@ -503,7 +503,7 @@ mod_hmd
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.04     0.96      0.95    9      TRUE   relative convergence (4)
+#>        2.59     1.26      1.17    9      TRUE   relative convergence (4)
 ```
 
 ``` r

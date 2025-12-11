@@ -219,7 +219,7 @@ mod
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.31     0.17      0.12   17      TRUE   relative convergence (4)
+#>        0.36     0.20      0.14   17      TRUE   relative convergence (4)
 #> 
 
 ## original data, plus imputed values for outcome
@@ -233,7 +233,7 @@ mod |>
 #>  2 15-19 Female  2012        6     6 (5, 7)     153060 0.0000392
 #>  3 15-19 Female  2013        3     3 (2, 4)     152250 0.0000197
 #>  4 15-19 Female  2014        3     3 (2, 4)     152020 0.0000197
-#>  5 15-19 Female  2015        3     3 (2, 4)     152970 0.0000196
+#>  5 15-19 Female  2015        3     3 (2, 5)     152970 0.0000196
 #>  6 15-19 Female  2016        3     3 (2, 4)     154170 0.0000195
 #>  7 15-19 Female  2017        6     6 (5, 7)     154450 0.0000388
 #>  8 15-19 Female  2018        0     0 (0, 1)     154170 0        
@@ -250,8 +250,8 @@ mod |>
 #> # A tibble: 3 × 4
 #>   term    component level               .fitted
 #>   <chr>   <chr>     <chr>          <rdbl<1000>>
-#> 1 datamod prob      Female       0.97 (0.82, 1)
-#> 2 datamod prob      Male         0.98 (0.85, 1)
+#> 1 datamod prob      Female       0.96 (0.82, 1)
+#> 2 datamod prob      Male         0.98 (0.86, 1)
 #> 3 datamod rate      rate   0.027 (0.011, 0.055)
 
 ## the data have in fact been confidentialized,
@@ -287,6 +287,6 @@ mod
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.65     0.35      0.27   17      TRUE   relative convergence (4)
+#>        0.80     0.43      0.33   17      TRUE   relative convergence (4)
 #> 
 ```

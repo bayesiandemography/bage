@@ -105,6 +105,14 @@ where
 Standard deviation \\\tau\\ has a half-normal prior \$\$\tau \sim
 \text{N}^+(0, \mathtt{s}^2),\$\$ where `s` is provided by the user.
 
+`DRW()` has the same basic structure as
+[`AR1()`](https://bayesiandemography.github.io/bage/reference/AR1.md).
+However, in `DRW()`, \\\tau\\ controls the variance of the innovations,
+but in
+[`AR1()`](https://bayesiandemography.github.io/bage/reference/AR1.md)
+\\\tau\\ controls the marginal variance of each \\\beta_j\\ or
+\\\beta\_{u,v}\\.
+
 ## Constraints
 
 With some combinations of terms and priors, the values of the intercept,

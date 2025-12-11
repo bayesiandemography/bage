@@ -23,7 +23,7 @@ Damping often improves forecast accuracy."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -156,6 +156,10 @@ Its prior distribution is</p>
 has a half-normal prior
 $$\tau \sim \text{N}^+(0, \mathtt{s}^2),$$
 where <code>s</code> is provided by the user.</p>
+<p><code>DRW()</code> has the same basic structure as <code><a href="AR1.html">AR1()</a></code>. However,
+in <code>DRW()</code>, \(\tau\) controls the variance of the innovations,
+but in <code><a href="AR1.html">AR1()</a></code> \(\tau\) controls the marginal
+variance of each \(\beta_j\) or \(\beta_{u,v}\).</p>
     </div>
     <div class="section level2">
     <h2 id="constraints">Constraints<a class="anchor" aria-label="anchor" href="#constraints"></a></h2>

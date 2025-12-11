@@ -1,5 +1,17 @@
 # Changelog
 
+## bage 0.10.5
+
+### Added ‘damped random walk’ priors
+
+- Added priors `drw()`, `drw2()` implementing damped versions of random
+  walks and second-order random walks. In the `drw()` case, the basic
+  idea is `x[t] = phi * x[t-1] + error[t]`. In the `drw2()` case it is
+  `x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) + error[t]`. These priors are
+  useful for forecasting.
+- Added priors `svd_drw()` and `svd_drw2()`. As above, but the random
+  walks are on the coefficients for SVDs.
+
 ## bage 0.10.3
 
 ### Bug fix
