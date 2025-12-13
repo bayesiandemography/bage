@@ -830,6 +830,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, quiet) {
   inv_transform <- get_fun_inv_transform(mod)
   nm_outcome_data <- get_nm_outcome_data(mod)
   nm_offset_data <- get_nm_offset_data(mod)
+  is_outcome_in_data <- is_outcome_in_data(mod)
   ## prepare seeds
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
@@ -879,7 +880,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, quiet) {
     if (has_confidential)
       outcome <- draw_outcome_confidential(confidential = confidential,
                                            outcome_obs = outcome)
-    if (!quiet)
+    if (!quiet && is_outcome_in_data)
       cli::cli_alert_info(paste("Overwriting existing values for",
                                 "{.var {nm_outcome_data}}."))
     ans[[nm_outcome_data]] <- outcome
@@ -894,7 +895,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, quiet) {
                         nm_x = nm_outcome_data_true)
   }
   else {
-    if (!quiet)
+    if (!quiet && is_outcome_in_data)
       cli::cli_alert_info(paste("Overwriting existing values for",
                                 "{.var {nm_outcome_data}}."))
     ans[[nm_outcome_data]] <- outcome
@@ -951,6 +952,7 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod, quiet) {
   fun_orig_scale_offset <- get_fun_orig_scale_offset(mod)
   fun_orig_scale_disp <- get_fun_orig_scale_disp(mod)
   nm_outcome_data <- get_nm_outcome_data(mod)
+  is_outcome_in_data <- is_outcome_in_data(mod)
   ## prepare seeds
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
@@ -988,7 +990,7 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod, quiet) {
       offset = offset_orig_scale,
       fitted = fitted_orig_scale
     )
-    if (!quiet)
+    if (!quiet && is_outcome_in_data)
       cli::cli_alert_info(paste("Overwriting existing values for",
                                 "{.var {nm_outcome_data}}."))
     ans[[nm_outcome_data]] <- outcome_obs_orig_scale
@@ -1003,7 +1005,7 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod, quiet) {
                         nm_x = nm_outcome_data_true)
   }
   else {
-    if (!quiet)
+    if (!quiet && is_outcome_in_data)
       cli::cli_alert_info(paste("Overwriting existing values for",
                                 "{.var {nm_outcome_data}}."))
     ans[[nm_outcome_data]] <- outcome_true_orig_scale
@@ -1179,6 +1181,14 @@ fit.bage_mod <- function(object,
                          start_oldpar = FALSE,
                          ...) {
   check_old_version(x = object, nm_x = "object")
+  if (!is_outcome_in_data(object)) {
+    formula <- object$formula
+    nm_outcome_data <- get_nm_outcome_data(object)
+    cli::cli_abort(c("Model cannot be fitted if outcome variable not in {.arg data}.",
+                     i = "Formula: {.code {deparse(formula)}}.",
+                     i = "Outcome variable: {.var {nm_outcome_data}}.",
+                     i = "Variables in {.arg data}: {.var {names(data)}}."))
+  }
   check_mod_has_obs(object)
   method <- match.arg(method)
   optimizer <- match.arg(optimizer)
@@ -2126,6 +2136,32 @@ is_fitted <- function(x) {
 #' @export
 is_fitted.bage_mod <- function(x)
   !is.null(x$draws_effectfree)
+
+
+## 'is_outcome_in_data' -------------------------------------------------------
+
+#' Test Whether Outcome Variable Included Original Data
+#'
+#' Test whether 'data' has response from 'formula'.
+#' Test by seeing of 'outcome' part of model
+#' object non-NULL. Note that the outcome does not
+#' need to be speficied if the model is never
+#' going to be fitted (ie if draws are only obtained
+#' from the prior distribution).
+#'
+#' @param mod An object of class `"bage_mod"`.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+is_outcome_in_data <- function(mod) {
+  UseMethod("is_outcome_in_data")
+}
+
+## HAS_TESTS
+#' @export
+is_outcome_in_data.bage_mod <- function(mod)
+  !is.null(mod$outcome)
 
 
 ## 'make_disp_obs' ------------------------------------------------------------

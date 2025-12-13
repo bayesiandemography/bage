@@ -1487,13 +1487,13 @@ test_that("'make_outcome' works with valid inputs", {
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_outcome' throws error when variable not found", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- seq_len(nrow(data))
-    formula <- wrong ~ age:sex + time
-    expect_error(make_outcome(formula = formula,
-                              data = data),
-                 "Internal error: response \"wrong\" not found in `data`.")
+test_that("'make_outcome' returns NULL when variable not found", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$deaths <- seq_len(nrow(data))
+  formula <- not_in_data ~ age:sex + time
+  expect_identical(make_outcome(formula = formula,
+                                 data = data),
+                    NULL)
 })
 
 

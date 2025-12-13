@@ -130,10 +130,13 @@ mod_pois <- function(formula,
   args <- mod_helper(formula = formula,
                      data = data,
                      n_draw = 1000L)
+  outcome <- args$outcome
+  is_outcome_in_data <- !is.null(outcome)
   ## input checks specific to Poisson
-  check_response_nonneg(formula = formula,
-                        data = data,
-                        nm_distn = "Poisson")
+  if (is_outcome_in_data)
+    check_response_nonneg(formula = formula,
+                          data = data,
+                          nm_distn = "Poisson")
   ## process 'exposure'
   if (!methods::hasArg(exposure))
     cli::cli_abort("Argument {.arg exposure} is missing, with no default.")
@@ -149,24 +152,26 @@ mod_pois <- function(formula,
     check_offset_nonneg(nm_offset_data = nm_offset_data,
                         nm_offset_mod = "exposure",
                         data = data)
-    check_resp_zero_if_offset_zero(formula = formula,
-                                   nm_offset_data = nm_offset_data,
-                                   nm_offset_mod = "exposure",
-                                   data = data)
     check_offset_not_in_formula(nm_offset_data = nm_offset_data,
                                 nm_offset_mod = "exposure",
                                 formula = formula)
+    if (is_outcome_in_data)
+      check_resp_zero_if_offset_zero(formula = formula,
+                                     nm_offset_data = nm_offset_data,
+                                     nm_offset_mod = "exposure",
+                                     data = data)
     offset <- make_offset(nm_offset_data = nm_offset_data,
                           data = data)
   }
   else
     offset <- make_offset_ones(data)
   ## check for suspicious rates
-  outcome <- args$outcome
-  mult_high_rate <- 1000
-  message_suspicious_rates(outcome = outcome,
-                           exposure = offset,
-                           mult_high_rate = mult_high_rate)
+  if (is_outcome_in_data) {
+    mult_high_rate <- 1000
+    message_suspicious_rates(outcome = outcome,
+                             exposure = offset,
+                             mult_high_rate = mult_high_rate)
+  }
   ## create object and return
   ans <- c(args,
            list(offset = offset,
@@ -294,10 +299,13 @@ mod_binom <- function(formula, data, size) {
   args <- mod_helper(formula = formula,
                      data = data,
                      n_draw = 1000L)
+  outcome <- args$outcome
+  is_outcome_in_data <- !is.null(outcome)
   ## input checks specific to binomial
-  check_response_nonneg(formula = formula,
-                        data = data,
-                        nm_distn = "Binomial")
+  if (is_outcome_in_data)
+    check_response_nonneg(formula = formula,
+                          data = data,
+                          nm_distn = "Binomial")
   ## process 'size'
   if (!methods::hasArg(size))
     cli::cli_abort("Argument {.arg size} is missing, with no default.")
@@ -314,14 +322,16 @@ mod_binom <- function(formula, data, size) {
   check_offset_not_in_formula(nm_offset_data = nm_offset_data,
                               nm_offset_mod = "size",
                               formula = formula)
-  check_resp_zero_if_offset_zero(formula = formula,
-                                 nm_offset_data = nm_offset_data,
-                                 nm_offset_mod = "size",
-                                 data = data)
-  check_resp_le_offset(formula = formula,
-                       nm_offset_data = nm_offset_data,
-                       nm_offset_mod = "size",
-                       data = data)
+  if (is_outcome_in_data) {
+    check_resp_zero_if_offset_zero(formula = formula,
+                                   nm_offset_data = nm_offset_data,
+                                   nm_offset_mod = "size",
+                                   data = data)
+    check_resp_le_offset(formula = formula,
+                         nm_offset_data = nm_offset_data,
+                         nm_offset_mod = "size",
+                         data = data)
+  }
   offset <- make_offset(nm_offset_data = nm_offset_data,
                         data = data)
   ## create object and return
@@ -469,6 +479,8 @@ mod_norm <- function(formula, data, weights) {
   args <- mod_helper(formula = formula,
                      data = data,
                      n_draw = 1000L)
+  outcome <- args$outcome
+  is_outcome_in_data <- !is.null(outcome)
   ## process 'weights'
   if (!methods::hasArg(weights))
     cli::cli_abort("Argument {.arg weights} is missing, with no default.")
@@ -495,18 +507,23 @@ mod_norm <- function(formula, data, weights) {
   offset_mean <- mean(offset, na.rm = TRUE)
   offset <- offset / offset_mean
   ## process outcome
-  outcome <- args[["outcome"]]
-  n_obs <- sum(!is.na(outcome))
-  if (n_obs == 0L)
+  if (is_outcome_in_data) {
+    n_obs <- sum(!is.na(outcome))
+    if (n_obs == 0L)
+      outcome_mean <- 0
+    else
+      outcome_mean <- mean(outcome, na.rm = TRUE)
+    if (n_obs <= 1L)
+      outcome_sd <- 1
+    else
+      outcome_sd <- stats::sd(outcome, na.rm = TRUE)
+    outcome <- (outcome - outcome_mean) / outcome_sd
+    args[["outcome"]] <- outcome
+  }
+  else {
     outcome_mean <- 0
-  else
-    outcome_mean <- mean(outcome, na.rm = TRUE)
-  if (n_obs <= 1L)
     outcome_sd <- 1
-  else
-    outcome_sd <- stats::sd(outcome, na.rm = TRUE)
-  outcome <- (outcome - outcome_mean) / outcome_sd
-  args[["outcome"]] <- outcome
+  }
   ## create object and return
   ans <- c(args,
            list(offset = offset,

@@ -38,6 +38,17 @@ test_that("'mod_pois' works with valid inputs - no exposure", {
     expect_s3_class(ans_obtained, "bage_mod_pois")
 })
 
+test_that("'mod_pois' works with valid inputs - no response variable", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- mod_pois(formula = formula,
+                             data = data,
+                             exposure = 1)
+    expect_s3_class(ans_obtained, "bage_mod_pois")
+})
+
+
 test_that("'mod_pois' gives correct error when no exposure specified", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
@@ -47,7 +58,6 @@ test_that("'mod_pois' gives correct error when no exposure specified", {
                           data = data),
                  "Argument `exposure` is missing, with no default.")
 })
-
 
 
 ## 'mod_binom' ----------------------------------------------------------------
@@ -73,6 +83,17 @@ test_that("'mod_binom' works with valid inputs", {
     expect_identical(ans_noquote, ans_withquote)
 })
 
+test_that("'mod_binom' works with no response", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- mod_binom(formula = formula,
+                              data = data,
+                              size = popn)
+    expect_s3_class(ans_obtained, "bage_mod_binom")
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
 test_that("'mod_binom' gives correct error when no size supplied", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
@@ -82,7 +103,6 @@ test_that("'mod_binom' gives correct error when no size supplied", {
                            data = data),
                  "Argument `size` is missing, with no default.")
 })
-
 
 
 ## 'mod_norm' -----------------------------------------------------------------
@@ -112,6 +132,16 @@ test_that("'mod_norm' works with valid inputs - no weights", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$income <- rnorm(nrow(data))
+    formula <- income ~ age:sex + time
+    ans_obtained <- mod_norm(formula = formula,
+                             data = data,
+                             weights = 1)
+    expect_s3_class(ans_obtained, "bage_mod_norm")
+})
+
+test_that("'mod_norm' works with valid inputs - no response", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
     formula <- income ~ age:sex + time
     ans_obtained <- mod_norm(formula = formula,
                              data = data,

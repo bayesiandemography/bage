@@ -5969,6 +5969,37 @@ test_that("'generate' works with bage_prior_drwrandom", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'generate' works with bage_prior_drwrandom, n_by = 2, con = 'by'", {
+  x <- DRW(con = "by")
+  set.seed(0)
+  n_along <- 10
+  n_by <- 2
+  n_draw <- 25
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  set.seed(0)
+  sd <- draw_vals_sd(x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(x, n_sim = n_draw)
+  value <- draw_vals_drw(sd = sd,
+                         sd_init = 1,
+                         coef = coef,
+                         matrix_along_by = matrix(seq_len(2 * n_along) - 1L, nc = 2),
+                         levels_effect = seq_len(2 * n_along))
+  value <- array(value, c(n_along, n_by, n_draw))
+  means <- apply(value, c(1, 3), mean)
+  value[,1,] <- value[,1,] - means
+  value[,2,] <- value[,2,] - means
+  value <- as.numeric(value)
+  draw <- rep(seq_len(n_draw), each = n_along * n_by)
+  draw <- paste("Draw", draw)
+  draw <- factor(draw, levels = unique(draw))
+  by <- factor(rep(rep(paste("By", 1:2), each = 10), times = n_draw))
+  ans_expected <- tibble(draw = draw,
+                         by = by,
+                         along = rep(seq_len(n_along), times = n_by * n_draw),
+                         value = value)
+  expect_equal(ans_obtained, ans_expected)
+})
+
 test_that("'generate' works with bage_prior_drwzero", {
   x <- DRW(sd = 0)
   set.seed(0)
@@ -5991,6 +6022,37 @@ test_that("'generate' works with bage_prior_drwzero", {
                          by = factor("By 1"),
                          along = rep(seq_len(n_along), times = n_draw),
                          value = as.double(ans_expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with bage_prior_drwzero, n_by = 2, con = 'by'", {
+  x <- DRW(con = "by", sd = 0)
+  set.seed(0)
+  n_along <- 10
+  n_by <- 2
+  n_draw <- 25
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  set.seed(0)
+  sd <- draw_vals_sd(x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(x, n_sim = n_draw)
+  value <- draw_vals_drw(sd = sd,
+                         sd_init = 0,
+                         coef = coef,
+                         matrix_along_by = matrix(seq_len(2 * n_along) - 1L, nc = 2),
+                         levels_effect = seq_len(2 * n_along))
+  value <- array(value, c(n_along, n_by, n_draw))
+  means <- apply(value, c(1, 3), mean)
+  value[,1,] <- value[,1,] - means
+  value[,2,] <- value[,2,] - means
+  value <- as.numeric(value)
+  draw <- rep(seq_len(n_draw), each = n_along * n_by)
+  draw <- paste("Draw", draw)
+  draw <- factor(draw, levels = unique(draw))
+  by <- factor(rep(rep(paste("By", 1:2), each = 10), times = n_draw))
+  ans_expected <- tibble(draw = draw,
+                         by = by,
+                         along = rep(seq_len(n_along), times = n_by * n_draw),
+                         value = value)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -6020,6 +6082,38 @@ test_that("'generate' works with bage_prior_drw2random", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'generate' works with bage_prior_drw2random, n_by = 2, con = 'by'", {
+  x <- DRW2(con = "by")
+  set.seed(0)
+  n_along <- 10
+  n_by <- 2
+  n_draw <- 25
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  set.seed(0)
+  sd <- draw_vals_sd(x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(x, n_sim = n_draw)
+  value <- draw_vals_drw2(sd = sd,
+                          sd_init = 1,
+                          sd_slope = 1,
+                          coef = coef,
+                          matrix_along_by = matrix(seq_len(2 * n_along) - 1L, nc = 2),
+                          levels_effect = seq_len(2 * n_along))
+  value <- array(value, c(n_along, n_by, n_draw))
+  means <- apply(value, c(1, 3), mean)
+  value[,1,] <- value[,1,] - means
+  value[,2,] <- value[,2,] - means
+  value <- as.numeric(value)
+  draw <- rep(seq_len(n_draw), each = n_along * n_by)
+  draw <- paste("Draw", draw)
+  draw <- factor(draw, levels = unique(draw))
+  by <- factor(rep(rep(paste("By", 1:2), each = 10), times = n_draw))
+  ans_expected <- tibble(draw = draw,
+                         by = by,
+                         along = rep(seq_len(n_along), times = n_by * n_draw),
+                         value = value)
+  expect_equal(ans_obtained, ans_expected)
+})
+
 test_that("'generate' works with bage_prior_drw2zero", {
   x <- DRW2(sd = 0)
   set.seed(0)
@@ -6043,6 +6137,38 @@ test_that("'generate' works with bage_prior_drw2zero", {
                          by = factor("By 1"),
                          along = rep(seq_len(n_along), times = n_draw),
                          value = as.double(ans_expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with bage_prior_drw2random, n_by = 2, con = 'by'", {
+  x <- DRW2(con = "by", sd = 0)
+  set.seed(0)
+  n_along <- 10
+  n_by <- 2
+  n_draw <- 25
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  set.seed(0)
+  sd <- draw_vals_sd(x, n_sim = n_draw)
+  coef <- draw_vals_coef_drw(x, n_sim = n_draw)
+  value <- draw_vals_drw2(sd = sd,
+                          sd_init = 0,
+                          sd_slope = 1,
+                          coef = coef,
+                          matrix_along_by = matrix(seq_len(2 * n_along) - 1L, nc = 2),
+                          levels_effect = seq_len(2 * n_along))
+  value <- array(value, c(n_along, n_by, n_draw))
+  means <- apply(value, c(1, 3), mean)
+  value[,1,] <- value[,1,] - means
+  value[,2,] <- value[,2,] - means
+  value <- as.numeric(value)
+  draw <- rep(seq_len(n_draw), each = n_along * n_by)
+  draw <- paste("Draw", draw)
+  draw <- factor(draw, levels = unique(draw))
+  by <- factor(rep(rep(paste("By", 1:2), each = 10), times = n_draw))
+  ans_expected <- tibble(draw = draw,
+                         by = by,
+                         along = rep(seq_len(n_along), times = n_by * n_draw),
+                         value = value)
   expect_equal(ans_obtained, ans_expected)
 })
 

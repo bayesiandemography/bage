@@ -1259,7 +1259,13 @@ make_offsets_effectfree_effect <- function(mod) {
 #' Extracts the outcome variable from 'data'
 #' and checks for infinite and NaN.
 #' (Do this here because we know the name
-#' *Rof the variable.)
+#'  of the variable.)
+#'
+#' If response not found in 'data',
+#' return NULL. Not having a response is
+#' OK if samples will only be obtained
+#' from the prior for the model, and never
+#' from the posterior.
 #'
 #' @param formula Formula specifying model
 #' @param data A data frame
@@ -1271,13 +1277,15 @@ make_outcome <- function(formula, data) {
   nm_response <- deparse1(formula[[2L]])
   nms_data <- names(data)
   i_response <- match(nm_response, nms_data, nomatch = 0L)
-  if (i_response == 0L)
-    cli::cli_abort(paste("Internal error: response {.val {nm_response}}",
-                         "not found in {.arg data}."))
-  ans <- data[[i_response]]
-  ans <- as.double(ans)
-  check_inf(x = ans, nm_x = nm_response)
-  check_nan(x = ans, nm_x = nm_response)
+  has_response <- i_response > 0L
+  if (has_response) {
+    ans <- data[[i_response]]
+    ans <- as.double(ans)
+    check_inf(x = ans, nm_x = nm_response)
+    check_nan(x = ans, nm_x = nm_response)
+  }
+  else
+    ans <- NULL
   ans
 }
 

@@ -503,6 +503,8 @@ test_that("'check_formula_vnames_in_data' returns TRUE with valid inputs", {
                                              data.frame(x = 1, y = 2, z = 3)))
     expect_true(check_formula_vnames_in_data(y ~ 1,
                                              data.frame(x = 1, y = 2, z = 3)))
+    expect_true(check_formula_vnames_in_data(not_in_data ~ 1,
+                                             data.frame(x = 1, y = 2, z = 3)))
 })
 
 test_that("'check_formula_vnames_in_data' returns correct error with invalid inputs", {

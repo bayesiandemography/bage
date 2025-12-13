@@ -379,7 +379,8 @@ check_formula_has_variable <- function(name, formula) {
 
 
 ## HAS_TESTS
-#' Check variables used in 'formula' occur in 'data'
+#' Check variables used in 'formula'
+#' (apart from response) occur in 'data'
 #'
 #' @param formula A formula.
 #' @param data A data frame.
@@ -388,12 +389,14 @@ check_formula_has_variable <- function(name, formula) {
 #'
 #' @noRd
 check_formula_vnames_in_data <- function(formula, data) {
-  nms_formula <- all.vars(formula)
+  terms <- terms(formula)
+  terms_no_resp <- stats::delete.response(terms)
+  nms_formula_no_resp <- all.vars(terms_no_resp)
   nms_data <- names(data)
-  is_in_data <- nms_formula %in% nms_data
+  is_in_data <- nms_formula_no_resp %in% nms_data
   i_not_in_data <- match(FALSE, is_in_data, nomatch = 0L)
   if (i_not_in_data > 0L) {
-    nm_var <- nms_formula[[i_not_in_data]]
+    nm_var <- nms_formula_no_resp[[i_not_in_data]]
     cli::cli_abort(c("Variable {.var {nm_var}} from {.arg formula} not found in {.arg data}.",
                      i = "{.arg formula}: {.code {deparse(formula)}}."))
   }
