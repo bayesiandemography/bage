@@ -1,4 +1,16 @@
 
+# bage 0.10.6
+
+## Interface
+
+* Model construction functions `mod_pois()`, `mod_binom()`, and
+  `mod_norm()` no longer insist that the outcome variable is
+  included in `data`. Specifying models where the outcome model is not
+  included in `data` is useful when carrying out simulations or
+  when drawing from the prior distribution but not the posterior
+  distribution. The outcome variable in `data` is now checked when
+  function `fit()` is called.
+
 # bage 0.10.5
 
 ## Added 'damped random walk' priors
