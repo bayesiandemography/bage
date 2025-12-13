@@ -9,7 +9,11 @@
   included in `data` is useful when carrying out simulations or
   when drawing from the prior distribution but not the posterior
   distribution. The outcome variable in `data` is now checked when
-  function `fit()` is called.
+  function `fit()` is called. (#109)
+* In function `mod_pois()`, the expression `exposure = NULL` is now
+  equivalent to `exposure = 1`, and `weights = NULL`, or the
+  omission of the `weights` arugment, is equivalent to `weights = 1`.
+  
 
 # bage 0.10.5
 
