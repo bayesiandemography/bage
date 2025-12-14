@@ -257,6 +257,9 @@ and
 
 ## Constraints
 
+**\[experimental\]** The specification of constraints is likely to
+change in future versions of bage.
+
 With some combinations of terms and priors, the values of the intercept,
 main effects, and interactions are are only weakly identified. For
 instance, it may be possible to increase the value of the intercept and

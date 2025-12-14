@@ -22,7 +22,8 @@ mod_binom(formula, data, size)
 
 - size:
 
-  Name of the variable giving the number of trials, or a formula.
+  Name of the variable giving the number of trials (with or without
+  quote marks.)
 
 ## Value
 
@@ -37,18 +38,6 @@ models, as described in
 [priors](https://bayesiandemography.github.io/bage/reference/priors.md).
 These priors all have defaults, which depend on the type of term (eg an
 intercept, an age main effect, or an age-time interaction.)
-
-## Specifying size
-
-The `size` argument can take two forms:
-
-- the name of a variable in `data`, with or without quote marks, eg
-  `"population"` or `population`; or
-
-- **\[deprecated\]** a formula, which is evaluated with `data` as its
-  environment (see below for example). This option has been deprecated,
-  because it makes forecasting and measurement error models more
-  complicated.
 
 ## Mathematical details
 
@@ -144,23 +133,5 @@ The model for \\\mu_i\\ can also include covariates, as described in
 ``` r
 mod <- mod_binom(oneperson ~ age:region + age:year,
                  data = nzl_households,
-                 size = total)
-
-## use formula to specify size
-mod <- mod_binom(ncases ~ agegp + tobgp + alcgp,
-                 data = esoph,
-                 size = ~ ncases + ncontrols)
-#> Warning: Using a formula to specify exposure, size, or weights was deprecated in bage
-#> 0.9.5.
-#> ℹ Please use the name of a variable in `data`, or `1`, instead.
-#> ℹ The deprecated feature was likely used in the bage package.
-#>   Please report the issue at
-#>   <https://github.com/bayesiandemography/bage/issues>.
-## but formulas are now deprecrated, and the
-## recommended approach is to transform
-## the input data outside the model:
-esoph$total <- esoph$ncases + esoph$ncontrols
-mod <- mod_binom(ncases ~ agegp + tobgp + alcgp,
-                 data = esoph,
                  size = total)
 ```

@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,8 +64,8 @@ predictor, and, optionally, exposure variables.</p></dd>
 
 
 <dt id="arg-exposure">exposure<a class="anchor" aria-label="anchor" href="#arg-exposure"></a></dt>
-<dd><p>Name of the exposure variable,
-or a <code>1</code>, or a formula. See below for details.</p></dd>
+<dd><p>Name of the exposure variable
+or <code>NULL</code>. See below for details.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -88,13 +88,12 @@ or an age-time interaction.)</p>
 
 <p>The <code>exposure</code> argument can take three forms:</p><ul><li><p>the name of a variable in <code>data</code>, with or without
 quote marks, eg <code>"population"</code> or <code>population</code>;</p></li>
-<li><p>the number <code>1</code>, in which case a pure "counts" model
+<li><p><code>NULL</code>, in which case a pure "counts" model
 with no exposure, is produced; or</p></li>
 <li><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a>
-a formula, which is evaluated with <code>data</code> as its
-environment (see below for example). This option
-has been deprecated, because it makes forecasting
-and measurement error models more complicated.</p></li>
+the number <code>1</code>, in which case a pure "counts" model
+is also produced (though this option is deprecated,
+and will eventially be removed).</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="mathematical-details">Mathematical details<a class="anchor" aria-label="anchor" href="#mathematical-details"></a></h2>
@@ -153,27 +152,15 @@ Detailed description of models</p></li>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## specify a model with exposure</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## model with exposure</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">mod_pois</span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
 <span class="r-in"><span>                data <span class="op">=</span> <span class="va">nzl_injuries</span>,</span></span>
 <span class="r-in"><span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## specify a model without exposure</span></span></span>
+<span class="r-in"><span><span class="co">## model without exposure</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">mod_pois</span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
 <span class="r-in"><span>                data <span class="op">=</span> <span class="va">nzl_injuries</span>,</span></span>
-<span class="r-in"><span>                exposure <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## use a formula to specify exposure</span></span></span>
-<span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">mod_pois</span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
-<span class="r-in"><span>                data <span class="op">=</span> <span class="va">nzl_injuries</span>,</span></span>
-<span class="r-in"><span>                exposure <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmax</a></span><span class="op">(</span><span class="va">popn</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co">## but formulas are now deprecrated, and the</span></span></span>
-<span class="r-in"><span><span class="co">## recommended approach is to transform</span></span></span>
-<span class="r-in"><span><span class="co">## the input data outside the model:</span></span></span>
-<span class="r-in"><span><span class="va">nzl_injuries</span><span class="op">$</span><span class="va">popn1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmax</a></span><span class="op">(</span><span class="va">nzl_injuries</span><span class="op">$</span><span class="va">popn</span>, <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">mod_pois</span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
-<span class="r-in"><span>                data <span class="op">=</span> <span class="va">nzl_injuries</span>,</span></span>
-<span class="r-in"><span>                exposure <span class="op">=</span> <span class="va">popn1</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                exposure <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

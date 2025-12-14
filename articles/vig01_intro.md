@@ -523,7 +523,7 @@ mod_births
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.60     1.52      0.95   22      TRUE   relative convergence (4)
+#>        2.57     1.51      0.94   22      TRUE   relative convergence (4)
 ```
 
 ## 7 Covariates

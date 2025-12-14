@@ -15,7 +15,7 @@ a binomial distribution."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,7 @@ and predictor variables, and the number of trials.</p></dd>
 
 <dt id="arg-size">size<a class="anchor" aria-label="anchor" href="#arg-size"></a></dt>
 <dd><p>Name of the variable giving
-the number of trials, or a formula.</p></dd>
+the number of trials (with or without quote marks.)</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -84,19 +84,6 @@ have models, as described in <a href="priors.html">priors</a>. These priors all 
 which depend on the type of term (eg an intercept, an age main effect,
 or an age-time interaction.)</p>
     </div>
-    <div class="section level2">
-    <h2 id="specifying-size">Specifying size<a class="anchor" aria-label="anchor" href="#specifying-size"></a></h2>
-
-
-
-<p>The <code>size</code> argument can take two forms:</p><ul><li><p>the name of a variable in <code>data</code>, with or without
-quote marks, eg <code>"population"</code> or <code>population</code>; or</p></li>
-<li><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a>
-a formula, which is evaluated with <code>data</code> as its
-environment (see below for example). This option
-has been deprecated, because it makes forecasting
-and measurement error models more complicated.</p></li>
-</ul></div>
     <div class="section level2">
     <h2 id="mathematical-details">Mathematical details<a class="anchor" aria-label="anchor" href="#mathematical-details"></a></h2>
 
@@ -153,24 +140,6 @@ Detailed descriptions of models</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">mod_binom</span><span class="op">(</span><span class="va">oneperson</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">region</span> <span class="op">+</span> <span class="va">age</span><span class="op">:</span><span class="va">year</span>,</span></span>
 <span class="r-in"><span>                 data <span class="op">=</span> <span class="va">nzl_households</span>,</span></span>
-<span class="r-in"><span>                 size <span class="op">=</span> <span class="va">total</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## use formula to specify size</span></span></span>
-<span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">mod_binom</span><span class="op">(</span><span class="va">ncases</span> <span class="op">~</span> <span class="va">agegp</span> <span class="op">+</span> <span class="va">tobgp</span> <span class="op">+</span> <span class="va">alcgp</span>,</span></span>
-<span class="r-in"><span>                 data <span class="op">=</span> <span class="va">esoph</span>,</span></span>
-<span class="r-in"><span>                 size <span class="op">=</span> <span class="op">~</span> <span class="va">ncases</span> <span class="op">+</span> <span class="va">ncontrols</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Using a formula to specify exposure, size, or weights was deprecated in bage</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> 0.9.5.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Please use the name of a variable in `data`, or `1`, instead.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">bage</span> package.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span>   Please report the issue at</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span>   <span style="color: #0000BB; font-style: italic;">&lt;https://github.com/bayesiandemography/bage/issues&gt;</span>.</span>
-<span class="r-in"><span><span class="co">## but formulas are now deprecrated, and the</span></span></span>
-<span class="r-in"><span><span class="co">## recommended approach is to transform</span></span></span>
-<span class="r-in"><span><span class="co">## the input data outside the model:</span></span></span>
-<span class="r-in"><span><span class="va">esoph</span><span class="op">$</span><span class="va">total</span> <span class="op">&lt;-</span> <span class="va">esoph</span><span class="op">$</span><span class="va">ncases</span> <span class="op">+</span> <span class="va">esoph</span><span class="op">$</span><span class="va">ncontrols</span></span></span>
-<span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">mod_binom</span><span class="op">(</span><span class="va">ncases</span> <span class="op">~</span> <span class="va">agegp</span> <span class="op">+</span> <span class="va">tobgp</span> <span class="op">+</span> <span class="va">alcgp</span>,</span></span>
-<span class="r-in"><span>                 data <span class="op">=</span> <span class="va">esoph</span>,</span></span>
 <span class="r-in"><span>                 size <span class="op">=</span> <span class="va">total</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>

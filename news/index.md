@@ -1,5 +1,34 @@
 # Changelog
 
+## bage 0.10.6
+
+### Interface
+
+- Model construction functions
+  [`mod_pois()`](https://bayesiandemography.github.io/bage/reference/mod_pois.md),
+  [`mod_binom()`](https://bayesiandemography.github.io/bage/reference/mod_binom.md),
+  and
+  [`mod_norm()`](https://bayesiandemography.github.io/bage/reference/mod_norm.md)
+  no longer insist that the outcome variable is included in `data`.
+  Specifying models where the outcome model is not included in `data` is
+  useful when carrying out simulations or when drawing from the prior
+  distribution but not the posterior distribution. The outcome variable
+  in `data` is now checked when function
+  [`fit()`](https://generics.r-lib.org/reference/fit.html) is called.
+  ([\#109](https://github.com/bayesiandemography/bage/issues/109))
+- In function
+  [`mod_pois()`](https://bayesiandemography.github.io/bage/reference/mod_pois.md),
+  the expression `exposure = NULL` is now equivalent to `exposure = 1`,
+  and `weights = NULL`, or the omission of the `weights` arugment, is
+  equivalent to `weights = 1`.
+- Using a formula to specify exposure now throws an error, not a
+  warning, and the possibility of specifying a formula has been removed
+  from help.
+
+### Documentation
+
+- Added ROADMAP.md document.
+
 ## bage 0.10.5
 
 ### Added ‘damped random walk’ priors

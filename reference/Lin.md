@@ -30,8 +30,8 @@ Lin(s = 1, mean_slope = 0, sd_slope = 1, along = NULL, con = c("none", "by"))
 
 - con:
 
-  Constraints on parameters. Current choices are `"none"` and `"by"`.
-  Default is `"none"`. See below for details.
+  **\[experimental\]** Constraints on parameters. Current choices are
+  `"none"` and `"by"`. Default is `"none"`. See below for details.
 
 ## Value
 
@@ -91,6 +91,9 @@ or
 \text{N}(\mathtt{mean\\slope}, \mathtt{sd\\slope}^2)\$\$.
 
 ## Constraints
+
+**\[experimental\]** The specification of constraints is likely to
+change in future versions of bage.
 
 With some combinations of terms and priors, the values of the intercept,
 main effects, and interactions are are only weakly identified. For

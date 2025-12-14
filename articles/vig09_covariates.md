@@ -159,7 +159,7 @@ mod_gdp_dens
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.42     0.81      0.47   30      TRUE   relative convergence (4)
+#>        1.42     0.80      0.48   30      TRUE   relative convergence (4)
 ```
 
 To obtain estimates of the coefficients (ie estimates of the

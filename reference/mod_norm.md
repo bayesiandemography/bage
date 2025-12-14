@@ -5,7 +5,7 @@ Specify a model where the outcome is drawn from a normal distribution.
 ## Usage
 
 ``` r
-mod_norm(formula, data, weights)
+mod_norm(formula, data, weights = NULL)
 ```
 
 ## Arguments
@@ -60,17 +60,17 @@ for details.
 
 ## Specifying weights
 
-The `weights` argument can take three forms:
+There are three options for creating an unweighted model:
 
-- the name of a variable in `data`, with or without quote marks, eg
-  `"wt"` or `wt`;
+- do not supply a value for the `weights` variable;
 
-- the number `1`, in which no weights are used; or
+- set `weights` equal to `NULL`; or
 
-- **\[deprecated\]** a formula, which is evaluated with `data` as its
-  environment (see below for example). This option has been deprecated,
-  because it makes forecasting and measurement error models more
-  complicated.
+- **\[deprecated\]** set weights equal to `1`, though this option is
+  deprecated, and will eventually be removed.
+
+To create a weighted model, supply the name of the weighting variable in
+`data`, quoted or unquoted.
 
 ## Mathematical details
 
@@ -158,17 +158,11 @@ The model for \\\mu_i\\ can also include covariates, as described in
 ## Examples
 
 ``` r
+## model without weights
 mod <- mod_norm(value ~ diag:age + year,
-                data = nld_expenditure,
-                weights = 1)
+                data = nld_expenditure)
 
-## use formula to specify weights
-mod <- mod_norm(value ~ diag:age + year,
-                data = nld_expenditure,
-                weights = ~sqrt(value))
-## but formulas are now deprecrated, and the
-## recommended approach is to transform
-## the input data outside the model:
+## model with weights
 nld_expenditure$wt <- sqrt(nld_expenditure$value)
 mod <- mod_norm(value ~ diag:age + year,
                 data = nld_expenditure,

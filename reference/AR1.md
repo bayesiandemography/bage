@@ -41,8 +41,8 @@ AR1(
 
 - con:
 
-  Constraints on parameters. Current choices are `"none"` and `"by"`.
-  Default is `"none"`. See below for details.
+  **\[experimental\]** Constraints on parameters. Current choices are
+  `"none"` and `"by"`. Default is `"none"`. See below for details.
 
 ## Value
 
@@ -98,6 +98,9 @@ where
 \$\$\phi' \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).\$\$
 
 ## Constraints
+
+**\[experimental\]** The specification of constraints is likely to
+change in future versions of bage.
 
 With some combinations of terms and priors, the values of the intercept,
 main effects, and interactions are are only weakly identified. For

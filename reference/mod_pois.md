@@ -22,8 +22,7 @@ mod_pois(formula, data, exposure)
 
 - exposure:
 
-  Name of the exposure variable, or a `1`, or a formula. See below for
-  details.
+  Name of the exposure variable or `NULL`. See below for details.
 
 ## Value
 
@@ -46,13 +45,12 @@ The `exposure` argument can take three forms:
 - the name of a variable in `data`, with or without quote marks, eg
   `"population"` or `population`;
 
-- the number `1`, in which case a pure "counts" model with no exposure,
-  is produced; or
+- `NULL`, in which case a pure "counts" model with no exposure, is
+  produced; or
 
-- **\[deprecated\]** a formula, which is evaluated with `data` as its
-  environment (see below for example). This option has been deprecated,
-  because it makes forecasting and measurement error models more
-  complicated.
+- **\[deprecated\]** the number `1`, in which case a pure "counts" model
+  is also produced (though this option is deprecated, and will
+  eventially be removed).
 
 ## Mathematical details
 
@@ -148,25 +146,13 @@ The model for \\\mu_i\\ can also include covariates, as described in
 ## Examples
 
 ``` r
-## specify a model with exposure
+## model with exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
                 exposure = popn)
 
-## specify a model without exposure
+## model without exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
-                exposure = 1)
-
-## use a formula to specify exposure
-mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = nzl_injuries,
-                exposure = ~ pmax(popn, 1))
-## but formulas are now deprecrated, and the
-## recommended approach is to transform
-## the input data outside the model:
-nzl_injuries$popn1 <- pmax(nzl_injuries$popn, 1)
-mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = nzl_injuries,
-                exposure = popn1)
+                exposure = NULL)
 ```

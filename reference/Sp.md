@@ -43,8 +43,8 @@ Sp(
 
 - con:
 
-  Constraints on parameters. Current choices are `"none"` and `"by"`.
-  Default is `"none"`. See below for details.
+  **\[experimental\]** Constraints on parameters. Current choices are
+  `"none"` and `"by"`. Default is `"none"`. See below for details.
 
 ## Value
 
@@ -87,6 +87,9 @@ follow a [second-order random
 walk](https://bayesiandemography.github.io/bage/reference/RW2.md).
 
 ## Constraints
+
+**\[experimental\]** The specification of constraints is likely to
+change in future versions of bage.
 
 With some combinations of terms and priors, the values of the intercept,
 main effects, and interactions are are only weakly identified. For
