@@ -312,11 +312,9 @@ set_covariates <- function(mod, formula) {
 #'   set_datamod_exposure(cv = cv_age)
 #' @export
 set_datamod_exposure <- function(mod, cv)  {
+  check_old_version(x = mod, nm_x = "mod")
   nm_offset_data <- get_nm_offset_data(mod)
   nm_offset_mod <- get_nm_offset_mod(mod)
-  error_offset_formula_used(nm_offset_data = nm_offset_data,
-                            nm_offset_mod = nm_offset_mod,
-                            nm_fun = "set_datamod_exposure")
   ## preliminaries
   measure_vars_cv <- "cv"
   check_bage_mod(x = mod, nm_x = "mod")
@@ -553,6 +551,7 @@ set_datamod_exposure <- function(mod, cv)  {
 #' mod
 #' @export
 set_datamod_miscount <- function(mod, prob, rate) {
+  check_old_version(x = mod, nm_x = "mod")
   ## preliminaries
   measure_vars_prob <- c("mean", "disp")
   measure_vars_rate <- c("mean", "disp")
@@ -807,6 +806,7 @@ set_datamod_miscount <- function(mod, prob, rate) {
 #'   set_datamod_noise(sd = 200)
 #' @export
 set_datamod_noise <- function(mod, sd) {
+  check_old_version(x = mod, nm_x = "mod")
   ## preliminaries
   measure_vars_sd <- "sd"
   check_bage_mod(x = mod, nm_x = "mod")
@@ -991,6 +991,7 @@ set_datamod_noise <- function(mod, sd) {
 #' mod
 #' @export
 set_datamod_overcount <- function(mod, rate) {
+  check_old_version(x = mod, nm_x = "mod")
   ##  preliminaries
   measure_vars_rate <- c("mean", "disp")
   check_bage_mod(x = mod, nm_x = "mod")
@@ -1172,6 +1173,7 @@ set_datamod_overcount <- function(mod, rate) {
 #' mod
 #' @export
 set_datamod_undercount <- function(mod, prob) {
+  check_old_version(x = mod, nm_x = "mod")
   ##  preliminaries
   measure_vars_prob <- c("mean", "disp")
   check_bage_mod(x = mod, nm_x = "mod")

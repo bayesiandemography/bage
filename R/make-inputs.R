@@ -108,55 +108,6 @@ dimnames_to_nm_split <- function(dimnames) {
 
 
 ## HAS_TESTS
-#' Raise an Error if Offset Specified Via Formula
-#'
-#' @param nm_offset_data Name of offset used in 'data', or formula
-#' @param nm_offset_mod Name of offset used in documentation
-#' @param nm_fun Name of function being called
-#'
-#' @returns TRUE, invisibly
-#'
-#' @noRd
-error_offset_formula_used <- function(nm_offset_data, nm_offset_mod, nm_fun) {
-  is_formula <- !is.null(nm_offset_data) && startsWith(nm_offset_data, "~")
-  if (is_formula) {
-    if (nm_offset_mod == "exposure")
-      msg2 <- paste("In {.fun mod_pois}, please specify {nm_offset_mod} using",
-                    "the name of a variable in {.arg data}, or {.val {1}}.")
-    else if (nm_offset_mod == "size")
-      msg2 <- paste("In {.fun mod_binom}, please specify {nm_offset_mod} using",
-                    "the name of a variable in {.arg data}.")
-    else if (nm_offset_mod == "weights")
-      msg2 <- paste("In {.fun mod_norm}, please specify {nm_offset_mod} using",
-                    "the name of a variable in {.arg data}, or {.val {1}}.")
-    else
-      cli::cli_abort("Internal error: Invalid value for nm_offset_mod.")
-    cli::cli_abort(c(paste("{.fun {nm_fun}} cannot be used with models where",
-                           "{nm_offset_mod} specified using formula."),
-                     i = msg2,
-                     i = "Current specification of {nm_offset_mod}: {.code {nm_offset_data}}."))
-  }
-  invisible(TRUE)
-}
-
-
-## HAS_TESTS
-#' Evaluate Formula to Create Offset
-#'
-#' @param nm_offset_data Formula passed by user, turned into a string
-#' @param data Data frame
-#'
-#' @returns A numeric vector
-#'
-#' @noRd
-eval_offset_formula <- function(nm_offset_data, data) {
-  nm_offset_data <- sub("^~", "", nm_offset_data)
-  nm_offset_data <- parse(text = nm_offset_data)
-  eval(nm_offset_data, envir = data)
-}
-
-
-## HAS_TESTS
 #' Get a Matrix or Offset from an SVD Prior
 #'
 #' @param prior Object of class 'bage_prior'
@@ -1197,11 +1148,7 @@ make_matrix_covariates <- function(formula, data) {
 #'
 #' @noRd
 make_offset <- function(nm_offset_data, data) {
-  is_offset_formula <- startsWith(nm_offset_data, "~")
-  if (is_offset_formula)
-    ans <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
-  else
-    ans <- data[[nm_offset_data]]
+  ans <- data[[nm_offset_data]]
   ans <- as.double(ans)
   ans
 }

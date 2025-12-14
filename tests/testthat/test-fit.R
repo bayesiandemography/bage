@@ -187,7 +187,7 @@ test_that("'fit_default' gives same answer with and without aggregation - Poisso
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   mod_ag <- fit_default(mod,
                         optimizer = "multi",
                         quiet = TRUE,
@@ -261,8 +261,7 @@ test_that("'fit_default' gives same answer with and without aggregation - norm, 
   data$wt <- runif(n = nrow(data), min = 1, max = 2)
   formula <- income ~ age + sex + time
   mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = 1)
+                  data = data)
   mod_ag <- fit_default(mod,
                         optimizer = "multi",
                         quiet = TRUE,
@@ -519,7 +518,7 @@ test_that("'mod_pois' works with constant exposure", {
   spd$y <- rpois(n = nrow(spd), lambda = 10)
   mod <- mod_pois(y ~ age + time + sex + region,
                   data = spd,
-                  exposure = 1) |>
+                  exposure = NULL) |>
     set_prior(age ~ RW(s = 1, sd = 1)) |>
     set_prior(time ~ RW(s = 1, sd = 1)) |>
     set_prior(sex ~ NFix(sd = 1)) |>
@@ -537,8 +536,7 @@ test_that("'mod_norm' works with constant weights - all 1", {
                      region = c("a", "b", "c"))
   spd$log_covratio <- rnorm(n = nrow(spd))
   mod <- mod_norm(log_covratio ~ age + time + sex + region,
-                  data = spd,
-                  weights = 1) |>
+                  data = spd) |>
     set_prior(age ~ RW(s = 1, sd = 1)) |>
     set_prior(time ~ RW(s = 1, sd = 1)) |>
     set_prior(sex ~ NFix(sd = 1)) |>

@@ -13,8 +13,8 @@ specifying the outcome and predictors.}
 \item{data}{A data frame containing outcome,
 predictor, and, optionally, exposure variables.}
 
-\item{exposure}{Name of the exposure variable,
-or a \code{1}, or a formula. See below for details.}
+\item{exposure}{Name of the exposure variable
+or \code{NULL}. See below for details.}
 }
 \value{
 An object of class \code{bage_mod_pois}.
@@ -37,13 +37,12 @@ The \code{exposure} argument can take three forms:
 \itemize{
 \item the name of a variable in \code{data}, with or without
 quote marks, eg \code{"population"} or \code{population};
-\item the number \code{1}, in which case a pure "counts" model
+\item \code{NULL}, in which case a pure "counts" model
 with no exposure, is produced; or
 \item \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
-a formula, which is evaluated with \code{data} as its
-environment (see below for example). This option
-has been deprecated, because it makes forecasting
-and measurement error models more complicated.
+the number \code{1}, in which case a pure "counts" model
+is also produced (though this option is deprecated,
+and will eventially be removed).
 }
 }
 
@@ -104,27 +103,15 @@ as described in \code{\link[=set_covariates]{set_covariates()}}.
 }
 
 \examples{
-## specify a model with exposure
+## model with exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
                 exposure = popn)
 
-## specify a model without exposure
+## model without exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
-                exposure = 1)
-
-## use a formula to specify exposure
-mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = nzl_injuries,
-                exposure = ~ pmax(popn, 1))
-## but formulas are now deprecrated, and the
-## recommended approach is to transform
-## the input data outside the model:
-nzl_injuries$popn1 <- pmax(nzl_injuries$popn, 1)
-mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = nzl_injuries,
-                exposure = popn1)
+                exposure = NULL)
 }
 \seealso{
 \itemize{

@@ -912,9 +912,8 @@ check_numeric <- function(x, nm_x) {
 check_offset_formula_not_used <- function(nm_offset_data) {
   is_formula <- !is.null(nm_offset_data) && startsWith(nm_offset_data, "~")
   if (is_formula)
-    lifecycle::deprecate_warn(when = "0.9.5",
-                              what = I("Using a formula to specify exposure, size, or weights"),
-                              with = I("the name of a variable in `data`, or `1`,"))
+    lifecycle::deprecate_stop(when = "0.9.5",
+                              what = I("Using a formula to specify exposure, size, or weights"))
   invisible(TRUE)
 }
 
@@ -922,7 +921,7 @@ check_offset_formula_not_used <- function(nm_offset_data) {
 #' Check offset occurs in 'data'
 #'
 #' @param nm_offset_data The name of the variable being
-#' used as an offset, or a formula
+#' used as an offset
 #' @param nm_offset_mod The name used to refer to the
 #' offset in user-visible functions
 #' @param data A data frame
@@ -931,31 +930,19 @@ check_offset_formula_not_used <- function(nm_offset_data) {
 #'
 #' @noRd
 check_offset_in_data <- function(nm_offset_data, nm_offset_mod, data) {
-  is_formula <- startsWith(nm_offset_data, "~")
-  if (is_formula) {
-    ans <- tryCatch(eval_offset_formula(nm_offset_data = nm_offset_data, data = data),
-                    error = function(e) e)
-    if (inherits(ans, "error"))
-      cli::cli_abort(c("Problem with formula used for {.arg {nm_offset_mod}}.",
-                       i = "Formula: {.val {nm_offset_data}}.",
-                       i = ans$message))
-  }
-  else {
-    nms_data <- names(data)
-    if (!(nm_offset_data %in% nms_data)) {
-      cli::cli_abort(c("{.arg {nm_offset_mod}} not found in {.arg data}.",
-                       i = "{.arg {nm_offset_mod}}: {.val {nm_offset_data}}."))
-    }
+  nms_data <- names(data)
+  if (!(nm_offset_data %in% nms_data)) {
+    cli::cli_abort(c("{.arg {nm_offset_mod}} not found in {.arg data}.",
+                     i = "{.arg {nm_offset_mod}}: {.val {nm_offset_data}}."))
   }
   invisible(TRUE)
 }
-
 
 ## HAS_TESTS
 #' Check that Offset Has No Negative Values
 #'
 #' @param nm_offset_data The name of the variable being
-#' used as an offset, or a formula
+#' used as an offset
 #' @param nm_offset_mod The name used to refer to the
 #' offset in user-visible functions
 #' @param data A data frame
@@ -964,20 +951,13 @@ check_offset_in_data <- function(nm_offset_data, nm_offset_mod, data) {
 #'
 #' @noRd
 check_offset_nonneg <- function(nm_offset_data, nm_offset_mod, data) {
-  is_formula <- startsWith(nm_offset_data, "~")
-  if (is_formula) {
-    offset <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
-  }
-  else {
-    offset <- data[[nm_offset_data]]
-  }
+  offset <- data[[nm_offset_data]]
   n_neg <- sum(offset < 0, na.rm = TRUE)
   if (n_neg > 0L)
     cli::cli_abort(c("{.arg {nm_offset_mod}} has negative {cli::qty(n_neg)} value{?s}.",
                      i = "{nm_offset_mod}: {.val {nm_offset_data}}."))
   invisible(TRUE)
 }
-
 
 ## HAS_TESTS
 #' Raise Error if Model Object Created Using Old Version of 'bage'
@@ -992,9 +972,12 @@ check_old_version <- function(x, nm_x) {
   is_norm <- inherits(x, "bage_mod_norm")
   has_covariates <- has_covariates(x)
   nms <- names(x)
+  nm_offset_data <- get_nm_offset_data(x)
+  is_formula_offset <- !is.null(nm_offset_data) && startsWith(nm_offset_data, "~")
   is_old_version <- (!("draws_hyperrandfree" %in% nms)
     || ("seed_stored_draws" %in% nms)
-    || (is_norm && !("offset_mean" %in% nms)))
+    || (is_norm && !("offset_mean" %in% nms))
+    || is_formula_offset)
   if (is_old_version) {
     cli::cli_abort(c("{.arg {nm_x}} appears to have been created with an old version of {.pkg bage}.",
                      i = "Please recreate the object using the current version."))
@@ -1130,7 +1113,7 @@ check_positive <- function(x, nm_x, nm_df) {
 #'
 #' @param formula A formula
 #' @param nm_offset_data The name of the variable being
-#' used as an offset, or a formula
+#' used as an offset
 #' @param nm_offset_mod The name used to refer to the
 #' offset in user-visible functions
 #' @param data A data frame
@@ -1144,11 +1127,7 @@ check_resp_le_offset <- function(formula,
                                  data) {
   nm_response <- deparse1(formula[[2L]])
   response <- data[[nm_response]]
-  is_offset_formula <- startsWith(nm_offset_data, "~")
-  if (is_offset_formula)
-    offset <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
-  else
-    offset <- data[[nm_offset_data]]
+  offset <- data[[nm_offset_data]]
   is_gt_offset <- !is.na(response) & !is.na(offset) & (response > offset)
   i_gt_offset <- match(TRUE, is_gt_offset, nomatch = 0L)
   if (i_gt_offset > 0L) {
@@ -1182,11 +1161,7 @@ check_resp_zero_if_offset_zero <- function(formula,
                                            data) {
   nm_response <- deparse1(formula[[2L]])
   response <- data[[nm_response]]
-  is_offset_formula <- startsWith(nm_offset_data, "~")
-  if (is_offset_formula)
-    offset <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
-  else
-    offset <- data[[nm_offset_data]]
+  offset <- data[[nm_offset_data]]
   response_pos <- response > 0
   offset_pos <- offset > 0
   is_pos_nonpos <- !is.na(response) & !is.na(offset) & response_pos & !offset_pos

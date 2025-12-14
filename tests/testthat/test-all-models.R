@@ -846,7 +846,7 @@ testthat::test_that("pois no disp, no exposure - noise datamod, small numbers", 
   data$deaths <- rpois(nrow(data), lambda = 20)
   mod <- mod_pois(deaths ~ age + time,
                   data = data,
-                  exposure = 1) |>
+                  exposure = NULL) |>
     set_disp(mean = 0) |>
     set_datamod_noise(sd = 0.5)
   mod <- fit(mod)
@@ -923,7 +923,7 @@ testthat::test_that("pois no disp, no exposure - noise datamod, rr3, small numbe
   data$deaths <- 3 * rpois(nrow(data), lambda = 20)
   mod <- mod_pois(deaths ~ age + time,
                   data = data,
-                  exposure = 1) |>
+                  exposure = NULL) |>
     set_disp(mean = 0) |>
     set_prior(time ~ RW(s = 0.05)) |>
     set_datamod_noise(sd = 0.1) |>

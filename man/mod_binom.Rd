@@ -14,7 +14,7 @@ specifying the outcome and predictors.}
 and predictor variables, and the number of trials.}
 
 \item{size}{Name of the variable giving
-the number of trials, or a formula.}
+the number of trials (with or without quote marks.)}
 }
 \value{
 An object of class \code{bage_mod}.
@@ -31,21 +31,6 @@ have models, as described in \link{priors}. These priors all have defaults,
 which depend on the type of term (eg an intercept, an age main effect,
 or an age-time interaction.)
 }
-\section{Specifying size}{
-
-
-The \code{size} argument can take two forms:
-\itemize{
-\item the name of a variable in \code{data}, with or without
-quote marks, eg \code{"population"} or \code{population}; or
-\item \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
-a formula, which is evaluated with \code{data} as its
-environment (see below for example). This option
-has been deprecated, because it makes forecasting
-and measurement error models more complicated.
-}
-}
-
 \section{Mathematical details}{
 
 
@@ -101,18 +86,6 @@ as described in \code{\link[=set_covariates]{set_covariates()}}.
 \examples{
 mod <- mod_binom(oneperson ~ age:region + age:year,
                  data = nzl_households,
-                 size = total)
-
-## use formula to specify size
-mod <- mod_binom(ncases ~ agegp + tobgp + alcgp,
-                 data = esoph,
-                 size = ~ ncases + ncontrols)
-## but formulas are now deprecrated, and the
-## recommended approach is to transform
-## the input data outside the model:
-esoph$total <- esoph$ncases + esoph$ncontrols
-mod <- mod_binom(ncases ~ agegp + tobgp + alcgp,
-                 data = esoph,
                  size = total)
 }
 \seealso{

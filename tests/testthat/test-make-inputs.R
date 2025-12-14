@@ -180,75 +180,6 @@ test_that("'dimnames_to_nm_split' works with 2D dimnames", {
 })
 
 
-## 'error_offset_formula_used' ------------------------------------------------
-
-test_that("'error_offset_formula_used' returns TRUE with non-formula", {
-  expect_true(error_offset_formula_used(nm_offset_data = "popn",
-                                        nm_offset_mod = "exposure",
-                                        nm_fun = "forecast"))
-})
-
-test_that("'error_offset_formula_used' raises expected error with formula, Poisson", {
-  expect_error(error_offset_formula_used(nm_offset_data = "~popn",
-                                        nm_offset_mod = "exposure",
-                                        nm_fun = "forecast"),
-               "`forecast\\(\\)` cannot be used with models where exposure specified using formula.")
-})
-
-test_that("'error_offset_formula_used' raises expected error with formula, binomial", {
-  expect_error(error_offset_formula_used(nm_offset_data = "~popn",
-                                        nm_offset_mod = "size",
-                                        nm_fun = "forecast"),
-               "`forecast\\(\\)` cannot be used with models where size specified using formula.")
-})
-
-test_that("'error_offset_formula_used' raises expected error with formula, normal", {
-  expect_error(error_offset_formula_used(nm_offset_data = "~popn",
-                                        nm_offset_mod = "weights",
-                                        nm_fun = "forecast"),
-               "`forecast\\(\\)` cannot be used with models where weights specified using formula.")
-})
-
-test_that("'error_offset_formula_used' throws error with invalid nm_offset_mod", {
-  expect_error(error_offset_formula_used(nm_offset_data = "~popn",
-                                        nm_offset_mod = "wrong",
-                                        nm_fun = "forecast"),
-               "Internal error")
-})
-
-
-
-
-
-
-## 'eval_offset_formula' ------------------------------------------------------
-
-test_that("'eval_offset_formula' works with valid inputs - simple formula", {
-  nm_offset_data <- "~popn + other"
-  data <- data.frame(popn = 1, other = 2)
-  ans_obtained <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
-  ans_expected <- 3
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'eval_offset_formula' works with valid inputs - complicated formula", {
-  nm_offset_data <- "~popn^2 + log(other) + 6"
-  data <- data.frame(popn = 1:2, other = 2:3)
-  ans_obtained <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
-  ans_expected <- (1:2)^2 + log(2:3) + 6
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-test_that("'eval_offset_formula' works with valid inputs - ifelse", {
-  nm_offset_data <- "~ifelse(popn <= 0, 0.1, popn)"
-  data <- data.frame(popn = 0:2)
-  ans_obtained <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
-  ans_expected <- c(0.1, 1, 2)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'get_matrix_offset_svd_prior' ----------------------------------------------
 
 
@@ -1430,15 +1361,6 @@ test_that("'make_offset' works with valid inputs - has NA", {
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_offset' works with valid inputs - no NA", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$wt <- seq_len(nrow(data))
-    ans_obtained <- make_offset(nm_offset_data = "~ wt + 1",
-                                data = data)
-    ans_expected <- as.double(data$wt) + 1
-    expect_identical(ans_obtained, ans_expected)
-})
-
 
 ## 'make_offset_ones' -----------------------------------------------------
 
@@ -1535,7 +1457,7 @@ test_that("'make_outcome_offset_matrices' works with model without offset", {
   formula <- deaths ~ age * sex + region
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   ans_obtained <- make_outcome_offset_matrices(mod, aggregate = TRUE)
   data_ag <- aggregate(data["deaths"], data[c("age", "sex", "region")], sum)
   ans_expected <- list(outcome = data_ag[["deaths"]],
@@ -1586,7 +1508,7 @@ test_that("'make_outcome_offset_matrices' works with model with offset", {
   formula <- deaths ~ age * sex + region
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   ans_obtained <- make_outcome_offset_matrices(mod, aggregate = FALSE)
   ans_expected <- list(outcome = mod$outcome[-1],
                        offset = mod$offset[-1],
@@ -1838,7 +1760,7 @@ test_that("'make_use_term' works", {
                       deaths = 3)
   mod <- mod_pois(deaths ~ age * sex + age * region + sex * time,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   vars_inner <- c("sex", "age")
   ans_obtained <- make_use_term(mod = mod, vars_inner = vars_inner)
   ans_expected <- c(T, T, T, F, F, T, F, F)
@@ -1855,7 +1777,7 @@ test_that("'make_use_term' throws correct error when 'vars_inner' has invalid va
                       deaths = 3)
   mod <- mod_pois(deaths ~ age * sex + age * region + sex * time,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   vars_inner <- c("sex", "wrong")
   expect_error(make_use_term(mod = mod, vars_inner = vars_inner),
                "`vars_inner` has variable not found in model.")
@@ -1870,7 +1792,7 @@ test_that("'make_use_term' throws correct error when cannot form term from 'vars
                       deaths = 3)
   mod <- mod_pois(deaths ~ age : sex + age : region + sex * time,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   vars_inner <- "age"
   expect_error(make_use_term(mod = mod, vars_inner = vars_inner),
                "No terms in model can be formed from `vars_inner`.")
@@ -1885,7 +1807,7 @@ test_that("'make_use_term' throws correct error when can form all terms from 'va
                       deaths = 3)
   mod <- mod_pois(deaths ~ age : sex + age : region + sex * time,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   vars_inner <- c("age", "sex", "region", "time")
   expect_error(make_use_term(mod = mod, vars_inner = vars_inner),
                "All terms in model can be formed from `vars_inner`.")

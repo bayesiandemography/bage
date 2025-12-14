@@ -54,8 +54,7 @@ if (FALSE) {
                       time = 2001:2005)
   data$income <- NA
   mod_est <- mod_norm(income ~ age + sex + time,
-                      data = data,
-                      weights = 1)
+                      data = data)
   mod_est <- set_prior(mod_est, age ~ SVD(LFP))
   mod_est <- set_prior(mod_est, time ~ AR1())
   mod_est <- set_disp(mod_est, mean = 0.05)

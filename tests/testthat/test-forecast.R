@@ -199,7 +199,7 @@ test_that("'forecast_components' works", {
   formula <- deaths ~ age * sex + sex * time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
   components_est <- components(mod)
@@ -229,7 +229,7 @@ test_that("'forecast_components' works - includes data model", {
   formula <- deaths ~ age * sex + sex * time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1) |>
+                  exposure = NULL) |>
     set_n_draw(n = 10) |>
     set_datamod_undercount(prob = data.frame(mean = 0.9, disp = 0.1)) |>
     fit()
@@ -261,7 +261,7 @@ test_that("'forecast_components' throws error if can't forecast data model and i
   formula <- deaths ~ age * sex + sex * time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1) |>
+                  exposure = NULL) |>
     set_n_draw(n = 10) |>
     set_datamod_undercount(prob = data.frame(time = 2000:2005,
                                              mean = 0.9,
@@ -292,7 +292,7 @@ test_that("'forecast_components' ignore data model if can't forecast is and is_f
   formula <- deaths ~ age * sex + sex * time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1) |>
+                  exposure = NULL) |>
     set_n_draw(n = 10) |>
     set_datamod_undercount(prob = data.frame(time = 2000:2005,
                                              mean = 0.9,

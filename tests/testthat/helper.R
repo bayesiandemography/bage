@@ -17,7 +17,7 @@ make_small_mod_pois <- function(use_exposure, use_interaction = FALSE) {
     data$deaths <- 3 * rpois(n = nrow(data), lambda = 20)
     ans <- mod_pois(formula = formula,
                     data = data,
-                    exposure = 1)
+                    exposure = NULL)
   }
   ans <- ans |>
     set_prior(time ~ RW(s = 0.05))
@@ -48,8 +48,7 @@ make_small_mod_norm <- function(use_weights) {
   }
   else {
     ans <- mod_norm(income ~ age + time,
-                    data = data,
-                    weights = 1)
+                    data = data)
   }
   ans <- ans |>
     set_prior(time ~ RW(s = 0.05))

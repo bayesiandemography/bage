@@ -1404,9 +1404,6 @@ forecast.bage_mod <- function(object,
   check_old_version(x = object, nm_x = "object")
   nm_offset_data <- get_nm_offset_data(object)
   nm_offset_mod <- get_nm_offset_mod(object)
-  error_offset_formula_used(nm_offset_data = nm_offset_data,
-                            nm_offset_mod = nm_offset_mod,
-                            nm_fun = "forecast")
   data_est <- object$data
   priors <- object$priors
   dn_terms_est <- object$dimnames_terms

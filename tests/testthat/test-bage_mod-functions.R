@@ -44,8 +44,7 @@ test_that("'set_confidential_rr3' throws correct error when used with non-Poisso
   data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
   formula <- deaths ~ age:sex + time
   mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = 1)
+                  data = data)
   expect_error(set_confidential_rr3(mod),
                "Outcome has \"norm\" distribution.")
 })
@@ -57,14 +56,14 @@ test_that("'set_confidential_rr3' throws correct error when used with non-Poisso
   formula <- deaths ~ age:sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   expect_error(set_confidential_rr3(mod),
                "Outcome variable has values not divisible by 3.")
   data$deaths <- c(1, rep(3, times = nrow(data) - 1))
   formula <- deaths ~ age:sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   expect_error(set_confidential_rr3(mod),
                "Outcome variable has value not divisible by 3.")
 })
@@ -189,27 +188,12 @@ test_that("'set_datamod_exposure' throws correct error with non-Poisson", {
                "`mod` is a binomial model.")
 })
 
-test_that("'set_datamod_exposure' throws correct error with exposure specified through formula", {
-  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-  data$popn <- seq_len(nrow(data))
-  data$deaths <- 1
-  cv <- expand.grid(age = 0:3)
-  cv$cv <- 1:4
-  formula <- deaths ~ age:sex + time
-  suppressWarnings(mod <- mod_pois(formula = formula,
-                                   data = data,
-                                   exposure = ~ popn + 1) |>
-                     set_disp(mean = 0))
-  expect_error(set_datamod_exposure(mod, cv = cv),
-               "`set_datamod_exposure\\(\\)` cannot be used with models where exposure specified using formula.")
-})
-
 test_that("'set_datamod_exposure' throws correct error when applied to model without exposure", {
   data <- data.frame(deaths = 1:10 * 3,
                      time = 2001:2010)
   mod <- mod_pois(deaths ~ time,
                   data = data,
-                  exposure = 1)  |>
+                  exposure = NULL)  |>
     set_disp(mean = 0)
   expect_error(set_datamod_exposure(mod, cv = 0.2),
                "`mod` does not include exposure.")
@@ -571,8 +555,7 @@ test_that("'set_disp' works with normal", {
     data$deaths <- rpois(n = nrow(data), lambda = 100)
     formula <- deaths ~ age:sex + time
     mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
+                    data = data)
     expect_identical(mod$mean_disp, 1)
     mod <- set_disp(mod, mean = 0.5)
     expect_identical(mod$mean_disp, 0.5)

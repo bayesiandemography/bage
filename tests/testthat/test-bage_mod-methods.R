@@ -83,8 +83,7 @@ test_that("'augment' works with normal - with data", {
     data$deaths[1] <- NA
     formula <- deaths ~ age + sex + time
     mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
+                    data = data)
     mod_fitted <- fit(mod)
     ans <- augment(mod_fitted, quiet = TRUE)
     expect_true(is.data.frame(ans))
@@ -99,8 +98,7 @@ test_that("'augment' works with normal - no data", {
     data$deaths <- rpois(n = nrow(data), lambda = 100)
     formula <- deaths ~ age + sex + time
     mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
+                    data = data)
     ans <- augment(mod, quiet = TRUE)
     expect_true(is.data.frame(ans))
     expect_identical(names(ans),
@@ -576,7 +574,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp, n
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   mod <- set_n_draw(mod, 10)
   ans_obtained <- draw_vals_augment_unfitted(mod, quiet = TRUE)
   set.seed(mod$seed_augment)
@@ -1099,7 +1097,7 @@ test_that("'fit' works with valid inputs - pois has exposure", {
     formula <- deaths ~ age + sex + time
     mod <- mod_pois(formula = formula,
                     data = data,
-                    exposure = 1)
+                    exposure = NULL)
     mod <- set_prior(mod, age ~ RW2(sd = 0))
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
@@ -1209,7 +1207,7 @@ test_that("'fit' works when all observed values for one year are NA", {
                        time = 2001:2010)
     mod <- mod_pois(deaths ~ age + time,
                     data = data,
-                    exposure = 1)
+                    exposure = NULL)
     mod_fitted <- fit(mod)
     expect_true(is_fitted(mod_fitted))
 })
@@ -1220,7 +1218,7 @@ test_that("'fit' works when model consists of intercept only", {
                        time = 2001:2010)
     mod <- mod_pois(deaths ~ 1,
                     data = data,
-                    exposure = 1)
+                    exposure = NULL)
     mod_fitted <- fit(mod)
     expect_true(is_fitted(mod_fitted))
 })
@@ -1231,7 +1229,7 @@ test_that("'fit' works when model has no hyper-parameters", {
                        time = 2001:2010)
     mod <- mod_pois(deaths ~ 1,
                     data = data,
-                    exposure = 1) |>
+                    exposure = NULL) |>
                     set_disp(mean = 0)
     mod_fitted <- fit(mod)
     expect_true(is_fitted(mod_fitted))
@@ -1242,7 +1240,7 @@ test_that("'fit' works when single dimension", {
                        time = 2001:2010)
     mod <- mod_pois(deaths ~ time,
                     data = data,
-                    exposure = 1) |>
+                    exposure = NULL) |>
       set_prior(time ~ RW(sd = 0))
     mod_fitted <- fit(mod)
     expect_identical(nrow(mod_fitted$draws_effectfree), nrow(data))
@@ -1642,6 +1640,24 @@ test_that("'forecast' works with fitted model - output is 'augment'", {
     expect_identical(names(ans_est), names(ans_no_est))
 })
 
+test_that("'forecast' works with unfitted model and no response - output is 'augment'", {
+    set.seed(0)
+    data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    formula <- deaths ~ age  + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+      set_prior(`(Intercept)` ~ Known(-3)) |>
+      set_prior(age ~ RW(s = 0.01, sd = 0)) |>
+      set_prior(sex ~ NFix(sd = 0.1)) |>
+      set_prior(time ~ RW(s = 0.01, sd = 0)) |>
+      set_disp(mean = 0.01)
+    ans_no_est <- forecast(mod, labels = 2005:2006, quiet = TRUE)
+    ans_est <- forecast(mod, labels = 2005:2006, include_estimates = TRUE, quiet = TRUE)
+    expect_identical(names(ans_est), names(ans_no_est))
+})
+
 test_that("'forecast' works with fitted model - uses newdata", {
     set.seed(0)
     data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
@@ -1657,7 +1673,6 @@ test_that("'forecast' works with fitted model - uses newdata", {
     ans_est <- forecast(mod, newdata = newdata, include_estimates = TRUE)
     expect_identical(names(ans_est), names(augment(mod, quiet = TRUE)))
 })
-
 
 test_that("'forecast' gives same answer when run twice - output is 'augment'", {
     set.seed(0)
@@ -1790,24 +1805,6 @@ test_that("'forecast' throws error when neither labels nor newdata supplied", {
                  "No value supplied for `newdata` or for `labels`.")
 })
 
-test_that("'forecast' throws error when exposure specified via formula", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + sex * time
-  suppressWarnings(
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = ~popn + 1)
-  )
-  mod <- fit(mod)
-  newdata <- make_data_forecast_labels(mod, 2005:2006)
-  newdata$deaths <- rpois(n = nrow(newdata), lambda = 10)
-  expect_error(forecast(mod, newdata = newdata),
-               "`forecast\\(\\)` cannot be used with models where exposure specified using formula.")
-})
-
 
 ## 'forecast_augment' --------------------------------------------------------
 
@@ -1859,7 +1856,7 @@ test_that("'forecast_augment' works - Poisson, no offset", {
   formula <- deaths ~ age * sex + sex * time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
   components_est <- components(mod)
@@ -2157,8 +2154,7 @@ test_that("'forecast_augment' works - normal, no offset, no NA in outcome", {
   data$income <- rnorm(n = nrow(data), mean = 10000, sd = 500)
   formula <- income ~ age + sex * time
   mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = 1)
+                  data = data)
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
   components_est <- components(mod, quiet = TRUE)
@@ -2286,8 +2282,7 @@ test_that("'forecast_augment' works - normal, estimated has imputed, no offset",
   data$income[1] <- NA
   formula <- income ~ age + sex * time
   mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = 1)
+                  data = data)
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
   components_est <- components(mod, quiet = TRUE)
@@ -2347,7 +2342,7 @@ test_that("'get_fun_ag_offset' works with Poisson - offset = 1", {
   formula <- deaths ~ age + sex
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   f <- get_fun_ag_offset(mod)
   ans_obtained <- f(mod$offset)
   ans_expected <- 1
@@ -2391,8 +2386,7 @@ test_that("'get_fun_ag_offset' works with norm, offset = 1", {
   data$income <- rnorm(n = nrow(data))
   formula <- income ~ age + sex
   mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = 1)
+                  data = data)
   f <- get_fun_ag_offset(mod)
   ans_obtained <- f(mod$offset)
   n <- length(mod$offset)
@@ -2576,7 +2570,7 @@ test_that("'has_confidential' works with valid inputs", {
                        income = rnorm(10))
     mod <- mod_pois(deaths ~ time,
                     data = data,
-                    exposure = 1)
+                    exposure = NULL)
     expect_false(has_confidential(mod))
     mod <- set_confidential_rr3(mod)
     expect_true(has_confidential(mod))
@@ -2591,7 +2585,7 @@ test_that("'has_covariates' works with valid inputs", {
                        income = rnorm(10))
     mod <- mod_pois(deaths ~ time,
                     data = data,
-                    exposure = 1)
+                    exposure = NULL)
     expect_false(has_covariates(mod))
     mod <- set_covariates(mod, ~ income)
     expect_true(has_covariates(mod))
@@ -2606,7 +2600,7 @@ test_that("'has_datamod' works with valid inputs", {
                        income = rnorm(10))
     mod <- mod_pois(deaths ~ time,
                     data = data,
-                    exposure = 1)
+                    exposure = NULL)
     expect_false(has_datamod(mod))
     mod <- mod |>
       set_datamod_undercount(prob = data.frame(mean = 0.9, disp = 0.2))
@@ -2644,7 +2638,7 @@ test_that("'has_datamod_param' works with Poisson", {
                      time = 2001:2010)
   mod <- mod_pois(deaths ~ time,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   expect_false(has_datamod_param(mod))
   mod <- mod |>
     set_datamod_overcount(rate = data.frame(mean = 0.1, disp = 0.2))
@@ -2655,8 +2649,7 @@ test_that("'has_datamod_param' works with normal", {
   data <- data.frame(time = 2001:2010,
                      income = rnorm(10))
   mod <- mod_norm(income ~ time,
-                  data = data,
-                  weights = 1)
+                  data = data)
     expect_false(has_datamod_param(mod))
   mod <- mod |>
     set_datamod_noise(sd = 0.2)
@@ -2671,7 +2664,7 @@ test_that("'has_disp' works with valid inputs", {
                        time = 2001:2010)
     mod <- mod_pois(deaths ~ time,
                     data = data,
-                    exposure = 1)
+                    exposure = NULL)
     expect_true(has_disp(mod))
     mod <- set_disp(mod, mean = 0)
     expect_false(has_disp(mod))
@@ -2685,7 +2678,7 @@ test_that("'is_fitted' works with valid inputs", {
                      time = 2001:2010)
   mod <- mod_pois(deaths ~ time,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   expect_false(is_fitted(mod))
   mod <- fit(mod)
   expect_true(is_fitted(mod))
@@ -2699,11 +2692,11 @@ test_that("'is_outcome_in_data' works with valid inputs", {
                      time = 2001:2010)
   mod <- mod_pois(deaths ~ time,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   expect_true(is_outcome_in_data(mod))
   mod <- mod_pois(births ~ time,
                   data = data,
-                  exposure = 1)
+                  exposure = NULL)
   expect_false(is_outcome_in_data(mod))
 })
 

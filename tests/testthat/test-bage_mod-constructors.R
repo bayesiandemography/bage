@@ -34,7 +34,11 @@ test_that("'mod_pois' works with valid inputs - no exposure", {
     formula <- deaths ~ age:sex + time
     ans_obtained <- mod_pois(formula = formula,
                              data = data,
-                             exposure = 1)
+                             exposure = NULL)
+    expect_s3_class(ans_obtained, "bage_mod_pois")
+    ans_obtained <- mod_pois(formula = formula,
+                             data = data,
+                             exposure = NULL)
     expect_s3_class(ans_obtained, "bage_mod_pois")
 })
 
@@ -44,10 +48,9 @@ test_that("'mod_pois' works with valid inputs - no response variable", {
     formula <- deaths ~ age:sex + time
     ans_obtained <- mod_pois(formula = formula,
                              data = data,
-                             exposure = 1)
+                             exposure = NULL)
     expect_s3_class(ans_obtained, "bage_mod_pois")
 })
-
 
 test_that("'mod_pois' gives correct error when no exposure specified", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
@@ -129,14 +132,20 @@ test_that("'mod_norm' works with valid inputs - with weights", {
 })
 
 test_that("'mod_norm' works with valid inputs - no weights", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$income <- rnorm(nrow(data))
-    formula <- income ~ age:sex + time
-    ans_obtained <- mod_norm(formula = formula,
-                             data = data,
-                             weights = 1)
-    expect_s3_class(ans_obtained, "bage_mod_norm")
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$income <- rnorm(nrow(data))
+  formula <- income ~ age:sex + time
+  ans_obtained <- mod_norm(formula = formula,
+                           data = data)
+  expect_s3_class(ans_obtained, "bage_mod_norm")
+  ans_obtained <- mod_norm(formula = formula,
+                           data = data,
+                           weights = NULL)
+  expect_s3_class(ans_obtained, "bage_mod_norm")
+  ans_obtained <- mod_norm(formula = formula,
+                           data = data)
+  expect_s3_class(ans_obtained, "bage_mod_norm")
 })
 
 test_that("'mod_norm' works with valid inputs - no response", {
@@ -144,8 +153,7 @@ test_that("'mod_norm' works with valid inputs - no response", {
     data$popn <- seq_len(nrow(data))
     formula <- income ~ age:sex + time
     ans_obtained <- mod_norm(formula = formula,
-                             data = data,
-                             weights = 1)
+                             data = data)
     expect_s3_class(ans_obtained, "bage_mod_norm")
 })
 
@@ -155,21 +163,10 @@ test_that("'mod_norm' works with no values for outcome variable", {
     data$income <- NA
     formula <- income ~ age:sex + time
     ans_obtained <- mod_norm(formula = formula,
-                             data = data,
-                             weights = 1)
+                             data = data)
     expect_s3_class(ans_obtained, "bage_mod_norm")
     expect_identical(ans_obtained$outcome_mean, 0)
     expect_identical(ans_obtained$outcome_sd, 1)
-})
-
-test_that("'mod_norm' gives correct error when no weights supplied", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$income <- rnorm(nrow(data))
-    formula <- income ~ age:sex + time
-    expect_error(mod_norm(formula = formula,
-                          data = data),
-                 "Argument `weights` is missing, with no default.")
 })
 
 

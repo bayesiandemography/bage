@@ -412,8 +412,7 @@ test_that("'draw_vals_disp' works with 'bage_mod_norm'", {
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age + sex + time
     mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
+                    data = data)
     ans <- draw_vals_disp(mod, n_sim = 10000)
     expect_equal(rvec::draws_median(ans), qexp(0.5), tolerance = 0.01)
 })

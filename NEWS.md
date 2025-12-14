@@ -13,6 +13,9 @@
 * In function `mod_pois()`, the expression `exposure = NULL` is now
   equivalent to `exposure = 1`, and `weights = NULL`, or the
   omission of the `weights` arugment, is equivalent to `weights = 1`.
+* Using a formula to specify exposure now throws an error, not a
+  warning, and the possibility of specifying a formula has been
+  removed from help.
   
 
 # bage 0.10.5

@@ -4,7 +4,7 @@
 \alias{mod_norm}
 \title{Specify a Normal Model}
 \usage{
-mod_norm(formula, data, weights)
+mod_norm(formula, data, weights = NULL)
 }
 \arguments{
 \item{formula}{An R \link[stats:formula]{formula},
@@ -52,17 +52,18 @@ original scale. See \code{\link[=components]{components()}} for details.
 \section{Specifying weights}{
 
 
-The \code{weights} argument can take three forms:
+There are three options for creating an unweighted
+model:
 \itemize{
-\item the name of a variable in \code{data}, with or without
-quote marks, eg \code{"wt"} or \code{wt};
-\item the number \code{1}, in which no weights are used; or
-\item \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
-a formula, which is evaluated with \code{data} as its
-environment (see below for example). This option
-has been deprecated, because it makes forecasting
-and measurement error models more complicated.
+\item do not supply a value for the \code{weights} variable;
+\item set \code{weights} equal to \code{NULL}; or
+\item \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} set weights equal
+to \code{1}, though this option is deprecated, and will
+eventually be removed.
 }
+
+To create a weighted model, supply the name of
+the weighting variable in \code{data}, quoted or unquoted.
 }
 
 \section{Mathematical details}{
@@ -118,17 +119,11 @@ as described in \code{\link[=set_covariates]{set_covariates()}}.
 }
 
 \examples{
+## model without weights
 mod <- mod_norm(value ~ diag:age + year,
-                data = nld_expenditure,
-                weights = 1)
+                data = nld_expenditure)
 
-## use formula to specify weights
-mod <- mod_norm(value ~ diag:age + year,
-                data = nld_expenditure,
-                weights = ~sqrt(value))
-## but formulas are now deprecrated, and the
-## recommended approach is to transform
-## the input data outside the model:
+## model with weights
 nld_expenditure$wt <- sqrt(nld_expenditure$value)
 mod <- mod_norm(value ~ diag:age + year,
                 data = nld_expenditure,
