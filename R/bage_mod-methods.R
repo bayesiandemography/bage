@@ -17,6 +17,12 @@ generics::augment
 #' The return value consists of the original
 #' data and one or more columns of modeled values.
 #'
+#' The `rows` argument can be used to
+#' obtain results for a subset within `data`.
+#' This is faster, and uses less memory, than
+#' generating results for the whole dataset
+#' and then subsetting.
+#'
 #' @section Fitted vs unfitted models:
 #'
 #' `augment()` is typically called on a [fitted][fit()]
@@ -49,6 +55,10 @@ generics::augment
 #' @param x Object of class `"bage_mod"`, typically
 #' created with [mod_pois()], [mod_binom()],
 #' or [mod_norm()].
+#' @param rows Results are returned only for
+#' these rows of `data`. A logical vector,
+#' an index vector, or an expression
+#' evaluated within `data`. Optional
 #' @param quiet Whether to suppress messages.
 #' Default is `FALSE`.
 #' @param ... Unused. Included for generic consistency only.
@@ -102,11 +112,15 @@ generics::augment
 #' mod |>
 #'   augment()
 #'
+#' ## results for females only
+#' mod |>
+#'   augment(rows = sex == "Female")
+#'
 #' ## insert a missing value into outcome variable
 #' divorces_missing <- nzl_divorces
 #' divorces_missing$divorces[1] <- NA
 #'
-#' ## fitting model and calling 'augument'
+#' ## fitting model and calling 'augument'A
 #' ## creates a new variable called '.divorces'
 #' ## holding observed and imputed values
 #' mod_pois(divorces ~ age + sex + time,
@@ -126,6 +140,7 @@ generics::augment
 #'   augment()
 #' @export
 augment.bage_mod <- function(x,
+                             rows = NULL,
                              quiet = FALSE,
                              ...) {
   check_old_version(x = x, nm_x = "x")

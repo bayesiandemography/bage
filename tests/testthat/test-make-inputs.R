@@ -1621,6 +1621,80 @@ test_that("'make_priors' works with valid inputs - has intercept", {
 })
 
 
+## 'make_rows' ----------------------------------------------------------------
+
+test_that("NULL rows returns NULL", {
+  df <- data.frame(x = 1:3)
+  expect_null(make_rows(df, NULL))
+})
+
+test_that("logical rows works (including expression) and forbids NA", {
+  df <- data.frame(x = 1:4)
+  expect_identical(make_rows(df, c(TRUE, FALSE, TRUE, FALSE)), c(1L, 3L))
+  expect_identical(make_rows(df, TRUE), 1:4)           # recycled
+  expect_identical(make_rows(df, x > 2), c(3L, 4L))    # expression
+  expect_error(make_rows(df, c(TRUE, NA, FALSE, TRUE)),
+               "`rows` has NA")
+})
+
+test_that("logical rows must recycle to length 1 or nrow(data)", {
+  df <- data.frame(x = 1:4)
+  expect_error(make_rows(df, c(TRUE, FALSE)),
+               class = "vctrs_error_recycle_incompatible_size")
+})
+
+test_that("numeric rows works (including expression) and forbids NA/0", {
+  df <- data.frame(x = 1:5)
+  expect_identical(make_rows(df, c(1, 3, 5)), c(1L, 3L, 5L))
+  expect_identical(make_rows(df, 2), 2L)               # length-1 ok
+  expect_identical(make_rows(df, which(x >= 4)), c(4L, 5L))  # expression
+  expect_error(make_rows(df, c(1, NA)),
+               "`rows` has NA")
+  expect_error(make_rows(df, c(1, 0)),
+               "must not contain 0")
+})
+
+test_that("numeric rows disallow duplicates", {
+  df <- data.frame(x = 1:5)
+  expect_error(make_rows(df, c(1, 1)),
+               "duplicated indices")
+  expect_error(make_rows(df, c(-2, -2)),
+               "duplicated indices")
+})
+
+test_that("numeric rows disallow mixing positive and negative", {
+  df <- data.frame(x = 1:5)
+  expect_error(make_rows(df, c(1, -2)),
+               "`rows` mixes positive and negative row numbers.")
+})
+
+test_that("numeric rows error on out-of-bounds", {
+  df <- data.frame(x = 1:5)
+  expect_error(make_rows(df, 6),
+               "`rows` has invalid row numbers")
+  expect_error(make_rows(df, -6),
+               "`rows` has invalid row numbers")
+})
+
+test_that("negative numeric rows drop those rows", {
+  df <- data.frame(x = 1:5)
+  expect_identical(make_rows(df, -c(2, 4)), c(1L, 3L, 5L))
+})
+
+test_that("rows must evaluate to a vector", {
+  df <- data.frame(x = 1:3)
+  expect_error(make_rows(df, df),
+               "must evaluate to an atomic vector")
+})
+
+test_that("rows must be logical or numeric", {
+  df <- data.frame(x = 1:3)
+  expect_error(make_rows(df, letters),
+               "`rows` must evaluate to a logical vector or a numeric index vector")
+})
+
+
+
 ## 'make_seed' --------------------------------------------------------------
 
 test_that("'make_seed' returns a single unique integer", {

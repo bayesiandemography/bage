@@ -1354,6 +1354,76 @@ make_prior_class <- function(mod) {
 }
 
 
+#' Process 'rows' Argument into an Index Vector or NULL
+#'
+#' Vectors only recycled if they have length 1.
+#' ('vctrs' rules)
+#'
+#' @param data A data frame
+#' @param rows NULL, an index vector, a logical vector, or an expression
+#'
+#' @returns NULL or an index vector
+#'
+#' @noRd
+make_rows <- function(data, rows) {
+  n <- nrow(data)
+  rows_quo <- rlang::enquo(rows)
+  if (rlang::quo_is_null(rows_quo)) {
+    return(NULL)
+  }
+  x <- rlang::eval_tidy(rows_quo, data = data)
+  if (!is.atomic(x) || !is.null(dim(x))) {
+    cli::cli_abort("{.arg rows} must evaluate to an atomic vector.")
+  }
+  ## no NAs
+  if (anyNA(x))
+    cli::cli_abort("{.arg rows} has {.val {NA}}.")
+  # logical selector
+  if (is.logical(x)) {
+    x <- vctrs::vec_recycle(x, n, x_arg = "rows")
+    return(which(x))
+  }
+  # numeric row positions
+  if (is.integer(x) || is.double(x)) {
+    # require integer-like values (e.g., 1.0 ok; 1.2 error)
+    x <- vctrs::vec_cast(x, integer(), x_arg = "rows")
+    # disallow 0
+    if (any(x == 0L)) {
+      cli::cli_abort("{.arg rows} must not contain 0.")
+    }
+    # disallow mixing positive/negative
+    has_pos <- any(x > 0L)
+    has_neg <- any(x < 0L)
+    if (has_pos && has_neg) {
+      cli::cli_abort("{.arg rows} mixes positive and negative row numbers.")
+    }
+    # out-of-bounds is an error (strict)
+    if (any(x < -n | x > n)) {
+      cli::cli_abort(c("{.arg rows} has invalid row numbers.",
+                       i = "Valid row numbers are between 1 and {n}."))
+    }
+    if (any(abs(x) < 1L)) {
+      cli::cli_abort("{.arg rows} contains invalid indices.")
+    }
+    # disallow duplicates
+    is_dup <- duplicated(abs(x))
+    if (any(is_dup)) {
+      cli::cli_abort(c("{.arg rows} must not contain duplicated indices.",
+                       i = "Duplicates: {toString(unique(abs(x)[is_dup]))}."))
+    }
+    if (has_pos) {
+      return(x)
+    }
+    # all negative: drop these rows
+    drop <- -x
+    keep <- setdiff(seq_len(n), drop)
+    return(keep)
+  }
+  cli::cli_abort(c("{.arg rows} must evaluate to a logical vector or a numeric index vector.",
+                   i = "{.arg rows} evaluates to {.type {vctrs::vec_ptype_full(x)}}."))
+}
+
+
 ## HAS_TESTS
 #' Randomly Generate an Integer Suitable for
 #' Using as a Random Seed
