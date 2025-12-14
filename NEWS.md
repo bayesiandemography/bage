@@ -16,6 +16,10 @@
 * Using a formula to specify exposure now throws an error, not a
   warning, and the possibility of specifying a formula has been
   removed from help.
+
+## Documentation
+
+* Added ROADMAP.md document.
   
 
 # bage 0.10.5

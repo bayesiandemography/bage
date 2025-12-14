@@ -18,7 +18,8 @@ Can be \code{0}.}
 as the 'along' variable. Only used with
 interactions.}
 
-\item{con}{Constraints on parameters.
+\item{con}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+Constraints on parameters.
 Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
 }
@@ -74,6 +75,9 @@ where \code{s} is provided by the user.
 
 \section{Constraints}{
 
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} The specification of
+constraints is likely to change in future versions of \pkg{bage}.
 
 With some combinations of terms and priors, the values of
 the intercept, main effects, and interactions are

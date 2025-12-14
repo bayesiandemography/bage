@@ -242,6 +242,9 @@ For details on the time series models, see \code{\link[=AR]{AR()}}, \code{\link[
 \section{Constraints}{
 
 
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} The specification of
+constraints is likely to change in future versions of \pkg{bage}.
+
 With some combinations of terms and priors, the values of
 the intercept, main effects, and interactions are
 are only weakly identified.

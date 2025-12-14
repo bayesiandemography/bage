@@ -54,6 +54,9 @@
 #'
 #' @section Constraints:
 #'
+#' `r lifecycle::badge("experimental")` The specification of
+#' constraints is likely to change in future versions of \pkg{bage}.
+#'
 #' With some combinations of terms and priors, the values of
 #' the intercept, main effects, and interactions are
 #' are only weakly identified.
@@ -84,7 +87,8 @@
 #' @param along Name of the variable to be used
 #' as the 'along' variable. Only used with
 #' interactions.
-#' @param con Constraints on parameters.
+#' @param con `r lifecycle::badge("experimental")`
+#' Constraints on parameters.
 #' Current choices are `"none"` and `"by"`.
 #' Default is `"none"`. See below for details.
 #'
