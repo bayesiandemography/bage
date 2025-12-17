@@ -1105,13 +1105,14 @@ make_matrices_effectfree_effect <- function(mod) {
 #'
 #' @param formula One-sided formula describing covariates
 #' @param data Data frame
+#' @param rows Indices of 'data' to include, or NULL.
 #'
 #' @returns A model matrix (excluding attributes)
 #'
 #' @noRd
-make_matrix_covariates <- function(formula, data) {
-  tt <- stats::terms(formula)
-  has_intercept <- attr(tt, "intercept")
+make_matrix_covariates <- function(formula, data, rows) {
+  term_formula <- stats::terms(formula)
+  has_intercept <- attr(term_formula, "intercept")
   var_names <- all.vars(formula)
   is_in_formula <- names(data) %in% var_names
   is_numeric <- vapply(data, is.numeric, logical(1L))
@@ -1131,6 +1132,8 @@ make_matrix_covariates <- function(formula, data) {
       cli::cli_abort("Internal error: First column is not intercept.")  # nocov
     ans <- ans[, -1L, drop = FALSE]
   }
+  if (!is.null(rows))
+    ans <- ans[rows, , drop = FALSE]
   attr(ans, "assign") <- NULL
   attr(ans, "contrasts") <- NULL
   rownames(ans) <- NULL
@@ -1290,7 +1293,8 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
                                                           dimnames_terms = dimnames_terms)
   if (has_covariates)
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
-                                                data = data_df)
+                                                data = data_df,
+                                                rows = NULL)
   else
     matrix_covariates <- Matrix::Matrix(0,
                                         nrow = 0L,
@@ -1360,18 +1364,19 @@ make_prior_class <- function(mod) {
 #' ('vctrs' rules)
 #'
 #' @param data A data frame
-#' @param rows NULL, an index vector, a logical vector, or an expression
+#' @param rows NULL, an index vector,
+#' a logical vector, or an expression,
+#' in the form of a quosure
 #'
 #' @returns NULL or an index vector
 #'
 #' @noRd
 make_rows <- function(data, rows) {
   n <- nrow(data)
-  rows_quo <- rlang::enquo(rows)
-  if (rlang::quo_is_null(rows_quo)) {
+  if (rlang::quo_is_null(rows)) {
     return(NULL)
   }
-  x <- rlang::eval_tidy(rows_quo, data = data)
+  x <- rlang::eval_tidy(rows, data = data)
   if (!is.atomic(x) || !is.null(dim(x))) {
     cli::cli_abort("{.arg rows} must evaluate to an atomic vector.")
   }
@@ -1401,9 +1406,6 @@ make_rows <- function(data, rows) {
     if (any(x < -n | x > n)) {
       cli::cli_abort(c("{.arg rows} has invalid row numbers.",
                        i = "Valid row numbers are between 1 and {n}."))
-    }
-    if (any(abs(x) < 1L)) {
-      cli::cli_abort("{.arg rows} contains invalid indices.")
     }
     # disallow duplicates
     is_dup <- duplicated(abs(x))

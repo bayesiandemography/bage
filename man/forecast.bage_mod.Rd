@@ -10,6 +10,7 @@
   labels = NULL,
   output = c("augment", "components"),
   include_estimates = FALSE,
+  rows = NULL,
   quiet = FALSE,
   ...
 )
@@ -24,11 +25,19 @@ future periods.}
 
 \item{labels}{Labels for future values.}
 
-\item{output}{Type of output returned}
+\item{output}{Type of output returned.
+\code{"augment"} (the default) or \code{"components"}.}
 
 \item{include_estimates}{Whether to
 include historical estimates along
 with the forecasts. Default is \code{FALSE}.}
+
+\item{rows}{A logical vector,
+an index vector, or a logical expression
+specifying which rows to return
+from an \code{"augment"} forecast.
+Can only be used if \code{include_estimates}
+is \code{FALSE}.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
@@ -156,6 +165,11 @@ mod |>
 mod |>
   forecast(labels = 2019:2024,
            include_estimates = TRUE)
+
+## only selected rows
+mod |>
+  forecast(labels = 2019:2024,
+           rows = age == "40-44")
 
 ## hyper-parameters
 mod |>

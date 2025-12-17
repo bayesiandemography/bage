@@ -591,21 +591,6 @@ test_that("'impute_outcome_true' works with norm, offset complete", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'impute_outcome_true' raises error when nothing to impute", {
-  set.seed(0)
-  offset <- 1:20
-  outcome <- rnorm(n = 20, mean = 100, sd = 5)
-  expected <- rvec::rnorm_rvec(n = 20, mean = 100, sd = 5, n_draw = 50)
-  disp <- rvec::runif_rvec(n = 1, n_draw = 50)
-  set.seed(1)
-  expect_error(impute_outcome_true(nm_distn = "norm",
-                                   outcome = outcome,
-                                   offset = offset,
-                                   expected = expected,
-                                   disp = disp),
-               "Internal error: `impute_outcome_true\\(\\)` called")
-})
-
 test_that("'impute_outcome_true' raises error with invalid nm_distn", {
   set.seed(0)
   offset <- 1:20
@@ -621,7 +606,6 @@ test_that("'impute_outcome_true' raises error with invalid nm_distn", {
                                    disp = disp),
                "Internal error: Invalid value")
 })
-
 
 
 ## 'infer_trend_seas_err_forecast' ----------------------------------------
@@ -2336,7 +2320,7 @@ test_that("'make_levels_replicate' works", {
 
 ## 'make_linpred_from_components' ---------------------------------------------
 
-test_that("'make_linpred_from_components' works with valid inputs - no covariates", {
+test_that("'make_linpred_from_components' works with valid inputs - no covariates, rows is NULL", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -2350,11 +2334,36 @@ test_that("'make_linpred_from_components' works with valid inputs - no covariate
   ans <- make_linpred_from_components(mod = mod,
                                       components = comp,
                                       data = mod$data,
-                                      dimnames_terms = mod$dimnames_terms)
+                                      dimnames_terms = mod$dimnames_terms,
+                                      rows = NULL)
   expect_identical(length(ans), length(mod$outcome))
 })
 
-test_that("'make_linpred_from_components' works with valid inputs - with covariates", {
+test_that("'make_linpred_from_components' works with valid inputs - no covariates, rows non-NULL", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  comp <- components(mod, quiet = TRUE)
+  ans_obtained <- make_linpred_from_components(mod = mod,
+                                      components = comp,
+                                      data = mod$data,
+                                      dimnames_terms = mod$dimnames_terms,
+                                      rows = 3:5)
+  ans_expected <- make_linpred_from_components(mod = mod,
+                                      components = comp,
+                                      data = mod$data,
+                                      dimnames_terms = mod$dimnames_terms,
+                                      rows = NULL)[3:5]
+  expect_identical(ans_obtained, ans_expected)  
+})
+
+test_that("'make_linpred_from_components' works with valid inputs - with covariates, rows is NULL", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -2370,11 +2379,38 @@ test_that("'make_linpred_from_components' works with valid inputs - with covaria
   ans_obtained <- make_linpred_from_components(mod = mod,
                                                components = comp,
                                                data = mod$data,
-                                               dimnames_terms = mod$dimnames_terms)
+                                               dimnames_terms = mod$dimnames_terms,
+                                               rows = NULL)
   ans_expected <- comp$.fitted[comp$term == "(Intercept)"] +
     rep(comp$.fitted[comp$term == "age" & comp$component == "effect"], times = 12) +
     rep(comp$.fitted[comp$term == "sex" & comp$component == "effect"], each = 60) +
     comp$.fitted[comp$term == "covariates" & comp$component == "coef"] * as.numeric(scale(data$income))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_linpred_from_components' works with valid inputs - with covariates, rows is non-NULL", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_covariates(mod, ~ income)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  comp <- components(mod, quiet = TRUE)
+  ans_obtained <- make_linpred_from_components(mod = mod,
+                                               components = comp,
+                                               data = mod$data,
+                                               dimnames_terms = mod$dimnames_terms,
+                                               rows = 10:20)
+  ans_expected <- make_linpred_from_components(mod = mod,
+                                               components = comp,
+                                               data = mod$data,
+                                               dimnames_terms = mod$dimnames_terms,
+                                               rows = NULL)[10:20]
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -2399,7 +2435,8 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - point is F
   ans_expected <- make_linpred_from_components(mod = mod,
                                                components = comp,
                                                data = mod$data,
-                                               dimnames_terms = mod$dimnames_terms)
+                                               dimnames_terms = mod$dimnames_terms,
+                                               rows = NULL)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -2453,7 +2490,7 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - has covari
   m1 <- Reduce(Matrix::cbind2, matrices_effect_outcome)
   matrices <- make_matrices_effectfree_effect(mod)
   m2 <- Matrix::.bdiag(matrices)
-  mc <- make_matrix_covariates(~income, data)
+  mc <- make_matrix_covariates(~income, data, rows = NULL)
   ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree) +
     as.double(mod$point_coef_covariates * mc)
   expect_equal(ans_obtained, ans_expected)
@@ -2483,7 +2520,7 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - has covari
   m1 <- Reduce(Matrix::cbind2, matrices_effect_outcome)
   matrices <- make_matrices_effectfree_effect(mod)
   m2 <- Matrix::.bdiag(matrices)
-  mc <- make_matrix_covariates(~income, data)[11:120,]
+  mc <- make_matrix_covariates(~income, data, rows = NULL)[11:120,]
   ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree) +
     as.double(mod$point_coef_covariates * mc)
   expect_equal(ans_obtained, ans_expected)
@@ -2573,7 +2610,8 @@ test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - po
   ans_expected <- make_linpred_from_components(mod = mod,
                                                components = comp,
                                                data = mod$data,
-                                               dimnames_terms = mod$dimnames_terms)
+                                               dimnames_terms = mod$dimnames_terms,
+                                               rows = NULL)
   expect_equal(ans_obtained, ans_expected)
 })
 

@@ -1220,7 +1220,38 @@ check_response_not_call <- function(formula) {
   }
   invisible(TRUE)
 }
-        
+
+## HAS_TESTS
+#' Check That 'rows' Argument to 'forecast' Consistent
+#' With Other Arguments
+#'
+#' @param rows Rows argument, as quosure
+#' @param output "augment" or "components"
+#' @param include_estimates Logical flag
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_rows_forecast <- function(rows,
+                                output,
+                                include_estimates) {
+  is_rows_null <- rlang::quo_is_null(rows)
+  if (!is_rows_null) {
+    if (!identical(output, "augment"))
+      cli::cli_abort(c(paste("{.arg output} is {.val {output}} but value",
+                             "supplied for {.arg rows}."),
+                       i = paste("Value can only be supplied for {.arg rows}",
+                                 "if {.arg output} is {.val augment}.")))
+    if (!identical(include_estimates, FALSE))
+      cli::cli_abort(c(paste("{.arg include_estimates} is",
+                             "{.val {include_estimates}}, but value",
+                             "supplied for {.arg rows}."),
+                       i = paste("Value can only be supplied for {.arg rows}",
+                                 "if {.arg include_estimates} is",
+                                 "{.val {FALSE}}.")))
+  }
+  invisible(TRUE)
+}
     
 ## HAS_TESTS
 #' Check a scale term

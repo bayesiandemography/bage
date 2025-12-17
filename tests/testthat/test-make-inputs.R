@@ -1279,7 +1279,7 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 
 ## 'make_matrix_covariates' ---------------------------------------------------
 
-test_that("'make_matrix_covariates' works with valid inputs - all numeric", {
+test_that("'make_matrix_covariates' works with valid inputs - all numeric - rows NULL", {
   set.seed(0)
   data <- expand.grid(age = 0:9,
                       region = c("a", "b"),
@@ -1289,7 +1289,7 @@ test_that("'make_matrix_covariates' works with valid inputs - all numeric", {
   data$income <- runif(n = nrow(data))
   data$distance <- runif(n = nrow(data))
   formula <- ~ income + distance
-  ans_obtained <- make_matrix_covariates(formula = formula, data = data)
+  ans_obtained <- make_matrix_covariates(formula = formula, data = data, rows = NULL)
   ans_expected <- Matrix::sparse.model.matrix(~income + distance - 1,
                                               data = data)
   ans_expected[,"income"] <- scale(ans_expected[,"income"])
@@ -1300,7 +1300,29 @@ test_that("'make_matrix_covariates' works with valid inputs - all numeric", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_covariates' works with valid inputs - not all numeric - has intercept", {
+test_that("'make_matrix_covariates' works with valid inputs - all numeric - rows non-NULL", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- runif(n = nrow(data))
+  data$distance <- runif(n = nrow(data))
+  formula <- ~ income + distance
+  ans_obtained <- make_matrix_covariates(formula = formula, data = data, rows = 35:40)
+  ans_expected <- Matrix::sparse.model.matrix(~income + distance - 1,
+                                              data = data)
+  ans_expected[,"income"] <- scale(ans_expected[,"income"])
+  ans_expected[,"distance"] <- scale(ans_expected[,"distance"])
+  rownames(ans_expected) <- NULL
+  attributes(ans_expected)$assign <- NULL
+  rownames(ans_expected) <- NULL
+  ans_expected <- ans_expected[35:40,]
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_covariates' works with valid inputs - not all numeric - has intercept, rows NULL", {
   set.seed(0)
   data <- expand.grid(age = 0:9,
                       region = c("a", "b"),
@@ -1309,7 +1331,7 @@ test_that("'make_matrix_covariates' works with valid inputs - not all numeric - 
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   data$income <- runif(n = nrow(data))
   formula <- ~ income * region
-  ans_obtained <- make_matrix_covariates(formula = formula, data = data)
+  ans_obtained <- make_matrix_covariates(formula = formula, data = data, rows = NULL)
   data_scaled <- data
   data_scaled$income <- as.numeric(scale(data_scaled$income))
   ans_expected <- Matrix::sparse.model.matrix(~income*region,
@@ -1318,7 +1340,26 @@ test_that("'make_matrix_covariates' works with valid inputs - not all numeric - 
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_covariates' works with valid inputs - not all numeric - no intercept", {
+test_that("'make_matrix_covariates' works with valid inputs - not all numeric - has intercept, has rows", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- runif(n = nrow(data))
+  formula <- ~ income * region
+  ans_obtained <- make_matrix_covariates(formula = formula, data = data, rows = 12)
+  data_scaled <- data
+  data_scaled$income <- as.numeric(scale(data_scaled$income))
+  ans_expected <- Matrix::sparse.model.matrix(~income*region,
+                                              data = data_scaled)[,-1]
+  rownames(ans_expected) <- NULL
+  ans_expected <- ans_expected[12, , drop = FALSE]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_covariates' works with valid inputs - not all numeric - no intercept, rows NULL", {
   set.seed(0)
   data <- expand.grid(age = 0:9,
                       region = c("a", "b"),
@@ -1327,7 +1368,7 @@ test_that("'make_matrix_covariates' works with valid inputs - not all numeric - 
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   data$income <- runif(n = nrow(data))
   formula <- ~ income * region - 1
-  ans_obtained <- make_matrix_covariates(formula = formula, data = data)
+  ans_obtained <- make_matrix_covariates(formula = formula, data = data, rows = NULL)
   data_scaled <- data
   data_scaled$income <- as.numeric(scale(data_scaled$income))
   ans_expected <- Matrix::sparse.model.matrix(~income*region,
@@ -1625,74 +1666,74 @@ test_that("'make_priors' works with valid inputs - has intercept", {
 
 test_that("NULL rows returns NULL", {
   df <- data.frame(x = 1:3)
-  expect_null(make_rows(df, NULL))
+  expect_null(make_rows(df, rlang::quo(NULL)))
 })
 
 test_that("logical rows works (including expression) and forbids NA", {
   df <- data.frame(x = 1:4)
-  expect_identical(make_rows(df, c(TRUE, FALSE, TRUE, FALSE)), c(1L, 3L))
-  expect_identical(make_rows(df, TRUE), 1:4)           # recycled
-  expect_identical(make_rows(df, x > 2), c(3L, 4L))    # expression
-  expect_error(make_rows(df, c(TRUE, NA, FALSE, TRUE)),
+  rows <- rlang::quo(c(TRUE, FALSE, TRUE, FALSE))
+  expect_identical(make_rows(df, rows), c(1L, 3L))
+  expect_identical(make_rows(df, rlang::quo(TRUE)), 1:4)           # recycled
+  expect_identical(make_rows(df, rlang::quo(x > 2)), c(3L, 4L))    # expression
+  expect_error(make_rows(df, rlang::quo(c(TRUE, NA, FALSE, TRUE))),
                "`rows` has NA")
 })
 
 test_that("logical rows must recycle to length 1 or nrow(data)", {
   df <- data.frame(x = 1:4)
-  expect_error(make_rows(df, c(TRUE, FALSE)),
+  expect_error(make_rows(df, rlang::quo(c(TRUE, FALSE))),
                class = "vctrs_error_recycle_incompatible_size")
 })
 
 test_that("numeric rows works (including expression) and forbids NA/0", {
   df <- data.frame(x = 1:5)
-  expect_identical(make_rows(df, c(1, 3, 5)), c(1L, 3L, 5L))
-  expect_identical(make_rows(df, 2), 2L)               # length-1 ok
-  expect_identical(make_rows(df, which(x >= 4)), c(4L, 5L))  # expression
-  expect_error(make_rows(df, c(1, NA)),
+  expect_identical(make_rows(df, rlang::quo(c(1, 3, 5))), c(1L, 3L, 5L))
+  expect_identical(make_rows(df, rlang::quo(2.0)), 2L)               # length-1 ok
+  expect_identical(make_rows(df, rlang::quo(which(x >= 4))), c(4L, 5L))  # expression
+  expect_error(make_rows(df, rlang::quo(c(1, NA))),
                "`rows` has NA")
-  expect_error(make_rows(df, c(1, 0)),
+  expect_error(make_rows(df, rlang::quo(c(1, 0))),
                "must not contain 0")
 })
 
 test_that("numeric rows disallow duplicates", {
   df <- data.frame(x = 1:5)
-  expect_error(make_rows(df, c(1, 1)),
+  expect_error(make_rows(df, rlang::quo(c(1, 1))),
                "duplicated indices")
-  expect_error(make_rows(df, c(-2, -2)),
+  expect_error(make_rows(df, rlang::quo(c(-2, -2))),
                "duplicated indices")
 })
 
 test_that("numeric rows disallow mixing positive and negative", {
   df <- data.frame(x = 1:5)
-  expect_error(make_rows(df, c(1, -2)),
+  expect_error(make_rows(df, rlang::quo(c(1, -2))),
                "`rows` mixes positive and negative row numbers.")
 })
 
 test_that("numeric rows error on out-of-bounds", {
   df <- data.frame(x = 1:5)
-  expect_error(make_rows(df, 6),
+  expect_error(make_rows(df, rlang::quo(6)),
                "`rows` has invalid row numbers")
-  expect_error(make_rows(df, -6),
+  expect_error(make_rows(df, rlang::quo(-6)),
                "`rows` has invalid row numbers")
 })
 
 test_that("negative numeric rows drop those rows", {
   df <- data.frame(x = 1:5)
-  expect_identical(make_rows(df, -c(2, 4)), c(1L, 3L, 5L))
+  expect_identical(make_rows(df, rlang::quo(-c(2, 4))), c(1L, 3L, 5L))
 })
 
 test_that("rows must evaluate to a vector", {
   df <- data.frame(x = 1:3)
-  expect_error(make_rows(df, df),
+  expect_error(make_rows(df, rlang::quo(df)),
                "must evaluate to an atomic vector")
 })
 
 test_that("rows must be logical or numeric", {
   df <- data.frame(x = 1:3)
-  expect_error(make_rows(df, letters),
+  expect_error(make_rows(df, rlang::quo(letters)),
                "`rows` must evaluate to a logical vector or a numeric index vector")
 })
-
 
 
 ## 'make_seed' --------------------------------------------------------------

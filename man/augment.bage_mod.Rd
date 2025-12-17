@@ -4,12 +4,17 @@
 \alias{augment.bage_mod}
 \title{Extract Data and Modeled Values}
 \usage{
-\method{augment}{bage_mod}(x, quiet = FALSE, ...)
+\method{augment}{bage_mod}(x, rows = NULL, quiet = FALSE, ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_mod"}, typically
 created with \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
 or \code{\link[=mod_norm]{mod_norm()}}.}
+
+\item{rows}{Results are returned only for
+these rows of \code{data}. A logical vector,
+an index vector, or a logical expression
+evaluated within \code{data}. Optional}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
@@ -42,6 +47,13 @@ Extract data and rates, probabilities, or means
 from a model object.
 The return value consists of the original
 data and one or more columns of modeled values.
+}
+\details{
+The \code{rows} argument can be used to
+obtain results for a subset within \code{data}.
+This is faster, and uses less memory, than
+generating results for the whole dataset
+and then subsetting.
 }
 \section{Fitted vs unfitted models}{
 
@@ -95,11 +107,15 @@ mod <- mod |>
 mod |>
   augment()
 
+## results for females only
+mod |>
+  augment(rows = sex == "Female")
+
 ## insert a missing value into outcome variable
 divorces_missing <- nzl_divorces
 divorces_missing$divorces[1] <- NA
 
-## fitting model and calling 'augument'
+## fitting model and calling 'augument'A
 ## creates a new variable called '.divorces'
 ## holding observed and imputed values
 mod_pois(divorces ~ age + sex + time,

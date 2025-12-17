@@ -1027,7 +1027,7 @@ test_that("'check_number' throws correct error with Inf", {
 })
 
 
-## 'check_numeric' ------------------------------------------------------------------
+## 'check_numeric' ------------------------------------------------------------
 
 test_that("'check_numeric' returns TRUE with valid inputs", {
     expect_true(check_numeric(x = 1:4, nm_x = "x"))
@@ -1312,6 +1312,29 @@ test_that("'check_response_not_call' returns correct error with invalid inputs",
   expect_error(check_response_not_call(log(deaths) ~ sex),
                "Response includes function call.")
 })
+
+
+## 'check_rows_forecast' ------------------------------------------------------
+
+test_that("'check_rows_forecast' returns TRUE with valid inputs", {
+  expect_true(check_rows_forecast(rows = rlang::quo(age > 5),
+                                  output = "augment",
+                                  include_estimates = FALSE))
+})
+
+test_that("'check_rows_forecast' throws correct error with components", {
+  expect_error(check_rows_forecast(rows = rlang::quo(age > 5),
+                                   output = "components",
+                                   include_estimates = FALSE))
+})
+
+test_that("'check_rows_forecast' throws correct error with include_estimates", {
+  expect_error(check_rows_forecast(rows = rlang::quo(age > 5),
+                                   output = "augment",
+                                   include_estimates = NA))
+})
+
+
 
 
 ## 'check_scale' --------------------------------------------------------------

@@ -1,4 +1,15 @@
 
+
+# bage 0.10.7
+
+## Interface
+
+* Added `rows` argument to `augment()` and `forecast()` allowing users
+  to request results for a subset of `data`. (#106)
+* Removed warning about rules for aggregation changing. The warning
+  was introduced in version 0.9.9.
+
+
 # bage 0.10.6
 
 ## Interface

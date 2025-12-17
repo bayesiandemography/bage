@@ -585,7 +585,7 @@ get_term_from_est <- function(est, index_term) {
 }
 
 
-
+## HAS_TESTS
 #' Impute Missing Values for True Outcome
 #'
 #' Should only be called when 'outcome'
@@ -633,8 +633,6 @@ impute_outcome_true <- function(nm_distn,
     disp <- as.numeric(disp)
     disp <- rep(disp, each = n_val)
   }
-  if (!anyNA(outcome))
-    cli::cli_abort("Internal error: {.fun impute_outcome_true} called, but no missing values.")
   is_impute <- is.na(outcome) & !is.na(offset)
   n_impute <- sum(is_impute)
   ans <- outcome
@@ -1899,18 +1897,20 @@ make_lin_trend <- function(slope,
 #' @param components Data frame with estimates for hyper-parameters
 #' @param data Data frame with raw data
 #' @param dimnames_terms Dimnames for array representation of terms
+#' @param rows Indices of rows from 'data', used for subsetting
 #'
 #' @returns An rvec
 #'
 #' @noRd
-make_linpred_from_components <- function(mod, components, data, dimnames_terms) {
+make_linpred_from_components <- function(mod, components, data, dimnames_terms, rows) {
   key_comp <- with(components, paste(term, component, level))
   fitted <- components$.fitted
   data_has_intercept <- "(Intercept)" %in% names(data)
   if (!data_has_intercept)
     data[["(Intercept)"]] <- "(Intercept)"
   n_draw <- rvec::n_draw(fitted)
-  ans <- rvec::new_rvec_dbl(length = nrow(data), n_draw = n_draw)
+  n_row <- if (is.null(rows)) nrow(data) else length(rows)
+  ans <- rvec::new_rvec_dbl(length = n_row, n_draw = n_draw)
   for (i_term in seq_along(dimnames_terms)) {
     dimnames_term <- dimnames_terms[[i_term]]
     nm_split <- dimnames_to_nm_split(dimnames_term)
@@ -1919,7 +1919,10 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
     key_term <- paste(nm, "effect", levels_term)
     indices_comp <- match(key_term, key_comp)
     val_term <- fitted[indices_comp]
-    levels_data <- Reduce(paste_dot, data[nm_split])
+    data_term <- data[nm_split]
+    if (!is.null(rows))
+      data_term <- data_term[rows, , drop = FALSE]
+    levels_data <- Reduce(paste_dot, data_term)
     indices_term <- match(levels_data, levels_term)
     val_term_linpred <- val_term[indices_term]
     ans <- ans + val_term_linpred
@@ -1931,7 +1934,8 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms) 
     indices_covariates <- match(key_covariates, key_comp)
     coef_covariates <- fitted[indices_covariates]
     matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
-                                                data = data)
+                                                data = data,
+                                                rows = rows)
     val_covariates_linpred <- matrix_covariates %*% coef_covariates
     ans <- ans + val_covariates_linpred
   }
@@ -1988,12 +1992,9 @@ make_linpred_from_stored_draws_covariates <- function(mod, point, rows) {
     coef_covariates <- mod$point_coef_covariates
   else
     coef_covariates <- mod$draws_coef_covariates
-  ## can't subset 'data', because might miss some
-  ## combinations of values expected by 'formula_covariates'
   matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
-                                              data = data)
-  if (!is.null(rows))
-    matrix_covariates <- matrix_covariates[rows, , drop = FALSE]
+                                              data = data,
+                                              rows = rows)
   ans <- matrix_covariates %*% coef_covariates
   if (point)
     ans <- as.double(ans)

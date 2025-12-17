@@ -152,7 +152,8 @@ set_covariates <- function(mod, formula) {
   data <- mod$data
   formula_mod <- mod$formula
   matrix_covariates <- make_matrix_covariates(formula = formula,
-                                              data = data)
+                                              data = data,
+                                              rows = NULL)
   covariates_nms <- colnames(matrix_covariates)
   if (has_covariates(mod))
     cli::cli_alert_warning("Model already has covariates. Deleting these.")
