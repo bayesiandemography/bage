@@ -147,25 +147,25 @@ rep_data |>
 #>    .replicate       n
 #>    <fct>        <dbl>
 #>  1 Original     21588
-#>  2 Replicate 1  21133
-#>  3 Replicate 2  21946
-#>  4 Replicate 3  22364
-#>  5 Replicate 4  20904
-#>  6 Replicate 5  21871
-#>  7 Replicate 6  21941
-#>  8 Replicate 7  21251
-#>  9 Replicate 8  21536
-#> 10 Replicate 9  20938
-#> 11 Replicate 10 21366
-#> 12 Replicate 11 22184
-#> 13 Replicate 12 21726
-#> 14 Replicate 13 21783
-#> 15 Replicate 14 21649
-#> 16 Replicate 15 20718
-#> 17 Replicate 16 20600
-#> 18 Replicate 17 20991
-#> 19 Replicate 18 21259
-#> 20 Replicate 19 21757
+#>  2 Replicate 1  21088
+#>  3 Replicate 2  20918
+#>  4 Replicate 3  21963
+#>  5 Replicate 4  20803
+#>  6 Replicate 5  20738
+#>  7 Replicate 6  21066
+#>  8 Replicate 7  21711
+#>  9 Replicate 8  20784
+#> 10 Replicate 9  20277
+#> 11 Replicate 10 20600
+#> 12 Replicate 11 21293
+#> 13 Replicate 12 21792
+#> 14 Replicate 13 21481
+#> 15 Replicate 14 21390
+#> 16 Replicate 15 20504
+#> 17 Replicate 16 21521
+#> 18 Replicate 17 21354
+#> 19 Replicate 18 21881
+#> 20 Replicate 19 22475
 
 ## when the overall model includes an rr3 data model,
 ## replicate data are rounded to base 3

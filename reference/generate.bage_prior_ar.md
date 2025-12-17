@@ -160,36 +160,36 @@ that do not.
 x <- RW()
 generate(x, n_along = 10, n_by = 2)
 #> # A tibble: 500 × 4
-#>    draw   by    along  value
-#>    <fct>  <fct> <int>  <dbl>
-#>  1 Draw 1 By 1      1  0.289
-#>  2 Draw 1 By 1      2 -0.975
-#>  3 Draw 1 By 1      3 -0.100
-#>  4 Draw 1 By 1      4 -0.233
-#>  5 Draw 1 By 1      5 -1.08 
-#>  6 Draw 1 By 1      6 -3.44 
-#>  7 Draw 1 By 1      7 -4.42 
-#>  8 Draw 1 By 1      8 -5.23 
-#>  9 Draw 1 By 1      9 -3.10 
-#> 10 Draw 1 By 1     10 -0.714
+#>    draw   by    along   value
+#>    <fct>  <fct> <int>   <dbl>
+#>  1 Draw 1 By 1      1  0.784 
+#>  2 Draw 1 By 1      2  0.761 
+#>  3 Draw 1 By 1      3  1.33  
+#>  4 Draw 1 By 1      4  0.776 
+#>  5 Draw 1 By 1      5 -0.214 
+#>  6 Draw 1 By 1      6  0.576 
+#>  7 Draw 1 By 1      7  0.611 
+#>  8 Draw 1 By 1      8 -0.0431
+#>  9 Draw 1 By 1      9 -1.06  
+#> 10 Draw 1 By 1     10 -1.14  
 #> # ℹ 490 more rows
 
 ## prior that does not distinguish
 x <- N()
 generate(x, n_element = 20)
 #> # A tibble: 500 × 3
-#>    draw   element   value
-#>    <fct>    <int>   <dbl>
-#>  1 Draw 1       1 -0.922 
-#>  2 Draw 1       2 -0.0736
-#>  3 Draw 1       3  0.0539
-#>  4 Draw 1       4 -1.05  
-#>  5 Draw 1       5  0.774 
-#>  6 Draw 1       6 -1.12  
-#>  7 Draw 1       7 -0.368 
-#>  8 Draw 1       8 -1.01  
-#>  9 Draw 1       9 -0.141 
-#> 10 Draw 1      10  0.172 
+#>    draw   element    value
+#>    <fct>    <int>    <dbl>
+#>  1 Draw 1       1 -0.00216
+#>  2 Draw 1       2  0.0598 
+#>  3 Draw 1       3  0.0528 
+#>  4 Draw 1       4  0.0534 
+#>  5 Draw 1       5  0.130  
+#>  6 Draw 1       6 -0.0931 
+#>  7 Draw 1       7 -0.0144 
+#>  8 Draw 1       8  0.0263 
+#>  9 Draw 1       9 -0.00547
+#> 10 Draw 1      10  0.0246 
 #> # ℹ 490 more rows
 
 ## SVD_AR(), SVD_RW(), and SVD_RW2()
@@ -199,16 +199,16 @@ generate(x, n_along = 5, n_by = 2)
 #> # A tibble: 11,000 × 5
 #>    draw   by    along age    value
 #>    <fct>  <fct> <int> <fct>  <dbl>
-#>  1 Draw 1 By 1      1 12    -12.2 
-#>  2 Draw 1 By 1      1 13    -10.1 
-#>  3 Draw 1 By 1      1 14     -8.24
-#>  4 Draw 1 By 1      1 15     -6.61
-#>  5 Draw 1 By 1      1 16     -5.23
-#>  6 Draw 1 By 1      1 17     -4.25
-#>  7 Draw 1 By 1      1 18     -3.55
-#>  8 Draw 1 By 1      1 19     -3.03
-#>  9 Draw 1 By 1      1 20     -2.71
-#> 10 Draw 1 By 1      1 21     -2.51
+#>  1 Draw 1 By 1      1 12    -10.1 
+#>  2 Draw 1 By 1      1 13     -7.58
+#>  3 Draw 1 By 1      1 14     -5.47
+#>  4 Draw 1 By 1      1 15     -4.23
+#>  5 Draw 1 By 1      1 16     -3.35
+#>  6 Draw 1 By 1      1 17     -2.83
+#>  7 Draw 1 By 1      1 18     -2.45
+#>  8 Draw 1 By 1      1 19     -2.18
+#>  9 Draw 1 By 1      1 20     -2.09
+#> 10 Draw 1 By 1      1 21     -2.06
 #> # ℹ 10,990 more rows
 
 ## SVD() does not
@@ -217,15 +217,15 @@ generate(x, n_element = 10)
 #> # A tibble: 11,000 × 4
 #>    draw   element age    value
 #>    <fct>    <int> <fct>  <dbl>
-#>  1 Draw 1       1 12    -12.7 
+#>  1 Draw 1       1 12    -12.5 
 #>  2 Draw 1       1 13    -10.5 
-#>  3 Draw 1       1 14     -8.11
-#>  4 Draw 1       1 15     -6.16
-#>  5 Draw 1       1 16     -4.63
-#>  6 Draw 1       1 17     -3.51
-#>  7 Draw 1       1 18     -2.77
-#>  8 Draw 1       1 19     -2.32
-#>  9 Draw 1       1 20     -2.06
-#> 10 Draw 1       1 21     -1.92
+#>  3 Draw 1       1 14     -8.67
+#>  4 Draw 1       1 15     -6.90
+#>  5 Draw 1       1 16     -5.40
+#>  6 Draw 1       1 17     -4.29
+#>  7 Draw 1       1 18     -3.52
+#>  8 Draw 1       1 19     -2.97
+#>  9 Draw 1       1 20     -2.62
+#> 10 Draw 1       1 21     -2.39
 #> # ℹ 10,990 more rows
 ```

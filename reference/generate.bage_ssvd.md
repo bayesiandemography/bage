@@ -98,16 +98,16 @@ generate(HMD)
 #> # A tibble: 4,440 × 4
 #>    draw   sex   age   value
 #>    <fct>  <fct> <fct> <dbl>
-#>  1 Draw 1 Male  0     -4.29
-#>  2 Draw 1 Male  1     -7.02
-#>  3 Draw 1 Male  2     -7.70
-#>  4 Draw 1 Male  3     -8.04
-#>  5 Draw 1 Male  4     -8.29
-#>  6 Draw 1 Male  5     -8.49
-#>  7 Draw 1 Male  6     -8.63
-#>  8 Draw 1 Male  7     -8.75
-#>  9 Draw 1 Male  8     -8.86
-#> 10 Draw 1 Male  9     -8.96
+#>  1 Draw 1 Male  0     -2.34
+#>  2 Draw 1 Male  1     -4.14
+#>  3 Draw 1 Male  2     -4.93
+#>  4 Draw 1 Male  3     -5.40
+#>  5 Draw 1 Male  4     -5.78
+#>  6 Draw 1 Male  5     -6.07
+#>  7 Draw 1 Male  6     -6.30
+#>  8 Draw 1 Male  7     -6.53
+#>  9 Draw 1 Male  8     -6.76
+#> 10 Draw 1 Male  9     -6.94
 #> # ℹ 4,430 more rows
 
 ## joint model for females and males
@@ -115,16 +115,16 @@ generate(HMD, indep = FALSE)
 #> # A tibble: 4,440 × 4
 #>    draw   sex    age   value
 #>    <fct>  <fct>  <fct> <dbl>
-#>  1 Draw 1 Female 0     -4.92
-#>  2 Draw 1 Female 1     -7.48
-#>  3 Draw 1 Female 2     -8.05
-#>  4 Draw 1 Female 3     -8.31
-#>  5 Draw 1 Female 4     -8.49
-#>  6 Draw 1 Female 5     -8.63
-#>  7 Draw 1 Female 6     -8.72
-#>  8 Draw 1 Female 7     -8.80
-#>  9 Draw 1 Female 8     -8.86
-#> 10 Draw 1 Female 9     -8.92
+#>  1 Draw 1 Female 0     -3.02
+#>  2 Draw 1 Female 1     -4.91
+#>  3 Draw 1 Female 2     -5.75
+#>  4 Draw 1 Female 3     -6.26
+#>  5 Draw 1 Female 4     -6.64
+#>  6 Draw 1 Female 5     -6.94
+#>  7 Draw 1 Female 6     -7.22
+#>  8 Draw 1 Female 7     -7.48
+#>  9 Draw 1 Female 8     -7.69
+#> 10 Draw 1 Female 9     -7.87
 #> # ℹ 4,430 more rows
 
 ## SVD for females and males combined
@@ -132,16 +132,16 @@ generate(HMD, indep = NA)
 #> # A tibble: 2,220 × 3
 #>    draw   age   value
 #>    <fct>  <fct> <dbl>
-#>  1 Draw 1 0     -4.55
-#>  2 Draw 1 1     -7.26
-#>  3 Draw 1 2     -8.03
-#>  4 Draw 1 3     -8.44
-#>  5 Draw 1 4     -8.75
-#>  6 Draw 1 5     -8.97
-#>  7 Draw 1 6     -9.15
-#>  8 Draw 1 7     -9.30
-#>  9 Draw 1 8     -9.45
-#> 10 Draw 1 9     -9.56
+#>  1 Draw 1 0     -4.18
+#>  2 Draw 1 1     -6.30
+#>  3 Draw 1 2     -6.80
+#>  4 Draw 1 3     -7.06
+#>  5 Draw 1 4     -7.23
+#>  6 Draw 1 5     -7.35
+#>  7 Draw 1 6     -7.44
+#>  8 Draw 1 7     -7.52
+#>  9 Draw 1 8     -7.58
+#> 10 Draw 1 9     -7.62
 #> # ℹ 2,210 more rows
 
 ## specify age groups
@@ -150,15 +150,15 @@ generate(HMD, age_labels = labels)
 #> # A tibble: 560 × 4
 #>    draw   sex    age   value
 #>    <fct>  <fct>  <fct> <dbl>
-#>  1 Draw 1 Female 0     -4.86
-#>  2 Draw 1 Female 1-4   -7.48
-#>  3 Draw 1 Female 5-9   -7.90
-#>  4 Draw 1 Female 10-14 -7.76
-#>  5 Draw 1 Female 15-19 -7.11
-#>  6 Draw 1 Female 20-24 -6.95
-#>  7 Draw 1 Female 25-29 -6.81
-#>  8 Draw 1 Female 30-34 -6.50
-#>  9 Draw 1 Female 35-39 -6.10
-#> 10 Draw 1 Female 40-44 -5.66
+#>  1 Draw 1 Female 0     -2.76
+#>  2 Draw 1 Female 1-4   -4.55
+#>  3 Draw 1 Female 5-9   -4.67
+#>  4 Draw 1 Female 10-14 -4.57
+#>  5 Draw 1 Female 15-19 -4.20
+#>  6 Draw 1 Female 20-24 -4.13
+#>  7 Draw 1 Female 25-29 -3.98
+#>  8 Draw 1 Female 30-34 -3.71
+#>  9 Draw 1 Female 35-39 -3.37
+#> 10 Draw 1 Female 40-44 -3.02
 #> # ℹ 550 more rows
 ```

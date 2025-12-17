@@ -156,7 +156,7 @@ mod
 #>    1000     time    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.62     0.34      0.22   14      TRUE   relative convergence (4)
+#>        0.63     0.35      0.23   14      TRUE   relative convergence (4)
 ```
 
 ### 2.3 Extracting parameter estimates
@@ -175,11 +175,11 @@ aug_init
 #>  3 Stockholm  1997  20646     62   0.00300 0.0032 (0.0027, 0.0037)
 #>  4 Stockholm  1998  20815     81   0.00389  0.0034 (0.0029, 0.004)
 #>  5 Stockholm  1999  20863     68   0.00326 0.0031 (0.0027, 0.0037)
-#>  6 Stockholm  2000  21837     75   0.00343 0.0032 (0.0028, 0.0037)
-#>  7 Stockholm  2001  22622     68   0.00301 0.0031 (0.0027, 0.0036)
-#>  8 Stockholm  2002  24084     70   0.00291 0.0029 (0.0026, 0.0034)
+#>  6 Stockholm  2000  21837     75   0.00343 0.0032 (0.0027, 0.0037)
+#>  7 Stockholm  2001  22622     68   0.00301 0.0031 (0.0026, 0.0036)
+#>  8 Stockholm  2002  24084     70   0.00291 0.0029 (0.0025, 0.0034)
 #>  9 Stockholm  2003  25028     67   0.00268 0.0028 (0.0024, 0.0032)
-#> 10 Stockholm  2004  25779     64   0.00248  0.0026 (0.0023, 0.003)
+#> 10 Stockholm  2004  25779     64   0.00248 0.0026 (0.0022, 0.0031)
 #> # ℹ 431 more rows
 #> # ℹ 1 more variable: .expected <rdbl<1000>>
 ```
@@ -200,11 +200,11 @@ aug_init
 #>  3 Stockholm  1997  20646     62   0.00300 0.0032 (0.0027, 0.0037)
 #>  4 Stockholm  1998  20815     81   0.00389  0.0034 (0.0029, 0.004)
 #>  5 Stockholm  1999  20863     68   0.00326 0.0031 (0.0027, 0.0037)
-#>  6 Stockholm  2000  21837     75   0.00343 0.0032 (0.0028, 0.0037)
-#>  7 Stockholm  2001  22622     68   0.00301 0.0031 (0.0027, 0.0036)
-#>  8 Stockholm  2002  24084     70   0.00291 0.0029 (0.0026, 0.0034)
+#>  6 Stockholm  2000  21837     75   0.00343 0.0032 (0.0027, 0.0037)
+#>  7 Stockholm  2001  22622     68   0.00301 0.0031 (0.0026, 0.0036)
+#>  8 Stockholm  2002  24084     70   0.00291 0.0029 (0.0025, 0.0034)
 #>  9 Stockholm  2003  25028     67   0.00268 0.0028 (0.0024, 0.0032)
-#> 10 Stockholm  2004  25779     64   0.00248  0.0026 (0.0023, 0.003)
+#> 10 Stockholm  2004  25779     64   0.00248 0.0026 (0.0022, 0.0031)
 #> # ℹ 431 more rows
 #> # ℹ 4 more variables: .expected <rdbl<1000>>, .fitted.lower <dbl>,
 #> #   .fitted.mid <dbl>, .fitted.upper <dbl>
@@ -241,11 +241,11 @@ comp_init
 #>    <chr>       <chr>     <chr>                      <rdbl<1000>>
 #>  1 (Intercept) effect    (Intercept)           -2.7 (-4.1, -1.4)
 #>  2 county      effect    Stockholm          -0.16 (-0.25, -0.07)
-#>  3 county      effect    Vastra Gotaland -0.095 (-0.18, -0.0054)
-#>  4 county      effect    Skane            -0.099 (-0.2, 0.00067)
-#>  5 county      effect    Ostergotland        -0.01 (-0.14, 0.11)
-#>  6 county      effect    Jonkoping           0.013 (-0.12, 0.14)
-#>  7 county      effect    Uppsala            0.0053 (-0.13, 0.13)
+#>  3 county      effect    Vastra Gotaland -0.094 (-0.18, -0.0051)
+#>  4 county      effect    Skane              -0.1 (-0.2, 0.00051)
+#>  5 county      effect    Ostergotland       -0.011 (-0.14, 0.11)
+#>  6 county      effect    Jonkoping           0.013 (-0.11, 0.14)
+#>  7 county      effect    Uppsala            0.0054 (-0.13, 0.13)
 #>  8 county      effect    Orebro              0.07 (-0.055, 0.22)
 #>  9 county      effect    Dalarna              0.04 (-0.09, 0.17)
 #> 10 county      effect    Norrbotten           0.17 (0.026, 0.31)
@@ -468,11 +468,11 @@ vals_forecast
 #>  3 Stockholm  1997  20646     62   0.00300 0.0032 (0.0027, 0.0037)
 #>  4 Stockholm  1998  20815     81   0.00389  0.0034 (0.0029, 0.004)
 #>  5 Stockholm  1999  20863     68   0.00326 0.0031 (0.0027, 0.0037)
-#>  6 Stockholm  2000  21837     75   0.00343 0.0032 (0.0028, 0.0037)
-#>  7 Stockholm  2001  22622     68   0.00301 0.0031 (0.0027, 0.0036)
-#>  8 Stockholm  2002  24084     70   0.00291 0.0029 (0.0026, 0.0034)
+#>  6 Stockholm  2000  21837     75   0.00343 0.0032 (0.0027, 0.0037)
+#>  7 Stockholm  2001  22622     68   0.00301 0.0031 (0.0026, 0.0036)
+#>  8 Stockholm  2002  24084     70   0.00291 0.0029 (0.0025, 0.0034)
 #>  9 Stockholm  2003  25028     67   0.00268 0.0028 (0.0024, 0.0032)
-#> 10 Stockholm  2004  25779     64   0.00248  0.0026 (0.0023, 0.003)
+#> 10 Stockholm  2004  25779     64   0.00248 0.0026 (0.0022, 0.0031)
 #> # ℹ 641 more rows
 #> # ℹ 1 more variable: .expected <rdbl<1000>>
 ```

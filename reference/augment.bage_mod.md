@@ -8,7 +8,7 @@ modeled values.
 
 ``` r
 # S3 method for class 'bage_mod'
-augment(x, quiet = FALSE, ...)
+augment(x, rows = NULL, quiet = FALSE, ...)
 ```
 
 ## Arguments
@@ -20,6 +20,12 @@ augment(x, quiet = FALSE, ...)
   [`mod_binom()`](https://bayesiandemography.github.io/bage/reference/mod_binom.md),
   or
   [`mod_norm()`](https://bayesiandemography.github.io/bage/reference/mod_norm.md).
+
+- rows:
+
+  Results are returned only for these rows of `data`. A logical vector,
+  an index vector, or a logical expression evaluated within `data`.
+  Optional
 
 - quiet:
 
@@ -48,6 +54,12 @@ with the original data plus one or more of the following columns:
 
 Uncertain quantities are represented using
 [rvecs](https://bayesiandemography.github.io/rvec/reference/rvec.html).
+
+## Details
+
+The `rows` argument can be used to obtain results for a subset within
+`data`. This is faster, and uses less memory, than generating results
+for the whole dataset and then subsetting.
 
 ## Fitted vs unfitted models
 
@@ -133,24 +145,43 @@ mod |>
 #> # A tibble: 242 × 8
 #>    age   sex     time divorces population .observed                    .fitted
 #>    <fct> <chr>  <int>    <dbl>      <dbl>     <dbl>                <rdbl<100>>
-#>  1 15-19 Female  2011        0     154460 0         1.1e-05 (5.8e-06, 1.8e-05)
-#>  2 15-19 Female  2012        6     153060 0.0000392 1.4e-05 (7.3e-06, 2.1e-05)
+#>  1 15-19 Female  2011        0     154460 0         1.1e-05 (5.7e-06, 1.8e-05)
+#>  2 15-19 Female  2012        6     153060 0.0000392 1.4e-05 (7.5e-06, 2.1e-05)
 #>  3 15-19 Female  2013        3     152250 0.0000197   1.2e-05 (7.1e-06, 2e-05)
-#>  4 15-19 Female  2014        3     152020 0.0000197 1.1e-05 (7.1e-06, 1.9e-05)
-#>  5 15-19 Female  2015        3     152970 0.0000196 1.1e-05 (6.3e-06, 1.7e-05)
-#>  6 15-19 Female  2016        3     154170 0.0000195   1e-05 (6.5e-06, 1.8e-05)
+#>  4 15-19 Female  2014        3     152020 0.0000197 1.1e-05 (7.2e-06, 1.9e-05)
+#>  5 15-19 Female  2015        3     152970 0.0000196 1.1e-05 (6.2e-06, 1.8e-05)
+#>  6 15-19 Female  2016        3     154170 0.0000195   1e-05 (6.7e-06, 1.8e-05)
 #>  7 15-19 Female  2017        6     154450 0.0000388 1.2e-05 (6.8e-06, 1.9e-05)
-#>  8 15-19 Female  2018        0     154170 0         8.4e-06 (5.3e-06, 1.3e-05)
-#>  9 15-19 Female  2019        3     154760 0.0000194   1e-05 (6.4e-06, 1.6e-05)
-#> 10 15-19 Female  2020        0     154480 0         8.3e-06 (4.5e-06, 1.4e-05)
+#>  8 15-19 Female  2018        0     154170 0         8.4e-06 (5.1e-06, 1.3e-05)
+#>  9 15-19 Female  2019        3     154760 0.0000194   1e-05 (6.2e-06, 1.6e-05)
+#> 10 15-19 Female  2020        0     154480 0         8.4e-06 (4.4e-06, 1.3e-05)
 #> # ℹ 232 more rows
+#> # ℹ 1 more variable: .expected <rdbl<100>>
+
+## results for females only
+mod |>
+  augment(rows = sex == "Female")
+#> # A tibble: 121 × 8
+#>    age   sex     time divorces population .observed                    .fitted
+#>    <fct> <chr>  <int>    <dbl>      <dbl>     <dbl>                <rdbl<100>>
+#>  1 15-19 Female  2011        0     154460 0           1e-05 (6.2e-06, 1.8e-05)
+#>  2 15-19 Female  2012        6     153060 0.0000392 1.4e-05 (8.8e-06, 2.1e-05)
+#>  3 15-19 Female  2013        3     152250 0.0000197 1.2e-05 (6.6e-06, 1.8e-05)
+#>  4 15-19 Female  2014        3     152020 0.0000197 1.2e-05 (6.7e-06, 1.8e-05)
+#>  5 15-19 Female  2015        3     152970 0.0000196 1.2e-05 (7.3e-06, 1.8e-05)
+#>  6 15-19 Female  2016        3     154170 0.0000195   1e-05 (5.4e-06, 1.7e-05)
+#>  7 15-19 Female  2017        6     154450 0.0000388 1.1e-05 (7.1e-06, 1.9e-05)
+#>  8 15-19 Female  2018        0     154170 0           8.9e-06 (5e-06, 1.2e-05)
+#>  9 15-19 Female  2019        3     154760 0.0000194   1e-05 (5.7e-06, 1.6e-05)
+#> 10 15-19 Female  2020        0     154480 0         8.2e-06 (5.5e-06, 1.5e-05)
+#> # ℹ 111 more rows
 #> # ℹ 1 more variable: .expected <rdbl<100>>
 
 ## insert a missing value into outcome variable
 divorces_missing <- nzl_divorces
 divorces_missing$divorces[1] <- NA
 
-## fitting model and calling 'augument'
+## fitting model and calling 'augument'A
 ## creates a new variable called '.divorces'
 ## holding observed and imputed values
 mod_pois(divorces ~ age + sex + time,
@@ -165,7 +196,7 @@ mod_pois(divorces ~ age + sex + time,
 #> # A tibble: 242 × 9
 #>    age   sex     time divorces    .divorces population  .observed
 #>    <fct> <chr>  <int>    <dbl> <rdbl<1000>>      <dbl>      <dbl>
-#>  1 15-19 Female  2011       NA     2 (0, 6)     154460 NA        
+#>  1 15-19 Female  2011       NA     2 (0, 5)     154460 NA        
 #>  2 15-19 Female  2012        6     6 (6, 6)     153060  0.0000392
 #>  3 15-19 Female  2013        3     3 (3, 3)     152250  0.0000197
 #>  4 15-19 Female  2014        3     3 (3, 3)     152020  0.0000197
@@ -198,13 +229,13 @@ mod_pois(divorces ~ age + sex + time,
 #>    <fct> <chr>  <int>    <dbl> <rdbl<1000>>      <dbl>     <dbl>
 #>  1 15-19 Female  2011        0     1 (0, 2)     154460 0        
 #>  2 15-19 Female  2012        6     5 (4, 7)     153060 0.0000392
-#>  3 15-19 Female  2013        3     2 (1, 5)     152250 0.0000197
-#>  4 15-19 Female  2014        3     3 (1, 5)     152020 0.0000197
-#>  5 15-19 Female  2015        3     3 (1, 5)     152970 0.0000196
-#>  6 15-19 Female  2016        3     2 (1, 4)     154170 0.0000195
+#>  3 15-19 Female  2013        3     3 (1, 5)     152250 0.0000197
+#>  4 15-19 Female  2014        3     2 (1, 5)     152020 0.0000197
+#>  5 15-19 Female  2015        3     3 (1, 4)     152970 0.0000196
+#>  6 15-19 Female  2016        3     2 (1, 5)     154170 0.0000195
 #>  7 15-19 Female  2017        6     5 (4, 7)     154450 0.0000388
 #>  8 15-19 Female  2018        0     1 (0, 2)     154170 0        
-#>  9 15-19 Female  2019        3     2 (1, 5)     154760 0.0000194
+#>  9 15-19 Female  2019        3     2 (1, 4)     154760 0.0000194
 #> 10 15-19 Female  2020        0     1 (0, 2)     154480 0        
 #> # ℹ 232 more rows
 #> # ℹ 2 more variables: .fitted <rdbl<1000>>, .expected <rdbl<1000>>

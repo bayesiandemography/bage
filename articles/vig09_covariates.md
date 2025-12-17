@@ -159,7 +159,7 @@ mod_gdp_dens
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.42     0.80      0.48   30      TRUE   relative convergence (4)
+#>        1.51     0.87      0.50   30      TRUE   relative convergence (4)
 ```
 
 To obtain estimates of the coefficients (ie estimates of the
@@ -175,7 +175,7 @@ mod_gdp_dens |>
 #>   term       component level                      .fitted
 #>   <chr>      <chr>     <chr>                 <rdbl<1000>>
 #> 1 covariates coef      gdp_pc_2023     -0.23 (-1.4, 0.99)
-#> 2 covariates coef      dens_2020Medium -0.95 (-2.6, 0.73)
+#> 2 covariates coef      dens_2020Medium -0.93 (-2.5, 0.73)
 ```
 
 ### 3.3 Covariates that allow for unusual subsets
@@ -202,7 +202,7 @@ mod_dragon |>
 #> # A tibble: 1 × 4
 #>   term       component level                           .fitted
 #>   <chr>      <chr>     <chr>                      <rdbl<1000>>
-#> 1 covariates coef      is_dragon_yearTRUE 0.065 (-0.047, 0.18)
+#> 1 covariates coef      is_dragon_yearTRUE 0.069 (-0.045, 0.18)
 ```
 
 There is some evidence for extra births, though there is substantial
@@ -274,7 +274,7 @@ mod_dragon_age
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.01     0.41      0.55   22      TRUE   relative convergence (4)
+#>        1.06     0.43      0.58   22      TRUE   relative convergence (4)
 ```
 
 Rather than a single dragon-year coefficient, we have a coefficient for
@@ -287,17 +287,17 @@ mod_dragon_age |>
   mutate(age = sub("is_dragon_year_age", "", level)) |>
   select(age, .fitted)
 #> # A tibble: 9 × 2
-#>   age                 .fitted
-#>   <chr>          <rdbl<1000>>
-#> 1 10-14    0.58 (-0.057, 1.3)
-#> 2 15-19 -0.0071 (-0.21, 0.19)
-#> 3 20-24   0.045 (-0.16, 0.23)
-#> 4 25-29   0.062 (-0.11, 0.25)
-#> 5 30-34   0.086 (-0.12, 0.27)
-#> 6 35-39   0.043 (-0.15, 0.25)
-#> 7 40-44   0.072 (-0.12, 0.25)
-#> 8 45-49   0.096 (-0.17, 0.36)
-#> 9 50-54    0.32 (-0.26, 0.86)
+#>   age               .fitted
+#>   <chr>        <rdbl<1000>>
+#> 1 10-14  0.58 (-0.024, 1.3)
+#> 2 15-19 -0.012 (-0.21, 0.2)
+#> 3 20-24 0.045 (-0.16, 0.23)
+#> 4 25-29 0.065 (-0.12, 0.25)
+#> 5 30-34 0.079 (-0.11, 0.26)
+#> 6 35-39 0.043 (-0.15, 0.25)
+#> 7 40-44  0.072 (-0.1, 0.26)
+#> 8 45-49  0.083 (-0.2, 0.35)
+#> 9 50-54  0.33 (-0.25, 0.92)
 ```
 
 ### 3.4 Forecasting

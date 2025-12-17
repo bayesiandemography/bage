@@ -112,22 +112,22 @@ res <- report_sim(mod_est = mod)
 res
 #> $components
 #> # A tibble: 7 × 7
-#>   term        component   .error .cover_50 .cover_95 .length_50 .length_95
-#>   <chr>       <chr>        <dbl>     <dbl>     <dbl>      <dbl>      <dbl>
-#> 1 (Intercept) effect     0           1         1         0           0    
-#> 2 age         effect    -0.0107      0.518     0.958     0.103       0.297
-#> 3 age         hyper      0.00948     0.45      0.8       0.0481      0.180
-#> 4 sex         effect    -0.00397     0.455     0.905     0.303       0.873
-#> 5 time        effect     0.00111     0.688     0.968     0.0669      0.194
-#> 6 time        hyper      0.00417     0.45      0.9       0.0431      0.141
-#> 7 disp        disp      -0.0705      0.52      0.97      0.265       0.779
+#>   term        component    .error .cover_50 .cover_95 .length_50 .length_95
+#>   <chr>       <chr>         <dbl>     <dbl>     <dbl>      <dbl>      <dbl>
+#> 1 (Intercept) effect     0            1         1         0           0    
+#> 2 age         effect    -0.0108       0.518     0.958     0.103       0.297
+#> 3 age         hyper      0.00955      0.45      0.81      0.0482      0.180
+#> 4 sex         effect    -0.00419      0.455     0.905     0.302       0.876
+#> 5 time        effect     0.000970     0.685     0.965     0.0670      0.194
+#> 6 time        hyper      0.00412      0.445     0.9       0.0431      0.141
+#> 7 disp        disp      -0.0705       0.52      0.97      0.265       0.779
 #> 
 #> $augment
 #> # A tibble: 2 × 7
 #>   .var      .observed      .error .cover_50 .cover_95 .length_50 .length_95
 #>   <chr>         <dbl>       <dbl>     <dbl>     <dbl>      <dbl>      <dbl>
-#> 1 .fitted       0.604 -0.00000674     0.476     0.949    0.00199    0.00576
-#> 2 .expected     0.604 -0.0223         0.44      0.922    0.153      0.459
+#> 1 .fitted       0.604 -0.00000675     0.476     0.949    0.00199    0.00576
+#> 2 .expected     0.604 -0.0220         0.447     0.926    0.152      0.458
 ```
 
 The output from

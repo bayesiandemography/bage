@@ -1,5 +1,17 @@
 # Changelog
 
+## bage 0.10.7
+
+### Interface
+
+- Added `rows` argument to
+  [`augment()`](https://generics.r-lib.org/reference/augment.html) and
+  [`forecast()`](https://generics.r-lib.org/reference/forecast.html)
+  allowing users to request results for a subset of `data`.
+  ([\#106](https://github.com/bayesiandemography/bage/issues/106))
+- Removed warning about rules for aggregation changing. The warning was
+  introduced in version 0.9.9.
+
 ## bage 0.10.6
 
 ### Interface

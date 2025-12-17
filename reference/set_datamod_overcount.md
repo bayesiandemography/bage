@@ -167,7 +167,7 @@ mod
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.31     0.16      0.12   17      TRUE   relative convergence (4)
+#>        0.33     0.17      0.14   17      TRUE   relative convergence (4)
 #> 
 
 ## original data, plus imputed values for outcome
@@ -179,9 +179,9 @@ mod |>
 #>    <fct> <chr>  <int>    <dbl> <rdbl<1000>>      <dbl>     <dbl>
 #>  1 15-19 Female  2011        0     0 (0, 0)     154460 0        
 #>  2 15-19 Female  2012        6     6 (4, 6)     153060 0.0000392
-#>  3 15-19 Female  2013        3     3 (2, 3)     152250 0.0000197
-#>  4 15-19 Female  2014        3     3 (1, 3)     152020 0.0000197
-#>  5 15-19 Female  2015        3     3 (1, 3)     152970 0.0000196
+#>  3 15-19 Female  2013        3     3 (1, 3)     152250 0.0000197
+#>  4 15-19 Female  2014        3     3 (2, 3)     152020 0.0000197
+#>  5 15-19 Female  2015        3     3 (2, 3)     152970 0.0000196
 #>  6 15-19 Female  2016        3     3 (2, 3)     154170 0.0000195
 #>  7 15-19 Female  2017        6     6 (4, 6)     154450 0.0000388
 #>  8 15-19 Female  2018        0     0 (0, 0)     154170 0        
@@ -233,6 +233,6 @@ mod
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.74     0.40      0.30   19      TRUE   relative convergence (4)
+#>        0.77     0.41      0.32   19      TRUE   relative convergence (4)
 #> 
 ```

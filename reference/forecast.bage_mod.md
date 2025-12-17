@@ -12,6 +12,7 @@ forecast(
   labels = NULL,
   output = c("augment", "components"),
   include_estimates = FALSE,
+  rows = NULL,
   quiet = FALSE,
   ...
 )
@@ -37,12 +38,18 @@ forecast(
 
 - output:
 
-  Type of output returned
+  Type of output returned. `"augment"` (the default) or `"components"`.
 
 - include_estimates:
 
   Whether to include historical estimates along with the forecasts.
   Default is `FALSE`.
+
+- rows:
+
+  A logical vector, an index vector, or a logical expression specifying
+  which rows to return from an `"augment"` forecast. Can only be used if
+  `include_estimates` is `FALSE`.
 
 - quiet:
 
@@ -209,7 +216,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.61     0.28      0.29   15      TRUE   relative convergence (4)
+#>        0.66     0.31      0.31   15      TRUE   relative convergence (4)
 #> 
 
 ## forecasts
@@ -221,16 +228,16 @@ mod |>
 #> # A tibble: 288 × 9
 #>    age   sex   ethnicity  year injuries  popn .observed                  .fitted
 #>    <fct> <chr> <chr>     <int>    <dbl> <int>     <dbl>             <rdbl<1000>>
-#>  1 0-4   Fema… Maori      2019       NA    NA        NA 2e-04 (0.00014, 0.00026)
-#>  2 0-4   Fema… Maori      2020       NA    NA        NA 2e-04 (0.00014, 0.00028)
+#>  1 0-4   Fema… Maori      2019       NA    NA        NA 2e-04 (0.00014, 0.00027)
+#>  2 0-4   Fema… Maori      2020       NA    NA        NA 2e-04 (0.00014, 0.00027)
 #>  3 0-4   Fema… Maori      2021       NA    NA        NA 2e-04 (0.00014, 0.00028)
 #>  4 0-4   Fema… Maori      2022       NA    NA        NA 2e-04 (0.00014, 0.00028)
 #>  5 0-4   Fema… Maori      2023       NA    NA        NA 2e-04 (0.00013, 0.00028)
-#>  6 0-4   Fema… Maori      2024       NA    NA        NA 2e-04 (0.00014, 0.00029)
-#>  7 0-4   Fema… Non Maori  2019       NA    NA        NA 1e-04 (7.4e-05, 0.00014)
-#>  8 0-4   Fema… Non Maori  2020       NA    NA        NA 1e-04 (7.3e-05, 0.00014)
+#>  6 0-4   Fema… Maori      2024       NA    NA        NA 2e-04 (0.00013, 0.00029)
+#>  7 0-4   Fema… Non Maori  2019       NA    NA        NA 1e-04 (7.3e-05, 0.00014)
+#>  8 0-4   Fema… Non Maori  2020       NA    NA        NA   1e-04 (7e-05, 0.00014)
 #>  9 0-4   Fema… Non Maori  2021       NA    NA        NA 1e-04 (7.3e-05, 0.00014)
-#> 10 0-4   Fema… Non Maori  2022       NA    NA        NA 1e-04 (7.2e-05, 0.00014)
+#> 10 0-4   Fema… Non Maori  2022       NA    NA        NA 1e-04 (7.3e-05, 0.00015)
 #> # ℹ 278 more rows
 #> # ℹ 1 more variable: .expected <rdbl<1000>>
 
@@ -258,6 +265,29 @@ mod |>
 #> # ℹ 1,190 more rows
 #> # ℹ 2 more variables: .fitted <rdbl<1000>>, .expected <rdbl<1000>>
 
+## only selected rows
+mod |>
+  forecast(labels = 2019:2024,
+           rows = age == "40-44")
+#> `components()` for past values...
+#> `components()` for future values...
+#> `augment()` for future values...
+#> # A tibble: 24 × 9
+#>    age   sex    ethnicity  year injuries  popn .observed
+#>    <fct> <chr>  <chr>     <int>    <dbl> <int>     <dbl>
+#>  1 40-44 Female Maori      2019       NA    NA        NA
+#>  2 40-44 Female Maori      2020       NA    NA        NA
+#>  3 40-44 Female Maori      2021       NA    NA        NA
+#>  4 40-44 Female Maori      2022       NA    NA        NA
+#>  5 40-44 Female Maori      2023       NA    NA        NA
+#>  6 40-44 Female Maori      2024       NA    NA        NA
+#>  7 40-44 Female Non Maori  2019       NA    NA        NA
+#>  8 40-44 Female Non Maori  2020       NA    NA        NA
+#>  9 40-44 Female Non Maori  2021       NA    NA        NA
+#> 10 40-44 Female Non Maori  2022       NA    NA        NA
+#> # ℹ 14 more rows
+#> # ℹ 2 more variables: .fitted <rdbl<1000>>, .expected <rdbl<1000>>
+
 ## hyper-parameters
 mod |>
   forecast(labels = 2019:2024,
@@ -267,12 +297,12 @@ mod |>
 #> # A tibble: 6 × 4
 #>   term  component level            .fitted
 #>   <chr> <chr>     <chr>       <rdbl<1000>>
-#> 1 year  effect    2019  -2.1 (-3.8, -0.36)
-#> 2 year  effect    2020  -2.1 (-3.9, -0.38)
-#> 3 year  effect    2021   -2.1 (-3.8, -0.4)
-#> 4 year  effect    2022  -2.1 (-3.9, -0.39)
-#> 5 year  effect    2023  -2.1 (-3.8, -0.37)
-#> 6 year  effect    2024   -2.1 (-3.8, -0.4)
+#> 1 year  effect    2019   -2.1 (-3.7, -0.5)
+#> 2 year  effect    2020  -2.1 (-3.8, -0.48)
+#> 3 year  effect    2021  -2.1 (-3.8, -0.48)
+#> 4 year  effect    2022  -2.1 (-3.8, -0.46)
+#> 5 year  effect    2023  -2.1 (-3.8, -0.48)
+#> 6 year  effect    2024  -2.1 (-3.8, -0.46)
 
 ## hold back some data and forecast
 library(dplyr, warn.conflicts = FALSE)
@@ -298,10 +328,10 @@ mod_pois(injuries ~ age * sex + ethnicity + year,
 #>  1 0-4   Female Maori      2016    8 (3, 15) 41220        NA
 #>  2 5-9   Female Maori      2016     2 (0, 6) 43230        NA
 #>  3 10-14 Female Maori      2016     2 (0, 6) 37640        NA
-#>  4 15-19 Female Maori      2016   12 (5, 21) 36040        NA
+#>  4 15-19 Female Maori      2016   12 (5, 20) 36040        NA
 #>  5 20-24 Female Maori      2016   10 (4, 18) 33760        NA
 #>  6 25-29 Female Maori      2016    8 (3, 15) 30530        NA
-#>  7 30-34 Female Maori      2016    6 (1, 12) 24480        NA
+#>  7 30-34 Female Maori      2016    6 (2, 11) 24480        NA
 #>  8 35-39 Female Maori      2016    6 (2, 12) 23170        NA
 #>  9 40-44 Female Maori      2016    6 (2, 12) 23940        NA
 #> 10 45-49 Female Maori      2016    6 (2, 12) 23580        NA
