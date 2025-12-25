@@ -534,6 +534,40 @@ Type logpost_slope(const vector<Type>& slope,
 }
 
 
+// R-style replacement for TMB::split().
+//
+// Unlike TMB version of split(), but like R vection,
+// split_rstyle() returns 'n_terms' terms, each possibly length 0.
+template <class Type, class Factor>
+vector< vector<Type> >
+split_rstyle(const vector<Type>& x, const Factor& f, int n_terms) {
+  if (x.size() != f.size())
+    error("split_rstyle: x.size() != f.size()");
+  // count elements per level
+  vector<int> counts(n_terms);
+  counts.setZero();
+  for (int i = 0; i < x.size(); ++i) {
+    int g = f[i];
+    if (g < 0 || g >= n_terms)
+      error("split_rstyle: factor code out of range");
+    counts[g] += 1;
+  }
+  // allocate output with exact sizes
+  vector< vector<Type> > ans(n_terms);
+  for (int g = 0; g < n_terms; ++g)
+    ans[g].resize(counts[g]);
+  // fill
+  counts.setZero(); // reuse as write positions
+  for (int i = 0; i < x.size(); ++i) {
+    int g = f[i];
+    ans[g][counts[g]] = x[i];
+    counts[g] += 1;
+  }
+  // return vector of vectors
+  return ans;
+}
+
+
 // "Methods" for 'logpost' functions for priors  ------------------------------
 
 // Assume inputs all valid (checking done in R).
@@ -859,6 +893,7 @@ Type logpost_rwzero(const vector<Type>& rw,
   return ans;
 }
 
+
 template <class Type>
 Type logpost_rwzeroseasfix(const vector<Type>& effectfree,
 			   const vector<Type>& hyper,
@@ -878,6 +913,23 @@ Type logpost_rwzeroseasfix(const vector<Type>& effectfree,
   ans += logpost_rwrandom(rw, hyper, consts_rw, matrix_along_by_effectfree);
   return ans;
 }
+
+
+// template <class Type>
+// Type logpost_rwzeroseasfix(const vector<Type>& effectfree,
+// 			   const vector<Type>& hyper,
+// 			   const vector<Type>& hyperrandfree, // seasonal effect
+// 			   const vector<Type>& consts,
+// 			   const matrix<int>& matrix_along_by_effectfree) {
+//   vector<Type> consts_seas = consts.head(2); // n_seas, sd_seas
+//   vector<Type> consts_rw(2);
+//   consts_rw[0] = consts[2]; // scale
+//   consts_rw[1] = consts[1]; // sd_seas 
+//   Type ans = Type(0);
+//   //ans += logpost_seasfix(hyperrandfree, consts_seas);
+//   // ans += logpost_rwrandom(effectfree, hyper, consts_rw, matrix_along_by_effectfree);
+//   return ans;
+// }
 
 template <class Type>
 Type logpost_rwzeroseasvary(const vector<Type>& effectfree,
@@ -2077,8 +2129,8 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(i_lik);
   DATA_VECTOR(outcome);
   DATA_VECTOR(offset);
-  DATA_FACTOR(terms_effect);
   DATA_FACTOR(terms_effectfree);
+  DATA_INTEGER(n_terms_effectfree);
   DATA_IVECTOR(uses_matrix_effectfree_effect);
   DATA_STRUCT(matrices_effectfree_effect, LIST_SM_t);
   DATA_IVECTOR(uses_offset_effectfree_effect);
@@ -2087,10 +2139,13 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(i_prior);
   DATA_IVECTOR(uses_hyper);
   DATA_FACTOR(terms_hyper);
+  DATA_INTEGER(n_terms_hyper);
   DATA_IVECTOR(uses_hyperrandfree);
   DATA_FACTOR(terms_hyperrandfree);
+  DATA_INTEGER(n_terms_hyperrandfree);
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
+  DATA_INTEGER(n_terms_consts);
   DATA_STRUCT(matrices_along_by_effectfree, LIST_M_t);
   DATA_SCALAR(mean_disp);
   DATA_SPARSE_MATRIX(matrix_covariates);
@@ -2110,10 +2165,10 @@ Type objective_function<Type>::operator() ()
 
   const int n_outcome = outcome.size();
   const int n_term = i_prior.size();
-  vector<vector<Type> > effectfree_split = split(effectfree, terms_effectfree);
-  vector<vector<Type> > hyper_split = split(hyper, terms_hyper);
-  vector<vector<Type> > hyperrandfree_split = split(hyperrandfree, terms_hyperrandfree);
-  vector<vector<Type> > consts_split = split(consts, terms_consts);
+  vector<vector<Type> > effectfree_split = split_rstyle(effectfree, terms_effectfree, n_terms_effectfree);
+  vector<vector<Type> > hyper_split = split_rstyle(hyper, terms_hyper, n_terms_hyper);
+  vector<vector<Type> > hyperrandfree_split = split_rstyle(hyperrandfree, terms_hyperrandfree, n_terms_hyperrandfree);
+  vector<vector<Type> > consts_split = split_rstyle(consts, terms_consts, n_terms_consts);
   const bool has_disp = mean_disp > 0;
   Type disp = has_disp ? exp(log_disp) : 0;
   const bool uses_covariates = matrix_covariates.cols() > 0;
@@ -2169,7 +2224,10 @@ Type objective_function<Type>::operator() ()
       if (uses_hyper[i_term]) {
 	vector<Type> hyper_term = hyper_split[i_term];
 	if (uses_hyperrandfree[i_term]) { // if a prior uses hyperrandfree, then it uses hyper
-	  vector<Type> hyperrandfree_term = hyperrandfree_split[i_term];
+	  if (i_term < 0 || i_term >= hyperrandfree_split.size()) {
+	    error("outside range");
+	  }
+	  const vector<Type>& hyperrandfree_term = hyperrandfree_split[i_term];
 	  ans -= logpost_has_hyperrandfree(effectfree_term,
 					   hyper_term,
 					   hyperrandfree_term,

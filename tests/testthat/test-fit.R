@@ -988,7 +988,6 @@ test_that("'make_fit_random' works when hyper, hyperrand, covariates, data model
 })
 
 
-
 ## 'make_fit_times' -----------------------------------------------------------
 
 test_that("'make_fit_times' works", {
@@ -1004,6 +1003,25 @@ test_that("'make_fit_times' works", {
                        time_max = 25,
                        time_draw = 10)
   expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_n_terms' -------------------------------------------------------------
+
+test_that("'make_n_terms' works with all terms", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex*time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin())
+  expect_identical(make_n_terms(make_terms_effectfree(mod)), 5L)
+  expect_identical(make_n_terms(make_terms_hyperrandfree(mod)), 5L)
+  expect_identical(make_n_terms(make_terms_const(mod)), 5L)
+  expect_identical(make_n_terms(make_terms_hyper(mod)), 5L)
 })
 
 

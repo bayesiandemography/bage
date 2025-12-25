@@ -1,8 +1,63 @@
 
-## All combinations of likelihood, data model, and confidentialization
-## (but very small datasets and simple priors)
+## All priors (but very small datasets)
 
 testthat::skip_on_cran()
+
+testthat::test_that("'ar main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ AR()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'ar interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ AR()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'ar1 main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ AR1()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'ar1 interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ AR1()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
 
 testthat::test_that("'drwrandom main effect", {
   set.seed(0)
@@ -15,7 +70,7 @@ testthat::test_that("'drwrandom main effect", {
   fc <- forecast(mod, labels = 2026:2027)
   expect_s3_class(fc, "tbl_df")
   rep <- replicate_data(mod, n = 2)
-  expect_s3_class(fc, "tbl_df")
+  expect_s3_class(rep, "tbl_df")
 })
 
 testthat::test_that("'drwrandom interaction", {
@@ -29,7 +84,7 @@ testthat::test_that("'drwrandom interaction", {
   fc <- forecast(mod, labels = 2026:2027)
   expect_s3_class(fc, "tbl_df")
   rep <- replicate_data(mod, n = 2)
-  expect_s3_class(fc, "tbl_df")
+  expect_s3_class(rep, "tbl_df")
 })
 
 testthat::test_that("'drwzero main effect", {
@@ -43,7 +98,7 @@ testthat::test_that("'drwzero main effect", {
   fc <- forecast(mod, labels = 2026:2027)
   expect_s3_class(fc, "tbl_df")
   rep <- replicate_data(mod, n = 2)
-  expect_s3_class(fc, "tbl_df")
+  expect_s3_class(rep, "tbl_df")
 })
 
 testthat::test_that("'drwzero interaction", {
@@ -57,7 +112,7 @@ testthat::test_that("'drwzero interaction", {
   fc <- forecast(mod, labels = 2026:2027)
   expect_s3_class(fc, "tbl_df")
   rep <- replicate_data(mod, n = 2)
-  expect_s3_class(fc, "tbl_df")
+  expect_s3_class(rep, "tbl_df")
 })
 
 testthat::test_that("'drw2random main effect", {
@@ -71,7 +126,7 @@ testthat::test_that("'drw2random main effect", {
   fc <- forecast(mod, labels = 2026:2027)
   expect_s3_class(fc, "tbl_df")
   rep <- replicate_data(mod, n = 2)
-  expect_s3_class(fc, "tbl_df")
+  expect_s3_class(rep, "tbl_df")
 })
 
 testthat::test_that("'drw2random interaction", {
@@ -85,7 +140,7 @@ testthat::test_that("'drw2random interaction", {
   fc <- forecast(mod, labels = 2026:2027)
   expect_s3_class(fc, "tbl_df")
   rep <- replicate_data(mod, n = 2)
-  expect_s3_class(fc, "tbl_df")
+  expect_s3_class(rep, "tbl_df")
 })
 
 testthat::test_that("'drw2zero main effect", {
@@ -99,7 +154,7 @@ testthat::test_that("'drw2zero main effect", {
   fc <- forecast(mod, labels = 2026:2027)
   expect_s3_class(fc, "tbl_df")
   rep <- replicate_data(mod, n = 2)
-  expect_s3_class(fc, "tbl_df")
+  expect_s3_class(rep, "tbl_df")
 })
 
 testthat::test_that("'drw2zero interaction", {
@@ -113,8 +168,406 @@ testthat::test_that("'drw2zero interaction", {
   fc <- forecast(mod, labels = 2026:2027)
   expect_s3_class(fc, "tbl_df")
   rep <- replicate_data(mod, n = 2)
-  expect_s3_class(fc, "tbl_df")
+  expect_s3_class(rep, "tbl_df")
 })
+
+testthat::test_that("'known main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ Known(c(0.1, 0, 0.1, 0, 0.1))) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'known interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ Known(values = rnorm(25))) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'lin main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ Lin()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'lin interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ Lin()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'linar main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ Lin_AR()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'linar interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ Lin_AR()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'linex main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ Lin(s = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'linex interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ Lin(s = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'norm main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ N()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'norm interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ N()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'normfixed main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ NFix()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'normfixed interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ NFix()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwrandom main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ RW()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwrandom interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ RW()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwrandomseasfix main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ RW_Seas(n_seas = 2, s_seas = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwrandomseasfix interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ RW_Seas(n_seas = 2, s_seas = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwrandomseasrandom main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ RW_Seas(n_seas = 2)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwrandomseasrandom interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ RW_Seas(n_seas = 2)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwzero main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ RW(sd = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwzero interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ RW(sd = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwzeroseasfix main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ RW_Seas(sd = 0, n_seas = 2, s_seas = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwzeroseasfix interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ RW_Seas(sd = 0, n_seas = 2, s_seas = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwzeroseasrandom main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ RW_Seas(sd = 0, n_seas = 2)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rwzeroseasrandom interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ RW_Seas(sd = 0, n_seas = 2)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+
+
+
+testthat::test_that("'rw2random main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ RW2()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rw2random interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ RW2()) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rw2zero main effect", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE) |>
+    set_prior(time ~ RW2(sd = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+testthat::test_that("'rw2zero interaction", {
+  set.seed(0)
+  mod <- make_small_mod_pois(use_exposure = TRUE, use_interaction = TRUE) |>
+    set_prior(age:time ~ RW2(sd = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_pois")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(rep, "tbl_df")
+})
+
+
+
+
+
+
+
 
 testthat::test_that("'svd_drwrandom", {
   set.seed(0)

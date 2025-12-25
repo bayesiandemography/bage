@@ -1261,7 +1261,7 @@ RW_Seas <- function(n_seas,
   n_seas <- as.integer(n_seas)
   scale <- as.double(s)
   sd <- as.double(sd)
-  scale_seas = as.double(s_seas)
+  scale_seas <- as.double(s_seas)
   sd_seas <- as.double(sd_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
