@@ -2373,7 +2373,7 @@ test_that("'str_call_args_n_comp' works - n_comp provided", {
 ## 'str_call_args_n_seas' --------------------------------------------------------
 
 test_that("'str_call_args_n_seas' works", {
-  prior <- RW_Seas(n_seas=3)
+  prior <- RW_Seas(n_seas=3, s_seas = 0)
   ans_obtained <- str_call_args_n_seas(prior)
   ans_expected <- "n_seas=3"
   expect_identical(ans_obtained, ans_expected)
@@ -2410,14 +2410,14 @@ test_that("'str_call_args_scale' works - scale not 1", {
 ## 'str_call_args_sd' -----------------------------------------------------
 
 test_that("'str_call_args_sd' works - sd = 1", {
-  prior <- RW_Seas(n=3)
+  prior <- RW_Seas(n=3,s_seas=1)
   ans_obtained <- str_call_args_sd(prior)
   ans_expected <- ""
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'str_call_args_sd' works - sd not 1", {
-  prior <- RW_Seas(n=2,sd = 0.3)
+  prior <- RW_Seas(n=2,s_seas=0,sd = 0.3)
   ans_obtained <- str_call_args_sd(prior)
   ans_expected <- "sd=0.3"
   expect_identical(ans_obtained, ans_expected)
@@ -2427,14 +2427,14 @@ test_that("'str_call_args_sd' works - sd not 1", {
 ## 'str_call_args_sd_seas' -----------------------------------------------------
 
 test_that("'str_call_args_sd_seas' works - sd_seas = 1", {
-  prior <- RW_Seas(n=3)
+  prior <- RW_Seas(n=3,s_seas=0)
   ans_obtained <- str_call_args_sd_seas(prior)
   ans_expected <- ""
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'str_call_args_sd_seas' works - sd_seas not 1", {
-  prior <- RW_Seas(n=2,sd_seas = 0.3)
+  prior <- RW_Seas(n=2,s_seas=0,sd_seas = 0.3)
   ans_obtained <- str_call_args_sd_seas(prior)
   ans_expected <- "sd_seas=0.3"
   expect_identical(ans_obtained, ans_expected)

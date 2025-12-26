@@ -161,13 +161,13 @@
 ---
 
     Code
-      print(RW_Seas(n_seas = 2))
+      print(RW_Seas(n_seas = 2, s_seas = 0))
     Output
-        RW_Seas(n_seas=2) 
+        RW_Seas(n_seas=2,s_seas=0) 
           n_seas: 2
+          s_seas: 0
                s: 1
               sd: 1
-          s_seas: 0
          sd_seas: 1
            along: NULL
              con: none
@@ -178,10 +178,10 @@
       print(RW_Seas(n_seas = 2, s_seas = 1))
     Output
         RW_Seas(n_seas=2,s_seas=1) 
-               n: NULL
+          n_seas: 2
+          s_seas: 1
                s: 1
               sd: 1
-          s_seas: 1
          sd_seas: 1
            along: NULL
              con: none
@@ -200,13 +200,13 @@
 ---
 
     Code
-      print(RW_Seas(n_seas = 2, sd = 0))
+      print(RW_Seas(n_seas = 2, s_seas = 0, sd = 0))
     Output
-        RW_Seas(n_seas=2,sd=0) 
+        RW_Seas(n_seas=2,s_seas=0,sd=0) 
           n_seas: 2
+          s_seas: 0
                s: 1
               sd: 0
-          s_seas: 0
          sd_seas: 1
            along: NULL
              con: none
@@ -216,11 +216,11 @@
     Code
       print(RW_Seas(n_seas = 2, s_seas = 1, sd = 0))
     Output
-        RW_Seas(n_seas=2,sd=0,s_seas=1) 
+        RW_Seas(n_seas=2,s_seas=1,sd=0) 
           n_seas: 2
+          s_seas: 1
                s: 1
               sd: 0
-          s_seas: 1
          sd_seas: 1
            along: NULL
              con: none
@@ -250,14 +250,14 @@
 ---
 
     Code
-      print(RW2_Seas(n_seas = 2))
+      print(RW2_Seas(n_seas = 2, s_seas = 0))
     Output
-        RW2_Seas(n_seas=2) 
+        RW2_Seas(n_seas=2,s_seas=0) 
           n_seas: 2
+          s_seas: 0
                s: 1
               sd: 1
         sd_slope: 1
-          s_seas: 0
          sd_seas: 1
            along: NULL
              con: none
@@ -269,10 +269,10 @@
     Output
         RW2_Seas(n_seas=2,s_seas=1) 
           n_seas: 2
+          s_seas: 1
                s: 1
               sd: 1
         sd_slope: 1
-          s_seas: 1
          sd_seas: 1
            along: NULL
              con: none
@@ -292,14 +292,14 @@
 ---
 
     Code
-      print(RW2_Seas(n_seas = 2, sd = 0))
+      print(RW2_Seas(n_seas = 2, s_seas = 0, sd = 0))
     Output
-        RW2_Seas(n_seas=2,sd=0) 
+        RW2_Seas(n_seas=2,s_seas=0,sd=0) 
           n_seas: 2
+          s_seas: NULL
                s: 1
               sd: 0
         sd_slope: 1
-          s_seas: NULL
          sd_seas: 1
            along: NULL
              con: none
@@ -309,12 +309,12 @@
     Code
       print(RW2_Seas(n_seas = 2, sd = 0, s_seas = 1))
     Output
-        RW2_Seas(n_seas=2,sd=0,s_seas=1) 
+        RW2_Seas(n_seas=2,s_seas=1,sd=0) 
           n_seas: 2
+          s_seas: 1
                s: 1
               sd: NULL
         sd_slope: 1
-          s_seas: 1
          sd_seas: 1
            along: NULL
              con: none

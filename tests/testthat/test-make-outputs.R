@@ -650,7 +650,7 @@ test_that("'infer_trend_seas_err_seasfix_forecast' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n = 3)) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3,s_seas = 0)) |>
                   set_n_draw(n = 10) |>
                   fit()
   components <- components(mod)
@@ -677,7 +677,7 @@ test_that("'infer_trend_seas_err_seasvary_forecast' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n = 3, s = 1)) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3, s_seas = 0, s = 1)) |>
                   set_n_draw(n = 10) |>
                   fit()
   components <- components(mod)
@@ -1391,7 +1391,7 @@ test_that("'make_hyperrand_lin' works with interaction, con is 'by'", {
 ## 'make_hyperrand_randomseasfix' -----------------------------------------------
 
 test_that("'make_hyperrand_randomseasfix' works with main effect", {
-  prior <- RW_Seas(n = 4)
+  prior <- RW_Seas(n = 4, s_seas = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 3, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   dimnames_term <- list(time = 2001:2010)
@@ -1416,7 +1416,7 @@ test_that("'make_hyperrand_randomseasfix' works with main effect", {
 
 test_that("'make_hyperrand_randomseasfix' works with interaction, random_sum is FALSE", {
   set.seed(0)
-  prior <- RW2_Seas(n = 4)
+  prior <- RW2_Seas(n = 4, s_seas = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 6, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -1445,7 +1445,7 @@ test_that("'make_hyperrand_randomseasfix' works with interaction, random_sum is 
 })
 
 test_that("'make_hyperrand_randomseasfix' works with interaction, con is 'by'", {
-  prior <- RW_Seas(n = 4, con = "by")
+  prior <- RW_Seas(n = 4, s_seas = 0, con = "by")
   hyperrandfree <- rvec::rnorm_rvec(n = 3, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -1561,7 +1561,7 @@ test_that("'make_hyperrand_randomseasvary' works with interaction, con is 'by'",
 ## 'make_hyperrand_zeroseasfix' -----------------------------------------------
 
 test_that("'make_hyperrand_zeroseasfix' works with main effect", {
-  prior <- RW_Seas(n = 4, sd = 0)
+  prior <- RW_Seas(n = 4, s_seas = 0, sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   dimnames_term <- list(time = 2001:2010)
@@ -1586,7 +1586,7 @@ test_that("'make_hyperrand_zeroseasfix' works with main effect", {
 
 test_that("'make_hyperrand_zeroseasfix' works with interaction, con is 'none'", {
   set.seed(0)
-  prior <- RW2_Seas(n = 4, sd = 0)
+  prior <- RW2_Seas(n = 4, s_seas = 0, sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 4, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -1615,7 +1615,7 @@ test_that("'make_hyperrand_zeroseasfix' works with interaction, con is 'none'", 
 })
 
 test_that("'make_hyperrand_zeroseasfix' works with interaction, con is 'by'", {
-  prior <- RW_Seas(n = 4, sd = 0, con = "by")
+  prior <- RW_Seas(n = 4, s_seas = 0, sd = 0, con = "by")
   hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -3109,7 +3109,7 @@ test_that("'rescale_components' works", {
                   data = data,
                   weights = wt) |>
     set_prior(time ~ Lin_AR1()) |>
-    set_prior(region:time ~ RW_Seas(n = 2)) |>
+    set_prior(region:time ~ RW_Seas(n = 2, s_seas = 0)) |>
     set_n_draw(n = 4) |>
     fit()
   components <- components(mod, quiet = TRUE)

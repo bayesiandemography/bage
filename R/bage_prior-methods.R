@@ -8983,9 +8983,9 @@ print.bage_prior_rwrandomseasfix <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   print_prior_slot(prior = x, nm = "sd", slot = "sd")
-  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
   print_prior_slot(prior = x, nm = "along", slot = "along")
   print_prior_slot(prior = x, nm = "con", slot = "con")
@@ -8996,8 +8996,8 @@ print.bage_prior_rwrandomseasfix <- function(x, ...) {
 #' @export
 print.bage_prior_rwrandomseasvary <- function(x, ...) {
   print_prior(x,
-              nms = c("n", "s", "sd", "s_seas", "sd_seas", "along", "con"),
-              slots = c("n", "scale", "sd", "scale_seas", "sd_seas", "along", "con"))
+              nms = c("n_seas", "s_seas", "s", "sd", "sd_seas", "along", "con"),
+              slots = c("n_seas", "scale_seas", "scale", "sd", "sd_seas", "along", "con"))
 }
 
 ## HAS_TESTS
@@ -9018,9 +9018,9 @@ print.bage_prior_rwzeroseasfix <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
-  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
   print_prior_slot(prior = x, nm = "along", slot = "along")
   print_prior_slot(prior = x, nm = "con", slot = "con")
@@ -9033,9 +9033,9 @@ print.bage_prior_rwzeroseasvary <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  print_prior_slot(prior = x, nm = "s_seas", slot = "scale_seas")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
-  print_prior_slot(prior = x, nm = "s_seas", slot = "scale_seas")
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
   print_prior_slot(prior = x, nm = "along", slot = "along")
   print_prior_slot(prior = x, nm = "con", slot = "con")
@@ -9064,10 +9064,10 @@ print.bage_prior_rw2randomseasfix <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   print_prior_slot(prior = x, nm = "sd", slot = "sd")
   print_prior_slot(prior = x, nm = "sd_slope", slot = "sd_slope")
-  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
   print_prior_slot(prior = x, nm = "along", slot = "along")
   print_prior_slot(prior = x, nm = "con", slot = "con")
@@ -9079,12 +9079,14 @@ print.bage_prior_rw2randomseasfix <- function(x, ...) {
 print.bage_prior_rw2randomseasvary <- function(x, ...) {
   print_prior(x,
               nms = c("n_seas",
+                      "s_seas",
                       "s", "sd", "sd_slope",
-                      "s_seas", "sd_seas",
+                      "sd_seas",
                       "along", "con"),
               slots = c("n_seas",
+                        "scale_seas",
                         "scale", "sd", "sd_slope",
-                        "scale_seas", "sd_seas",
+                        "sd_seas",
                         "along", "con"))
 }
 
@@ -9107,10 +9109,10 @@ print.bage_prior_rw2zeroseasfix <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
   print_prior_slot(prior = x, nm = "sd_slope", slot = "sd_slope")
-  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
   print_prior_slot(prior = x, nm = "along", slot = "along")
   print_prior_slot(prior = x, nm = "con", slot = "con")
@@ -9123,10 +9125,10 @@ print.bage_prior_rw2zeroseasfix <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  print_prior_slot(prior = x, nm = "s_seas", slot = "scale_seas")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
   print_prior_slot(prior = x, nm = "sd_slope", slot = "sd_slope")
-  print_prior_slot(prior = x, nm = "s_seas", slot = "scale_seas")
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
   print_prior_slot(prior = x, nm = "along", slot = "along")
   print_prior_slot(prior = x, nm = "con", slot = "con")
@@ -9138,12 +9140,14 @@ print.bage_prior_rw2zeroseasfix <- function(x, ...) {
 print.bage_prior_rw2zeroseasvary <- function(x, ...) {
   print_prior(x,
               nms = c("n_seas",
+                      "s_seas",
                       "s", "sd", "sd_slope",
-                      "s_seas", "sd_seas",
+                      "sd_seas",
                       "along", "con"),
               slots = c("n_seas",
+                        "scale_seas",
                         "scale", "sd", "sd_slope",
-                        "scale_seas", "sd_seas",
+                        "sd_seas",
                         "along", "con"))
 }
 
@@ -9500,12 +9504,14 @@ str_call_prior.bage_prior_rwrandom <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rwrandomseasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
+  args_s_seas <- "s_seas=0"
   args_scale <- str_call_args_scale(prior)
   args_sd <- str_call_args_sd(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_con <- str_call_args_con(prior)
   args <- c(args_n_seas,
+            args_s_seas,
             args_scale,
             args_sd,
             args_sd_seas,
@@ -9520,16 +9526,16 @@ str_call_prior.bage_prior_rwrandomseasfix <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rwrandomseasvary <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
+  args_s_seas <- str_call_args_s_seas(prior)
   args_scale <- str_call_args_scale(prior)
   args_sd <- str_call_args_sd(prior)
-  args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_con <- str_call_args_con(prior)
   args <- c(args_n_seas,
+            args_s_seas,
             args_scale,
             args_sd,
-            args_s_seas,
             args_sd_seas,
             args_along,
             args_con)
@@ -9558,12 +9564,14 @@ str_call_prior.bage_prior_rwzero <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rwzeroseasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
+  args_s_seas <- "s_seas=0"
   args_scale <- str_call_args_scale(prior)
   args_sd <- "sd=0"
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_con <- str_call_args_con(prior)
   args <- c(args_n_seas,
+            args_s_seas,
             args_scale,
             args_sd,
             args_sd_seas,
@@ -9578,16 +9586,16 @@ str_call_prior.bage_prior_rwzeroseasfix <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rwzeroseasvary <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
+  args_s_seas <- str_call_args_s_seas(prior)
   args_scale <- str_call_args_scale(prior)
   args_sd <- "sd=0"
-  args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_con <- str_call_args_con(prior)
   args <- c(args_n_seas,
+            args_s_seas,
             args_scale,
             args_sd,
-            args_s_seas,
             args_sd_seas,
             args_along,
             args_con)
@@ -9633,6 +9641,7 @@ str_call_prior.bage_prior_rw2random <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rw2randomseasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
+  args_s_seas <- "s_seas=0"
   args_scale <- str_call_args_scale(prior)
   args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
@@ -9640,6 +9649,7 @@ str_call_prior.bage_prior_rw2randomseasfix <- function(prior) {
   args_along <- str_call_args_along(prior)
   args_con <- str_call_args_con(prior)
   args <- c(args_n_seas,
+            args_s_seas,
             args_scale,
             args_sd,
             args_sd_slope,
@@ -9655,18 +9665,18 @@ str_call_prior.bage_prior_rw2randomseasfix <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rw2randomseasvary <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
+  args_s_seas <- str_call_args_s_seas(prior)
   args_scale <- str_call_args_scale(prior)
   args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
-  args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_con <- str_call_args_con(prior)
   args <- c(args_n_seas,
+            args_s_seas,
             args_scale,
             args_sd,
             args_sd_slope,
-            args_s_seas,
             args_sd_seas,
             args_along,
             args_con)
@@ -9697,6 +9707,7 @@ str_call_prior.bage_prior_rw2zero <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rw2zeroseasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
+  args_s_seas <- "s_seas=0"
   args_scale <- str_call_args_scale(prior)
   args_sd <- "sd=0"
   args_sd_slope <- str_call_args_sd_slope(prior)
@@ -9704,6 +9715,7 @@ str_call_prior.bage_prior_rw2zeroseasfix <- function(prior) {
   args_along <- str_call_args_along(prior)
   args_con <- str_call_args_con(prior)
   args <- c(args_n_seas,
+            args_s_seas,
             args_scale,
             args_sd,
             args_sd_slope,
@@ -9719,18 +9731,18 @@ str_call_prior.bage_prior_rw2zeroseasfix <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rw2zeroseasvary <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
+  args_s_seas <- str_call_args_s_seas(prior)
   args_scale <- str_call_args_scale(prior)
   args_sd <- "sd=0"
   args_sd_slope <- str_call_args_sd_slope(prior)
-  args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_con <- str_call_args_con(prior)
   args <- c(args_n_seas,
+            args_s_seas,
             args_scale,
             args_sd,
             args_sd_slope,
-            args_s_seas,
             args_sd_seas,
             args_along,
             args_con)

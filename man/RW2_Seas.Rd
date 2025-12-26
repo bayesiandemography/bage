@@ -6,10 +6,10 @@
 \usage{
 RW2_Seas(
   n_seas,
+  s_seas,
   s = 1,
   sd = 1,
   sd_slope = 1,
-  s_seas = 0,
   sd_seas = 1,
   along = NULL,
   con = c("none", "by")
@@ -17,6 +17,11 @@ RW2_Seas(
 }
 \arguments{
 \item{n_seas}{Number of seasons}
+
+\item{s_seas}{Scale for innovations
+in seasonal effects. Can be \code{0}. When
+greater than 0, seasonal effects vary
+from year to year.}
 
 \item{s}{Scale for prior for innovations in
 random walk. Default is \code{1}.}
@@ -27,9 +32,6 @@ Can be \code{0}.}
 
 \item{sd_slope}{Standard deviation
 for initial slope of random walk. Default is \code{1}.}
-
-\item{s_seas}{Scale for innovations
-in seasonal effects. Default is \code{0}.}
 
 \item{sd_seas}{Standard deviation for
 initial values of seasonal effects.
@@ -148,9 +150,14 @@ to sum to 0.
 }
 
 \examples{
-RW2_Seas(n_seas = 4)               ## seasonal effects fixed
-RW2_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
-RW2_Seas(n_seas = 4, sd = 0)       ## first term in random walk fixed at 0
+## seasonal effects fixed
+RW2_Seas(n_seas = 4, s_seas = 0)
+
+## seasonal effects evolve
+RW2_Seas(n_seas = 4, s_seas = 1)
+
+## first term in random walk fixed at 0
+RW2_Seas(n_seas = 4, s_seas = 1, sd = 0)       
 }
 \seealso{
 \itemize{

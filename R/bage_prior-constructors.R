@@ -1211,13 +1211,15 @@ RW <- function(s = 1,
 #' 
 #' @inheritParams AR
 #' @param n_seas Number of seasons
+#' @param s_seas Scale for innovations
+#' in seasonal effects. Can be `0`. When
+#' greater than 0, seasonal effects vary
+#' from year to year.
 #' @param s Scale for prior for innovations in
 #' random walk. Default is `1`.
 #' @param sd Standard deviation
 #' of initial value. Default is `1`.
 #' Can be `0`.
-#' @param s_seas Scale for innovations
-#' in seasonal effects. Default is `0`.
 #' @param sd_seas Standard deviation for
 #' initial values of seasonal effects.
 #' Default is `1`.
@@ -1238,14 +1240,19 @@ RW <- function(s = 1,
 #'   vignette
 #'
 #' @examples
-#' RW_Seas(n_seas = 4)               ## seasonal effects fixed
-#' RW_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
-#' RW_Seas(n_seas = 4, sd = 0)       ## first term in random walk fixed at 0
+#' ## seasonal effects fixed
+#' RW_Seas(n_seas = 4, s_seas = 0)
+#'
+#' ## seasonal effects evolve
+#' RW_Seas(n_seas = 4, s_seas = 1)
+#'
+#' ## first term in random walk fixed at 0
+#' RW_Seas(n_seas = 4, s_seas = 1, sd = 0)       
 #' @export
 RW_Seas <- function(n_seas,
+                    s_seas,
                     s = 1,
                     sd = 1,
-                    s_seas = 0,
                     sd_seas = 1,
                     along = NULL,
                     con = c("none", "by")) {
@@ -1584,15 +1591,20 @@ RW2_Infant <- function(s = 1,
 #'   vignette
 #'
 #' @examples
-#' RW2_Seas(n_seas = 4)               ## seasonal effects fixed
-#' RW2_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
-#' RW2_Seas(n_seas = 4, sd = 0)       ## first term in random walk fixed at 0
+#' ## seasonal effects fixed
+#' RW2_Seas(n_seas = 4, s_seas = 0)
+#'
+#' ## seasonal effects evolve
+#' RW2_Seas(n_seas = 4, s_seas = 1)
+#'
+#' ## first term in random walk fixed at 0
+#' RW2_Seas(n_seas = 4, s_seas = 1, sd = 0)       
 #' @export
 RW2_Seas <- function(n_seas,
+                     s_seas,
                      s = 1,
                      sd = 1,
                      sd_slope = 1,
-                     s_seas = 0,
                      sd_seas = 1,
                      along = NULL,
                      con = c("none", "by")) {

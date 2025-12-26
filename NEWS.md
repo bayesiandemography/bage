@@ -8,6 +8,10 @@
   to request results for a subset of `data`. (#106)
 * Removed warning about rules for aggregation changing. The warning
   was introduced in version 0.9.9.
+* Removed default for `s_seas` from `RW_Seas()` and `RW2_Seas()`
+  priors. The old default value `s_seas = 0` is not intuitively
+  obvious, and neither is any replacement for it. The best solution
+  seems to be to force the user to make an explicit choice.
 
 
 # bage 0.10.6
