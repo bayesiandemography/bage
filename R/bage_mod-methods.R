@@ -1247,15 +1247,6 @@ fit.bage_mod <- function(object,
   check_has_no_dots(...)
   if (method == "standard") {
     aggregate <- can_aggregate(object)
-    ## if (!aggregate) {
-    ##   formula <- object$formula
-    ##   data <- object$data
-    ##   formula_covariates <- object$formula_covariates
-    ##   warn_not_aggregating(formula = formula,
-    ##                        data = data,
-    ##                        formula_covariates = formula_covariates,
-    ##                        always = FALSE)
-    ## }
     fit_default(object,
                 optimizer = optimizer,
                 quiet = quiet,

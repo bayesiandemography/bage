@@ -2370,7 +2370,7 @@ test_that("'str_call_args_n_comp' works - n_comp provided", {
 })
 
 
-## 'str_call_args_n_seas' --------------------------------------------------------
+## 'str_call_args_n_seas' -----------------------------------------------------
 
 test_that("'str_call_args_n_seas' works", {
   prior <- RW_Seas(n_seas=3, s_seas = 0)

@@ -542,14 +542,14 @@ template <class Type, class Factor>
 vector< vector<Type> >
 split_rstyle(const vector<Type>& x, const Factor& f, int n_terms) {
   if (x.size() != f.size())
-    error("split_rstyle: x.size() != f.size()");
+    error("split_rstyle: x.size() != f.size()");  // # nocov
   // count elements per level
   vector<int> counts(n_terms);
   counts.setZero();
   for (int i = 0; i < x.size(); ++i) {
     int g = f[i];
     if (g < 0 || g >= n_terms)
-      error("split_rstyle: factor code out of range");
+      error("split_rstyle: factor code out of range"); // # nocov
     counts[g] += 1;
   }
   // allocate output with exact sizes
@@ -2224,9 +2224,6 @@ Type objective_function<Type>::operator() ()
       if (uses_hyper[i_term]) {
 	vector<Type> hyper_term = hyper_split[i_term];
 	if (uses_hyperrandfree[i_term]) { // if a prior uses hyperrandfree, then it uses hyper
-	  if (i_term < 0 || i_term >= hyperrandfree_split.size()) {
-	    error("outside range");
-	  }
 	  const vector<Type>& hyperrandfree_term = hyperrandfree_split[i_term];
 	  ans -= logpost_has_hyperrandfree(effectfree_term,
 					   hyper_term,
