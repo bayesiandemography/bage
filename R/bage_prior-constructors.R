@@ -2037,6 +2037,14 @@ SVD <- function(ssvd,
 #'
 #' \deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t};}
 #'
+#' with `SVD_Lin()`, it is
+#'
+#' \deqn{\alpha_{k,t} = (t - (T+1)/2) \eta + \epsilon_{k,t}}
+#' 
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = (t - (T+1)/2) \eta + \epsilon_{k,u,t};}
+#' 
 #' with `SVD_RW()`, it is
 #'
 #' \deqn{\alpha_{k,t} = \alpha_{k,t-1} + \epsilon_{k,t}}
@@ -2075,7 +2083,7 @@ SVD <- function(ssvd,
 #' while in `SVD_DRW()`, \eqn{\epsilon_t} has variance \eqn{\tau^2}.
 #'
 #' For details on the time series models, see [AR()], [AR1()],
-#' [RW()], [RW2()], [DRW()], and [DRW2()].
+#' [Lin()], [RW()], [RW2()], [DRW()], and [DRW2()].
 #' 
 #' @inheritSection AR Constraints
 #'
@@ -2085,13 +2093,17 @@ SVD <- function(ssvd,
 #' @inheritParams SVD
 #' @param n_coef Number of AR coefficients in `SVD_RW()`.
 #' @param s Scale for standard deviations terms.
+#' Default is `1`. Can be `0` in `SVD_Lin()`.
 #' @param sd Standard deviation
 #' of initial value for random walks. Default is `1`.
 #' Can be `0`.
+#' @param mean_slope Mean in prior for initial
+#' slope. Default is `0`.
 #' @param sd_slope Standard deviation in prior
 #' for initial slope. Default is `1`.
 #' @param shape1,shape2 Parameters for prior
-#' for coefficients in `SVD_AR()`, `SVD_DRW()`, and `SVD_DRW2()`.
+#' for coefficients in `SVD_AR()`, `SVD_AR1()`,
+#' `SVD_DRW()`, and `SVD_DRW2()`.
 #' Defaults are `5` and `5`.
 #' @param min,max Minimum and maximum values
 #' for autocorrelation coefficient in `SVD_AR1()`,
@@ -2106,6 +2118,7 @@ SVD <- function(ssvd,
 #'
 #' @seealso
 #' - [SVD()] SVD prior for non-time-varying terms
+#' - [Lin()] Linear with independent errors
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via second-order random walk
 #' - [DRW()] Smoothing via damped random walk
@@ -2122,12 +2135,13 @@ SVD <- function(ssvd,
 #' - For details of the construction of
 #'   scaled SVDS see the
 #'   [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
-#'   vignette
+#'   article
 #'
 #' @examples
 #' SVD_AR1(HMD)
 #' SVD_RW(HMD, n_comp = 3)
 #' SVD_RW2(HMD, indep = FALSE)
+#' SVD_Lin(HMD, s = 0)
 #' @export
 SVD_AR <- function(ssvd,
                    v = NULL,
@@ -2340,6 +2354,52 @@ SVD_DRW2 <- function(ssvd,
                                 min = min,
                                 max = max,
                                 con = con)
+}
+
+## HAS_TESTS
+#' @rdname SVD_AR
+#' @export
+SVD_Lin <- function(ssvd,
+                    v = NULL,
+                    n_comp = NULL,
+                    indep = TRUE,
+                    s = 1,
+                    mean_slope = 0,
+                    sd_slope = 1,
+                    con = c("none", "by")) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_flag(x = indep, nm_x = "indep")
+  check_scale(s, nm_x = "s", zero_ok = TRUE)
+  check_number(mean_slope, nm_x = "mean_slope")
+  check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
+  con <- match.arg(con)
+  scale <- as.double(s)
+  mean_slope <- as.double(mean_slope)
+  sd_slope <- as.double(sd_slope)
+  if (isTRUE(all.equal(scale, 0)))
+    new_bage_prior_svd_linex(ssvd = ssvd,
+                             v = v,
+                             nm_ssvd = nm_ssvd,
+                             n_comp = n_comp,
+                             indep = indep,
+                             mean_slope = mean_slope,
+                             sd_slope = sd_slope,
+                             con = con)
+  else
+    new_bage_prior_svd_lin(ssvd = ssvd,
+                           v = v,
+                           nm_ssvd = nm_ssvd,
+                           n_comp = n_comp,
+                           indep = indep,
+                           scale = scale,
+                           mean_slope = mean_slope,
+                           sd_slope = sd_slope,
+                           con = con)
 }
 
 ## HAS_TESTS
@@ -3182,7 +3242,58 @@ new_bage_prior_svd_drw2zero <- function(ssvd,
   ans
 }
 
+## HAS_TESTS
+new_bage_prior_svd_lin <- function(ssvd,
+                                   v,
+                                   nm_ssvd,
+                                   n_comp,
+                                   indep,
+                                   scale,
+                                   mean_slope,
+                                   sd_slope,
+                                   con) {
+  ans <- list(i_prior = 36L,
+              const = c(scale = scale,
+                        mean_slope = mean_slope,
+                        sd_slope = sd_slope),
+              specific = list(ssvd = ssvd,
+                              v = v,
+                              nm_ssvd = nm_ssvd,
+                              n_comp = n_comp,
+                              indep = indep,
+                              scale = scale,
+                              mean_slope = mean_slope,
+                              sd_slope = sd_slope,
+                              along = NULL,
+                              con = con))
+  class(ans) <- c("bage_prior_svd_lin", "bage_prior")
+  ans
+}
 
+## HAS_TESTS
+new_bage_prior_svd_linex <- function(ssvd,
+                                     v,
+                                     nm_ssvd,
+                                     n_comp,
+                                     indep,
+                                     mean_slope,
+                                     sd_slope,
+                                     con) {
+  ans <- list(i_prior = 35L,
+              const = c(mean_slope = mean_slope,
+                        sd_slope = sd_slope),
+              specific = list(ssvd = ssvd,
+                              v = v,
+                              nm_ssvd = nm_ssvd,
+                              n_comp = n_comp,
+                              indep = indep,
+                              mean_slope = mean_slope,
+                              sd_slope = sd_slope,
+                              along = NULL,
+                              con = con))
+  class(ans) <- c("bage_prior_svd_linex", "bage_prior")
+  ans
+}
 
 ## HAS_TESTS
 new_bage_prior_svd_rwrandom <- function(ssvd,

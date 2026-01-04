@@ -5,6 +5,7 @@
 \alias{SVD_AR1}
 \alias{SVD_DRW}
 \alias{SVD_DRW2}
+\alias{SVD_Lin}
 \alias{SVD_RW}
 \alias{SVD_RW2}
 \title{Dynamic SVD-Based Priors for Age Profiles or Age-Sex Profiles}
@@ -63,6 +64,17 @@ SVD_DRW2(
   con = c("none", "by")
 )
 
+SVD_Lin(
+  ssvd,
+  v = NULL,
+  n_comp = NULL,
+  indep = TRUE,
+  s = 1,
+  mean_slope = 0,
+  sd_slope = 1,
+  con = c("none", "by")
+)
+
 SVD_RW(
   ssvd,
   v = NULL,
@@ -104,10 +116,12 @@ See below for details.}
 
 \item{n_coef}{Number of AR coefficients in \code{SVD_RW()}.}
 
-\item{s}{Scale for standard deviations terms.}
+\item{s}{Scale for standard deviations terms.
+Default is \code{1}. Can be \code{0} in \code{SVD_Lin()}.}
 
 \item{shape1, shape2}{Parameters for prior
-for coefficients in \code{SVD_AR()}, \code{SVD_DRW()}, and \code{SVD_DRW2()}.
+for coefficients in \code{SVD_AR()}, \code{SVD_AR1()},
+\code{SVD_DRW()}, and \code{SVD_DRW2()}.
 Defaults are \code{5} and \code{5}.}
 
 \item{con}{Constraints on parameters.
@@ -125,6 +139,9 @@ Can be \code{0}.}
 
 \item{sd_slope}{Standard deviation in prior
 for initial slope. Default is \code{1}.}
+
+\item{mean_slope}{Mean in prior for initial
+slope. Default is \code{0}.}
 }
 \value{
 An object inheriting from class
@@ -198,6 +215,14 @@ or
 
 \deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t};}
 
+with \code{SVD_Lin()}, it is
+
+\deqn{\alpha_{k,t} = (t - (T+1)/2) \eta + \epsilon_{k,t}}
+
+or
+
+\deqn{\alpha_{k,u,t} = (t - (T+1)/2) \eta + \epsilon_{k,u,t};}
+
 with \code{SVD_RW()}, it is
 
 \deqn{\alpha_{k,t} = \alpha_{k,t-1} + \epsilon_{k,t}}
@@ -236,7 +261,7 @@ is chosen so that \eqn{\alpha_t} has marginal variance \eqn{\tau^2},
 while in \code{SVD_DRW()}, \eqn{\epsilon_t} has variance \eqn{\tau^2}.
 
 For details on the time series models, see \code{\link[=AR]{AR()}}, \code{\link[=AR1]{AR1()}},
-\code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=DRW]{DRW()}}, and \code{\link[=DRW2]{DRW2()}}.
+\code{\link[=Lin]{Lin()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=DRW]{DRW()}}, and \code{\link[=DRW2]{DRW2()}}.
 }
 
 \section{Constraints}{
@@ -284,18 +309,20 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 SVD_AR1(HMD)
 SVD_RW(HMD, n_comp = 3)
 SVD_RW2(HMD, indep = FALSE)
+SVD_Lin(HMD, s = 0)
 }
 \references{
 \itemize{
 \item For details of the construction of
 scaled SVDS see the
 \href{https://bayesiandemography.github.io/bage/articles/vig02_math.html}{Mathematical Details}
-vignette
+article
 }
 }
 \seealso{
 \itemize{
 \item \code{\link[=SVD]{SVD()}} SVD prior for non-time-varying terms
+\item \code{\link[=Lin]{Lin()}} Linear with independent errors
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via second-order random walk
 \item \code{\link[=DRW]{DRW()}} Smoothing via damped random walk

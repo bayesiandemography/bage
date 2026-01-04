@@ -1116,6 +1116,23 @@ Type logpost_svd_drwzero(const vector<Type>& effectfree,
 }
 
 template <class Type>
+Type logpost_svd_lin(const vector<Type>& effectfree,
+		     const vector<Type>& hyper,
+		     const vector<Type>& hyperrandfree, // slope
+		     const vector<Type>& consts,
+		     const matrix<int>& matrix_along_by_effectfree) {
+  return logpost_lin(effectfree, hyper, hyperrandfree,
+		     consts, matrix_along_by_effectfree);
+}
+
+template <class Type>
+Type logpost_svd_linex(const vector<Type>& effectfree, // slope
+		     const vector<Type>& consts,
+		     const matrix<int>& matrix_along_by_effectfree) {
+  return logpost_linex(effectfree, consts, matrix_along_by_effectfree);
+}
+
+template <class Type>
 Type logpost_svd_rwrandom(const vector<Type>& effectfree,
 			  const vector<Type>& hyper,
 			  const vector<Type>& consts,
@@ -1183,7 +1200,10 @@ Type logpost_no_hyper(const vector<Type>& effectfree,
   case 17:
     ans = logpost_linex(effectfree, consts, matrix_along_by_effectfree);
     break;
-  default:                                                                                          // # nocov
+  case 35:
+    ans = logpost_svd_linex(effectfree, consts, matrix_along_by_effectfree);
+    break;
+  default:                                                                                       // # nocov
     Rf_error("Internal error: function 'logpost_no_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
@@ -1260,7 +1280,6 @@ Type logpost_has_hyper(const vector<Type>& effectfree,
   case 30:
     ans = logpost_drw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
-    
   default:                                                                                      // # nocov
     Rf_error("Internal error: function 'logpost_has_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }
@@ -1311,7 +1330,11 @@ Type logpost_has_hyperrandfree(const vector<Type>& effectfree,
     ans = logpost_rw2randomseasvary(effectfree, hyper, hyperrandfree, consts,
 				    matrix_along_by_effectfree);
     break;
-  default:                                                                                          // # nocov
+  case 36:
+    ans = logpost_svd_lin(effectfree, hyper, hyperrandfree, consts,
+			  matrix_along_by_effectfree);
+    break;
+  default:                                                                                                // # nocov
     Rf_error("Internal error: function 'logpost_has_hyperrandfree' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
