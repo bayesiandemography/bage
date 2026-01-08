@@ -101,7 +101,7 @@ test_that("'forecast_ar' works, n_by = 2", {
 
 test_that("'forecast_ar_svd' works - con is 'none'", {
   set.seed(0)
-  prior <- SVD_AR1(HMD)
+  prior <- SVD_AR1(HMD, n_comp = 3)
   dimnames_term <- list(year = letters[1:5],
                         age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "year"
@@ -146,7 +146,7 @@ test_that("'forecast_ar_svd' works - con is 'none'", {
 
 test_that("'forecast_ar_svd' works - con is 'by' (does not affect results)", {
   set.seed(0)
-  prior <- SVD_AR1(HMD, con = "by")
+  prior <- SVD_AR1(HMD, con = "by", n_comp = 3)
   dimnames_term <- list(year = letters[1:5],
                         age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "year"
@@ -419,7 +419,7 @@ test_that("'forecast_drw' works, n_by = 2", {
 
 test_that("'forecast_drw_svd' works", {
   set.seed(0)
-  prior <- SVD_DRW(HMD)
+  prior <- SVD_DRW(HMD, n_comp = 3)
   dimnames_term <- list(year = letters[1:5],
                         age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "year"
@@ -580,7 +580,7 @@ test_that("'forecast_drw2' works, n_by = 2", {
 
 test_that("'forecast_drw2_svd' works", {
   set.seed(0)
-  prior <- SVD_DRW2(HMD)
+  prior <- SVD_DRW2(HMD, n_comp = 3)
   dimnames_term <- list(year = letters[1:5],
                         age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "year"
@@ -671,6 +671,54 @@ test_that("'forecast_lin' works with  n_by = 2", {
 })
 
 
+## 'forecast_lin_svd' ----------------------------------------------------------
+
+test_that("'forecast_lin_svd' works", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  dimnames_term <- list(year = letters[1:5],
+                        age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- letters[6:11]
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:age",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:age",
+                                                component = "hyper",
+                                                level = paste0("slope.comp", 1:3),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "year:age",
+                                                component = "svd",
+                                                level = paste(paste0("comp", 1:3),
+                                                              rep(letters[1:5], each = 3),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 15, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_lin_svd(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   dimnames_forecast = dimnames_forecast,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender,
+                                   components = components,
+                                   labels_forecast = labels_forecast)
+  ans_expected <- rvec::rnorm_rvec(n = 18, n_draw = 10)
+  slope <- components$.fitted[components$level %in% c("slope.comp1", "slope.comp2", "slope.comp3")]
+  sd <- components$.fitted[components$level == "sd"]
+  set.seed(1)
+  intercept <- -0.5 * (5 + 1) * slope
+  ans_expected <- c(rvec::rnorm_rvec(n = 6, mean = intercept[1] + 6:11 * slope[1], sd = sd),
+                    rvec::rnorm_rvec(n = 6, mean = intercept[2] + 6:11 * slope[2], sd = sd),
+                    rvec::rnorm_rvec(n = 6, mean = intercept[3] + 6:11 * slope[3], sd = sd))
+  ans_expected <- ans_expected[c(1, 7, 13, 2, 8, 14, 3, 9, 15, 4, 10, 16, 5, 11, 17, 6, 12, 18)]
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'forecast_lin_trend' -------------------------------------------------------
 
 test_that("'forecast_lin_trend' works with n_by = 1", {
@@ -701,6 +749,50 @@ test_that("'forecast_lin_trend' works with  n_by = 2, transposed", {
   intercept <- -0.5 * 6 * slope
   ans_expected <- c(intercept[1] + 6:11 * slope[1], intercept[2] + 6:11 * slope[2])
   ans_expected <- ans_expected[c(1, 7, 2, 8, 3, 9, 4, 10, 5, 11, 6, 12)]
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'forecast_lin_trend_svd' ----------------------------------------------------------
+
+test_that("'forecast_lin_trend_svd' works", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, s = 0, n_comp = 3)
+  dimnames_term <- list(year = letters[1:5],
+                        age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- letters[6:11]
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:age",
+                                                component = "hyper",
+                                                level = paste0("slope.comp", 1:3),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "year:age",
+                                                component = "svd",
+                                                level = paste(paste0("comp", 1:3),
+                                                              rep(letters[1:5], each = 3),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 15, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_lin_trend_svd(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         dimnames_forecast = dimnames_forecast,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender,
+                                         components = components,
+                                         labels_forecast = labels_forecast)
+  ans_expected <- rvec::rnorm_rvec(n = 18, n_draw = 10)
+  slope <- components$.fitted[components$level %in% c("slope.comp1", "slope.comp2", "slope.comp3")]
+  sd <- components$.fitted[components$level == "sd"]
+  set.seed(1)
+  intercept <- -0.5 * (5 + 1) * slope
+  ans_expected <- c(intercept[1] + 6:11 * slope[1],
+                    intercept[2] + 6:11 * slope[2],
+                    intercept[3] + 6:11 * slope[3])
+  ans_expected <- ans_expected[c(1, 7, 13, 2, 8, 14, 3, 9, 15, 4, 10, 16, 5, 11, 17, 6, 12, 18)]
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -764,7 +856,7 @@ test_that("'forecast_rw' works with  n_by = 2", {
 
 test_that("'forecast_rw_svd' works", {
   set.seed(0)
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   dimnames_term <- list(year = letters[1:5],
                         age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "year"
@@ -876,7 +968,7 @@ test_that("'forecast_rw2' works with  n_by = 2", {
 
 test_that("'forecast_rw2_svd' works", {
   set.seed(0)
-  prior <- SVD_RW2(HMD)
+  prior <- SVD_RW2(HMD, n_comp = 3)
   dimnames_term <- list(year = letters[1:5],
                         age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "year"
@@ -1576,7 +1668,7 @@ test_that("'make_mapping_final_time_svd' works", {
                   data = data,
                   exposure = exposure) |>
                   set_prior(age:sex ~ SVD(HMD)) |>
-                  set_prior(age:time ~ SVD_RW(HMD))
+                  set_prior(age:time ~ SVD_RW(HMD, n_comp = 3))
   ans_obtained <- make_mapping_final_time_svd(mod, labels_forecast = 2006:2007)
   ans_expected <- tibble::tibble(level = paste(rep(paste0("comp", 1:3), each = 2),
                                                2006:2007,
@@ -1616,7 +1708,7 @@ test_that("'make_term_level_final_time_svd' works", {
                   data = data,
                   exposure = exposure) |>
                   set_prior(age:sex ~ SVD(HMD)) |>
-                  set_prior(age:time ~ SVD_RW(HMD))
+                  set_prior(age:time ~ SVD_RW(HMD, n_comp = 3))
   ans_obtained <- make_term_level_final_time_svd(mod)
   ans_expected <- tibble::tibble(term = "age:time",
                                  level = paste0(paste0("comp", 1:3),  ".2005"))

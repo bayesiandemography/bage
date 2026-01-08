@@ -1,4 +1,55 @@
 
+## 'append_implied_comp' ------------------------------------------------------
+
+test_that("'append_implied_comp' works with no terms with implied", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4,
+                      sex = c("F", "M"),
+                      region = c("a", "b"),
+                      time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex  + region * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  comp <- tibble::tibble(term = "bla",
+                         component = "bla",
+                         level = "bla",
+                         .fitted = rvec::rnorm_rvec(n = 1, n_draw = 10))
+  ans_obtained <- append_implied_comp(components = comp, mod = mod)
+  ans_expected <- comp
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'append_implied_comp' works with term with implied", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4,
+                      sex = c("F", "M"),
+                      region = c("a", "b"),
+                      time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex  + region * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_prior(region:time ~ Lin(s = 0))
+  comp <- tibble::tibble(term = "region:time",
+                         component = "effect",
+                         level = paste(c("a", "b"), rep(2001:2005, each = 2), sep = "."),
+                         .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10))
+  ans_obtained <- append_implied_comp(components = comp, mod = mod)
+  ans_expected <- vctrs::vec_rbind(comp,
+                                   make_implied_comp(prior = mod$priors[["region:time"]],
+                                                     components = comp,
+                                                     dimnames_term = mod$dimnames_terms[["region:time"]],
+                                                     var_time = "time",
+                                                     var_age = "age",
+                                                     var_sexgender = "sex"))
+  expect_identical(ans_obtained, ans_expected)
+})
+  
 ## 'combine_stored_draws_point_inner_outer' -----------------------------------
 
 test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
@@ -1880,7 +1931,7 @@ test_that("'make_levels_svd' works - unlist is FALSE", {
   mod <- set_n_draw(mod, n = 5)
   mod <- set_prior(mod, age ~ SVD(HMD))
   mod <- set_prior(mod, age:sex ~ SVD(HMD))
-  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD, n_comp = 3))
   set.seed(0)
   ans_obtained <- make_levels_svd(mod, unlist = FALSE)
   ans_expected <- list("(Intercept)" = NULL,
@@ -1912,6 +1963,85 @@ test_that("'make_levels_svd' works - unlist is TRUE", {
   ans_expected <- c(paste0("comp", 1:5),
                     paste0(rep(c("F", "M"), each = 5), ".comp", 1:5),
                     paste0("comp", 1:5, ".", rep(2000:2005, each = 5)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_levels_svd_by' -------------------------------------------------------
+
+test_that("'make_levels_svd_term' works - con = 'none', time:age:sex", {
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  dimnames_term <- list(time = 2001:2005,
+                        age = c(0:59, "60+"),
+                        sex = c("M", "F"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  var_time <- "time"
+  ans_obtained <- make_levels_svd_by(prior = prior,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  ans_expected <- paste(rep(c("M", "F"), each = 3),
+                        paste0("comp", 1:3),
+                        sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_svd_term' works - con = 'none', time:age:reg", {
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  dimnames_term <- list(time = 2001:2005,
+                        age = c(0:59, "60+"),
+                        reg = c("a", "b"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  var_time <- "time"
+  ans_obtained <- make_levels_svd_by(prior = prior,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  ans_expected <- paste(paste0("comp", 1:3),
+                        rep(c("a", "b"), each = 3),
+                        sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_svd_term' works - con = 'by', time:age:sex", {
+  prior <- SVD_Lin(HMD, n_comp = 3, con = "by")
+  dimnames_term <- list(time = 2001:2005,
+                        age = c(0:59, "60+"),
+                        sex = c("M", "F"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  var_time <- "time"
+  ans_obtained <- make_levels_svd_by(prior = prior,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  ans_expected <- paste(rep(c("M", "F"), each = 3),
+                        paste0("comp", 1:3),
+                        sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_svd_term' works - con = 'by', time:age:reg", {
+  prior <- SVD_Lin(HMD, n_comp = 3, con = "by")
+  dimnames_term <- list(time = 2001:2005,
+                        age = c(0:59, "60+"),
+                        reg = c("a", "b", "c"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  var_time <- "time"
+  ans_obtained <- make_levels_svd_by(prior = prior,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  ans_expected <- paste(paste0("comp", 1:3),
+                        rep(c("reg1", "reg2"), each = 3),
+                        sep = ".")
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3037,7 +3167,7 @@ test_that("'make_term_svd' works - has svd", {
                   exposure = popn)
   mod <- set_n_draw(mod, n = 5)
   mod <- set_prior(mod, age ~ SVD(HMD))
-  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD, n_comp = 3))
   ans_obtained <- make_term_svd(mod)
   ans_expected <- factor(c(rep("age", times = 3),
                            rep("age:time", times = 3 * 6)))

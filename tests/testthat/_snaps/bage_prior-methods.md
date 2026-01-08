@@ -358,12 +358,11 @@
     Output
         SVD_AR(HMD) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
           n_coef: 2
              min: -1
              max: 1
                s: 1
-           along: NULL
              con: none
 
 ---
@@ -373,13 +372,12 @@
     Output
         SVD_AR(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
           n_coef: 2
              min: -1
              max: 1
                s: 1
-           along: NULL
              con: none
 
 ---
@@ -389,11 +387,10 @@
     Output
         SVD_AR1(HMD) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
              min: 0.8
              max: 0.98
                s: 1
-           along: NULL
              con: none
 
 ---
@@ -403,12 +400,11 @@
     Output
         SVD_AR1(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
              min: 0.8
              max: 0.98
                s: 1
-           along: NULL
              con: none
 
 ---
@@ -418,14 +414,13 @@
     Output
         SVD_DRW(HMD) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
                s: 1
               sd: 1
           shape1: 5
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -435,7 +430,7 @@
     Output
         SVD_DRW(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
                s: 1
               sd: 1
@@ -443,7 +438,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -453,14 +447,13 @@
     Output
         SVD_DRW(HMD,sd=0) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
                s: 1
               sd: 0
           shape1: 5
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -470,7 +463,7 @@
     Output
         SVD_DRW(HMD,indep=FALSE,sd=0) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
                s: 1
               sd: 0
@@ -478,7 +471,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -488,7 +480,7 @@
     Output
         SVD_DRW2(HMD) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
                s: 1
               sd: 1
         sd_slope: 1
@@ -496,7 +488,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -506,7 +497,7 @@
     Output
         SVD_DRW2(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
                s: 1
               sd: 1
@@ -515,7 +506,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -525,7 +515,7 @@
     Output
         SVD_DRW2(HMD,sd=0) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
                s: 1
               sd: 0
         sd_slope: 1
@@ -533,7 +523,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -543,7 +532,7 @@
     Output
         SVD_DRW2(HMD,indep=FALSE,sd=0) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
                s: 1
               sd: 0
@@ -552,7 +541,32 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_Lin(HMD))
+    Output
+        SVD_Lin(HMD) 
+            ssvd: HMD
+          n_comp: 2
+               s: 1
+      mean_slope: 0
+        sd_slope: 1
+             con: none
+
+---
+
+    Code
+      print(SVD_Lin(HMD, s = 0))
+    Output
+        SVD_Lin(HMD,s=0) 
+            ssvd: HMD
+          n_comp: 2
+               s: 0
+      mean_slope: 0
+        sd_slope: 1
              con: none
 
 ---
@@ -562,10 +576,9 @@
     Output
         SVD_RW(HMD) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
                s: 1
               sd: 1
-           along: NULL
              con: none
 
 ---
@@ -575,11 +588,10 @@
     Output
         SVD_RW(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
                s: 1
               sd: 1
-           along: NULL
              con: none
 
 ---
@@ -589,9 +601,9 @@
     Output
         SVD_RW(HMD,sd=0) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
                s: 1
-           along: NULL
+              sd: 0
              con: none
 
 ---
@@ -601,10 +613,10 @@
     Output
         SVD_RW(HMD,indep=FALSE,sd=0) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
                s: 1
-           along: NULL
+              sd: 0
              con: none
 
 ---
@@ -614,11 +626,10 @@
     Output
         SVD_RW2(HMD) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
                s: 1
               sd: 1
         sd_slope: 1
-           along: NULL
              con: none
 
 ---
@@ -628,12 +639,11 @@
     Output
         SVD_RW2(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
                s: 1
               sd: 1
         sd_slope: 1
-           along: NULL
              con: none
 
 ---
@@ -643,10 +653,10 @@
     Output
         SVD_RW2(HMD,sd=0) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
                s: 1
+              sd: 0
         sd_slope: 1
-           along: NULL
              con: none
 
 ---
@@ -656,10 +666,10 @@
     Output
         SVD_RW2(HMD,indep=FALSE,sd=0) 
             ssvd: HMD
-          n_comp: 3
+          n_comp: 2
            indep: FALSE
                s: 1
+              sd: 0
         sd_slope: 1
-           along: NULL
              con: none
 

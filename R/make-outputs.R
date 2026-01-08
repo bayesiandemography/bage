@@ -1,4 +1,35 @@
 
+#' Construct Elements of 'components' that are Implied
+#' by Existing Elements
+#'
+#' Needed for priors such as 'bage_prior_linex' that
+#' have non-standard stuctures
+#'
+#' @param components Tibble with estimates of hyper-parameters
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns Modified version of 'components'
+#'
+#' @noRd
+append_implied_comp <- function(components, mod) {
+  priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  implied <- .mapply(make_implied_comp,
+                     dots = list(prior = priors,
+                                 dimnames_term = dimnames_terms),
+                     MoreArgs = list(components = components,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender))
+  implied <- vctrs::vec_rbind(!!!implied)
+  vctrs::vec_rbind(components, implied)
+}
+                     
+  
+
 ## HAS_TESTS
 #' Combined Stored Draws and Point Estimates
 #' from Inner and Outer Models
@@ -901,11 +932,13 @@ make_comp_hyperrand <- function(mod) {
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
   ans <- .mapply(comp_hyperrand,
                  dots = list(prior = priors,
                              dimnames_term = dimnames_terms),
                  MoreArgs = list(var_time = var_time,
-                                 var_age = var_age))
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender))
   ans <- unlist(ans)
   ans
 }
@@ -1252,6 +1285,65 @@ make_hyperrand <- function(mod) {
 #' @param prior Object of class 'bage_prior'.
 #' @param hyperrandfree Values for unconstrained hyper-parameters. An rvec.
 #' @param effectfree Values for unconstrained effect. An rvec.
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_hyperrand_lin <- function(prior,
+                               hyperrandfree,
+                               effectfree,
+                               dimnames_term,
+                               var_time,
+                               var_age,
+                               var_sexgender) {
+  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
+                                                                dimnames_term = dimnames_term,
+                                                                var_time = var_time,
+                                                                var_age = var_age,
+                                                                var_sexgender = var_sexgender)
+  matrix_effectfree_effect <- make_matrix_effectfree_effect(prior = prior,
+                                                            dimnames_term = dimnames_term,
+                                                            var_time = var_time,
+                                                            var_age = var_age,
+                                                            var_sexgender = var_sexgender)
+  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effectfree)
+  n_by <- ncol(matrix_along_by_effectfree)
+  v <- seq_len(n_along) - 0.5 * (n_along + 1)
+  n_draw <- rvec::n_draw(hyperrandfree)
+  trend <- rvec::new_rvec_dbl(length = n_along * n_by, n_draw = n_draw)
+  for (i_by in seq_len(n_by)) {
+    i_along <- matrix_along_by_effectfree[, i_by] + 1L
+    trend[i_along] <- hyperrandfree[[i_by]] * v
+  }
+  error <- effectfree - trend
+  trend <- matrix_effectfree_effect %*% trend
+  error <- matrix_effectfree_effect %*% error
+  ## calculate slope on constrained space
+  n_by_constr <- ncol(matrix_along_by_effect)
+  slope <- rvec::new_rvec_dbl(length = n_by_constr, n_draw = n_draw)
+  for (i_by in seq_len(n_by_constr)) {
+    i_1 <- matrix_along_by_effect[1L, i_by] + 1L
+    i_2 <- matrix_along_by_effect[2L, i_by] + 1L
+    slope[[i_by]] <- trend[[i_2]] - trend[[i_1]]
+  }
+  vctrs::vec_c(slope, trend, error)
+}
+
+
+## HAS_TESTS
+#' Derive Values for Hyper-Paramers Involving Lines and SVD
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param hyperrandfree Values for hyper-parameters. An rvec.
+#' @param vals_svd Values for unconstrained effect. An rvec.
 #' @param dimnames_term Dimnames for array representation of term
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
@@ -1694,11 +1786,13 @@ make_levels_hyperrand <- function(mod, unlist) {
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
   ans <- .mapply(levels_hyperrand,
                  dots = list(prior = priors,
                              dimnames_term = dimnames_terms),
                  MoreArgs = list(var_time = var_time,
-                                 var_age = var_age))
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender))
   if (unlist)
     ans <- unlist(ans)
   ans
@@ -1824,6 +1918,49 @@ make_levels_svd <- function(mod, unlist) {
     names(ans) <- names(priors)
   ans
 }
+
+#' Make Labels for 'By' Variables in SVD 'effectfree'
+#'
+#' Can only be used with priors with 'along' dimension.
+#' Allows for possibility of con = 'by'
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#'
+#' @returns A character vector
+#' 
+#' @noRd
+make_levels_svd_by <- function(prior,
+                               dimnames_term,
+                               var_time,
+                               var_age,
+                               var_sexgender) {
+  if (!uses_along(prior))
+    cli::cli_abort("Internal error: Prior does not have 'along' dimension.")
+  con <- prior$specific$con
+  labels_svd <- get_labels_svd(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_sexgender = var_sexgender)
+  i_agesex <- match(c(var_age, var_sexgender),
+                    names(dimnames_term),
+                    nomatch = 0L)
+  dimnames_noagesex <- dimnames_term[-i_agesex]
+  if (con == "by") {
+    i_along <- match(var_time, names(dimnames_noagesex))
+    dimnames_noagesextime <- make_unconstr_dimnames_by(i_along = i_along,
+                                                   dimnames_term = dimnames_noagesex)
+  }
+  else {
+    i_time <- match(var_time, names(dimnames_noagesex))
+    dimnames_noagesextime <- dimnames_noagesex[-i_time]
+  }
+  dimnames_by <- c(list(.svd = labels_svd), dimnames_noagesextime)
+  dimnames_to_levels(dimnames_by)
+}
+
 
 
 ## HAS_TESTS

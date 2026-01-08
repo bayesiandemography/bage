@@ -224,7 +224,7 @@ test_that("'get_matrix_or_offset_svd_prior' works with sex-age interaction, type
 
 test_that("'get_matrix_or_offset_svd_prior' works with age-sex interaction, type is indep, matrix", {
   ssvd <- sim_ssvd()
-  prior <- SVD(ssvd)
+  prior <- SVD(ssvd, n_comp = 5)
   dimnames_term <- list(sex = c("Female", "Male"),
                         age = c("0-4", "5-9"))
   ans_obtained <- get_matrix_or_offset_svd_prior(prior,
@@ -2124,8 +2124,6 @@ test_that("'message_suspicious_rates' returns message with 2 rows", {
 })
 
 
-
-
 ## 'n_col' --------------------------------------------------------------------
 
 test_that("'n_col' works with ordinary matrix", {
@@ -2136,27 +2134,6 @@ test_that("'n_col' works with ordinary matrix", {
 test_that("'n_col' works with Matrix matrix", {
   m <- Matrix::Matrix(1:6, nr = 2)
   expect_identical(n_col(m), 3L)
-})
-
-
-
-## 'n_comp_svd' ---------------------------------------------------------------
-
-test_that("'n_comp_svd' works when no 'n' supplied", {
-  ans_obtained <- n_comp_svd(n_comp = NULL, nm_n_comp = "n", ssvd = HMD)
-  ans_expected <- 3L
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'n_comp_svd' works when valid 'n' supplied", {
-  ans_obtained <- n_comp_svd(n_comp = 3, nm_n_comp = "n", ssvd = HMD)
-  ans_expected <- 3L
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'n_comp_svd' throws correct error when n is too high", {
-  expect_error(n_comp_svd(n_comp = 11, nm_n_comp = "n_component", ssvd = HMD),
-               "`n_component` larger than number of components of `ssvd`.")
 })
 
 

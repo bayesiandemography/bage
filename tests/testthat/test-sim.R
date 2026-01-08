@@ -496,7 +496,7 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
 ## 'draw_vals_dffect_svd_dynamic' ---------------------------------------------
 
 test_that("'draw_vals_effect_svd_dynamic' works with bage_prior_svd_ar - age x time", {
-  prior <- SVD_AR1(HMD)
+  prior <- SVD_AR1(HMD, n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(time = 2000:2004,
                         age = c(0:79, "80+"))
@@ -977,7 +977,6 @@ test_that("'draw_vals_slope' works - no 'by' variables", {
   set.seed(0)
   ans_expected <- matrix(rnorm(n = 1000, 0.1, 0.5),
                          nr = 1)
-  rownames(ans_expected) <- "slope"
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1764,6 +1763,7 @@ test_that("'vals_hyperrand_to_dataframe_one' works with 'bage_prior_ar'", {
                                                   dimnames_term = list(time = 2001:2010),
                                                   var_age = "age",
                                                   var_time = "time",
+                                                  var_sexgender = "sex",
                                                   n_sim = 10)
   ans_expected <- tibble::tibble(term = character(),
                                  component = character(),
@@ -1780,6 +1780,7 @@ test_that("'vals_hyperrand_to_dataframe_one' works with bage_prior_lin", {
                         region = c("a", "b", "c"))
   var_age <- "age"
   var_time <- "time"
+  var_sexgender <- "sex"
   vals_hyper <- list(sd = runif(n_sim))
   vals_hyperrand <- draw_vals_hyperrand(prior = prior,
                                         vals_hyper = vals_hyper,

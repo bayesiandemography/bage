@@ -4,7 +4,7 @@
 \alias{SVD}
 \title{SVD-Based Prior for Age or Age-Sex Profiles}
 \usage{
-SVD(ssvd, v = NULL, n_comp = NULL, indep = TRUE)
+SVD(ssvd, v = NULL, n_comp = 3, indep = TRUE)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
@@ -16,8 +16,7 @@ to use. If no value is suppled, the most
 recent version is used.}
 
 \item{n_comp}{Number of components from scaled SVD
-to use in modelling. The default is half
-the number of components of \code{ssvd}.}
+to use in modelling. The default is \code{3}.}
 
 \item{indep}{Whether to use separate or
 combined SVDs in terms involving sex or gender.
@@ -204,7 +203,7 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 
 \examples{
 SVD(HMD) 
-SVD(HMD, n_comp = 3)
+SVD(HMD, n_comp = 2)
 }
 \references{
 \itemize{

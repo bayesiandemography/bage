@@ -1801,35 +1801,6 @@ n_col <- function(x) {
 
 
 ## HAS_TESTS
-#' Prepare Number of Components Argument for SVD Prior
-#'
-#' @param n_comp Value for number provided by user
-#' @param nm_n_comp Name for 'n_comp' to be used in error messages
-#' @param ssvd Object of class "bage_ssvd"
-#'
-#' @returns Number of components - an integer scalar
-#'
-#' @noRd
-n_comp_svd <- function(n_comp, nm_n_comp, ssvd) {
-  n_comp_ssvd <- get_n_comp(ssvd)
-  if (is.null(n_comp))
-    n_comp <- ceiling(n_comp_ssvd / 2)
-  else {
-    poputils::check_n(n = n_comp,
-                      nm_n = nm_n_comp,
-                      min = 1L,
-                      max = NULL,
-                      divisible_by = NULL)
-    if (n_comp > n_comp_ssvd)
-      cli::cli_abort(c("{.arg {nm_n_comp}} larger than number of components of {.arg ssvd}.",
-                       i = "{.arg {nm_n_comp}}: {.val {n_comp}}.",
-                       i = "Number of components: {.val {n_comp_ssvd}}."))
-  }
-  as.integer(n_comp)
-}
-
-
-## HAS_TESTS
 #' Discard Terms from a Model
 #'
 #' Discard terms for which 'use_term' is FALSE.
@@ -2195,8 +2166,8 @@ str_call_args_svd <- function(prior) {
   indep <- specific$indep
   ans <- character(3L)
   ans[[1L]] <- nm_ssvd
-  n_comp_ssvd <- get_n_comp(ssvd)
-  n_default <- ceiling(n_comp_ssvd / 2)
+  is_svd <- inherits(prior, "bage_prior_svd")
+  n_default <- if (is_svd) 3L else 2L
   if (n_comp != n_default)
     ans[[2L]] <- sprintf("n_comp=%s", n_comp)
   if (!indep)

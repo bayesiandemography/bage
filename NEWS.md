@@ -1,4 +1,20 @@
 
+# bage 0.10.8
+
+## Interface
+
+* Added prior `SVD_Lin()`, in which SVD coefficients evolve according
+  to a `Lin()` prior.
+* Changed rule for default for `n_comp` argument of
+  `SVD()`. Previously `n_comp` was half the number of components of
+  the `ssvd` argument (rounded up), giving a value of `3` for the SSVD
+  objects implemented in `bage`. It is now simply `3`, with no link
+  to the `ssvd` argument.
+* Changed rule for default for `n_comp` argument of dynamic SVD
+  priors, ie `SVD_AR()`, `SVD_RW()`, etc. Previous rule led to value
+  of `3`. In practice, however, this tends to lead to unstable
+  results. The new default is `2`.
+  
 
 # bage 0.10.7
 
@@ -8,6 +24,11 @@
   to request results for a subset of `data`. (#106)
 * Removed warning about rules for aggregation changing. The warning
   was introduced in version 0.9.9.
+* Removed the default for the `s_seas` argument in `RW_Seas()` and
+  `RW2_Seas()` priors, which was previous `0`. In practice, the
+  default of `0` was not intuivitely obvious, but neither was any
+  other value (eg `1`), so it is safest to force the user to specify
+  explicitly.
 
 
 # bage 0.10.6
@@ -37,12 +58,12 @@
 
 ## Added 'damped random walk' priors
 
-* Added priors `drw()`, `drw2()` implementing damped versions of
-  random walks and second-order random walks. In the `drw()` case,
+* Added priors `DRW()`, `DRW2()` implementing damped versions of
+  random walks and second-order random walks. In the `DRW()` case,
   the basic idea is `x[t] = phi * x[t-1] + error[t]`. In the
-  `drw2()` case it is `x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) +
+  `DRW2()` case it is `x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) +
   error[t]`. These priors are useful for forecasting.
-* Added  priors `svd_drw()` and `svd_drw2()`. As above, but the random
+* Added  priors `SVD_DRW()` and `SVD_DRW2()`. As above, but the random
   walks are on the coefficients for SVDs.
  
 
