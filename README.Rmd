@@ -31,15 +31,30 @@ opts_chunk$set(
 
 Fast Bayesian estimation and forecasting of age-specific rates.
 
+Features:
+
+- Incorporates substantive demographic knowledge via priors
+- Supports full Bayesian workflow
+- Allows for measurement errors and missing values
+
+
 ## Installation
 
 ``` r
 install.packages("bage")
 ```
 
+## Development
+
+A road map for the package is [here](https://github.com/bayesiandemography/bage/blob/main/.github/ROADMAP.md).
+
 ## Example
 
 Fit Poisson model to data on injuries
+
+```{r echo = FALSE}
+options(width = 100)
+```
 
 ```{r example}
 library(bage)
