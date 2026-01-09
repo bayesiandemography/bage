@@ -112,7 +112,7 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">swe_infant</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">deaths</span> <span class="op">/</span> <span class="va">births</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">county</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-4-1.png" width="672"></p>
+<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-4-1.png" alt="" width="672"></p>
 </div>
 <div class="section level3" number="2.2">
 <h3 id="initial-model">
@@ -200,7 +200,7 @@ Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has a
 <span><span class="co">#&gt;    1000     time    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        0.63     0.35      0.23   14      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.60     0.32      0.22   14      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="2.3">
 <h3 id="extracting-parameter-estimates">
@@ -261,7 +261,7 @@ Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has a
 <span>         size <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
+<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-9-1.png" alt="" width="672"></p>
 <p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> returns values for hyper-parameters.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">comp_init</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
@@ -291,7 +291,7 @@ Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has a
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_pointrange</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="va">.fitted.lower</span>,</span>
 <span>                      x <span class="op">=</span> <span class="va">.fitted.mid</span>,</span>
 <span>                      xmax <span class="op">=</span> <span class="va">.fitted.upper</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
+<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-11-1.png" alt="" width="672"></p>
 <p>the county effect,</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">county_effect</span> <span class="op">&lt;-</span> <span class="va">comp_init</span> <span class="op">|&gt;</span></span>
@@ -304,7 +304,7 @@ Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has a
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_pointrange</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="va">.fitted.lower</span>,</span>
 <span>                      x <span class="op">=</span> <span class="va">.fitted.mid</span>,</span>
 <span>              xmax <span class="op">=</span> <span class="va">.fitted.upper</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-12-1.png" width="672"></p>
+<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-12-1.png" alt="" width="672"></p>
 <p>and the time effect.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">time_effect</span> <span class="op">&lt;-</span> <span class="va">comp_init</span> <span class="op">|&gt;</span></span>
@@ -320,7 +320,7 @@ Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has a
 <span>          fill <span class="op">=</span> <span class="st">"lightblue"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">.fitted.mid</span><span class="op">)</span>,</span>
 <span>            color <span class="op">=</span> <span class="st">"darkblue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-13-1.png" width="672"></p>
+<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-13-1.png" alt="" width="672"></p>
 <p>The county effect and time effect each have <code>sd</code> parameters, which we also extract.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">comp_init</span> <span class="op">|&gt;</span></span>
@@ -362,7 +362,7 @@ Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has a
 <span>          fill <span class="op">=</span> <span class="st">"lightblue"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">.fitted.mid</span><span class="op">)</span>,</span>
 <span>            color <span class="op">=</span> <span class="st">"darkblue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-15-1.png" width="672"></p>
+<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-15-1.png" alt="" width="672"></p>
 </div>
 <div class="section level3" number="2.5">
 <h3 id="replicate-data-check">
@@ -400,7 +400,7 @@ Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has a
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_jitter.html" class="external-link">position_jitter</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-17-1.png" width="672"></p>
+<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-17-1.png" alt="" width="672"></p>
 <p>The slopes from the original data (on the far left) have aboout the same level of variability as the slopes from the replicate data. The implication is that, even without a county-time interaction, the model is a satisfactory job of representing cross-county variability in the pace of decline.</p>
 </div>
 <div class="section level3" number="2.6">
@@ -415,7 +415,7 @@ Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has a
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">prob_25</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">prob</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">county</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-18-1.png" width="672"></p>
+<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-18-1.png" alt="" width="672"></p>
 </div>
 <div class="section level3" number="2.7">
 <h3 id="forecast">
@@ -465,7 +465,7 @@ Finally, the dispersion parameter <span class="math inline">\(\xi\)</span> has a
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Removed 210 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
-<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-20-1.png" width="672"></p>
+<p><img src="vig05_bdef_files/figure-html/unnamed-chunk-20-1.png" alt="" width="672"></p>
 </div>
 </div>
 <div class="section level2" number="3">

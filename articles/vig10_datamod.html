@@ -85,7 +85,7 @@
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 40-44    262 <span style="text-decoration: underline;">44</span>567</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 45-49      6 <span style="text-decoration: underline;">41</span>774</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> 50-54      0 <span style="text-decoration: underline;">51</span>312</span></span></code></pre></div>
-<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-4-1.png" width="288"></p>
+<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-4-1.png" alt="" width="288"></p>
 <p>Our base model treats the input data as error free. We specify and fit the base model as follows.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
@@ -115,11 +115,11 @@
 <span><span class="co">#&gt;    1000     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged</span></span>
-<span><span class="co">#&gt;        0.15     0.05      0.05   15      TRUE</span></span>
+<span><span class="co">#&gt;        0.14     0.05      0.04   15      TRUE</span></span>
 <span><span class="co">#&gt;                                            message</span></span>
 <span><span class="co">#&gt;    both X-convergence and relative convergence (5)</span></span></code></pre></div>
 <p>The base model yields the following estimates for birth rates:</p>
-<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-6-1.png" width="288"></p>
+<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-6-1.png" alt="" width="288"></p>
 </div>
 <div class="section level2" number="2">
 <h2 id="current-menu-of-data-models">
@@ -255,9 +255,9 @@ where</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> 50-54      0          0 (0, 1) <span style="text-decoration: underline;">51</span>312  0        1.5e-06 (1.3e-11, 5.3e-05)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
 <p>Estimated birth rates from the undercount model are higher than estimated birth rates from the base model, since the undercount model assumes that reported births understate true births.</p>
-<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-10-1.png" width="576"></p>
+<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-10-1.png" alt="" width="576"></p>
 <p>Here are the estimates of births underlying the baseline and undercount models:
-<img src="vig10_datamod_files/figure-html/unnamed-chunk-11-1.png" width="576"></p>
+<img src="vig10_datamod_files/figure-html/unnamed-chunk-11-1.png" alt="" width="576"></p>
 <p>The estimated coverage probability can be extracted using function <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_under</span> <span class="op">|&gt;</span></span>
@@ -304,7 +304,7 @@ where</p>
 <code class="sourceCode R"><span><span class="va">mod_over</span> <span class="op">&lt;-</span> <span class="va">mod_base</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_datamod_overcount.html">set_datamod_overcount</a></span><span class="op">(</span>rate <span class="op">=</span> <span class="va">rate_over</span><span class="op">)</span></span></code></pre></div>
 <p>Adding an overcount data model produces birth rate estimates that are lower than those of the base model, since the reported birth counts are assumed to be too high.</p>
-<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-15-1.png" width="576"></p>
+<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-15-1.png" alt="" width="576"></p>
 </div>
 <div class="section level3" number="2.4">
 <h3 id="miscount-model">
@@ -325,7 +325,7 @@ where the variables have the same definitions as they do in the undercount and o
 <span>  <span class="fu"><a href="../reference/set_datamod_miscount.html">set_datamod_miscount</a></span><span class="op">(</span>prob <span class="op">=</span> <span class="va">prob_under</span>,</span>
 <span>                       rate <span class="op">=</span> <span class="va">rate_over</span><span class="op">)</span></span></code></pre></div>
 <p>Our choice of priors implies more undercoverage than overcoverage, so our estimated birth rates, and estimated birth counts, are higher than those of the baseline model.</p>
-<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-17-1.png" width="576"></p>
+<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-17-1.png" alt="" width="576"></p>
 <p>We use <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> to extract estimates of the inclusion probability and overcount rate.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_mis</span> <span class="op">|&gt;</span></span>
@@ -362,7 +362,7 @@ where <span class="math inline">\(m_g = \frac{1}{2} s_g^2\)</span>.</p>
 <span>  <span class="fu"><a href="../reference/set_disp.html">set_disp</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_datamod_noise.html">set_datamod_noise</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></code></pre></div>
 <p>Fitting this model yields the following estimates.
-<img src="vig10_datamod_files/figure-html/unnamed-chunk-20-1.png" width="576"></p>
+<img src="vig10_datamod_files/figure-html/unnamed-chunk-20-1.png" alt="" width="576"></p>
 <p>If the outcome variable is subject to known biases, then measurement errors cannot be assumed to have mean zero. Before the noise data model can be used, the outcome variable must be de-biased, by subtracting estimates of the bias.</p>
 </div>
 <div class="section level3" number="2.6">
@@ -392,7 +392,7 @@ where ‘cv’ is the coefficient of variation, defined as the standard deviatio
 <span>  <span class="fu"><a href="../reference/set_disp.html">set_disp</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_datamod_exposure.html">set_datamod_exposure</a></span><span class="op">(</span>cv <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
 <p>Along with estimates of birth rates, the model also yields estimates of the true population.</p>
-<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-22-1.png" width="576"></p>
+<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-22-1.png" alt="" width="576"></p>
 </div>
 </div>
 <div class="section level2" number="3">
@@ -433,7 +433,7 @@ where ‘cv’ is the coefficient of variation, defined as the standard deviatio
 <span>  <span class="fu"><a href="../reference/set_datamod_undercount.html">set_datamod_undercount</a></span><span class="op">(</span>prob <span class="op">=</span> <span class="va">prob_under_time</span><span class="op">)</span></span>
 <span><span class="co">#&gt; → Replacing existing <span style="color: #0000BB;">"undercount"</span> data model with new <span style="color: #0000BB;">"undercount"</span> data model</span></span></code></pre></div>
 <p>As we would expect, these two models give different results.</p>
-<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-27-1.png" width="576"></p>
+<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-27-1.png" alt="" width="576"></p>
 <p>Data model parameters can vary across more than one dimension. We set up a prior that varies across age and time. Rather than using different inclusion probabilities for every age group, however, we use one set for people aged 10-34, and one for people aged 35+. To implement this, we need to create a new, aggregated age group.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">births_time</span> <span class="op">&lt;-</span> <span class="va">births_time</span> <span class="op">|&gt;</span></span>
@@ -454,7 +454,7 @@ where ‘cv’ is the coefficient of variation, defined as the standard deviatio
 <span>                              exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_datamod_undercount.html">set_datamod_undercount</a></span><span class="op">(</span>prob <span class="op">=</span> <span class="va">prob_under_agetime</span><span class="op">)</span></span></code></pre></div>
 <p>The model assumes that births for women aged 35+ in 2022 were subject to an unusual degree of under-reporting. The results reflect that assumption.</p>
-<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-29-1.png" width="576"></p>
+<p><img src="vig10_datamod_files/figure-html/unnamed-chunk-29-1.png" alt="" width="576"></p>
 </div>
 <div class="section level2" number="4">
 <h2 id="forecasting-with-data-models">

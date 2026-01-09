@@ -207,7 +207,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.51     0.87      0.50   30      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.48     0.85      0.49   30      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>To obtain estimates of the coefficients (ie estimates of the <span class="math inline">\(\zeta_p\)</span>) we call function <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> and filter out rows for the <code>"covariates"</code> term.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_gdp_dens</span> <span class="op">|&gt;</span></span>
@@ -302,7 +302,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.06     0.43      0.58   22      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.05     0.43      0.57   22      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Rather than a single dragon-year coefficient, we have a coefficient for each age group. We extract them and tidy up the labels.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_dragon_age</span> <span class="op">|&gt;</span></span>
