@@ -2092,8 +2092,6 @@ SVD <- function(ssvd,
 #'
 #'
 #' @inheritParams SVD
-#' @param n_comp Number of components from scaled SVD
-#' to use in modelling. The default is `2`.
 #' @param n_coef Number of AR coefficients in `SVD_RW()`.
 #' @param s Scale for standard deviations terms.
 #' Default is `1`. Can be `0` in `SVD_Lin()`.
@@ -2142,13 +2140,13 @@ SVD <- function(ssvd,
 #'
 #' @examples
 #' SVD_AR1(HMD)
-#' SVD_RW(HMD, n_comp = 3)
+#' SVD_RW(HMD, n_comp = 2)
 #' SVD_RW2(HMD, indep = FALSE)
 #' SVD_Lin(HMD, s = 0)
 #' @export
 SVD_AR <- function(ssvd,
                    v = NULL,
-                   n_comp = 2,
+                   n_comp = 3,
                    indep = TRUE,
                    n_coef = 2,
                    s = 1,
@@ -2158,9 +2156,6 @@ SVD_AR <- function(ssvd,
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
-  if (missing(n_comp) && is_not_testing_or_snapshot())
-    cli::cli_alert_info(paste("In version 0.10.8, the default for {.arg n_comp}",
-                              "for {.fun SVD_AR} changed from {.val 3} to {.val 2}."))
   check_n_comp_svd(n_comp = n_comp, ssvd = ssvd)
   n_comp <- as.integer(n_comp)
   check_flag(x = indep, nm_x = "indep")
@@ -2197,7 +2192,7 @@ SVD_AR <- function(ssvd,
 #' @export
 SVD_AR1 <- function(ssvd,
                     v = NULL,
-                    n_comp = 2,
+                    n_comp = 3,
                     indep = TRUE,
                     min = 0.8,
                     max = 0.98,
@@ -2208,9 +2203,6 @@ SVD_AR1 <- function(ssvd,
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
-  if (missing(n_comp) && is_not_testing_or_snapshot())
-    cli::cli_alert_info(paste("In version 0.10.8, the default for {.arg n_comp}",
-                              "for {.fun SVD_AR1} changed from {.val 3} to {.val 2}."))
   check_n_comp_svd(n_comp = n_comp, ssvd = ssvd)
   n_comp <- as.integer(n_comp)
   check_flag(x = indep, nm_x = "indep")
@@ -2243,7 +2235,7 @@ SVD_AR1 <- function(ssvd,
 #' @export
 SVD_DRW <- function(ssvd,
                     v = NULL,
-                    n_comp = 2,
+                    n_comp = 3,
                     indep = TRUE,
                     s = 1,
                     sd = 1,
@@ -2255,9 +2247,6 @@ SVD_DRW <- function(ssvd,
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
-  if (missing(n_comp) && is_not_testing_or_snapshot())
-    cli::cli_alert_info(paste("In version 0.10.8, the default for {.arg n_comp}",
-                              "for {.fun SVD_DRW} changed from {.val 3} to {.val 2}."))
   check_n_comp_svd(n_comp = n_comp, ssvd = ssvd)
   n_comp <- as.integer(n_comp)
   check_flag(x = indep, nm_x = "indep")
@@ -2305,7 +2294,7 @@ SVD_DRW <- function(ssvd,
 #' @export
 SVD_DRW2 <- function(ssvd,
                      v = NULL,
-                     n_comp = 2,
+                     n_comp = 3,
                      indep = TRUE,
                      s = 1,
                      sd = 1,
@@ -2318,9 +2307,6 @@ SVD_DRW2 <- function(ssvd,
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
-  if (missing(n_comp) && is_not_testing_or_snapshot())
-    cli::cli_alert_info(paste("In version 0.10.8, the default for {.arg n_comp}",
-                              "for {.fun SVD_DRW2} changed from {.val 3} to {.val 2}."))
   check_n_comp_svd(n_comp = n_comp, ssvd = ssvd)
   n_comp <- as.integer(n_comp)
   check_flag(x = indep, nm_x = "indep")
@@ -2372,7 +2358,7 @@ SVD_DRW2 <- function(ssvd,
 #' @export
 SVD_Lin <- function(ssvd,
                     v = NULL,
-                    n_comp = 2,
+                    n_comp = 3,
                     indep = TRUE,
                     s = 1,
                     mean_slope = 0,
@@ -2417,7 +2403,7 @@ SVD_Lin <- function(ssvd,
 #' @export
 SVD_RW <- function(ssvd,
                    v = NULL,
-                   n_comp = 2,
+                   n_comp = 3,
                    indep = TRUE,
                    s = 1,
                    sd = 1,
@@ -2425,9 +2411,6 @@ SVD_RW <- function(ssvd,
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
-  if (missing(n_comp) && is_not_testing_or_snapshot())
-    cli::cli_alert_info(paste("In version 0.10.8, the default for {.arg n_comp}",
-                              "for {.fun SVD_RW} changed from {.val 3} to {.val 2}."))
   check_n_comp_svd(n_comp = n_comp, ssvd = ssvd)
   n_comp <- as.integer(n_comp)
   check_flag(x = indep, nm_x = "indep")
@@ -2460,7 +2443,7 @@ SVD_RW <- function(ssvd,
 #' @export
 SVD_RW2 <- function(ssvd,
                     v = NULL,
-                    n_comp = 2,
+                    n_comp = 3,
                     indep = TRUE,
                     s = 1,
                     sd = 1,
@@ -2469,9 +2452,6 @@ SVD_RW2 <- function(ssvd,
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_v_ssvd(v = v, ssvd = ssvd, nm_ssvd = nm_ssvd)
-  if (missing(n_comp) && is_not_testing_or_snapshot())
-    cli::cli_alert_info(paste("In version 0.10.8, the default for {.arg n_comp}",
-                           "for {.fun SVD_RW2} changed from {.val 3} to {.val 2}."))
   check_n_comp_svd(n_comp = n_comp, ssvd = ssvd)
   n_comp <- as.integer(n_comp)
   check_flag(x = indep, nm_x = "indep")

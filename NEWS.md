@@ -6,15 +6,10 @@
 * Added prior `SVD_Lin()`, in which SVD coefficients evolve according
   to a `Lin()` prior.
 * Changed rule for default for `n_comp` argument of
-  `SVD()`. Previously `n_comp` was half the number of components of
+  SVD priors. Previously `n_comp` was half the number of components of
   the `ssvd` argument (rounded up), giving a value of `3` for the SSVD
   objects implemented in `bage`. It is now simply `3`, with no link
   to the `ssvd` argument.
-* Changed rule for default for `n_comp` argument of dynamic SVD
-  priors, ie `SVD_AR()`, `SVD_RW()`, etc. Previous rule led to value
-  of `3`. In practice, however, this tends to lead to unstable
-  results. The new default is `2`.
-  
 
 # bage 0.10.7
 

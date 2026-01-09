@@ -2166,9 +2166,7 @@ str_call_args_svd <- function(prior) {
   indep <- specific$indep
   ans <- character(3L)
   ans[[1L]] <- nm_ssvd
-  is_svd <- inherits(prior, "bage_prior_svd")
-  n_default <- if (is_svd) 3L else 2L
-  if (n_comp != n_default)
+  if (n_comp != 3L)
     ans[[2L]] <- sprintf("n_comp=%s", n_comp)
   if (!indep)
     ans[[3L]] <- "indep=FALSE"

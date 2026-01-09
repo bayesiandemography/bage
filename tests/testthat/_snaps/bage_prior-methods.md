@@ -358,7 +358,7 @@
     Output
         SVD_AR(HMD) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
           n_coef: 2
              min: -1
              max: 1
@@ -372,7 +372,7 @@
     Output
         SVD_AR(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
           n_coef: 2
              min: -1
@@ -387,7 +387,7 @@
     Output
         SVD_AR1(HMD) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
              min: 0.8
              max: 0.98
                s: 1
@@ -400,7 +400,7 @@
     Output
         SVD_AR1(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
              min: 0.8
              max: 0.98
@@ -414,7 +414,7 @@
     Output
         SVD_DRW(HMD) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 1
               sd: 1
           shape1: 5
@@ -430,7 +430,7 @@
     Output
         SVD_DRW(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
                s: 1
               sd: 1
@@ -447,7 +447,7 @@
     Output
         SVD_DRW(HMD,sd=0) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 1
               sd: 0
           shape1: 5
@@ -463,7 +463,7 @@
     Output
         SVD_DRW(HMD,indep=FALSE,sd=0) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
                s: 1
               sd: 0
@@ -480,7 +480,7 @@
     Output
         SVD_DRW2(HMD) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 1
               sd: 1
         sd_slope: 1
@@ -497,7 +497,7 @@
     Output
         SVD_DRW2(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
                s: 1
               sd: 1
@@ -515,7 +515,7 @@
     Output
         SVD_DRW2(HMD,sd=0) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 1
               sd: 0
         sd_slope: 1
@@ -532,7 +532,7 @@
     Output
         SVD_DRW2(HMD,indep=FALSE,sd=0) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
                s: 1
               sd: 0
@@ -550,7 +550,7 @@
     Output
         SVD_Lin(HMD) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 1
       mean_slope: 0
         sd_slope: 1
@@ -563,7 +563,7 @@
     Output
         SVD_Lin(HMD,s=0) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 0
       mean_slope: 0
         sd_slope: 1
@@ -576,7 +576,7 @@
     Output
         SVD_RW(HMD) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 1
               sd: 1
              con: none
@@ -588,7 +588,7 @@
     Output
         SVD_RW(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
                s: 1
               sd: 1
@@ -601,7 +601,7 @@
     Output
         SVD_RW(HMD,sd=0) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 1
               sd: 0
              con: none
@@ -613,7 +613,7 @@
     Output
         SVD_RW(HMD,indep=FALSE,sd=0) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
                s: 1
               sd: 0
@@ -626,7 +626,7 @@
     Output
         SVD_RW2(HMD) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 1
               sd: 1
         sd_slope: 1
@@ -639,7 +639,7 @@
     Output
         SVD_RW2(HMD,indep=FALSE) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
                s: 1
               sd: 1
@@ -653,7 +653,7 @@
     Output
         SVD_RW2(HMD,sd=0) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
                s: 1
               sd: 0
         sd_slope: 1
@@ -666,7 +666,7 @@
     Output
         SVD_RW2(HMD,indep=FALSE,sd=0) 
             ssvd: HMD
-          n_comp: 2
+          n_comp: 3
            indep: FALSE
                s: 1
               sd: 0

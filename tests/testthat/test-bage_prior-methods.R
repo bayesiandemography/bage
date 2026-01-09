@@ -11913,7 +11913,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_linex - tim
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_linex - age-time-reg interaction", {
-  prior <- SVD_Lin(HMD, s = 0)
+  prior <- SVD_Lin(HMD, n_comp = 2, s = 0)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2005,
                         reg = c("a", "b", "c"))
@@ -11925,7 +11925,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_linex - age
                                       var_time = var_time,
                                       var_age = var_age,
                                       var_sexgender = var_sexgender)
-  m2 <- make_matrix_effectfree_effect(prior = SVD_Lin(HMD, s = 0.000001),
+  m2 <- make_matrix_effectfree_effect(prior = SVD_Lin(HMD, n_comp = 2, s = 0.000001),
                                       dimnames_term = dimnames_term,
                                       var_time = var_time,
                                       var_age = var_age,
@@ -13141,8 +13141,8 @@ test_that("'str_call_prior' works with bage_prior_svd_ar", {
     expect_identical(str_call_prior(SVD_AR1(s)), "SVD_AR1(s)")
     expect_identical(str_call_prior(SVD_AR1(s,indep = FALSE)), "SVD_AR1(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_AR1(s,min = 0.2, n = 6L)), "SVD_AR1(s,n_comp=6,min=0.2)")
-    expect_identical(str_call_prior(SVD_AR(s,indep=T,n_comp = 3L,n_coef=3,con="by")),
-                     "SVD_AR(s,n_comp=3,n_coef=3,con=\"by\")")
+    expect_identical(str_call_prior(SVD_AR(s,indep=T,n_comp = 2L,n_coef=3,con="by")),
+                     "SVD_AR(s,n_comp=2,n_coef=3,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_drwrandom", {
@@ -13150,9 +13150,9 @@ test_that("'str_call_prior' works with bage_prior_svd_drwrandom", {
     expect_identical(str_call_prior(SVD_DRW(s)), "SVD_DRW(s)")
     expect_identical(str_call_prior(SVD_DRW(s,indep = FALSE)), "SVD_DRW(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_DRW(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=3,s=0.3,
+                                           n_comp = 1L,sd=3,s=0.3,
                                            shape2=3,max=0.95,min=0.5,shape1=2)),
-                     "SVD_DRW(s,n_comp=3,s=0.3,sd=3,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
+                     "SVD_DRW(s,n_comp=1,s=0.3,sd=3,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_drwzero", {
@@ -13160,9 +13160,9 @@ test_that("'str_call_prior' works with bage_prior_svd_drwzero", {
     expect_identical(str_call_prior(SVD_DRW(s,sd= 0)), "SVD_DRW(s,sd=0)")
     expect_identical(str_call_prior(SVD_DRW(sd=0,s,indep = FALSE)), "SVD_DRW(s,indep=FALSE,sd=0)")
     expect_identical(str_call_prior(SVD_DRW(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=0,s=0.3,
+                                           n_comp = 4L,sd=0,s=0.3,
                                            shape2=3,max=0.95,min=0.5,shape1=2)),
-                     "SVD_DRW(s,n_comp=3,s=0.3,sd=0,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
+                     "SVD_DRW(s,n_comp=4,s=0.3,sd=0,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_drw2random", {
@@ -13170,9 +13170,9 @@ test_that("'str_call_prior' works with bage_prior_svd_drw2random", {
     expect_identical(str_call_prior(SVD_DRW2(s)), "SVD_DRW2(s)")
     expect_identical(str_call_prior(SVD_DRW2(s,indep = FALSE)), "SVD_DRW2(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_DRW2(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=3,s=0.3,sd_slope=2,
+                                           n_comp = 4L,sd=3,s=0.3,sd_slope=2,
                                            shape2=3,max=0.95,min=0.5,shape1=2)),
-                     "SVD_DRW2(s,n_comp=3,s=0.3,sd=3,sd_slope=2,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
+                     "SVD_DRW2(s,n_comp=4,s=0.3,sd=3,sd_slope=2,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_drw2zero", {
@@ -13180,9 +13180,9 @@ test_that("'str_call_prior' works with bage_prior_svd_drw2zero", {
     expect_identical(str_call_prior(SVD_DRW2(s,sd= 0)), "SVD_DRW2(s,sd=0)")
     expect_identical(str_call_prior(SVD_DRW2(sd=0,s,indep = FALSE)), "SVD_DRW2(s,indep=FALSE,sd=0)")
     expect_identical(str_call_prior(SVD_DRW2(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=0,s=0.3,sd_slope=2,
+                                           n_comp = 4L,sd=0,s=0.3,sd_slope=2,
                                            shape2=3,max=0.95,min=0.5,shape1=2)),
-                     "SVD_DRW2(s,n_comp=3,s=0.3,sd=0,sd_slope=2,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
+                     "SVD_DRW2(s,n_comp=4,s=0.3,sd=0,sd_slope=2,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_lin", {
@@ -13190,8 +13190,8 @@ test_that("'str_call_prior' works with bage_prior_svd_lin", {
     expect_identical(str_call_prior(SVD_Lin(s)), "SVD_Lin(s)")
     expect_identical(str_call_prior(SVD_Lin(s,indep = FALSE)), "SVD_Lin(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_Lin(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd_slope=3,mean_slope = -1, s=0.3)),
-                     "SVD_Lin(s,n_comp=3,s=0.3,mean_slope=-1,sd_slope=3,con=\"by\")")
+                                           n_comp = 4L,sd_slope=3,mean_slope = -1, s=0.3)),
+                     "SVD_Lin(s,n_comp=4,s=0.3,mean_slope=-1,sd_slope=3,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_linex", {
@@ -13199,8 +13199,8 @@ test_that("'str_call_prior' works with bage_prior_svd_linex", {
     expect_identical(str_call_prior(SVD_Lin(s,s=0)), "SVD_Lin(s,s=0)")
     expect_identical(str_call_prior(SVD_Lin(s,indep = FALSE,s=0)), "SVD_Lin(s,indep=FALSE,s=0)")
     expect_identical(str_call_prior(SVD_Lin(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd_slope=3,mean_slope = -1, s=0)),
-                     "SVD_Lin(s,n_comp=3,s=0,mean_slope=-1,sd_slope=3,con=\"by\")")
+                                           n_comp = 4L,sd_slope=3,mean_slope = -1, s=0)),
+                     "SVD_Lin(s,n_comp=4,s=0,mean_slope=-1,sd_slope=3,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rwrandom", {
@@ -13208,8 +13208,8 @@ test_that("'str_call_prior' works with bage_prior_svd_rwrandom", {
     expect_identical(str_call_prior(SVD_RW(s)), "SVD_RW(s)")
     expect_identical(str_call_prior(SVD_RW(s,indep = FALSE)), "SVD_RW(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_RW(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=3,s=0.3)),
-                     "SVD_RW(s,n_comp=3,s=0.3,sd=3,con=\"by\")")
+                                           n_comp = 4L,sd=3,s=0.3)),
+                     "SVD_RW(s,n_comp=4,s=0.3,sd=3,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rwzero", {
@@ -13217,24 +13217,24 @@ test_that("'str_call_prior' works with bage_prior_svd_rwzero", {
     expect_identical(str_call_prior(SVD_RW(s,sd = 0)), "SVD_RW(s,sd=0)")
     expect_identical(str_call_prior(SVD_RW(s,indep = FALSE, sd = 0)), "SVD_RW(s,indep=FALSE,sd=0)")
     expect_identical(str_call_prior(SVD_RW(s,indep = TRUE,con="by",
-                                           n_comp = 3L,s=0.3,sd=0)),
-                     "SVD_RW(s,n_comp=3,s=0.3,sd=0,con=\"by\")")
+                                           n_comp = 4L,s=0.3,sd=0)),
+                     "SVD_RW(s,n_comp=4,s=0.3,sd=0,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rw2random", {
     s <- sim_ssvd()
     expect_identical(str_call_prior(SVD_RW2(s)), "SVD_RW2(s)")
     expect_identical(str_call_prior(SVD_RW2(s,indep=F,sd=0.1)), "SVD_RW2(s,indep=FALSE,sd=0.1)")
-    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,n_comp = 3L,s=0.3,sd=2,con="by")),
-                     "SVD_RW2(s,n_comp=3,s=0.3,sd=2,sd_slope=0.2,con=\"by\")")
+    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,n_comp = 4L,s=0.3,sd=2,con="by")),
+                     "SVD_RW2(s,n_comp=4,s=0.3,sd=2,sd_slope=0.2,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rw2zero", {
     s <- sim_ssvd()
     expect_identical(str_call_prior(SVD_RW2(s,sd=0)), "SVD_RW2(s,sd=0)")
     expect_identical(str_call_prior(SVD_RW2(s,indep=F,sd=0)), "SVD_RW2(s,indep=FALSE,sd=0)")
-    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,sd=0,n_comp = 3L,s=0.3,con="by")),
-                     "SVD_RW2(s,n_comp=3,s=0.3,sd=0,sd_slope=0.2,con=\"by\")")
+    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,sd=0,n_comp = 4L,s=0.3,con="by")),
+                     "SVD_RW2(s,n_comp=4,s=0.3,sd=0,sd_slope=0.2,con=\"by\")")
 })
 
 

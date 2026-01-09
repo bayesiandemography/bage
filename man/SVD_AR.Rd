@@ -13,7 +13,7 @@
 SVD_AR(
   ssvd,
   v = NULL,
-  n_comp = 2,
+  n_comp = 3,
   indep = TRUE,
   n_coef = 2,
   s = 1,
@@ -25,7 +25,7 @@ SVD_AR(
 SVD_AR1(
   ssvd,
   v = NULL,
-  n_comp = 2,
+  n_comp = 3,
   indep = TRUE,
   min = 0.8,
   max = 0.98,
@@ -38,7 +38,7 @@ SVD_AR1(
 SVD_DRW(
   ssvd,
   v = NULL,
-  n_comp = 2,
+  n_comp = 3,
   indep = TRUE,
   s = 1,
   sd = 1,
@@ -52,7 +52,7 @@ SVD_DRW(
 SVD_DRW2(
   ssvd,
   v = NULL,
-  n_comp = 2,
+  n_comp = 3,
   indep = TRUE,
   s = 1,
   sd = 1,
@@ -67,7 +67,7 @@ SVD_DRW2(
 SVD_Lin(
   ssvd,
   v = NULL,
-  n_comp = 2,
+  n_comp = 3,
   indep = TRUE,
   s = 1,
   mean_slope = 0,
@@ -78,7 +78,7 @@ SVD_Lin(
 SVD_RW(
   ssvd,
   v = NULL,
-  n_comp = 2,
+  n_comp = 3,
   indep = TRUE,
   s = 1,
   sd = 1,
@@ -88,7 +88,7 @@ SVD_RW(
 SVD_RW2(
   ssvd,
   v = NULL,
-  n_comp = 2,
+  n_comp = 3,
   indep = TRUE,
   s = 1,
   sd = 1,
@@ -106,7 +106,7 @@ to use. If no value is suppled, the most
 recent version is used.}
 
 \item{n_comp}{Number of components from scaled SVD
-to use in modelling. The default is \code{2}.}
+to use in modelling. The default is \code{3}.}
 
 \item{indep}{Whether to use separate or
 combined SVDs in terms involving sex or gender.
@@ -307,7 +307,7 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 
 \examples{
 SVD_AR1(HMD)
-SVD_RW(HMD, n_comp = 3)
+SVD_RW(HMD, n_comp = 2)
 SVD_RW2(HMD, indep = FALSE)
 SVD_Lin(HMD, s = 0)
 }
