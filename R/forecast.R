@@ -328,8 +328,6 @@ forecast_drw2_svd <- function(prior,
 }
 
 
-
-
 ## HAS_TESTS
 #' Forecast Line or Lines
 #'
@@ -364,6 +362,50 @@ forecast_lin <- function(slope,
 
 
 ## HAS_TESTS
+#' Forecast Line or Lines for SVD-Based Prior
+#'
+#' @param slope Slope of line(s). An rvec.
+#' @param sd Standard devation of errors. An rvec.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estimates
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_lin_svd <- function(prior,
+                             dimnames_term,
+                             dimnames_forecast,
+                             var_time,
+                             var_age,
+                             var_sexgender,
+                             components,
+                             labels_forecast) {
+  matrix_along_by_est <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                               dimnames_term = dimnames_term,
+                                                               var_time = var_time,
+                                                               var_age = var_age,
+                                                               var_sexgender = var_sexgender,
+                                                               append_zero = FALSE)
+  matrix_along_by_forecast <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                                    dimnames_term = dimnames_forecast,
+                                                                    var_time = var_time,
+                                                                    var_age = var_age,
+                                                                    var_sexgender = var_sexgender,
+                                                                    append_zero = FALSE)
+  term <- dimnames_to_nm(dimnames_term)
+  svd <- get_from_comp_svd(components = components, term = term)
+  slope <- get_from_comp_slope(components = components, term = term)
+  sd <- get_from_comp_sd(components = components, term = term)
+  forecast_lin(slope = slope,
+               sd = sd,
+               matrix_along_by_est = matrix_along_by_est,
+               matrix_along_by_forecast = matrix_along_by_forecast)
+}
+
+
+## HAS_TESTS
 #' Forecast Trend Component of Line or Lines
 #'
 #' @param slope Slope of line(s). An rvec.
@@ -389,6 +431,47 @@ forecast_lin_trend <- function(slope,
     ans[i_ans] <- intercept[i_by] + s * slope[i_by]
   }
   ans
+}
+
+
+## HAS_TESTS
+#' Forecast Trend Component of Line or Lines, for SVD-Based Prior
+#'
+#' @param slope Slope of line(s). An rvec.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estimates
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_lin_trend_svd <- function(prior,
+                                   dimnames_term,
+                                   dimnames_forecast,
+                                   var_time,
+                                   var_age,
+                                   var_sexgender,
+                                   components,
+                                   labels_forecast) {
+  matrix_along_by_est <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                               dimnames_term = dimnames_term,
+                                                               var_time = var_time,
+                                                               var_age = var_age,
+                                                               var_sexgender = var_sexgender,
+                                                               append_zero = FALSE)
+  matrix_along_by_forecast <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                                    dimnames_term = dimnames_forecast,
+                                                                    var_time = var_time,
+                                                                    var_age = var_age,
+                                                                    var_sexgender = var_sexgender,
+                                                                    append_zero = FALSE)
+  term <- dimnames_to_nm(dimnames_term)
+  svd <- get_from_comp_svd(components = components, term = term)
+  slope <- get_from_comp_slope(components = components, term = term)
+  forecast_lin_trend(slope = slope,
+                     matrix_along_by_est = matrix_along_by_est,
+                     matrix_along_by_forecast = matrix_along_by_forecast)
 }
 
 

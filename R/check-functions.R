@@ -779,6 +779,30 @@ check_n_along_ge <- function(n_along, min, nm, prior) {
 
 
 ## HAS_TESTS
+#' Check 'n_comp' Argument for SVD Prior
+#'
+#' @param n_comp Value provided by user
+#' @param ssvd Object of class "bage_ssvd"
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_n_comp_svd <- function(n_comp, ssvd) {
+  n_comp_ssvd <- get_n_comp(ssvd)
+  poputils::check_n(n = n_comp,
+                    nm_n = "n_comp",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
+  if (n_comp > n_comp_ssvd)
+    cli::cli_abort(c("{.arg n_comp} larger than number of components of {.arg ssvd}.",
+                     i = "{.arg n_comp}: {.val {n_comp}}.",
+                     i = "Number of components: {.val {n_comp_ssvd}}."))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check if Vector Has NA
 #'
 #' @param x Vector

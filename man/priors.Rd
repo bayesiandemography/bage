@@ -4,30 +4,15 @@
 \alias{priors}
 \title{Priors for Intercept, Main Effects, Interactions}
 \description{
-The models created with functions \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
-and \code{\link[=mod_norm]{mod_norm()}} always include an intercept,
-and typically include main effects
-and interactions formed from variables in input data.
-Most models, for instance
-include an age effect, and many include
-an interaction between age and sex/gender,
-or age and time.
-
-The intercept, main effects, and interactions
-all have prior models that capture the expected
-behavior of the term. Current choices for priors
-summarised in the table below.
-
-Priors where 'forecast' is yes can be used
-in forecasts for a time-varying
-terms such as an age-time interactions.
-
-Priors where 'along' is yes distinguish
-between 'along' and 'by' dimensions.
+The models created with \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
+and \code{\link[=mod_norm]{mod_norm()}} include terms such as age effects
+and region-time interactions. Each of these terms
+requires a prior distribution. Current options
+for these priors are summarised in the table below.
 }
 \details{
 \tabular{lllll}{
-   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Forecast} \tab \strong{Along} \cr
+   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Forecast} \tab \strong{Along/By} \cr
    \code{\link[=N]{N()}} \tab Elements drawn from normal distribution \tab Term with no natural order \tab Yes \tab No \cr
    \code{\link[=NFix]{NFix()}} \tab \code{N()} with standard deviation fixed \tab Term with few elements \tab Yes \tab No \cr
    \code{\link[=Known]{Known()}} \tab Values treated as known \tab Simulations, prior knowledge \tab No \tab No \cr
@@ -47,21 +32,51 @@ between 'along' and 'by' dimensions.
    \code{\link[=SVD]{SVD()}} \tab Age-sex profile based on SVD \tab Age or age-sex \tab No \tab No \cr
    \code{\link[=SVD_AR]{SVD_AR()}} \tab \code{SVD()}, but coefficients follow \code{AR()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
    \code{\link[=SVD_AR1]{SVD_AR1()}} \tab \code{SVD()}, but coefficients follow \code{AR1()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
+   \code{\link[=SVD_Lin]{SVD_Lin()}} \tab \code{SVD()}, but coefficients follow \code{Lin()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
    \code{\link[=SVD_RW]{SVD_RW()}} \tab \code{SVD()}, but coefficients follow \code{RW()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
    \code{\link[=SVD_RW2]{SVD_RW2()}} \tab \code{SVD()}, but coefficients follow \code{RW2()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
    \code{\link[=SVD_DRW]{SVD_DRW()}} \tab \code{SVD()}, but coefficients follow \code{DRW()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
    \code{\link[=SVD_DRW2]{SVD_DRW2()}} \tab \code{SVD()}, but coefficients follow \code{DRW2()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
 }
 }
+\section{'Along' and 'by' dimensions}{
+
+
+Priors for interaction terms often consist of a time-series-style model
+along one dimension, with a separate series for each
+combination of the remaining dimensions. For instance,
+a prior for an age-sex-time interaction might
+consist of a separate random walk along time
+for each combination of age-group and sex.
+In \pkg{bage} the dimension with the time-series-type model is
+referred to as the 'along' dimension, and the remaining dimensions
+are referred to as the 'by' dimensions.
+}
+
 \section{Default prior}{
 
 
-The rule for selecting a default prior for a term is:
+If no prior is specified for a term, then \pkg{bage} assigns the term a default prior using
+the following algorithm:
 \itemize{
-\item if term has less than 3 elements, use \code{\link[=NFix]{NFix()}};
-\item otherwise, if the term involves time, use \code{\link[=RW]{RW()}}, with time as the `along' dimension;
-\item otherwise, if the term involves age, use \code{\link[=RW]{RW()}}, with age as the `along' dimension;
+\item if the term has one or two elements, use \code{\link[=NFix]{NFix()}};
+\item otherwise, if the term involves time, use \code{\link[=RW]{RW()}}, with time as the 'along' dimension;
+\item otherwise, if the term involves age, use \code{\link[=RW]{RW()}}, with age as the 'along' dimension;
 \item otherwise, use \code{\link[=N]{N()}}.
 }
+}
+
+\section{Forecasting}{
+
+
+A model can only be used for forecasting if
+\itemize{
+\item the model includes a time dimension, and
+\item the prior for the time dimension supports forecasting.
+}
+
+If necessary, the time dimension can be identified
+using \code{\link[=set_var_time]{set_var_time()}}. The table above lists the
+priors that support forecasting.
 }
 

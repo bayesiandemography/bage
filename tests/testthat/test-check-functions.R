@@ -907,6 +907,22 @@ test_that("'check_n_along_ge' throws correct error with length less than min", {
 })
 
 
+## 'check_n_comp_svd' ---------------------------------------------------------------
+
+test_that("'n_comp_svd' works when valid 'n' supplied", {
+  expect_true(check_n_comp_svd(n_comp = 3, ssvd = HMD))
+})
+
+test_that("'n_comp_svd' throws correct error when n is too high", {
+  expect_error(check_n_comp_svd(n_comp = 11, ssvd = HMD),
+               "`n_comp` larger than number of components of `ssvd`.")
+})
+
+test_that("'n_comp_svd' throws error when no 'n' supplied", {
+  expect_error(check_n_comp_svd(n_comp = NULL, ssvd = HMD))
+})
+
+
 ## 'check_nan' ----------------------------------------------------------------
 
 test_that("'check_nan' returns TRUE with valid inputs", {
@@ -1333,8 +1349,6 @@ test_that("'check_rows_forecast' throws correct error with include_estimates", {
                                    output = "augment",
                                    include_estimates = NA))
 })
-
-
 
 
 ## 'check_scale' --------------------------------------------------------------

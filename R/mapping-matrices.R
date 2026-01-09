@@ -36,12 +36,14 @@ get_labels_svd <- function(prior, dimnames_term, var_sexgender) {
 
 
 ## HAS_TESTS
-#' Generate Labels for the SVD Dimension of an SVD Prior
+#' Calculate the Dimensions 'effectfree' Part of an SVD Prior
 #'
 #' @param prior Object of class 'bag_prior'
 #' @param along Name of 'along' dimension, or NULL
 #' @param dimnames_term Dimnames for array
 #' representing term
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension
 #' @param var_sexgender Name of time dimension, or NULL
 #'
 #' @returns A character vector
@@ -49,8 +51,11 @@ get_labels_svd <- function(prior, dimnames_term, var_sexgender) {
 #' @noRd
 make_dim_svd <- function(prior,
                          dimnames_term,
+                         var_time,
                          var_age,
                          var_sexgender) {
+  con <- prior$specific$con
+  has_con <- !is.null(con)
   labels_svd <- get_labels_svd(prior = prior,
                                dimnames_term = dimnames_term,
                                var_sexgender = var_sexgender)
@@ -62,6 +67,13 @@ make_dim_svd <- function(prior,
     i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
   i_agesex <- c(i_age, i_sexgender)
   dim <- lengths(dimnames_term)
+  if (has_con && (con == "by")) {
+    i_along <- make_i_along(prior = prior,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    dim[-i_along] <- dim[-i_along] - 1L
+  }
   dim_noagesex <- dim[-i_agesex]
   c(length(labels_svd), dim_noagesex)
 }
@@ -102,7 +114,6 @@ make_i_along_agetime <- function(prior, dimnames_term, var_age, var_time, agetim
                      i = "{AgeTime} variable: {.var {var}}."))
   i_along
 }
-
 
 
 ## HAS_TESTS
@@ -157,6 +168,33 @@ make_i_along_inner <- function(along, dimnames_term, var_time, var_age) {
                      i = "Value supplied: {.val {along}}.",
                      i = "Valid choices: {.val {nm_split}}."))
   }
+}
+
+
+## HAS_TESTS
+#' Index for the Time Dimension in the SVD Space
+#' for a Dynamic SVD Prior
+#'
+#' @param prior Object of class 'bage_prior' -
+#' dynamic SVD prior
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable. Not NULL.
+#' @param var_age Name of age variable. Not NULL.
+#' @param var_sexgender Name of sexgender variable, or NULL
+#'
+#' @returns An integer
+#'
+#' @noRd
+make_i_time_svddynamic <- function(prior,
+                                   dimnames_term,
+                                   var_time,
+                                   var_age,
+                                   var_sexgender) {
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  nm_noagesex <- setdiff(nm_split, c(var_age, var_sexgender))
+  i_time_noagesex <- match(var_time, nm_noagesex)
+  i_time_noagesex + 1L ## +1 because first dimension is age or age-sex
 }
 
 
@@ -300,6 +338,9 @@ make_matrix_along_by_inner <- function(i_along, dim) {
 #' with Dynamic SVD Prior
 #'
 #' Helper function for 'make_matrix_along_by_effectfree_innermost'
+#'
+#' Too complicated to construct dimnames for result,
+#' since don't know about constraints etc
 #' 
 #' @param prior Object of class 'bage_mod'
 #' @param dimnames_term Dimnames for array
@@ -425,8 +466,6 @@ make_matrix_constraints <- function(dim) {
 #' @param var_time Name of time dimension, or NULL
 #' @param var_age Name of age dimension, or NULL
 #' @param var_sexgender Name of sex/gender dimension, or NULL
-#' @param dim Dimension of term, once arguments
-#' such as 'con' and 'append_zero' have been applied.
 #' 
 #' @returns A sparse diagonal matrix
 #'
@@ -438,6 +477,7 @@ make_matrix_draws_svd_appendzero <- function(prior,
                                              var_sexgender) {
   dim_svd <- make_dim_svd(prior = prior,
                           dimnames_term = dimnames_term,
+                          var_time = var_time,
                           var_age = var_age,
                           var_sexgender)
   i_time <- match(var_time, names(dim_svd))
@@ -479,6 +519,7 @@ make_matrix_draws_svd_nozero <- function(prior,
                                          var_sexgender) {
   dim_svd <- make_dim_svd(prior = prior,
                           dimnames_term = dimnames_term,
+                          var_time = var_time,
                           var_age = var_age,
                           var_sexgender)
   n <- prod(dim_svd)
@@ -533,7 +574,6 @@ make_matrix_effect_outcome <- function(data, dimnames_term) {
 }
 
 
-
 #' Make Matrix to Transform between 'effectfree' and 'effect
 #'
 #' Workhorse for 'make_matrix_effectfree_effect'
@@ -585,7 +625,7 @@ make_matrix_effectfree_effect_inner <- function(prior,
     ans[[3L]] <- make_matrix_unconstr_constr_along(dim)
     dim[-1L] <- dim[-1L] - 1L
   }
-  ## transform to along-first from original order
+  ## transform from original order to along-first
   ans[[4L]] <- make_matrix_perm_along_to_front(i_along = i_along, dim_after = dim)
   dim <- dim[match(s, s_along_first)]
   ## transform from subspace to original space

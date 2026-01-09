@@ -363,7 +363,6 @@
              min: -1
              max: 1
                s: 1
-           along: NULL
              con: none
 
 ---
@@ -379,7 +378,6 @@
              min: -1
              max: 1
                s: 1
-           along: NULL
              con: none
 
 ---
@@ -393,7 +391,6 @@
              min: 0.8
              max: 0.98
                s: 1
-           along: NULL
              con: none
 
 ---
@@ -408,7 +405,6 @@
              min: 0.8
              max: 0.98
                s: 1
-           along: NULL
              con: none
 
 ---
@@ -425,7 +421,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -443,7 +438,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -460,7 +454,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -478,7 +471,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -496,7 +488,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -515,7 +506,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -533,7 +523,6 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
              con: none
 
 ---
@@ -552,7 +541,32 @@
           shape2: 5
              min: 0.8
              max: 0.98
-           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_Lin(HMD))
+    Output
+        SVD_Lin(HMD) 
+            ssvd: HMD
+          n_comp: 3
+               s: 1
+      mean_slope: 0
+        sd_slope: 1
+             con: none
+
+---
+
+    Code
+      print(SVD_Lin(HMD, s = 0))
+    Output
+        SVD_Lin(HMD,s=0) 
+            ssvd: HMD
+          n_comp: 3
+               s: 0
+      mean_slope: 0
+        sd_slope: 1
              con: none
 
 ---
@@ -565,7 +579,6 @@
           n_comp: 3
                s: 1
               sd: 1
-           along: NULL
              con: none
 
 ---
@@ -579,7 +592,6 @@
            indep: FALSE
                s: 1
               sd: 1
-           along: NULL
              con: none
 
 ---
@@ -591,7 +603,7 @@
             ssvd: HMD
           n_comp: 3
                s: 1
-           along: NULL
+              sd: 0
              con: none
 
 ---
@@ -604,7 +616,7 @@
           n_comp: 3
            indep: FALSE
                s: 1
-           along: NULL
+              sd: 0
              con: none
 
 ---
@@ -618,7 +630,6 @@
                s: 1
               sd: 1
         sd_slope: 1
-           along: NULL
              con: none
 
 ---
@@ -633,7 +644,6 @@
                s: 1
               sd: 1
         sd_slope: 1
-           along: NULL
              con: none
 
 ---
@@ -645,8 +655,8 @@
             ssvd: HMD
           n_comp: 3
                s: 1
+              sd: 0
         sd_slope: 1
-           along: NULL
              con: none
 
 ---
@@ -659,7 +669,7 @@
           n_comp: 3
            indep: FALSE
                s: 1
+              sd: 0
         sd_slope: 1
-           along: NULL
              con: none
 

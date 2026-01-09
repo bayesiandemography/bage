@@ -336,14 +336,16 @@ components.bage_mod <- function(object,
                               "{.fun components} are on a transformed scale.",
                               "See the documentation for {.fun mod_norm} and",
                               "{.fun components} for details."))
-  if (is_fitted)
+  if (is_fitted) {
     ans <- draw_vals_components_fitted(object)
+  }
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
     n_draw <- object$n_draw
     ans <- draw_vals_components_unfitted(mod = object, n_sim = n_draw)
   }
+  ans <- append_implied_comp(components = ans, mod = object)
   if (is_norm && original_scale)
     ans <- rescale_components(components = ans, mod = object)
   ans <- sort_components(components = ans, mod = object)

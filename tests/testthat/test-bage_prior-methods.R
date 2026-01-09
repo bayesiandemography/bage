@@ -118,6 +118,38 @@ test_that("'comp_hyperrand' works with 'bage_prior_rw2zeroseasvary'", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
+test_that("'comp_hyperrand' works with 'bage_prior_svd_lin' - no sex", {
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  dimnames_term <- list(age = c(0:60, "60+"),
+                        reg = 1:2,
+                        time = 2001:2010)
+  ans_obtained <- comp_hyperrand(prior = prior,
+                                 dimnames_term = dimnames_term,
+                                 var_age = "age",
+                                 var_time = "time",
+                                 var_sexgender = NULL)
+  ans_expected <- rep(c("hyper", "trend", "error"),
+                      times = c(6, 60, 60))
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'comp_hyperrand' works with 'bage_prior_svd_lin' - has sex", {
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  dimnames_term <- list(sex = c("f", "m"),
+                        age = c(0:60, "60+"),
+                        reg = 1:2,
+                        time = 2001:2010)
+  ans_obtained <- comp_hyperrand(prior = prior,
+                                 dimnames_term = dimnames_term,
+                                 var_age = "age",
+                                 var_time = "time",
+                                 var_sexgender = "sex")
+  ans_expected <- rep(c("hyper", "trend", "error"),
+                      times = c(12, 120, 120))
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+
 
 ## const ----------------------------------------------------------------------
 
@@ -1781,7 +1813,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age:sex interaction - 
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd_ar - age x time", {
-  prior <- SVD_AR1(HMD)
+  prior <- SVD_AR1(HMD, n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(time = 2000:2004,
                         age = c(0:79, "80+"))
@@ -1814,8 +1846,84 @@ test_that("'draw_vals_effect' works with bage_prior_svd_ar - age x time", {
   expect_identical(dim(ans), c(5L * 81L, 10L))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_svd_lin", {
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  n_sim <- 10
+  dimnames_term <- list(time = 2000:2004,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        n_sim = n_sim)
+  matrix_along_by_free <- matrix(0:29, nr = 5)
+  levels_svd <- paste(paste0("comp", 1:3), rep(2000:2004, each = 3), sep = ".")
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = vals_hyper,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            levels_svd = levels_svd,
+                            n_sim = 10)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(5L * 81L, 10L))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_svd_linex", {
+  prior <- SVD_Lin(HMD, s = 0, n_comp = 3)
+  n_sim <- 10
+  dimnames_term <- list(time = 2000:2004,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  matrix_along_by_free <- matrix(0:29, nr = 5)
+  levels_svd <- paste(paste0("comp", 1:3), rep(2000:2004, each = 3), sep = ".")
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = vals_hyper,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            levels_svd = levels_svd,
+                            n_sim = 10)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(5L * 81L, 10L))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_svd_drwrandom - age x time", {
-  prior <- SVD_DRW(HMD)
+  prior <- SVD_DRW(HMD, n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(time = 2000:2004,
                         age = c(0:79, "80+"))
@@ -1850,7 +1958,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_drwrandom - age x time",
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd_drwzero - age x time", {
-  prior <- SVD_DRW(HMD, sd = 0)
+  prior <- SVD_DRW(HMD, sd = 0, n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(time = 2000:2004,
                         age = c(0:79, "80+"))
@@ -1885,7 +1993,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_drwzero - age x time", {
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd_drw2random - age and sex", {
-  prior <- SVD_DRW2(HMD, con = 'by')
+  prior <- SVD_DRW2(HMD, con = 'by', n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(age = c(0:79, "80+"),
                         sex = c("F", "M"),
@@ -1923,7 +2031,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_drw2random - age and sex
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd_drw2zero - age and sex", {
-  prior <- SVD_DRW2(HMD, sd = 0, con = 'by')
+  prior <- SVD_DRW2(HMD, sd = 0, con = 'by', n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(age = c(0:79, "80+"),
                         sex = c("F", "M"),
@@ -1963,7 +2071,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_drw2zero - age and sex",
 
 
 test_that("'draw_vals_effect' works with bage_prior_svd_rwrandom - age x time", {
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(time = 2000:2004,
                         age = c(0:79, "80+"))
@@ -1998,7 +2106,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rwrandom - age x time", 
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd_rwzero - age x time", {
-  prior <- SVD_RW(HMD, sd = 0)
+  prior <- SVD_RW(HMD, sd = 0, n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(time = 2000:2004,
                         age = c(0:79, "80+"))
@@ -2033,7 +2141,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rwzero - age x time", {
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd_rw2random - age and sex", {
-  prior <- SVD_RW2(HMD, con = 'by')
+  prior <- SVD_RW2(HMD, con = 'by', n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(age = c(0:79, "80+"),
                         sex = c("F", "M"),
@@ -2071,7 +2179,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw2random - age and sex"
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd_rw2zero - age and sex", {
-  prior <- SVD_RW2(HMD, sd = 0, con = 'by')
+  prior <- SVD_RW2(HMD, sd = 0, con = 'by', n_comp = 3)
   n_sim <- 10
   dimnames_term <- list(age = c(0:79, "80+"),
                         sex = c("F", "M"),
@@ -2378,6 +2486,21 @@ test_that("'draw_vals_hyper' works with bage_prior_svd_drw2zero", {
   ans_expected <- draw_vals_hyper(prior = prior_rw,
                                   n_sim = 10)
   expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_svd_lin", {
+  prior <- SVD_Lin(LFP)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_linex", {
+  prior <- SVD_Lin(LFP, s = 0)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(ans, list())
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_svd_rwrandom", {
@@ -2832,6 +2955,52 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasvary - con is 
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
+test_that("'draw_vals_hyperrand' works with bage_prior_svd_lin", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(reg = 1:3,
+                        time = 2001:2005,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  levels_svd <- paste(paste0("comp", 1:3),
+                      rep(1:3, each = 3),
+                      rep(2001:2005, each = 9),
+                      sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_hyperrand(prior = prior,
+                                      vals_hyper = vals_hyper,
+                                      dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_time = var_time,
+                                      var_sexgender = var_sexgender,
+                                      n_sim = n_sim)
+  set.seed(0)
+  matrix_along_by <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                           dimnames_term = dimnames_term,
+                                                           var_time = var_time,
+                                                           var_age = var_age,
+                                                           var_sexgender = var_sexgender,
+                                                           append_zero = FALSE)
+  slope <- draw_vals_slope(mean_slope = prior$specific$mean_slope,
+                           sd_slope = prior$specifi$sd_slope,
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_sim)
+  labels <- paste0("comp", 1:3, ".", rep(1:3, each = 3), ".", rep(2001:2005, each = 9))
+  trend <- draw_vals_lintrend(slope = slope,
+                              matrix_along_by = matrix_along_by,
+                              labels = labels)
+  error <- draw_vals_norm(sd = vals_hyper$sd,
+                          labels = labels)
+  ans_expected <- list(slope = slope, trend = trend, error = error)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 
 ## 'draw_vals_spline' ---------------------------------------------------------
 
@@ -2958,7 +3127,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd'", {
 
 test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - con is 'none'", {
   set.seed(0)
-  prior <- SVD_AR1(HMD)
+  prior <- SVD_AR1(HMD, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -2990,7 +3159,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - con is 'none'", {
 
 test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - con is 'by'", {
   set.seed(0)
-  prior <- SVD_AR1(HMD, con = 'by')
+  prior <- SVD_AR1(HMD, con = 'by', n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -3024,7 +3193,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - con is 'by'", {
 
 test_that("'draw_vals_svd' works with 'bage_prior_svd_drwrandom'", {
   set.seed(0)
-  prior <- SVD_DRW(HMD)
+  prior <- SVD_DRW(HMD, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -3057,7 +3226,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_drwrandom'", {
 
 test_that("'draw_vals_svd' works with 'bage_prior_svd_drwzero'", {
   set.seed(0)
-  prior <- SVD_DRW(HMD, sd = 0)
+  prior <- SVD_DRW(HMD, sd = 0, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -3090,7 +3259,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_drwzero'", {
 
 test_that("'draw_vals_svd' works with 'bage_prior_svd_drw2random'", {
   set.seed(0)
-  prior <- SVD_DRW2(HMD)
+  prior <- SVD_DRW2(HMD, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -3124,7 +3293,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_drw2random'", {
 
 test_that("'draw_vals_svd' works with 'bage_prior_svd_drw2zero'", {
   set.seed(0)
-  prior <- SVD_DRW2(HMD, sd = 0)
+  prior <- SVD_DRW2(HMD, sd = 0, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -3156,20 +3325,22 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_drw2zero'", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom'", {
+test_that("'draw_vals_svd' works with 'bage_prior_svd_lin'", {
   set.seed(0)
-  prior <- SVD_RW(HMD)
+  prior <- SVD_Lin(HMD, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
-  dimnames_term <- list(time = 2001:2005,
+  dimnames_term <- list(reg = 1:3,
+                        time = 2001:2005,
                         age = c(0:79, "80+"))
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
   levels_svd <- paste(paste0("comp", 1:3),
-                             rep(2001:2005, each = 3),
-                             sep = ".")
+                      rep(1:3, each = 3),
+                      rep(2001:2005, each = 9),
+                      sep = ".")
   set.seed(0)
   ans_obtained <- draw_vals_svd(prior = prior,
                                 vals_hyper = vals_hyper,
@@ -3180,17 +3351,61 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom'", {
                                 levels_svd = levels_svd,
                                 n_sim = n_sim)
   set.seed(0)
-  matrix_along_by_free <- t(matrix(0:14, nr = 3))
-  ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
-                               sd_init = prior$specific$sd,
-                               matrix_along_by = matrix_along_by_free,
-                               levels_effect = levels_svd)
+  matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
+  slope <- draw_vals_slope(mean_slope = prior$specifi$mean_slope,
+                           sd_slope = prior$specific$sd_slope,
+                           matrix_along_by = matrix_along_by_free,
+                           n_sim = n_sim)
+  ans_expected <- draw_vals_lin(slope = slope,
+                                sd = vals_hyper$sd,
+                                matrix_along_by = matrix_along_by_free,
+                                labels = levels_svd)
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom' - con is 'none'", {
+test_that("'draw_vals_svd' works with 'bage_prior_svd_linex'", {
   set.seed(0)
-  prior <- SVD_RW(HMD)
+  prior <- SVD_Lin(HMD, s = 0, n_comp = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(reg = 1:3,
+                        time = 2001:2005,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  levels_svd <- paste(paste0("comp", 1:3),
+                      rep(1:3, each = 3),
+                      rep(2001:2005, each = 9),
+                      sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                levels_svd = levels_svd,
+                                n_sim = n_sim)
+  set.seed(0)
+  matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
+  slope <- draw_vals_slope(mean_slope = prior$specifi$mean_slope,
+                           sd_slope = prior$specific$sd_slope,
+                           matrix_along_by = matrix_along_by_free,
+                           n_sim = n_sim)
+  ans <- draw_vals_lintrend(slope = slope,
+                            matrix_along_by = matrix_along_by_free,
+                            labels = levels_svd)
+  ans_expected <- draw_vals_lintrend(slope = slope,
+                                     matrix_along_by = matrix_along_by_free,
+                                     labels = levels_svd)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom'", {
+  set.seed(0)
+  prior <- SVD_RW(HMD, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -3215,40 +3430,6 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom' - con is 'none'"
                                 n_sim = n_sim)
   set.seed(0)
   matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
-  ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
-                               sd_init = prior$specific$sd,
-                               matrix_along_by = matrix_along_by_free,
-                               levels_effect = levels_svd)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom' - con is 'by'", {
-  set.seed(0)
-  prior <- SVD_RW(HMD, con = 'by')
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  dimnames_term <- list(reg = 1:3,
-                        time = 2001:2005,
-                        age = c(0:79, "80+"))
-  var_time <- "time"
-  var_age <- "age"
-  var_sexgender <- "sex"
-  levels_svd <- paste(paste0("comp", 1:3),
-                      rep(c("reg1", "reg2"), each = 3),
-                      rep(2001:2005, each = 6),
-                             sep = ".")
-  set.seed(0)
-  ans_obtained <- draw_vals_svd(prior = prior,
-                                vals_hyper = vals_hyper,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                levels_svd = levels_svd,
-                                n_sim = n_sim)
-  set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:29, c(3, 2, 5)), c(3, 1, 2)), nr = 5)
   ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
                                sd_init = prior$specific$sd,
                                matrix_along_by = matrix_along_by_free,
@@ -3258,7 +3439,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom' - con is 'by'", 
 
 test_that("'draw_vals_svd' works with 'bage_prior_svd_rwzero'", {
   set.seed(0)
-  prior <- SVD_RW(HMD, sd = 0)
+  prior <- SVD_RW(HMD, sd = 0, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -3281,74 +3462,6 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rwzero'", {
                                 n_sim = n_sim)
   set.seed(0)
   matrix_along_by_free <- t(matrix(0:14, nr = 3))
-  ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
-                               sd_init = 0,
-                               matrix_along_by = matrix_along_by_free,
-                               levels_effect = levels_svd)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rwzero' - con is 'none'", {
-  set.seed(0)
-  prior <- SVD_RW(HMD, sd = 0)
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  dimnames_term <- list(reg = 1:3,
-                        time = 2001:2005,
-                        age = c(0:79, "80+"))
-  var_time <- "time"
-  var_age <- "age"
-  var_sexgender <- "sex"
-  levels_svd <- paste(paste0("comp", 1:3),
-                      rep(1:3, each = 3),
-                      rep(2001:2005, each = 9),
-                             sep = ".")
-  set.seed(0)
-  ans_obtained <- draw_vals_svd(prior = prior,
-                                vals_hyper = vals_hyper,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                levels_svd = levels_svd,
-                                n_sim = n_sim)
-  set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
-  ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
-                               sd_init = 0,
-                               matrix_along_by = matrix_along_by_free,
-                               levels_effect = levels_svd)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rwzero' - con is 'by'", {
-  set.seed(0)
-  prior <- SVD_RW(HMD, sd = 0, con = 'by')
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  dimnames_term <- list(reg = 1:3,
-                        time = 2001:2005,
-                        age = c(0:79, "80+"))
-  var_time <- "time"
-  var_age <- "age"
-  var_sexgender <- "sex"
-  levels_svd <- paste(paste0("comp", 1:3),
-                      rep(c("reg1", "reg2"), each = 3),
-                      rep(2001:2005, each = 6),
-                             sep = ".")
-  set.seed(0)
-  ans_obtained <- draw_vals_svd(prior = prior,
-                                vals_hyper = vals_hyper,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                levels_svd = levels_svd,
-                                n_sim = n_sim)
-  set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:29, c(3, 2, 5)), c(3, 1, 2)), nr = 5)
   ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
                                sd_init = 0,
                                matrix_along_by = matrix_along_by_free,
@@ -3358,7 +3471,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rwzero' - con is 'by'", {
 
 test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2random'", {
   set.seed(0)
-  prior <- SVD_RW2(HMD)
+  prior <- SVD_RW2(HMD, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -3381,76 +3494,6 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2random'", {
                                 n_sim = n_sim)
   set.seed(0)
   matrix_along_by_free <- t(matrix(0:14, nr = 3))
-  ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
-                                sd_init = prior$specific$sd,
-                                sd_slope = prior$specific$sd_slope,
-                                matrix_along_by = matrix_along_by_free,
-                                levels_effect = levels_svd)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2random' - con is 'none'", {
-  set.seed(0)
-  prior <- SVD_RW2(HMD)
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  dimnames_term <- list(reg = 1:3,
-                        time = 2001:2005,
-                        age = c(0:79, "80+"))
-  var_time <- "time"
-  var_age <- "age"
-  var_sexgender <- "sex"
-  levels_svd <- paste(paste0("comp", 1:3),
-                      rep(1:3, each = 3),
-                      rep(2001:2005, each = 9),
-                      sep = ".")
-  set.seed(0)
-  ans_obtained <- draw_vals_svd(prior = prior,
-                                vals_hyper = vals_hyper,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                levels_svd = levels_svd,
-                                n_sim = n_sim)
-  set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
-  ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
-                                sd_init = prior$specific$sd,
-                                sd_slope = prior$specific$sd_slope,
-                                matrix_along_by = matrix_along_by_free,
-                                levels_effect = levels_svd)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2random' - con is 'by'", {
-  set.seed(0)
-  prior <- SVD_RW2(HMD, con = 'by')
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  dimnames_term <- list(reg = 1:3,
-                        time = 2001:2005,
-                        age = c(0:79, "80+"))
-  var_time <- "time"
-  var_age <- "age"
-  var_sexgender <- "sex"
-  levels_svd <- paste(paste0("comp", 1:3),
-                      rep(c("reg1", "reg2"), each = 3),
-                      rep(2001:2005, each = 6),
-                      sep = ".")
-  set.seed(0)
-  ans_obtained <- draw_vals_svd(prior = prior,
-                                vals_hyper = vals_hyper,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                levels_svd = levels_svd,
-                                n_sim = n_sim)
-  set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:29, c(3, 2, 5)), c(3, 1, 2)), nr = 5)
   ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
                                 sd_init = prior$specific$sd,
                                 sd_slope = prior$specific$sd_slope,
@@ -3461,7 +3504,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2random' - con is 'by'",
 
 test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2zero'", {
   set.seed(0)
-  prior <- SVD_RW2(HMD, sd = 0)
+  prior <- SVD_RW2(HMD, sd = 0, n_comp = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -3484,76 +3527,6 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2zero'", {
                                 n_sim = n_sim)
   set.seed(0)
   matrix_along_by_free <- t(matrix(0:14, nr = 3))
-  ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
-                                sd_init = 0,
-                                sd_slope = prior$specific$sd_slope,
-                                matrix_along_by = matrix_along_by_free,
-                                levels_effect = levels_svd)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2zero' - con is 'none'", {
-  set.seed(0)
-  prior <- SVD_RW2(HMD, sd = 0)
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  dimnames_term <- list(reg = 1:3,
-                        time = 2001:2005,
-                        age = c(0:79, "80+"))
-  var_time <- "time"
-  var_age <- "age"
-  var_sexgender <- "sex"
-  levels_svd <- paste(paste0("comp", 1:3),
-                      rep(1:3, each = 3),
-                      rep(2001:2005, each = 9),
-                      sep = ".")
-  set.seed(0)
-  ans_obtained <- draw_vals_svd(prior = prior,
-                                vals_hyper = vals_hyper,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                levels_svd = levels_svd,
-                                n_sim = n_sim)
-  set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
-  ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
-                                sd_init = 0,
-                                sd_slope = prior$specific$sd_slope,
-                                matrix_along_by = matrix_along_by_free,
-                                levels_effect = levels_svd)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2zero' - con is 'by'", {
-  set.seed(0)
-  prior <- SVD_RW2(HMD, sd = 0, con = 'by')
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  dimnames_term <- list(reg = 1:3,
-                        time = 2001:2005,
-                        age = c(0:79, "80+"))
-  var_time <- "time"
-  var_age <- "age"
-  var_sexgender <- "sex"
-  levels_svd <- paste(paste0("comp", 1:3),
-                      rep(c("reg1", "reg2"), each = 3),
-                      rep(2001:2005, each = 6),
-                      sep = ".")
-  set.seed(0)
-  ans_obtained <- draw_vals_svd(prior = prior,
-                                vals_hyper = vals_hyper,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                levels_svd = levels_svd,
-                                n_sim = n_sim)
-  set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:29, c(3, 2, 5)), c(3, 1, 2)), nr = 5)
   ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
                                 sd_init = 0,
                                 sd_slope = prior$specific$sd_slope,
@@ -3973,6 +3946,10 @@ test_that("'forecast_term' works with bage_prior_linex - con is 'none'", {
   var_age <- "age"
   var_sexgender <- "sex"
   components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = c("slope1", "slope2"),
+                                                .fitted = rvec::rnorm_rvec(n = 2, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
                                                 component = "effect",
                                                 level = paste(2001:2005,
                                                               rep(1:2, each = 5),
@@ -3992,8 +3969,8 @@ test_that("'forecast_term' works with bage_prior_linex - con is 'none'", {
                                  level = paste(2006:2011,
                                                rep(1:2, each = 6),
                                                sep = "."))
-  effect <- components$.fitted
-  slope <- c(effect[2] - effect[1], effect[7] - effect[6])
+  slope <- components$.fitted[components$component == "hyper"]
+  effect <- components$.fitted[components$component == "effect"]
   intercept <- -0.5 * 6 * slope
   ans_expected$.fitted <- c(intercept[1] + (6:11) * slope[1],
                             intercept[2] + (6:11) * slope[2])
@@ -4010,9 +3987,12 @@ test_that("'forecast_term' works with bage_prior_linex - con is 'by'", {
   var_sexgender <- "sex"
   components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
                                                 component = "hyper",
-                                                level = c("slope", "slope",
-                                                          "sd"),
-                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                                level = c("slope1", "slope2"),
+                                                .fitted = rvec::rnorm_rvec(n = 2, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = c("slope", "slope"),
+                                                .fitted = rvec::runif_rvec(n = 2, n_draw = 10)),
                                  tibble::tibble(term = "year:reg",
                                                 component = "effect",
                                                 level = paste(2001:2005,
@@ -5489,7 +5469,7 @@ test_that("'forecast_term' works with bage_prior_rw2zeroseasvary - con is 'by'",
 
 test_that("'forecast_term' works with bage_prior_svd_ar - con is 'none'", {
   set.seed(0)
-  prior <- SVD_AR(HMD)
+  prior <- SVD_AR(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5520,7 +5500,7 @@ test_that("'forecast_term' works with bage_prior_svd_ar - con is 'none'", {
 
 test_that("'forecast_term' works with bage_prior_svd_ar - con is 'by'", {
   set.seed(0)
-  prior <- SVD_AR(HMD, con = 'by')
+  prior <- SVD_AR(HMD, con = 'by', n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5549,7 +5529,7 @@ test_that("'forecast_term' works with bage_prior_svd_ar - con is 'by'", {
 
 test_that("'forecast_term' works with bage_prior_svd_drwrandom - con is 'none'", {
   set.seed(0)
-  prior <- SVD_DRW(HMD)
+  prior <- SVD_DRW(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5580,7 +5560,7 @@ test_that("'forecast_term' works with bage_prior_svd_drwrandom - con is 'none'",
 
 test_that("'forecast_term' works with bage_prior_svd_drwzero - con is 'none'", {
   set.seed(0)
-  prior <- SVD_DRW(HMD, sd = 0)
+  prior <- SVD_DRW(HMD, sd = 0, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5611,7 +5591,7 @@ test_that("'forecast_term' works with bage_prior_svd_drwzero - con is 'none'", {
 
 test_that("'forecast_term' works with bage_prior_svd_drwrandom - con is 'by'", {
   set.seed(0)
-  prior <- SVD_DRW(HMD, con = 'by')
+  prior <- SVD_DRW(HMD, con = 'by', n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5643,7 +5623,7 @@ test_that("'forecast_term' works with bage_prior_svd_drwrandom - con is 'by'", {
 
 test_that("'forecast_term' works with bage_prior_svd_drw2random - con is 'by'", {
   set.seed(0)
-  prior <- SVD_DRW2(HMD)
+  prior <- SVD_DRW2(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5674,7 +5654,7 @@ test_that("'forecast_term' works with bage_prior_svd_drw2random - con is 'by'", 
 
 test_that("'forecast_term' works with bage_prior_svd_drw2zero - con is 'by'", {
   set.seed(0)
-  prior <- SVD_DRW2(HMD, con = 'by', sd = 0)
+  prior <- SVD_DRW2(HMD, con = 'by', sd = 0, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5704,9 +5684,79 @@ test_that("'forecast_term' works with bage_prior_svd_drw2zero - con is 'by'", {
   expect_equal(rvec::draws_mean(sum(ans$.fitted[57:70])), 0)
 })
   
+test_that("'forecast_term' works with bage_prior_svd_lin - con is 'none'", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- 2011:2015
+  components <- vctrs::vec_rbind(tibble::tibble(term = "age:time",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "age:time",
+                                                component = "hyper",
+                                                level = c("slope.comp1", "slope.comp2", "slope.comp3"),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "age:time",
+                                                component = "svd",
+                                                level = paste(paste0("comp", 1:3),
+                                                              rep(2001:2010, each = 3),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 30, n_draw = 10)))
+  ans <- forecast_term(prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_time = var_time,
+                       var_age = var_age,
+                       var_sexgender = var_sexgender,
+                       components = components,
+                       labels_forecast = labels_forecast)
+  expect_identical(names(ans), c("term", "component", "level", ".fitted"))
+  expect_setequal(ans$component, c("svd", "effect"))
+  expect_identical(nrow(ans), 15L + length(dimnames_term$age) * 5L)
+})
+
+test_that("'forecast_term' works with bage_prior_svd_linex - con is 'none'", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, n_comp = 3, s = 0)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- 2011:2015
+  components <- vctrs::vec_rbind(tibble::tibble(term = "age:time",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "age:time",
+                                                component = "hyper",
+                                                level = c("slope.comp1", "slope.comp2", "slope.comp3"),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "age:time",
+                                                component = "svd",
+                                                level = paste(paste0("comp", 1:3),
+                                                              rep(2001:2010, each = 3),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 30, n_draw = 10)))
+  ans <- forecast_term(prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_time = var_time,
+                       var_age = var_age,
+                       var_sexgender = var_sexgender,
+                       components = components,
+                       labels_forecast = labels_forecast)
+  expect_identical(names(ans), c("term", "component", "level", ".fitted"))
+  expect_setequal(ans$component, c("svd", "effect"))
+  expect_identical(nrow(ans), 15L + length(dimnames_term$age) * 5L)
+})
+
 test_that("'forecast_term' works with bage_prior_svd_rwrandom - con is 'none'", {
   set.seed(0)
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5737,7 +5787,7 @@ test_that("'forecast_term' works with bage_prior_svd_rwrandom - con is 'none'", 
 
 test_that("'forecast_term' works with bage_prior_svd_rwzero - con is 'none'", {
   set.seed(0)
-  prior <- SVD_RW(HMD, sd = 0)
+  prior <- SVD_RW(HMD, sd = 0, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5768,7 +5818,7 @@ test_that("'forecast_term' works with bage_prior_svd_rwzero - con is 'none'", {
 
 test_that("'forecast_term' works with bage_prior_svd_rwrandom - con is 'by'", {
   set.seed(0)
-  prior <- SVD_RW(HMD, con = 'by')
+  prior <- SVD_RW(HMD, con = 'by', n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5800,7 +5850,7 @@ test_that("'forecast_term' works with bage_prior_svd_rwrandom - con is 'by'", {
 
 test_that("'forecast_term' works with bage_prior_svd_rw2random - con is 'by'", {
   set.seed(0)
-  prior <- SVD_RW2(HMD)
+  prior <- SVD_RW2(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -5831,7 +5881,7 @@ test_that("'forecast_term' works with bage_prior_svd_rw2random - con is 'by'", {
 
 test_that("'forecast_term' works with bage_prior_svd_rw2zero - con is 'by'", {
   set.seed(0)
-  prior <- SVD_RW2(HMD, con = 'by', sd = 0)
+  prior <- SVD_RW2(HMD, con = 'by', sd = 0, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -7763,6 +7813,86 @@ test_that("'generate' works with bage_prior_svd_drw2zero - no sex, n_by = 2, con
   expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
 })
 
+test_that("'generate' works with bage_prior_svd_lin - no sex, n_by = 2", {
+  x <- SVD_Lin(HFD)
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "age", "value"))
+})
+
+test_that("'generate' works with bage_prior_svd_lin - has sex, n_by = 2, indep = TRUE", {
+  x <- SVD_Lin(LFP, indep = TRUE)
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
+})
+
+test_that("'generate' works with bage_prior_svd_lin - has sex, n_by = 2, indep = FALSE", {
+  x <- SVD_Lin(LFP, indep = FALSE)
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
+})
+
+test_that("'generate' works with bage_prior_svd_lin - has sex, n_by = 2, indep = FALSE, con = 'by'", {
+  x <- SVD_Lin(LFP, indep = FALSE, con = "by")
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
+})
+
+test_that("'generate' works with bage_prior_svd_linex - no sex, n_by = 2", {
+  x <- SVD_Lin(HFD, s = 0)
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "age", "value"))
+})
+
+test_that("'generate' works with bage_prior_svd_linex - has sex, n_by = 2, indep = TRUE", {
+  x <- SVD_Lin(LFP, s = 0, indep = TRUE)
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
+})
+
+test_that("'generate' works with bage_prior_svd_linex - has sex, n_by = 2, indep = FALSE", {
+  x <- SVD_Lin(LFP, s = 0, indep = FALSE)
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
+})
+
+test_that("'generate' works with bage_prior_svd_linex - has sex, n_by = 2, indep = FALSE, con = 'by'", {
+  x <- SVD_Lin(LFP, s = 0, indep = FALSE, con = "by")
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sex", "age", "value"))
+})
+
 test_that("'generate' works with bage_prior_svd_rwrandom - no sex, n_by = 2", {
   x <- SVD_RW(HFD)
   set.seed(0)
@@ -7886,6 +8016,7 @@ test_that("'has_hyperrandfree' returns TRUE with prior with hyperrandfree", {
   expect_true(has_hyperrandfree(RW2_Seas(n_seas=2, sd = 0, s_seas = 0)))
   expect_true(has_hyperrandfree(RW2_Seas(n_seas=2, s_seas = 0.1)))
   expect_true(has_hyperrandfree(RW2_Seas(n_seas=2, s_seas = 0.1, sd = 0)))
+  expect_true(has_hyperrandfree(SVD_Lin(HMD)))
 })
 
 
@@ -7913,10 +8044,10 @@ test_that("'infer_trend_seas_err_forecast_one' works with bage_prior_linar", {
                                level = level,
                                .fitted = .fitted)
   ans <- infer_trend_seas_err_forecast_one(prior = mod$priors[["sex:time"]],
-                                               dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                               var_time = mod$var_time,
-                                               var_age = mod$var_age,
-                                               components = components)
+                                           dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                           var_time = mod$var_time,
+                                           var_age = mod$var_age,
+                                           components = components)
   trend <- ans$.fitted[ans$component == "trend"]
   error <- ans$.fitted[ans$component == "error"]
   effect <- ans$.fitted[ans$component == "effect" & ans$term == "sex:time"]
@@ -8507,6 +8638,26 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd_drw2zero, correct in
                                    var_sexgender = "sex"))
 })
 
+test_that("'is_prior_ok_for_term' works with bage_prior_svd_lin, correct inputs", {
+  expect_true(is_prior_ok_for_term(prior = SVD_Lin(HMD),
+                                   dimnames_term = list(age = c(0:59, "60+"),
+                                                        sex = 1:2,
+                                                        year = 1:5),
+                                   var_time = "year",
+                                   var_age = "age",
+                                   var_sexgender = "sex"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_svd_linex, correct inputs", {
+  expect_true(is_prior_ok_for_term(prior = SVD_Lin(HMD, s = 0),
+                                   dimnames_term = list(age = c(0:59, "60+"),
+                                                        sex = 1:2,
+                                                        year = 1:5),
+                                   var_time = "year",
+                                   var_age = "age",
+                                   var_sexgender = "sex"))
+})
+
 test_that("'is_prior_ok_for_term' works with bage_prior_svd_rwrandom, correct inputs", {
   expect_true(is_prior_ok_for_term(prior = SVD_RW(HMD),
                                    dimnames_term = list(age = c(0:59, "60+"),
@@ -8566,6 +8717,8 @@ test_that("'is_svd' works with valid inputs", {
     expect_true(is_svd(SVD_DRW(HMD, sd = 0)))
     expect_true(is_svd(SVD_DRW2(HMD)))
     expect_true(is_svd(SVD_DRW2(HMD, sd = 0)))
+    expect_true(is_svd(SVD_Lin(HMD)))
+    expect_true(is_svd(SVD_Lin(HMD, s = 0)))
     expect_true(is_svd(SVD_RW(HMD)))
     expect_true(is_svd(SVD_RW(HMD, sd = 0)))
     expect_true(is_svd(SVD_RW2(HMD)))
@@ -8907,6 +9060,20 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rw2zeroseasvary'", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
+test_that("'length_hyperrandfree' works with 'bage_prior_svd_lin'", {
+  dimnames_term <- list(age = c(0:60, "60+"), time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- length_hyperrandfree(prior = SVD_Lin(HMD, n_comp = 3),
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  ans_expected <- 6L
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
 
 ## levels_hyper ---------------------------------------------------------------
 
@@ -8943,13 +9110,11 @@ test_that("'levels_hyper' works with 'bage_prior_known'", {
 })
 
 test_that("'levels_hyper' works with 'bage_prior_lin'", {
-  matrix_along_by <- matrix(0:9, ncol = 1L)
   expect_identical(levels_hyper(prior = Lin()),
                    "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_linar'", {
-  matrix_along_by <- matrix(0:9, ncol = 1L)
   expect_identical(levels_hyper(prior = Lin_AR()),
                    c("coef1", "coef2", "sd"))
   expect_identical(levels_hyper(prior = Lin_AR1()),
@@ -9086,6 +9251,16 @@ test_that("'levels_hyper' works with 'bage_prior_svd_drw2random'", {
 test_that("'levels_hyper' works with 'bage_prior_svd_drw2zero'", {
   expect_identical(levels_hyper(prior = SVD_DRW2(HMD, sd = 0)),
                    c("sd", "coef"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_svd_lin'", {
+  expect_identical(levels_hyper(prior = SVD_Lin(HMD)),
+                   "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_svd_linex'", {
+  expect_identical(levels_hyper(prior = SVD_Lin(HMD, s = 0)),
+                   character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_svd_rwrandom'", {
@@ -9233,6 +9408,21 @@ test_that("'levels_hyperrand' works with 'bage_prior_rw2zeroseasvary'", {
   ans_obtained <- levels_hyperrand(prior = RW2_Seas(n_seas = 3, s_seas = 1, along = "x"),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(dimnames_to_levels(dimnames_term), 2)
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_svd_lin'", {
+  dimnames_term <- list(age = c(0:59, "60+"), time = 2001:2005)
+  ans_obtained <- levels_hyperrand(prior = SVD_Lin(HMD, n_comp = 3),
+                                   dimnames_term = dimnames_term,
+                                   var_age = "age",
+                                   var_time = "time",
+                                   var_sexgender = NULL)
+  ans_expected <- c("slope.comp1", "slope.comp2", "slope.comp3",
+                    rep(paste(c("comp1", "comp2", "comp3"),
+                              rep(2001:2005, each = 3),
+                              sep = "."),
+                        times = 2))
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -9446,6 +9636,30 @@ test_that("'make_hyperrand_one' works with bage_prior_rw2zeroseasvary", {
                             var_age = var_age,
                             var_sexgender = var_sexgender)
   expect_identical(length(ans), 20L)
+})
+
+
+test_that("'make_hyperrand_one' works with 'bage_prior_svd_lin'", {
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  dimnames_term <- list(age = c(0:59, "60+"), time = 2001:2005)
+  hyperrandfree <- rvec::rnorm_rvec(n = 3, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 15, n_draw = 10)
+  ans_obtained <- make_hyperrand_one(prior = prior,
+                                     hyperrandfree = hyperrandfree,
+                                     effectfree = effectfree,
+                                     dimnames_term = dimnames_term,
+                                     var_age = "age",
+                                     var_time = "time",
+                                     var_sexgender = NULL)
+  trend <- c(-2 * hyperrandfree,
+             -1 * hyperrandfree,
+             0 * hyperrandfree,
+             1 * hyperrandfree,
+             2 * hyperrandfree)
+  ans_expected <- vctrs::vec_c(hyperrandfree,
+                               trend,
+                               effectfree - trend)
+  expect_identical(ans_obtained, ans_expected)                   
 })
 
 
@@ -9827,6 +10041,35 @@ test_that("'make_i_along' works with bage_prior_svd_drw2zero", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_i_along' works with bage_prior_svd_lin", {
+  prior <- SVD_Lin(HMD)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_svd_linex", {
+  prior <- SVD_Lin(HMD, s = 0)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
 
 test_that("'make_i_along' works with bage_prior_svd_rwrandom", {
   prior <- SVD_RW(HMD)
@@ -9885,6 +10128,134 @@ test_that("'make_i_along' works with bage_prior_svd_rw2zero", {
                                var_time = var_time,
                                var_age = var_age)
   ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_implied_comp' --------------------------------------------------------
+
+test_that("'make_implied_comp' works with bage_prior_linex - con is 'none'", {
+  set.seed(0)
+  prior <- Lin(s = 0)
+  dimnames_term <- list(year = 2001:2005,
+                        reg = c("a", "b"))
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- make_implied_comp(prior = prior,
+                                    components = components,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender)
+  ans_expected <- tibble::tibble(term = "year:reg",
+                                 component = "hyper",
+                                 level = c("slope.a", "slope.b"),
+                                 .fitted = c(components$.fitted[3] - components$.fitted[2],
+                                             components$.fitted[8] - components$.fitted[7]))
+  expect_identical(ans_obtained, ans_expected)  
+})
+
+test_that("'make_implied_comp' works with bage_prior_linex - con is 'by'", {
+  set.seed(0)
+  prior <- Lin(s = 0, con = "by")
+  dimnames_term <- list(year = 2001:2005,
+                        reg = c("a", "b"))
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- make_implied_comp(prior = prior,
+                                    components = components,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender)
+  ans_expected <- tibble::tibble(term = "year:reg",
+                                 component = "hyper",
+                                 level = c("slope.a", "slope.b"),
+                                 .fitted = c(components$.fitted[3] - components$.fitted[2],
+                                             components$.fitted[8] - components$.fitted[7]))
+  expect_identical(ans_obtained, ans_expected)  
+})
+
+test_that("'make_implied_comp' works with bage_prior_svd_linex - con is 'none'", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, n_comp = 3, s = 0)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- 2011:2015
+  components <- tibble::tibble(term = "age:time",
+                               component = "svd",
+                               level = paste(paste0("comp", 1:3),
+                                             rep(2001:2010, each = 3),
+                                             sep = "."),
+                               .fitted = rvec::rnorm_rvec(n = 30, n_draw = 10))
+  ans_obtained <- make_implied_comp(prior = prior,
+                                    components = components,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender)
+  ans_expected <- tibble::tibble(term = "age:time",
+                                 component = "hyper",
+                                 level = c("slope.comp1", "slope.comp2", "slope.comp3"),
+                                 .fitted = components$.fitted[4:6] - components$.fitted[1:3])
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_implied_comp' works with bage_prior_svd_linex - con is 'by'", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, n_comp = 3, s = 0, con = "by")
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2003,
+                        reg = c("a", "b", "c"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  components <- tibble::tibble(term = "age:time:reg",
+                               component = "svd",
+                               level = paste(paste0("comp", 1:3),
+                                             rep(2001:2003, each = 3),
+                                             rep(c("reg1", "reg2"), each = 9),
+                                             sep = "."),
+                               .fitted = rvec::rnorm_rvec(n = 18, n_draw = 10))
+  ans_obtained <- make_implied_comp(prior = prior,
+                                    components = components,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    var_sexgender = var_sexgender)
+  ans_expected <- tibble::tibble(term = "age:time:reg",
+                                 component = "hyper",
+                                 level = c("slope.comp1.reg1", "slope.comp2.reg1", "slope.comp3.reg1",
+                                           "slope.comp1.reg2", "slope.comp2.reg2", "slope.comp3.reg2"),
+                                 .fitted = c(components$.fitted[4:6] - components$.fitted[1:3],
+                                             components$.fitted[13:15] - components$.fitted[10:12]))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -10244,7 +10615,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd' - total
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar' - indep", {
-  prior <- SVD_AR(HMD)
+  prior <- SVD_AR(HMD, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   sex = c("f", "m"),
@@ -10257,7 +10628,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar' - in
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar'", {
-  prior <- SVD_AR1(HMD)
+  prior <- SVD_AR1(HMD, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -10269,7 +10640,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar'", {
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_drwrandom'", {
-  prior <- SVD_DRW(HMD)
+  prior <- SVD_DRW(HMD, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -10281,7 +10652,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_drwrando
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_drwzero'", {
-  prior <- SVD_DRW(HMD, sd = 0)
+  prior <- SVD_DRW(HMD, sd = 0, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -10293,7 +10664,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_drwzero'
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_drw2random'", {
-  prior <- SVD_DRW2(HMD)
+  prior <- SVD_DRW2(HMD, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -10305,7 +10676,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_drw2rand
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_drw2zero'", {
-  prior <- SVD_DRW2(HMD, sd = 0)
+  prior <- SVD_DRW2(HMD, sd = 0, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -10316,8 +10687,32 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_drw2zero
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_lin'", {
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = c(0:79, "80+"),
+                                                                       time = 2001:2005),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- t(matrix(0:14, nr = 3))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_linex'", {
+  prior <- SVD_Lin(HMD, s = 0, n_comp = 3)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = c(0:79, "80+"),
+                                                                       time = 2001:2005),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- t(matrix(0:14, nr = 3))
+  expect_identical(ans_obtained, ans_expected)
+})
+
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rwrandom'", {
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -10329,7 +10724,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rwrandom
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rwzero'", {
-  prior <- SVD_RW(HMD, sd = 0)
+  prior <- SVD_RW(HMD, sd = 0, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -10341,7 +10736,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rwzero'"
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw2random'", {
-  prior <- SVD_RW2(HMD)
+  prior <- SVD_RW2(HMD, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -10353,7 +10748,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw2rando
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw2zero'", {
-  prior <- SVD_RW2(HMD, sd = 0)
+  prior <- SVD_RW2(HMD, sd = 0, n_comp = 3)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -10496,6 +10891,36 @@ test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_lin works, - age, sex, time", {
+  prior <- SVD_Lin(HMD, n_comp = 4)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = c("f", "m"),
+                                                                                 age = c(0:99,
+                                                                                         "100+"),
+                                                                                 time = 1:10),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 101L, 10L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(8L, 10L))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_linex works, - age, sex, time", {
+  prior <- SVD_Lin(HMD, s = 0, n_comp = 4)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = c("f", "m"),
+                                                                                 age = c(0:99,
+                                                                                         "100+"),
+                                                                                 time = 1:10),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 101L, 10L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(8L, 10L))
+  expect_identical(ans_obtained, ans_expected)
+})
+
 test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_rwrandom works, - age, sex, time", {
   prior <- SVD_RW(HMD, n_comp = 4)
   ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
@@ -10595,7 +11020,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd", {
 
 test_that("'make_matrix_draws_svd' works with bage_prior_svd_ar", {
   set.seed(0)
-  prior <- SVD_AR(HMD)
+  prior <- SVD_AR(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -10612,7 +11037,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_ar", {
 
 test_that("'make_matrix_draws_svd' works with bage_prior_svd_drwrandom", {
   set.seed(0)
-  prior <- SVD_DRW(HMD)
+  prior <- SVD_DRW(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -10629,7 +11054,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_drwrandom", {
 
 test_that("'make_matrix_draws_svd' works with bage_prior_svd_drwzero", {
   set.seed(0)
-  prior <- SVD_DRW(HMD, sd = 0)
+  prior <- SVD_DRW(HMD, sd = 0, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -10648,7 +11073,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_drwzero", {
 
 test_that("'make_matrix_draws_svd' works with bage_prior_svd_drw2random", {
   set.seed(0)
-  prior <- SVD_DRW2(HMD)
+  prior <- SVD_DRW2(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -10665,7 +11090,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_drw2random", {
 
 test_that("'make_matrix_draws_svd' works with bage_prior_svd_drw2zero", {
   set.seed(0)
-  prior <- SVD_DRW2(HMD, sd = 0)
+  prior <- SVD_DRW2(HMD, sd = 0, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -10682,9 +11107,61 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_drw2zero", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_lin", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender)
+  ans_expected <- Matrix::.sparseDiagonal(30)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_linex - age-time", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, s = 0, n_comp = 3)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender)
+  ans_expected <- Matrix::kronecker(matrix(1:10 - 5.5, nc = 1), Matrix::.sparseDiagonal(3))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_linex - time-sex-age", {
+  set.seed(0)
+  prior <- SVD_Lin(HMD, s = 0, n_comp = 3)
+  dimnames_term <- list(time = 2001:2010,
+                        sex = c("f", "m"),
+                        age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender)
+  ans_expected <- Matrix::kronecker(matrix(1:10 - 5.5, nc = 1), Matrix::.sparseDiagonal(6))
+  expect_identical(ans_obtained, ans_expected)
+})
+
 test_that("'make_matrix_draws_svd' works with bage_prior_svd_rwrandom", {
   set.seed(0)
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -10701,7 +11178,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_rwrandom", {
 
 test_that("'make_matrix_draws_svd' works with bage_prior_svd_rwzero", {
   set.seed(0)
-  prior <- SVD_RW(HMD, sd = 0)
+  prior <- SVD_RW(HMD, sd = 0, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -10720,7 +11197,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_rwzero", {
 
 test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw2random", {
   set.seed(0)
-  prior <- SVD_RW2(HMD)
+  prior <- SVD_RW2(HMD, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -10737,7 +11214,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw2random", {
 
 test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw2zero", {
   set.seed(0)
-  prior <- SVD_RW2(HMD, sd = 0)
+  prior <- SVD_RW2(HMD, sd = 0, n_comp = 3)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -10908,6 +11385,24 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interac
                                     Matrix::.sparseDiagonal(2))
   expect_identical(ans_obtained, ans_expected)
 })
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - 3-way interaction, along second, con is 'none'", {
+  prior <- Lin(s = 0)
+  dimnames_term <- list(reg = 1:2, time = 2001:2005, type = c("a", "b", "c"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- Matrix::kronecker(matrix(1:5 - 3, nr = 5),
+                                    Matrix::.sparseDiagonal(2))
+  ans_expected <- Matrix::kronecker(Matrix::.sparseDiagonal(3), ans_expected)
+  expect_identical(ans_obtained, ans_expected)
+})
+
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along first, con is 'by'", {
   prior <- Lin(s = 0, con = 'by')
@@ -11380,6 +11875,68 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_drw2zero - 
   expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 8))
 })
 
+test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_lin - age-time interaction", {
+  prior <- SVD_Lin(HMD, n_comp = 2)
+  dimnames_term = list(time = 2001:2005,
+                       age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- make_matrix_effectfree_effect(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 10))
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_linex - time-age interaction", {
+  prior <- SVD_Lin(HMD, n_comp = 2, s = 0)
+  dimnames_term <- list(time = 2001:2005,
+                        age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  m1 <- make_matrix_effectfree_effect(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+  m2 <- make_matrix_effectfree_effect(prior = SVD_Lin(HMD, s = 0.000001, n_comp = 2),
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+  ans1 <- m1 %*% c(1, -2.34)
+  ans2 <- m2 %*% Matrix::kronecker(matrix(seq(-2, 2), nc = 1), Matrix::.sparseDiagonal(2)) %*% c(1, -2.34)
+  expect_equal(ans1, ans2, tolerance = 0.01)
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_linex - age-time-reg interaction", {
+  prior <- SVD_Lin(HMD, n_comp = 2, s = 0)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2005,
+                        reg = c("a", "b", "c"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  m1 <- make_matrix_effectfree_effect(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+  m2 <- make_matrix_effectfree_effect(prior = SVD_Lin(HMD, n_comp = 2, s = 0.000001),
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+  ans1 <- m1 %*% c(1, -2.34, -0.02, 0.5, 3, 2)
+  ans2 <- m2 %*% Matrix::kronecker(Matrix::.sparseDiagonal(3),
+                                   Matrix::kronecker(matrix(seq(-2, 2), nc = 1),
+                                                     Matrix::.sparseDiagonal(2))) %*% c(1, -2.34, -0.02, 0.5, 3, 2)
+  expect_equal(ans1, ans2, tolerance = 0.01)
+})
+
 test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rwrandom - age-time interaction", {
   prior <- SVD_RW(HMD, n_comp = 2)
   dimnames_term = list(time = 2001:2005,
@@ -11583,7 +12140,7 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd - sex x reg x ag
 })
 
 test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time x age interaction, con is 'none'", {
-  prior <- SVD_AR(HMD)
+  prior <- SVD_AR(HMD, n_comp = 3)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11606,7 +12163,7 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time 
 })
 
 test_that("'make_matrix_sub_orig' works with bage_prior_svd_ar - sex x time x age interaction, con is 'by'", {
-  prior <- SVD_AR(HMD, con = 'by')
+  prior <- SVD_AR(HMD, con = 'by', n_comp = 3)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11629,7 +12186,7 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_ar - sex x time x ag
 })
 
 test_that("'make_matrix_sub_orig' works with bage_prior_svd_drwrandom - sex x time x age interaction", {
-  prior <- SVD_DRW(HMD)
+  prior <- SVD_DRW(HMD, n_comp = 3)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11652,7 +12209,7 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_drwrandom - sex x ti
 })
 
 test_that("'make_matrix_sub_orig' works with bage_prior_svd_drwzero - sex x time x age interaction", {
-  prior <- SVD_DRW(HMD, sd = 0)
+  prior <- SVD_DRW(HMD, sd = 0, n_comp = 3)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11675,7 +12232,7 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_drwzero - sex x time
 })
 
 test_that("'make_matrix_sub_orig' works with bage_prior_svd_drw2random - sex x time x age interaction", {
-  prior <- SVD_DRW2(HMD)
+  prior <- SVD_DRW2(HMD, n_comp = 3)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11698,7 +12255,53 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_drw2random - sex x t
 })
 
 test_that("'make_matrix_sub_orig' works with bage_prior_svd_drw2zero - sex x time x age interaction", {
-  prior <- SVD_DRW2(HMD, sd = 0)
+  prior <- SVD_DRW2(HMD, sd = 0, n_comp = 3)
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = lengths(dimnames_term))
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
+  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(10), m2)
+  m1 <- make_matrix_perm_agesex_from_front(i_age = 3L,
+                                           i_sexgender = 1L,
+                                           dim_after = lengths(dimnames_term))
+  ans_expected <- m1 %*% m2
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_sub_orig' works with bage_prior_svd_lin - sex x time x age interaction", {
+  prior <- SVD_Lin(HMD, n_comp = 3)
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = lengths(dimnames_term))
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
+  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(10), m2)
+  m1 <- make_matrix_perm_agesex_from_front(i_age = 3L,
+                                           i_sexgender = 1L,
+                                           dim_after = lengths(dimnames_term))
+  ans_expected <- m1 %*% m2
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_sub_orig' works with bage_prior_svd_linex - sex x time x age interaction", {
+  prior <- SVD_Lin(HMD, s = 0, n_comp = 3)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11721,7 +12324,7 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_drw2zero - sex x tim
 })
 
 test_that("'make_matrix_sub_orig' works with bage_prior_svd_rwrandom - sex x time x age interaction", {
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11744,7 +12347,7 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_rwrandom - sex x tim
 })
 
 test_that("'make_matrix_sub_orig' works with bage_prior_svd_rwzero - sex x time x age interaction", {
-  prior <- SVD_RW(HMD, sd = 0)
+  prior <- SVD_RW(HMD, sd = 0, n_comp = 3)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11767,7 +12370,7 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_rwzero - sex x time 
 })
 
 test_that("'make_matrix_sub_orig' works with bage_prior_svd_rw2random - sex x time x age interaction", {
-  prior <- SVD_RW2(HMD)
+  prior <- SVD_RW2(HMD, n_comp = 3)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11790,7 +12393,7 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_rw2random - sex x ti
 })
 
 test_that("'make_matrix_sub_orig' works with bage_prior_svd_rw2zero - sex x time x age interaction", {
-  prior <- SVD_RW2(HMD, sd = 0)
+  prior <- SVD_RW2(HMD, n_comp = 3, sd = 0)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -11929,6 +12532,38 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd_drw2random 
 
 test_that("'make_offset_effectfree_effect' works with bage_prior_svd_drw2zero - sex x time x age interaction", {
   prior <- SVD_DRW2(HMD, sd = 0)
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- make_offset_effectfree_effect(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  expect_equal(length(ans), prod(lengths(dimnames_term)))
+})
+
+test_that("'make_offset_effectfree_effect' works with bage_prior_svd_lin - sex x time x age interaction", {
+  prior <- SVD_Lin(HMD, con = 'by')
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- make_offset_effectfree_effect(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  expect_equal(length(ans), prod(lengths(dimnames_term)))
+})
+
+test_that("'make_offset_effectfree_effect' works with bage_prior_svd_linex - sex x time x age interaction", {
+  prior <- SVD_Lin(HMD, con = 'by', s = 0)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -12188,6 +12823,16 @@ test_that("'make_param_hyper' works with 'bage_prior_svd_drw2zero'", {
                    c(log(0.05), 0))
 })
 
+test_that("'make_param_hyper' works with 'bage_prior_svd_lin'", {
+  expect_identical(make_param_hyper(prior = SVD_Lin(HMD)),
+                   log(0.05))
+})
+
+test_that("'make_param_hyper' works with 'bage_prior_svd_linex'", {
+  expect_identical(make_param_hyper(prior = SVD_Lin(HMD, s = 0)),
+                   numeric())
+})
+
 test_that("'make_param_hyper' works with 'bage_prior_svd_rwrandom'", {
   expect_identical(make_param_hyper(prior = SVD_RW(HMD)),
                    log(0.05))
@@ -12253,6 +12898,8 @@ test_that("'print' works", {
   expect_snapshot(print(SVD_DRW2(HMD, indep = FALSE)))
   expect_snapshot(print(SVD_DRW2(HMD, sd = 0)))
   expect_snapshot(print(SVD_DRW2(HMD, sd = 0, indep = FALSE)))
+  expect_snapshot(print(SVD_Lin(HMD)))
+  expect_snapshot(print(SVD_Lin(HMD, s = 0)))
   expect_snapshot(print(SVD_RW(HMD)))
   expect_snapshot(print(SVD_RW(HMD, indep = FALSE)))
   expect_snapshot(print(SVD_RW(HMD, sd = 0)))
@@ -12486,7 +13133,7 @@ test_that("'str_call_prior' works with bage_prior_svd", {
     expect_identical(str_call_prior(SVD(s,indep = FALSE)), "SVD(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD(s,n = 6L)), "SVD(s,n_comp=6)")
     expect_identical(str_call_prior(SVD(s,indep=T,n_comp = 3L)),
-                     "SVD(s,n_comp=3)")
+                     "SVD(s)")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_ar", {
@@ -12494,8 +13141,8 @@ test_that("'str_call_prior' works with bage_prior_svd_ar", {
     expect_identical(str_call_prior(SVD_AR1(s)), "SVD_AR1(s)")
     expect_identical(str_call_prior(SVD_AR1(s,indep = FALSE)), "SVD_AR1(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_AR1(s,min = 0.2, n = 6L)), "SVD_AR1(s,n_comp=6,min=0.2)")
-    expect_identical(str_call_prior(SVD_AR(s,indep=T,n_comp = 3L,n_coef=3,con="by")),
-                     "SVD_AR(s,n_comp=3,n_coef=3,con=\"by\")")
+    expect_identical(str_call_prior(SVD_AR(s,indep=T,n_comp = 2L,n_coef=3,con="by")),
+                     "SVD_AR(s,n_comp=2,n_coef=3,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_drwrandom", {
@@ -12503,9 +13150,9 @@ test_that("'str_call_prior' works with bage_prior_svd_drwrandom", {
     expect_identical(str_call_prior(SVD_DRW(s)), "SVD_DRW(s)")
     expect_identical(str_call_prior(SVD_DRW(s,indep = FALSE)), "SVD_DRW(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_DRW(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=3,s=0.3,
+                                           n_comp = 1L,sd=3,s=0.3,
                                            shape2=3,max=0.95,min=0.5,shape1=2)),
-                     "SVD_DRW(s,n_comp=3,s=0.3,sd=3,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
+                     "SVD_DRW(s,n_comp=1,s=0.3,sd=3,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_drwzero", {
@@ -12513,9 +13160,9 @@ test_that("'str_call_prior' works with bage_prior_svd_drwzero", {
     expect_identical(str_call_prior(SVD_DRW(s,sd= 0)), "SVD_DRW(s,sd=0)")
     expect_identical(str_call_prior(SVD_DRW(sd=0,s,indep = FALSE)), "SVD_DRW(s,indep=FALSE,sd=0)")
     expect_identical(str_call_prior(SVD_DRW(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=0,s=0.3,
+                                           n_comp = 4L,sd=0,s=0.3,
                                            shape2=3,max=0.95,min=0.5,shape1=2)),
-                     "SVD_DRW(s,n_comp=3,s=0.3,sd=0,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
+                     "SVD_DRW(s,n_comp=4,s=0.3,sd=0,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_drw2random", {
@@ -12523,9 +13170,9 @@ test_that("'str_call_prior' works with bage_prior_svd_drw2random", {
     expect_identical(str_call_prior(SVD_DRW2(s)), "SVD_DRW2(s)")
     expect_identical(str_call_prior(SVD_DRW2(s,indep = FALSE)), "SVD_DRW2(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_DRW2(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=3,s=0.3,sd_slope=2,
+                                           n_comp = 4L,sd=3,s=0.3,sd_slope=2,
                                            shape2=3,max=0.95,min=0.5,shape1=2)),
-                     "SVD_DRW2(s,n_comp=3,s=0.3,sd=3,sd_slope=2,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
+                     "SVD_DRW2(s,n_comp=4,s=0.3,sd=3,sd_slope=2,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_drw2zero", {
@@ -12533,9 +13180,27 @@ test_that("'str_call_prior' works with bage_prior_svd_drw2zero", {
     expect_identical(str_call_prior(SVD_DRW2(s,sd= 0)), "SVD_DRW2(s,sd=0)")
     expect_identical(str_call_prior(SVD_DRW2(sd=0,s,indep = FALSE)), "SVD_DRW2(s,indep=FALSE,sd=0)")
     expect_identical(str_call_prior(SVD_DRW2(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=0,s=0.3,sd_slope=2,
+                                           n_comp = 4L,sd=0,s=0.3,sd_slope=2,
                                            shape2=3,max=0.95,min=0.5,shape1=2)),
-                     "SVD_DRW2(s,n_comp=3,s=0.3,sd=0,sd_slope=2,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
+                     "SVD_DRW2(s,n_comp=4,s=0.3,sd=0,sd_slope=2,shape1=2,shape2=3,min=0.5,max=0.95,con=\"by\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_svd_lin", {
+    s <- sim_ssvd()
+    expect_identical(str_call_prior(SVD_Lin(s)), "SVD_Lin(s)")
+    expect_identical(str_call_prior(SVD_Lin(s,indep = FALSE)), "SVD_Lin(s,indep=FALSE)")
+    expect_identical(str_call_prior(SVD_Lin(s,indep = TRUE,con="by",
+                                           n_comp = 4L,sd_slope=3,mean_slope = -1, s=0.3)),
+                     "SVD_Lin(s,n_comp=4,s=0.3,mean_slope=-1,sd_slope=3,con=\"by\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_svd_linex", {
+    s <- sim_ssvd()
+    expect_identical(str_call_prior(SVD_Lin(s,s=0)), "SVD_Lin(s,s=0)")
+    expect_identical(str_call_prior(SVD_Lin(s,indep = FALSE,s=0)), "SVD_Lin(s,indep=FALSE,s=0)")
+    expect_identical(str_call_prior(SVD_Lin(s,indep = TRUE,con="by",
+                                           n_comp = 4L,sd_slope=3,mean_slope = -1, s=0)),
+                     "SVD_Lin(s,n_comp=4,s=0,mean_slope=-1,sd_slope=3,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rwrandom", {
@@ -12543,8 +13208,8 @@ test_that("'str_call_prior' works with bage_prior_svd_rwrandom", {
     expect_identical(str_call_prior(SVD_RW(s)), "SVD_RW(s)")
     expect_identical(str_call_prior(SVD_RW(s,indep = FALSE)), "SVD_RW(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_RW(s,indep = TRUE,con="by",
-                                           n_comp = 3L,sd=3,s=0.3)),
-                     "SVD_RW(s,n_comp=3,s=0.3,sd=3,con=\"by\")")
+                                           n_comp = 4L,sd=3,s=0.3)),
+                     "SVD_RW(s,n_comp=4,s=0.3,sd=3,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rwzero", {
@@ -12552,24 +13217,24 @@ test_that("'str_call_prior' works with bage_prior_svd_rwzero", {
     expect_identical(str_call_prior(SVD_RW(s,sd = 0)), "SVD_RW(s,sd=0)")
     expect_identical(str_call_prior(SVD_RW(s,indep = FALSE, sd = 0)), "SVD_RW(s,indep=FALSE,sd=0)")
     expect_identical(str_call_prior(SVD_RW(s,indep = TRUE,con="by",
-                                           n_comp = 3L,s=0.3,sd=0)),
-                     "SVD_RW(s,n_comp=3,s=0.3,sd=0,con=\"by\")")
+                                           n_comp = 4L,s=0.3,sd=0)),
+                     "SVD_RW(s,n_comp=4,s=0.3,sd=0,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rw2random", {
     s <- sim_ssvd()
     expect_identical(str_call_prior(SVD_RW2(s)), "SVD_RW2(s)")
     expect_identical(str_call_prior(SVD_RW2(s,indep=F,sd=0.1)), "SVD_RW2(s,indep=FALSE,sd=0.1)")
-    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,n_comp = 3L,s=0.3,sd=2,con="by")),
-                     "SVD_RW2(s,n_comp=3,s=0.3,sd=2,sd_slope=0.2,con=\"by\")")
+    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,n_comp = 4L,s=0.3,sd=2,con="by")),
+                     "SVD_RW2(s,n_comp=4,s=0.3,sd=2,sd_slope=0.2,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rw2zero", {
     s <- sim_ssvd()
     expect_identical(str_call_prior(SVD_RW2(s,sd=0)), "SVD_RW2(s,sd=0)")
     expect_identical(str_call_prior(SVD_RW2(s,indep=F,sd=0)), "SVD_RW2(s,indep=FALSE,sd=0)")
-    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,sd=0,n_comp = 3L,s=0.3,con="by")),
-                     "SVD_RW2(s,n_comp=3,s=0.3,sd=0,sd_slope=0.2,con=\"by\")")
+    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,sd=0,n_comp = 4L,s=0.3,con="by")),
+                     "SVD_RW2(s,n_comp=4,s=0.3,sd=0,sd_slope=0.2,con=\"by\")")
 })
 
 
@@ -12739,6 +13404,18 @@ test_that("'str_nm_prior' works with bage_prior_svd_drw2zero", {
     s <- sim_ssvd()
     expect_identical(str_nm_prior(SVD_DRW2(s, sd = 0)), "SVD_DRW2()")
     expect_identical(str_nm_prior(SVD_DRW2(s,indep=T, sd = 0)), "SVD_DRW2()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_svd_lin", {
+    s <- sim_ssvd()
+    expect_identical(str_nm_prior(SVD_Lin(s)), "SVD_Lin()")
+    expect_identical(str_nm_prior(SVD_Lin(s,indep=T)), "SVD_Lin()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_svd_linex", {
+    s <- sim_ssvd()
+    expect_identical(str_nm_prior(SVD_Lin(s, s = 0)), "SVD_Lin()")
+    expect_identical(str_nm_prior(SVD_Lin(s,indep=T, s=0)), "SVD_Lin()")
 })
 
 test_that("'str_nm_prior' works with bage_prior_svd_rwrandom", {
@@ -13004,6 +13681,16 @@ test_that("'transform_hyper' works with 'bage_prior_svd_drw2zero'", {
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
 })
 
+test_that("'transform_hyper' works with 'bage_prior_svd_lin'", {
+  l <- transform_hyper(prior = SVD_Lin(LFP))
+  expect_equal(l[[1]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_svd_linex'", {
+  l <- transform_hyper(prior = SVD_Lin(LFP, s = 0))
+  expect_equal(l, list())
+})
+
 test_that("'transform_hyper' works with 'bage_prior_svd_rwrandom'", {
   l <- transform_hyper(prior = SVD_RW(LFP))
   expect_equal(l[[1]](0.35), exp(0.35))
@@ -13059,6 +13746,8 @@ test_that("'uses_along' works with valid inputs", {
   expect_true(uses_along(SVD_DRW(HMD, sd = 0)))
   expect_true(uses_along(SVD_DRW2(HMD)))
   expect_true(uses_along(SVD_DRW2(HMD, sd = 0)))
+  expect_true(uses_along(SVD_Lin(HMD)))
+  expect_true(uses_along(SVD_Lin(HMD, s = 0)))
   expect_true(uses_along(SVD_RW(HMD)))
   expect_true(uses_along(SVD_RW(HMD, sd = 0)))
   expect_true(uses_along(SVD_RW2(HMD)))
@@ -13081,6 +13770,7 @@ test_that("'uses_hyperrandfree' returns FALSE with priors that do not use hyperr
   expect_false(uses_hyperrandfree(Sp()))
   expect_false(uses_hyperrandfree(SVD(HMD)))
   expect_false(uses_hyperrandfree(SVD_AR(HMD)))
+  expect_false(uses_hyperrandfree(SVD_Lin(HMD, s = 0)))
   expect_false(uses_hyperrandfree(SVD_RW(HMD)))
   expect_false(uses_hyperrandfree(SVD_RW2(HMD)))
 })
@@ -13096,6 +13786,7 @@ test_that("'uses_hyperrandfree' returns TRUE with priors do use hyperrandfree pa
   expect_true(uses_hyperrandfree(RW2_Seas(n_seas = 3, s_seas = 1)))
   expect_true(uses_hyperrandfree(RW2_Seas(n_seas = 3, s_seas = 0, sd = 0)))
   expect_true(uses_hyperrandfree(RW2_Seas(n_seas = 3, s_seas = 1, sd = 0)))
+  expect_true(uses_hyperrandfree(SVD_Lin(HMD)))
 })
 
 
@@ -13130,6 +13821,8 @@ test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
   expect_true(uses_matrix_effectfree_effect(Sp()))
   expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
   expect_true(uses_matrix_effectfree_effect(SVD_AR(HMD)))
+  expect_true(uses_matrix_effectfree_effect(SVD_Lin(HMD)))
+  expect_true(uses_matrix_effectfree_effect(SVD_Lin(HMD, s = 0)))
   expect_true(uses_matrix_effectfree_effect(SVD_RW(HMD)))
   expect_true(uses_matrix_effectfree_effect(SVD_RW(HMD, sd = 0)))
   expect_true(uses_matrix_effectfree_effect(SVD_RW2(HMD)))
@@ -13148,6 +13841,8 @@ test_that("'uses_offset_effectfree_effect' works with valid inputs", {
   expect_true(uses_offset_effectfree_effect(SVD_DRW(HMD, sd = 0)))
   expect_true(uses_offset_effectfree_effect(SVD_DRW2(HMD)))
   expect_true(uses_offset_effectfree_effect(SVD_DRW2(HMD, sd = 0)))
+  expect_true(uses_offset_effectfree_effect(SVD_Lin(HMD)))
+  expect_true(uses_offset_effectfree_effect(SVD_Lin(HMD, s = 0)))
   expect_true(uses_offset_effectfree_effect(SVD_RW(HMD)))
   expect_true(uses_offset_effectfree_effect(SVD_RW(HMD, sd = 0)))
   expect_true(uses_offset_effectfree_effect(SVD_RW2(HMD)))

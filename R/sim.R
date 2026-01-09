@@ -627,12 +627,14 @@ draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
   ans <- .mapply(draw_vals_hyperrand,
                  dots = list(prior = priors,
                              vals_hyper = vals_hyper,
                              dimnames_term = dimnames_terms),
                  MoreArgs = list(var_time = var_time,
                                  var_age = var_age,
+                                 var_sexgender = var_sexgender,
                                  n_sim = n_sim))
   names(ans) <- names(priors)
   ans
@@ -939,11 +941,13 @@ draw_vals_slope <- function(mean_slope, sd_slope, matrix_along_by, n_sim) {
   ans <- stats::rnorm(n = n_by * n_sim, mean = mean_slope, sd = sd_slope)
   ans <- matrix(ans, nrow = n_by, ncol = n_sim)
   nms_by <- colnames(matrix_along_by)
-  if (n_by > 1L)
-    rownames <- paste("slope", nms_by, sep = ".")
-  else
-    rownames <- "slope"
-  rownames(ans) <- rownames
+  if (!is.null(nms_by)) {
+    if (n_by > 1L)
+      rownames <- paste("slope", nms_by, sep = ".")
+    else
+      rownames <- "slope"
+    rownames(ans) <- rownames
+  }
   ans
 }
 
@@ -1726,6 +1730,7 @@ vals_hyperrand_to_dataframe <- function(mod, vals_hyperrand, n_sim) {
   dimnames_term <- mod$dimnames_term
   var_age <- mod$var_age
   var_time <- mod$var_time
+  var_sexgender <- mod$var_sexgender
   nms <- names(vals_hyperrand)
   ans <- .mapply(vals_hyperrand_to_dataframe_one,
                  dots = list(prior = priors,
@@ -1733,6 +1738,7 @@ vals_hyperrand_to_dataframe <- function(mod, vals_hyperrand, n_sim) {
                              dimnames_term = dimnames_term),
                  MoreArgs = list(var_age = var_age,
                                  var_time = var_time,
+                                 var_sexgender = var_sexgender,
                                  n_sim = n_sim))
   ans <- vctrs::vec_rbind(!!!ans)
   ans
@@ -1746,6 +1752,10 @@ vals_hyperrand_to_dataframe <- function(mod, vals_hyperrand, n_sim) {
 #'
 #' @param nm String
 #' @param vals_hyperrand Named list
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
 #' @param n_sim Integer
 #'
 #' @returns A tibble.
@@ -1756,6 +1766,7 @@ vals_hyperrand_to_dataframe_one <- function(prior,
                                             dimnames_term,
                                             var_age,
                                             var_time,
+                                            var_sexgender,
                                             n_sim) {
   nm <- dimnames_to_nm(dimnames_term)
   vals <- vctrs::vec_rbind(!!!vals_hyperrand, .name_repair = "universal_quiet")
@@ -1769,7 +1780,8 @@ vals_hyperrand_to_dataframe_one <- function(prior,
   component <- comp_hyperrand(prior = prior,
                               dimnames_term = dimnames_term,
                               var_age = var_age,
-                              var_time = var_time)
+                              var_time = var_time,
+                              var_sexgender = var_sexgender)
   if (nrow(vals) > 0L) {
     level <- lapply(vals_hyperrand, rownames)
     no_rownames <- vapply(level, is.null, FALSE)

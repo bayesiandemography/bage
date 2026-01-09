@@ -31,6 +31,8 @@
 \alias{generate.bage_prior_svd_drwzero}
 \alias{generate.bage_prior_svd_drw2random}
 \alias{generate.bage_prior_svd_drw2zero}
+\alias{generate.bage_prior_svd_lin}
+\alias{generate.bage_prior_svd_linex}
 \alias{generate.bage_prior_svd_rwrandom}
 \alias{generate.bage_prior_svd_rwzero}
 \alias{generate.bage_prior_svd_rw2random}
@@ -96,6 +98,10 @@
 \method{generate}{bage_prior_svd_drw2random}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
 \method{generate}{bage_prior_svd_drw2zero}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_lin}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_linex}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
 \method{generate}{bage_prior_svd_rwrandom}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 

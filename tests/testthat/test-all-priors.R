@@ -749,3 +749,63 @@ testthat::test_that("'svd_drw2zero", {
   expect_s3_class(fc, "tbl_df")
 })
 
+testthat::test_that("'svd_lin", {
+  set.seed(0)
+  data <- expand.grid(age = 5:14, sex = c("Female", "Male"), time = 2001:2010)
+  data$popn <- rpois(n = nrow(data), lambda = 100) + 10
+  data$attendance <- rbinom(n = nrow(data), size = data$popn, prob = 0.8)
+  mod <- mod_binom(attendance ~ age * time + sex,
+                   data = data,
+                   size = popn) |>
+    set_prior(age:time ~ SVD_Lin(CSA)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_binom")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(fc, "tbl_df")
+})
+
+testthat::test_that("'svd_linex", {
+  set.seed(0)
+  data <- expand.grid(age = 5:14, sex = c("Female", "Male"), time = 2001:2010)
+  data$popn <- rpois(n = nrow(data), lambda = 100) + 10
+  data$attendance <- rbinom(n = nrow(data), size = data$popn, prob = 0.8)
+  mod <- mod_binom(attendance ~ age * time + sex,
+                   data = data,
+                   size = popn) |>
+    set_prior(age:time ~ SVD_Lin(CSA, s = 0)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_binom")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(fc, "tbl_df")
+})
+
+testthat::test_that("'svd_linex", {
+  set.seed(0)
+  data <- expand.grid(age = 5:14, sex = c("Female", "Male"), time = 2001:2010)
+  data$popn <- rpois(n = nrow(data), lambda = 100) + 10
+  data$attendance <- rbinom(n = nrow(data), size = data$popn, prob = 0.8)
+  mod <- mod_binom(attendance ~ age * time + sex,
+                   data = data,
+                   size = popn) |>
+    set_prior(age:time ~ Lin(s = 0.0001)) |>
+    fit()
+  expect_s3_class(mod, "bage_mod_binom")
+  comp <- components(mod)
+  expect_s3_class(comp, "tbl_df")
+  fc <- forecast(mod, labels = 2026:2027)
+  expect_s3_class(fc, "tbl_df")
+  rep <- replicate_data(mod, n = 2)
+  expect_s3_class(fc, "tbl_df")
+})
+
+
+
+

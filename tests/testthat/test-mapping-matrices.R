@@ -47,10 +47,12 @@ test_that("'make_dim_svd' works - total", {
   prior <- SVD(LFP)
   dimnames_term <- list(region = c("A", "B"),
                         age = poputils::age_labels(type = "five", min = 15, max = 60))
+  var_time <- "time"
   var_sexgender <- NULL
   var_age <- "age"
   ans_obtained <- make_dim_svd(prior,
                                dimnames_term = dimnames_term,
+                               var_time = var_time,
                                var_sexgender = var_sexgender,
                                var_age = var_age)
   ans_expected <- c(3L, region = 2L)
@@ -64,8 +66,10 @@ test_that("'make_dim_svd' works - indep", {
                         age = poputils::age_labels(type = "five", min = 15, max = 60))
   var_sexgender <- "sex"
   var_age <- "age"
+  var_time <- "time"
   ans_obtained <- make_dim_svd(prior,
                                dimnames_term = dimnames_term,
+                               var_time = var_time,
                                var_sexgender = var_sexgender,
                                var_age = var_age)
   ans_expected <- c(6L, region = 2L)
@@ -79,13 +83,51 @@ test_that("'make_dim_svd' works - joint", {
                         age = poputils::age_labels(type = "five", min = 15, max = 60))
   var_sexgender <- "sex"
   var_age <- "age"
+  var_time <- "time"
   ans_obtained <- make_dim_svd(prior,
                                dimnames_term = dimnames_term,
+                               var_time = var_time,
                                var_sexgender = var_sexgender,
                                var_age = var_age)
   ans_expected <- c(3L, region = 2L)
   expect_identical(ans_obtained, ans_expected)
 })
+
+test_that("'make_dim_svd' works - total, con = 'by'", {
+  prior <- SVD_RW(LFP, n_comp = 3, con = "by")
+  dimnames_term <- list(region = c("A", "B", "C"),
+                        time = 2001:2005,
+                        age = poputils::age_labels(type = "five", min = 15, max = 60))
+  var_time <- "time"
+  var_sexgender <- NULL
+  var_age <- "age"
+  ans_obtained <- make_dim_svd(prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_sexgender = var_sexgender,
+                               var_age = var_age)
+  ans_expected <- c(3L, region = 2L, time = 5L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_dim_svd' works - total, con = 'non'", {
+  prior <- SVD_RW(LFP, n_comp = 3)
+  dimnames_term <- list(region = c("A", "B", "C"),
+                        time = 2001:2005,
+                        age = poputils::age_labels(type = "five", min = 15, max = 60))
+  var_time <- "time"
+  var_sexgender <- NULL
+  var_age <- "age"
+  ans_obtained <- make_dim_svd(prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_sexgender = var_sexgender,
+                               var_age = var_age)
+  ans_expected <- c(3L, region = 3L, time = 5L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 
 
 ## 'make_i_along_agetime' -----------------------------------------------------
@@ -251,6 +293,37 @@ test_that("'make_i_along_inner' throws correct error when 'along' not found", {
                                   var_time = var_time,
                                   var_age = var_age),
                "Prior for `reg:sex:oldness` has invalid value for `along`.")
+})
+
+
+## 'make_i_time_svddynamic' ------------------------------------------
+
+test_that("'make_i_time_svddynamic' works - age, sex, time", {
+  prior <- SVD_AR(HMD, n_comp = 4)
+  ans_obtained <- make_i_time_svddynamic(prior = prior,
+                                         dimnames_term = list(sex = c("f", "m"),
+                                                              age = c(0:99,
+                                                                      "100+"),
+                                                              time = 1:10),
+                                         var_time = "time",
+                                         var_age = "age",
+                                         var_sexgender = "sex")
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_time_svddynamic' works - age, region, time", {
+  prior <- SVD_AR(HMD, n_comp = 4)
+  ans_obtained <- make_i_time_svddynamic(prior = prior,
+                                         dimnames_term = list(region = c("f", "m"),
+                                                              age = c(0:99,
+                                                                      "100+"),
+                                                              time = 1:10),
+                                         var_time = "time",
+                                         var_age = "age",
+                                         var_sexgender = "sex")
+  ans_expected <- 3L
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -820,7 +893,7 @@ test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig"
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   ans <- make_matrix_effectfree_effect_inner(prior = prior,
                                              dimnames_term = dimnames_term,
                                              var_time = var_time,
@@ -836,7 +909,7 @@ test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig,
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  prior <- SVD_RW(HMD, con = "by")
+  prior <- SVD_RW(HMD, con = "by", n_comp = 3)
   ans <- make_matrix_effectfree_effect_inner(prior = prior,
                                              dimnames_term = dimnames_term,
                                              var_time = var_time,
@@ -937,7 +1010,7 @@ test_that("'make_matrix_spline' works", {
 ## 'make_matrix_sub_orig_svd' -------------------------------------------------
 
 test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age interaction, con is 'none'", {
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   dimnames_term <- list(time = 2001:2005,
                         age = poputils::age_labels(type = "five", max = 60))
   var_age <- "age"
@@ -953,7 +1026,7 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age 
 })
 
 test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age interaction, con is 'none'", {
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   dimnames_term <- list(time = 2001:2005,
                         age = poputils::age_labels(type = "five", max = 60))
   var_age <- "age"
@@ -969,7 +1042,7 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age 
 })
 
 test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time x age interaction, con is 'none'", {
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, n_comp = 3)
   dimnames_term <- list(sex = c("f", "m"),
                         time = 2001:2005,
                         age = poputils::age_labels(type = "five", max = 60))
