@@ -508,7 +508,7 @@ mod |>
 
 ## Experimental status
 
-`bage` currently has an [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) life cycle badge, to warn users that some features of the `bage` interface, such as function arguments, are still evolving. We hope to graduate from experimental status by the end of 2025.
+`bage` currently has an [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) life cycle badge, to warn users that some features of the `bage` interface, such as function arguments, are still evolving.
 
 ## Bug reports and feature requests
 
