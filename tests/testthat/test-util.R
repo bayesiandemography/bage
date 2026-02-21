@@ -1007,6 +1007,74 @@ test_that("rmvn_from_sparse_CH throws error with invalid CH", {
 })
 
 
+## 'rmvnorm_chol' -------------------------------------------------------------
+
+test_that("rmvnorm_chol returns correct dimensions and preserves mean recycling", {
+  n <- 7L
+  mean <- c(1.2, -0.3, 4.0)
+  n_val <- length(mean)
+  Q <- diag(n_val)  # precision
+  CH <- Matrix::Cholesky(Matrix::Matrix(Q, sparse = TRUE))
+  X <- rmvnorm_chol(n = n, mean = mean, CH = CH)
+  expect_identical(dim(X), c(n_val, n))
+})
+
+test_that("rmvnorm_chol gives identity covariance when precision is identity", {
+  set.seed(1)
+  n <- 40000L
+  mean <- c(0, 0, 0)
+  n_val <- length(mean)
+  Q <- diag(n_val)  # Sigma = I
+  CH <- Matrix::Cholesky(Matrix::Matrix(Q, sparse = TRUE))
+  X <- rmvnorm_chol(n = n, mean = mean, CH = CH)
+  # sample mean close to mean
+  expect_equal(rowMeans(as.matrix(X)), mean, tolerance = 0.02)
+  # sample covariance close to I
+  S <- stats::cov(t(as.matrix(X)))
+  expect_equal(diag(S), rep(1, n_val), tolerance = 0.03)
+  expect_equal(S[lower.tri(S)], rep(0, n_val * (n_val - 1) / 2), tolerance = 0.03)
+})
+
+test_that("rmvnorm_chol matches target covariance for a nontrivial precision matrix", {
+  set.seed(2)
+  n <- 80000L
+  mean <- c(0.5, -1.0, 2.0)
+  n_val <- length(mean)
+  # Construct SPD precision Q
+  A <- matrix(c(2, 0.3, -0.2,
+                0.3, 1.5, 0.4,
+                -0.2, 0.4, 1.8), n_val, n_val, byrow = TRUE)
+  Q <- crossprod(A)  # SPD
+  Sigma <- solve(Q)
+  CH <- Matrix::Cholesky(Matrix::Matrix(Q, sparse = TRUE), perm = FALSE)
+  X <- rmvnorm_chol(n = n, mean = mean, CH = CH)
+  expect_equal(rowMeans(as.matrix(X)), mean, tolerance = 0.02)
+  S <- stats::cov(t(as.matrix(X)))
+  expect_equal(S, Sigma, tolerance = 0.03)
+})
+
+test_that("rmvnorm_chol is reproducible under set.seed()", {
+  n <- 5L
+  mean <- c(1, 2)
+  Q <- diag(2)
+  CH <- Matrix::Cholesky(Matrix::Matrix(Q, sparse = TRUE))
+  set.seed(123)
+  X1 <- rmvnorm_chol(n = n, mean = mean, CH = CH)
+  set.seed(123)
+  X2 <- rmvnorm_chol(n = n, mean = mean, CH = CH)
+  expect_identical(X1, X2)
+})
+
+test_that("rmvnorm_chol errors on nonconformable mean/precision", {
+  skip_if_not_installed("Matrix")
+  n <- 3L
+  mean <- c(0, 0, 0)
+  Q_bad <- diag(2)  # wrong dimension
+  CH_bad <- Matrix::Cholesky(Matrix::Matrix(Q_bad, sparse = TRUE))
+  expect_error(rmvnorm_chol(n = n, mean = mean, CH = CH_bad))
+})
+
+
 ## 'rpois_guarded' ------------------------------------------------------------
 
 test_that("'rpois_guarded' works when values below threshold - rvec", {

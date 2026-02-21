@@ -1197,10 +1197,9 @@ make_draws_post <- function(est, prec, map, n_draw, max_jitter) {
                                           prec = prec)
   }
   else {
-    R_prec <- Matrix::expand1(CH, which = "L")
     draws_nonfixed <- rmvnorm_chol(n = n_draw,
                                    mean = mu,
-                                   R_prec = R_prec)
+                                   CH = CH)
   }
   ans <- matrix(NA_real_, nrow = length(is_fixed), ncol = n_draw)
   ans[!is_fixed, ] <- draws_nonfixed

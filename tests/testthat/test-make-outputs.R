@@ -1150,7 +1150,7 @@ test_that("'make_draws_post' works with dense matrix", {
   rmvn_from_sparse_CH <- function(...) stop("Sparse branch executed")
   # Fake rmvnorm_chol to confirm call
   rmvnorm_chol_called <- FALSE
-  fake_rmvnorm_chol <- function(n, mean, R_prec) {
+  fake_rmvnorm_chol <- function(n, mean, CH) {
     rmvnorm_chol_called <<- TRUE
     matrix(rep(mean, times = n), nrow = length(mean), ncol = n)
   }

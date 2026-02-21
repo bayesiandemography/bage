@@ -39,6 +39,7 @@ if (run) {
   set_prior(time ~ AR1(s = 0.01)) |>
   set_disp(mean = 0.05) 
   rep2 <- report_sim(mod_est = mod_est, n_sim = 100, n_core = 10)
+  rep2
 }
 
 ## Normal
@@ -54,6 +55,7 @@ if (run) {
   mod_est <- set_prior(mod_est, time ~ AR1())
   mod_est <- set_disp(mod_est, mean = 0.05)
   rep3 <- report_sim(mod_est = mod_est, n_sim = 100, n_core = 10)
+  rep3
 }
 
 
@@ -98,6 +100,7 @@ if (run) {
     set_disp(mean = 0.05) |>
     set_covariates(~ income + is_2024_male)
   rep5 <- report_sim(mod_est = mod_est, n_sim = 100, n_core = 10)
+  rep5
 }
 
 

@@ -303,17 +303,19 @@ rbinom_guarded <- function(size, prob) {
 #'
 #' @param n Number of draws
 #' @param mean Mean of distribution
-#' @param R_prec Cholesky decomposition of precision matrix
+#' @param CH Cholesky decomposition of precision matrix
 #'
 #' @returns A matrix, with each columns being one draw
 #'
 #' @noRd
-rmvnorm_chol <- function(n, mean, R_prec) {
-    n_val <- length(mean)
-    Z <- matrix(stats::rnorm(n = n_val * n),
-                nrow = n_val,
-                ncol = n)
-    mean + backsolve(R_prec, Z)
+rmvnorm_chol <- function(n, mean, CH) {
+  n_val <- length(mean)
+  Z <- matrix(stats::rnorm(n = n_val * n),
+              nrow = n_val,
+              ncol = n)
+  L <- Matrix::expand(CH)$L           # lower triangular, sparseMatrix
+  E <- Matrix::solve(Matrix::t(L), Z) # solve L^T E = Z  => E = L^{-T} Z
+  mean + E
 }
 
 
@@ -702,8 +704,9 @@ rmvn_from_sparse_CH <- function(CH, mu, n_draw, prec) {
     }
   }
   ## final fallback: use dense calculations with original CH
-  L_prec <- Matrix::expand1(CH, which = "L")
-  ans <- rmvnorm_chol(n = n_draw, mean = mu, R_prec = L_prec)
+  ans <- rmvnorm_chol(n = n_draw,
+                      mean = mu,
+                      CH = CH)
   ans
 }
 
