@@ -111,7 +111,7 @@ dbetabinom <- function(x, size, shape1, shape2, log = FALSE) {
 insert_after <- function(df, nm_after, x, nm_x) {
   nms_df <- names(df)
   n_df <- length(nms_df)
-  i_after <- match(nm_after, names(df))
+  i_after <- match(nm_after, names(df), nomatch = n_df)
   if (i_after < n_df) {
     s_before <- seq_len(i_after)
     s_after <- seq.int(from = i_after + 1L, to = n_df)

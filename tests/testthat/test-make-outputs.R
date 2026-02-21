@@ -414,7 +414,7 @@ test_that("'get_datamod_prob' works", {
   )
   ans_obtained <- get_datamod_prob(datamod = datamod,
                                    components = components)
-  ans_expected <- as.matrix(prob_matrix_outcome) %*% components$.fitted[-1]
+  ans_expected <- rvec::rvec(as.matrix(prob_matrix_outcome) %*% as.matrix(components$.fitted[-1]))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -443,7 +443,7 @@ test_that("'get_datamod_rate' works", {
   )
   ans_obtained <- get_datamod_rate(datamod = datamod,
                                    components = components)
-  ans_expected <- as.matrix(rate_matrix_outcome) %*% components$.fitted[-1]
+  ans_expected <- rvec::rvec(as.matrix(rate_matrix_outcome) %*% as.matrix(components$.fitted[-1]))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1129,6 +1129,7 @@ test_that("'make_draws_post' works with valid inputs - has R_prec", {
 })
 
 test_that("'make_draws_post' works with dense matrix", {
+  skip_if(utils::packageVersion("Matrix") < "1.6.0")
   library(Matrix)
   set.seed(0)
   est <- list(effectfree = c("(Intercept)" = -3,
@@ -1169,6 +1170,7 @@ test_that("'make_draws_post' works with dense matrix", {
 })
 
 test_that("make_draws_post uses sparse path when precision is sparse", {
+  skip_if(utils::packageVersion("Matrix") < "1.6.0")
   library(Matrix)
   set.seed(1)
   # Build sparse SPD precision: Q = S'S + tau*I
@@ -1190,6 +1192,7 @@ test_that("make_draws_post uses sparse path when precision is sparse", {
 })
 
 test_that("make_draws_post uses dense path when precision is dense", {
+  skip_if(utils::packageVersion("Matrix") < "1.6.0")
   library(Matrix)
   set.seed(2)
   A  <- matrix(rnorm(100), 10, 10)
@@ -1228,7 +1231,10 @@ test_that("'make_effects' works with valid inputs - draws", {
                        age = effectfree[2:11,],
                        sex = effectfree[12:13,],
                        time = effectfree[14:19,])
-  expect_identical(ans_obtained, ans_expected)
+  expect_identical(lapply(ans_obtained,
+                          function(x) unname(as.matrix(x))),
+                   lapply(ans_expected,
+                          function(x) unname(as.matrix(x))))
 })
 
 test_that("'make_effects' works with valid inputs - point", {
@@ -1251,7 +1257,10 @@ test_that("'make_effects' works with valid inputs - point", {
                        age = matrix(effectfree[2:11]),
                        sex = matrix(effectfree[12:13]),
                        time = matrix(effectfree[14:19]))
-  expect_identical(ans_obtained, ans_expected)
+  expect_identical(lapply(ans_obtained,
+                          function(x) unname(as.matrix(x))),
+                   lapply(ans_expected,
+                          function(x) unname(as.matrix(x))))
 })
 
 
@@ -2567,7 +2576,8 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - point is F
                                                data = mod$data,
                                                dimnames_terms = mod$dimnames_terms,
                                                rows = NULL)
-  expect_equal(ans_obtained, ans_expected)
+  expect_equal(unname(as.matrix(ans_obtained)),
+               unname(as.matrix(ans_expected)))
 })
 
 test_that("'make_linpred_from_stored_draws' works with valid inputs - point is TRUE", {
@@ -2742,7 +2752,8 @@ test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - po
                                                data = mod$data,
                                                dimnames_terms = mod$dimnames_terms,
                                                rows = NULL)
-  expect_equal(ans_obtained, ans_expected)
+  expect_equal(unname(as.matrix(ans_obtained)),
+               unname(as.matrix(ans_expected)))
 })
 
 test_that("'make_linpred_from_stored_draws_effects' works with valid inputs - point is TRUE", {

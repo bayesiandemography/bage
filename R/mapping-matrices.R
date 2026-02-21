@@ -814,7 +814,8 @@ make_matrix_sub_orig_svd <- function(prior,
     dim_agesex_constr <- dim_after[sort(c(i_age, i_sexgender))]
     dim_agesex_unconstr <- dim_agesex_constr + 1L
     m_constr <- make_matrix_unconstr_constr(dim_agesex_unconstr)
-    ans <- crossprod(m_constr, ans)
+    m_constr <- Matrix::Matrix(m_constr)
+    ans <- Matrix::crossprod(m_constr, ans)
   }
   I <- Matrix::.sparseDiagonal(n_by)
   ans <- Matrix::kronecker(I, ans)

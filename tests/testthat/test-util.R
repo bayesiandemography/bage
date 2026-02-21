@@ -662,6 +662,19 @@ test_that("'insert_after' works with tibbles", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'insert_after' puts variable last if nm_after not found", {
+  df <- tibble::tibble(x = 1:3, y = 3:1)
+  x <- 11:13
+  nm_x = "new"
+  ans_obtained <- insert_after(df = df,
+                               nm_after = "not-included",
+                               x = x,
+                               nm_x = nm_x)
+  ans_expected <- tibble(x = 1:3, y = 3:1, new = 11:13)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 
 ## 'insert_before' -------------------------------------------------------
 
@@ -961,6 +974,7 @@ test_that("rmvn_from_sparse_CH: LDL fallback triggers when LL path fails (mocked
 })
 
 test_that("rmvn_from_sparse_CH: dense fallback triggers when LL and LDL both fail (mocked)", {
+  skip_if(utils::packageVersion("Matrix") < "1.6.0")
   set.seed(4)
   n  <- 4L
   Q  <- Matrix::Diagonal(n, 2)

@@ -2453,9 +2453,10 @@ test_that("'make_expected_obs_miscount' works", {
   ans_obtained <- make_expected_obs_miscount(datamod = datamod,
                                              components = components,
                                              expected = expected)
-  prob <- as.matrix(prob_matrix_outcome) %*% components$.fitted[2:5]
-  rate <- as.matrix(rate_matrix_outcome) %*% components$.fitted[6:9]
+  prob <- as.matrix(prob_matrix_outcome) %*% as.matrix(components$.fitted[2:5])
+  rate <- as.matrix(rate_matrix_outcome) %*% as.matrix(components$.fitted[6:9])
   ans_expected <- (prob + rate) * expected
+  ans <- rvec::rvec(ans_expected)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -2504,7 +2505,8 @@ test_that("'make_expected_obs_overcount' works", {
   ans_obtained <- make_expected_obs_overcount(datamod = datamod,
                                               components = components,
                                               expected = expected)
-  rate <- as.matrix(rate_matrix_outcome) %*% components$.fitted[-1]
+  rate <- as.matrix(rate_matrix_outcome) %*% as.matrix(components$.fitted[-1])
+  rate <- rvec::rvec(rate)
   ans_expected <- (1 + rate) * expected
   expect_identical(ans_obtained, ans_expected)
 })
@@ -2534,7 +2536,8 @@ test_that("'make_expected_obs_undercount' works", {
   ans_obtained <- make_expected_obs_undercount(datamod = datamod,
                                                components = components,
                                                expected = expected)
-  prob <- as.matrix(prob_matrix_outcome) %*% components$.fitted[-1]
+  prob <- as.matrix(prob_matrix_outcome) %*% as.matrix(components$.fitted[-1])
+  prob <- rvec::rvec(prob)
   ans_expected <- prob * expected
   expect_identical(ans_obtained, ans_expected)
 })

@@ -688,7 +688,8 @@ test_that("'make_matrix_draws_svd_appendzero' works - age and time", {
                                                    var_sexgender = "sex")
   ans_expected <- Matrix::kronecker(rbind(0, Matrix::.sparseDiagonal(4)),
                                     Matrix::.sparseDiagonal(3))
-  expect_identical(ans_obtained, ans_expected)
+  expect_identical(unname(as.matrix(ans_obtained)),
+                   unname(as.matrix(ans_expected)))
 })
 
 test_that("'make_matrix_draws_svd_appendzero' works - time and age", {
@@ -702,7 +703,8 @@ test_that("'make_matrix_draws_svd_appendzero' works - time and age", {
                                                    var_sexgender = "sex")
   ans_expected <- Matrix::kronecker(rbind(0, Matrix::.sparseDiagonal(4)),
                                     Matrix::.sparseDiagonal(3))
-  expect_identical(ans_obtained, ans_expected)
+  expect_identical(unname(as.matrix(ans_obtained)),
+                   unname(as.matrix(ans_expected)))
 })
 
 
@@ -887,7 +889,7 @@ test_that("'make_matrix_effectfree_effect_inner' works - append column and appen
   expect_equal(colSums(ans), rep(0, 3))
 })
 
-test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig", {
+test_that("'make_matrix_effectfree_effect_inner' works with SVD-based matrix_sub_orig", {
   dimnames_term <- list(age = poputils::age_labels(type = "five", max = 60),
                         time = 2001:2005)
   var_time <- "time"
@@ -903,7 +905,7 @@ test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig"
   expect_equal(dim(ans), c(5 * 13, 4 * 3))
 })
 
-test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig, con is 'by'", {
+test_that("'make_matrix_effectfree_effect_inner' works with SVD-based matrix_sub_orig, con is 'by'", {
   dimnames_term <- list(age = poputils::age_labels(type = "five", max = 60),
                         time = 2001:2005)
   var_time <- "time"
@@ -931,7 +933,8 @@ test_that("'make_matrix_perm_agesex_from_front' works - age and sex", {
                                           dim_after = dim_after)
   a_orig <- array(1:40, dim = c(4, 5, 2))
   a_perm <- aperm(a_orig, perm = c(2, 3, 1))
-  expect_identical(as.integer(m %*% as.integer(a_perm)), as.integer(a_orig))
+  expect_identical(as.integer(as.matrix(m) %*% as.numeric(as.matrix(a_perm))),
+                   as.integer(as.matrix(a_orig)))
 })
 
 test_that("'make_matrix_perm_agesex_from_front' works - just age", {
@@ -943,7 +946,8 @@ test_that("'make_matrix_perm_agesex_from_front' works - just age", {
                                           dim_after = dim_after)
   a_orig <- array(1:20, dim = c(4, 5))
   a_perm <- t(a_orig)
-  expect_identical(as.integer(m %*% as.integer(a_perm)), as.integer(a_orig))
+  expect_identical(as.integer(as.matrix(m) %*% as.numeric(as.matrix(a_perm))),
+                   as.integer(a_orig))
 })
 
 test_that("'make_matrix_perm_agesex_from_front' works - just age, age first", {
@@ -953,7 +957,7 @@ test_that("'make_matrix_perm_agesex_from_front' works - just age, age first", {
   m <- make_matrix_perm_agesex_from_front(i_age = i_age,
                                           i_sexgender = i_sexgender,
                                           dim_after = dim_after)
-  expect_identical(as.matrix(m), diag(20))
+  expect_identical(unname(as.matrix(m)), diag(20))
 })
 
 
@@ -962,13 +966,13 @@ test_that("'make_matrix_perm_agesex_from_front' works - just age, age first", {
 test_that("'make_matrix_perm_along_from_front' reverses effects of 'make_matrix_perm_along_to_front'", {
   m1 <- make_matrix_perm_along_to_front(dim_after = c(4L, 2:3), i_along = 3L)
   m2 <- make_matrix_perm_along_from_front(dim_after = 2:4, i_along = 3L)
-  expect_identical(as.matrix(m2 %*% m1), diag(24L))
+  expect_identical(unname(as.matrix(m2 %*% m1)), diag(24L))
   m1 <- make_matrix_perm_along_to_front(dim_after = c(3L, 2L, 4L), i_along = 2L)
   m2 <- make_matrix_perm_along_from_front(dim_after = 2:4, i_along = 2L)
-  expect_identical(as.matrix(m2 %*% m1), diag(24L))
+  expect_identical(unname(as.matrix(m2 %*% m1)), diag(24L))
   m1 <- make_matrix_perm_along_to_front(dim_after = 2:4, i_along = 1L)
   m2 <- make_matrix_perm_along_from_front(dim_after = 2:4, i_along = 1L)
-  expect_identical(as.matrix(m2 %*% m1), diag(24L))
+  expect_identical(unname(as.matrix(m2 %*% m1)), diag(24L))
 })
 
 
@@ -982,6 +986,7 @@ test_that("'make_matrix_perm_along_to_front' works with 2 dimensions, along firs
 
 test_that("'make_matrix_perm_along_to_front' works with 2 dimensions, along second", {
   m <- make_matrix_perm_along_to_front(i_along = 2L, dim_after = 2:3)
+  m <- as.matrix(m)
   x <- matrix(1:6, nr = 3)
   expect_identical(matrix(m %*% as.integer(x), nr = 2),
                    1 * t(x))
@@ -990,6 +995,7 @@ test_that("'make_matrix_perm_along_to_front' works with 2 dimensions, along seco
 
 test_that("'make_matrix_perm_along_to_front' works with 3 dimensions, along second", {
   m <- make_matrix_perm_along_to_front(i_along = 2L, dim_after = c(2L, 3L, 2L))
+  m <- as.matrix(m)
   x <- array(1:12, dim = c(3, 2, 2))
   expect_identical(array(m %*% as.integer(x), dim = c(2, 3, 2)),
                    1 * aperm(x, perm = c(2, 1, 3)))
