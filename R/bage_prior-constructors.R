@@ -1166,9 +1166,10 @@ RW <- function(s = 1,
 #' When using quarterly data, for instance,
 #' `n_seas` should be `4`.
 #'
-#' By default, the magnitude of seasonal effects
-#' is fixed. However, setting `s_seas` to a value
-#' greater than zero produces seasonal effects
+#' Setting `s_seas` to `0` produces
+#' seasonal effects that are the same
+#' each year. Setting `s_seas` to a value
+#' greater than `0` produces seasonal effects
 #' that evolve over time.
 #'
 #' @section Mathematical details:
@@ -1525,9 +1526,10 @@ RW2_Infant <- function(s = 1,
 #' When using quarterly data, for instance,
 #' `n_seas` should be `4`.
 #'
-#' By default, the magnitude of seasonal effects
-#' is fixed. However, setting `s_seas` to a value
-#' greater than zero produces seasonal effects
+#' Setting `s_seas` to `0` produces
+#' seasonal effects that are the same
+#' each year. Setting `s_seas` to a value
+#' greater than `0` produces seasonal effects
 #' that evolve over time.
 #'
 #' @section Mathematical details:

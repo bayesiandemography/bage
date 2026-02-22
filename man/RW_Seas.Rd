@@ -72,9 +72,10 @@ Argument \code{n_seas} controls the number of seasons.
 When using quarterly data, for instance,
 \code{n_seas} should be \code{4}.
 
-By default, the magnitude of seasonal effects
-is fixed. However, setting \code{s_seas} to a value
-greater than zero produces seasonal effects
+Setting \code{s_seas} to \code{0} produces
+seasonal effects that are the same
+each year. Setting \code{s_seas} to a value
+greater than \code{0} produces seasonal effects
 that evolve over time.
 }
 \section{Mathematical details}{
