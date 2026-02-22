@@ -15,7 +15,7 @@ to model a main effect or interaction involving age."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@ to model a main effect or interaction involving age.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">SVD</span><span class="op">(</span><span class="va">ssvd</span>, v <span class="op">=</span> <span class="cn">NULL</span>, n_comp <span class="op">=</span> <span class="cn">NULL</span>, indep <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">SVD</span><span class="op">(</span><span class="va">ssvd</span>, v <span class="op">=</span> <span class="cn">NULL</span>, n_comp <span class="op">=</span> <span class="fl">3</span>, indep <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -70,8 +70,7 @@ recent version is used.</p></dd>
 
 <dt id="arg-n-comp">n_comp<a class="anchor" aria-label="anchor" href="#arg-n-comp"></a></dt>
 <dd><p>Number of components from scaled SVD
-to use in modelling. The default is half
-the number of components of <code>ssvd</code>.</p></dd>
+to use in modelling. The default is <code>3</code>.</p></dd>
 
 
 <dt id="arg-indep">indep<a class="anchor" aria-label="anchor" href="#arg-indep"></a></dt>
@@ -244,10 +243,10 @@ main effect, or interaction</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   SVD(HMD) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       ssvd: HMD</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     n_comp: 3</span>
-<span class="r-in"><span><span class="fu">SVD</span><span class="op">(</span><span class="va">HMD</span>, n_comp <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   SVD(HMD) </span>
+<span class="r-in"><span><span class="fu">SVD</span><span class="op">(</span><span class="va">HMD</span>, n_comp <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   SVD(HMD,n_comp=2) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       ssvd: HMD</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     n_comp: 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n_comp: 2</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

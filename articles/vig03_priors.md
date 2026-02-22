@@ -407,14 +407,14 @@ AR1(s = 0.01, min = -1, max = 1) |>
 \text{otherwise} \\ \omega & \sim \text{N}^+\left(0,
 \mathtt{s\\seas}^2\right) \end{align}\\
 
-#### 3.5.2 All defaults
+#### 3.5.2 All defaults plus `s_seas = 0`
 
-`s = 1`, `sd = 1`, `s_seas = 0`, `sd_seas = 1`
+`s = 1`, `sd = 1`, `sd_seas = 1`, `s_seas = 0`,
 
 ``` r
 set.seed(0)
 
-RW_Seas(n_seas = 4) |>
+RW_Seas(n_seas = 4, s_seas = 0) |>
   generate(n_draw = 8) |>
   plot_cor_one()
 ```
@@ -423,12 +423,12 @@ RW_Seas(n_seas = 4) |>
 
 #### 3.5.3 Reduce `s`, `sd`
 
-`s = 0.01`, `sd = 0`, `s_seas = 0`, `sd_seas = 1`
+`s = 0.01`, `sd = 0`, `s_seas = 0`
 
 ``` r
 set.seed(0)
 
-RW_Seas(n_seas = 4, s = 0.01, sd = 0) |>
+RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 0) |>
   generate(n_draw = 8) |>
   plot_cor_one()
 ```
@@ -456,7 +456,7 @@ RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 1) |>
 ``` r
 set.seed(0)
 
-RW_Seas(n_seas = 4, s = 0.01, sd = 0, sd_seas = 0.01) |>
+RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 0, sd_seas = 0.01) |>
   generate(n_draw = 8) |>
   plot_cor_one()
 ```
@@ -479,14 +479,14 @@ RW_Seas(n_seas = 4, s = 0.01, sd = 0, sd_seas = 0.01) |>
 \text{otherwise} \\ \omega & \sim \text{N}^+\left(0,
 \mathtt{s\\seas}^2\right) \end{align}\\
 
-#### 3.6.2 All defaults
+#### 3.6.2 All defaults, plus `s_seas = 0`
 
 `s = 1`, `sd = 1`, `sd_slope = 1`, `s_seas = 0`, `sd_seas = 1`
 
 ``` r
 set.seed(0)
 
-RW2_Seas(n_seas = 4) |>
+RW2_Seas(n_seas = 4, s_seas = 0) |>
   generate(n_draw = 8) |>
   plot_cor_one()
 ```
@@ -500,7 +500,8 @@ RW2_Seas(n_seas = 4) |>
 ``` r
 set.seed(0)
 
-RW2_Seas(n_seas = 4, s = 0.01, sd = 0, sd_slope = 0.01, sd_seas = 0.01) |>
+RW2_Seas(n_seas = 4, s = 0.01, sd = 0, sd_slope = 0.01,
+         s_seas = 0, sd_seas = 0.01) |>
   generate(n_draw = 8) |>
   plot_cor_one()
 ```

@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -215,7 +215,7 @@
 <span><span class="co">#&gt;    1000     year     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        0.83     0.35      0.41   11      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.81     0.34      0.40   11      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Among other things, a new row appears at the bottom of the printout, providing information about the fitting process. The most important value piece of information is whether the calculations have converged.</p>
 <p>One thing the printout does not include is estimates for the model parameters. The reason for excluding them is that there are too many. Statistical models in other R packages often focus on one or two key parameters, such a parameter measuring a treatment effect. In contrast, models in <code>bage</code> often estimate values for thousands, or tens of thousands, of parameters.</p>
 <p>To obtain the estimates from a fitted model, we need specialised extractor functions, which we discuss next.</p>
@@ -466,7 +466,7 @@
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.71     1.59      1.01   22      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.69     1.57      1.01   22      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2" number="7">
@@ -803,7 +803,7 @@
 <h3 id="experimental-status">
 <span class="header-section-number">13.2</span> Experimental status<a class="anchor" aria-label="anchor" href="#experimental-status"></a>
 </h3>
-<p><code>bage</code> currently has an <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> life cycle badge, to warn users that some features of the <code>bage</code> interface, such as function arguments, are still evolving. We hope to graduate from experimental status by the end of 2025.</p>
+<p><code>bage</code> currently has an <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> life cycle badge, to warn users that some features of the <code>bage</code> interface, such as function arguments, are still evolving.</p>
 </div>
 <div class="section level3" number="13.3">
 <h3 id="bug-reports-and-feature-requests">

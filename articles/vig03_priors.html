@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -503,14 +503,14 @@ The prior for <span class="math inline">\(\phi\)</span> is
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="3.5.2">
-<h4 id="all-defaults-6">
-<span class="header-section-number">3.5.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-6"></a>
+<h4 id="all-defaults-plus-s_seas-0">
+<span class="header-section-number">3.5.2</span> All defaults plus <code>s_seas = 0</code><a class="anchor" aria-label="anchor" href="#all-defaults-plus-s_seas-0"></a>
 </h4>
-<p><code>s = 1</code>, <code>sd = 1</code>, <code>s_seas = 0</code>, <code>sd_seas = 1</code></p>
+<p><code>s = 1</code>, <code>sd = 1</code>, <code>sd_seas = 1</code>, <code>s_seas = 0</code>,</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/RW_Seas.html">RW_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="fu"><a href="../reference/RW_Seas.html">RW_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s_seas <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span>n_draw <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">plot_cor_one</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig03_priors_files/figure-html/unnamed-chunk-26-1.png" alt="" width="672"></p>
@@ -519,11 +519,11 @@ The prior for <span class="math inline">\(\phi\)</span> is
 <h4 id="reduce-s-sd">
 <span class="header-section-number">3.5.3</span> Reduce <code>s</code>, <code>sd</code><a class="anchor" aria-label="anchor" href="#reduce-s-sd"></a>
 </h4>
-<p><code>s = 0.01</code>, <code>sd = 0</code>, <code>s_seas = 0</code>, <code>sd_seas = 1</code></p>
+<p><code>s = 0.01</code>, <code>sd = 0</code>, <code>s_seas = 0</code></p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/RW_Seas.html">RW_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s <span class="op">=</span> <span class="fl">0.01</span>, sd <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="fu"><a href="../reference/RW_Seas.html">RW_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s <span class="op">=</span> <span class="fl">0.01</span>, sd <span class="op">=</span> <span class="fl">0</span>, s_seas <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span>n_draw <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">plot_cor_one</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig03_priors_files/figure-html/unnamed-chunk-27-1.png" alt="" width="672"></p>
@@ -549,7 +549,7 @@ The prior for <span class="math inline">\(\phi\)</span> is
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/RW_Seas.html">RW_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s <span class="op">=</span> <span class="fl">0.01</span>, sd <span class="op">=</span> <span class="fl">0</span>, sd_seas <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="fu"><a href="../reference/RW_Seas.html">RW_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s <span class="op">=</span> <span class="fl">0.01</span>, sd <span class="op">=</span> <span class="fl">0</span>, s_seas <span class="op">=</span> <span class="fl">0</span>, sd_seas <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span>n_draw <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">plot_cor_one</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig03_priors_files/figure-html/unnamed-chunk-29-1.png" alt="" width="672"></p>
@@ -576,14 +576,14 @@ The prior for <span class="math inline">\(\phi\)</span> is
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="3.6.2">
-<h4 id="all-defaults-7">
-<span class="header-section-number">3.6.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-7"></a>
+<h4 id="all-defaults-plus-s_seas-0-1">
+<span class="header-section-number">3.6.2</span> All defaults, plus <code>s_seas = 0</code><a class="anchor" aria-label="anchor" href="#all-defaults-plus-s_seas-0-1"></a>
 </h4>
 <p><code>s = 1</code>, <code>sd = 1</code>, <code>sd_slope = 1</code>, <code>s_seas = 0</code>, <code>sd_seas = 1</code></p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/RW2_Seas.html">RW2_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="fu"><a href="../reference/RW2_Seas.html">RW2_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s_seas <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span>n_draw <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">plot_cor_one</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig03_priors_files/figure-html/unnamed-chunk-30-1.png" alt="" width="672"></p>
@@ -596,7 +596,8 @@ The prior for <span class="math inline">\(\phi\)</span> is
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/RW2_Seas.html">RW2_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s <span class="op">=</span> <span class="fl">0.01</span>, sd <span class="op">=</span> <span class="fl">0</span>, sd_slope <span class="op">=</span> <span class="fl">0.01</span>, sd_seas <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="fu"><a href="../reference/RW2_Seas.html">RW2_Seas</a></span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s <span class="op">=</span> <span class="fl">0.01</span>, sd <span class="op">=</span> <span class="fl">0</span>, sd_slope <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>         s_seas <span class="op">=</span> <span class="fl">0</span>, sd_seas <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span>n_draw <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">plot_cor_one</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="vig03_priors_files/figure-html/unnamed-chunk-31-1.png" alt="" width="672"></p>
@@ -619,8 +620,8 @@ The prior for <span class="math inline">\(\phi\)</span> is
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="3.7.2">
-<h4 id="all-defaults-8">
-<span class="header-section-number">3.7.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-8"></a>
+<h4 id="all-defaults-6">
+<span class="header-section-number">3.7.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-6"></a>
 </h4>
 <p><code>s = 1</code>, <code>mean_slope = 0</code>, <code>sd_slope = 1</code></p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
@@ -700,8 +701,8 @@ The prior for <span class="math inline">\(\phi\)</span> is
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="3.8.2">
-<h4 id="all-defaults-9">
-<span class="header-section-number">3.8.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-9"></a>
+<h4 id="all-defaults-7">
+<span class="header-section-number">3.8.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-7"></a>
 </h4>
 <p><code>n_coef = 2</code>, <code>s = 1</code>, <code>mean_slope = 0</code>, <code>sd_slope = 1</code></p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
@@ -744,8 +745,8 @@ The prior for <span class="math inline">\(\phi\)</span> is
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="3.9.2">
-<h4 id="all-defaults-10">
-<span class="header-section-number">3.9.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-10"></a>
+<h4 id="all-defaults-8">
+<span class="header-section-number">3.9.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-8"></a>
 </h4>
 <p><code>s = 1</code>, <code>min = 0.8</code>, <code>max = 0.98</code>, <code>mean_slope = 0</code>, <code>sd_slope = 1</code></p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
@@ -800,8 +801,8 @@ The prior for <span class="math inline">\(\phi\)</span> is
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="3.10.2">
-<h4 id="all-defaults-11">
-<span class="header-section-number">3.10.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-11"></a>
+<h4 id="all-defaults-9">
+<span class="header-section-number">3.10.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-9"></a>
 </h4>
 <p><code>n_comp = NULL</code>, <code>s = 1</code>, <code>sd = 1</code>, <code>sd_slope = 1</code></p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
@@ -857,8 +858,8 @@ The prior for <span class="math inline">\(\phi\)</span> is
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="4.1.2">
-<h4 id="all-defaults-12">
-<span class="header-section-number">4.1.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-12"></a>
+<h4 id="all-defaults-10">
+<span class="header-section-number">4.1.2</span> All defaults<a class="anchor" aria-label="anchor" href="#all-defaults-10"></a>
 </h4>
 <p><code>n_comp = NULL</code>, <code>indep = TRUE</code></p>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">

@@ -23,7 +23,7 @@ Typically used with temrs that involve time."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,10 +63,10 @@ Typically used with temrs that involve time.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">RW2_Seas</span><span class="op">(</span></span>
 <span>  <span class="va">n_seas</span>,</span>
+<span>  <span class="va">s_seas</span>,</span>
 <span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sd <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sd_slope <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  s_seas <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  sd_seas <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  along <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  con <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"by"</span><span class="op">)</span></span>
@@ -79,6 +79,13 @@ Typically used with temrs that involve time.</p>
 
 <dl><dt id="arg-n-seas">n_seas<a class="anchor" aria-label="anchor" href="#arg-n-seas"></a></dt>
 <dd><p>Number of seasons</p></dd>
+
+
+<dt id="arg-s-seas">s_seas<a class="anchor" aria-label="anchor" href="#arg-s-seas"></a></dt>
+<dd><p>Scale for innovations
+in seasonal effects. Can be <code>0</code>. When
+greater than 0, seasonal effects vary
+from year to year.</p></dd>
 
 
 <dt id="arg-s">s<a class="anchor" aria-label="anchor" href="#arg-s"></a></dt>
@@ -95,11 +102,6 @@ Can be <code>0</code>.</p></dd>
 <dt id="arg-sd-slope">sd_slope<a class="anchor" aria-label="anchor" href="#arg-sd-slope"></a></dt>
 <dd><p>Standard deviation
 for initial slope of random walk. Default is <code>1</code>.</p></dd>
-
-
-<dt id="arg-s-seas">s_seas<a class="anchor" aria-label="anchor" href="#arg-s-seas"></a></dt>
-<dd><p>Scale for innovations
-in seasonal effects. Default is <code>0</code>.</p></dd>
 
 
 <dt id="arg-sd-seas">sd_seas<a class="anchor" aria-label="anchor" href="#arg-sd-seas"></a></dt>
@@ -139,9 +141,10 @@ Smaller values for <code>s</code> tend to produce smoother series.</p>
 <p>Argument <code>n_seas</code> controls the number of seasons.
 When using quarterly data, for instance,
 <code>n_seas</code> should be <code>4</code>.</p>
-<p>By default, the magnitude of seasonal effects
-is fixed. However, setting <code>s_seas</code> to a value
-greater than zero produces seasonal effects
+<p>Setting <code>s_seas</code> to <code>0</code> produces
+seasonal effects that are the same
+each year. Setting <code>s_seas</code> to a value
+greater than <code>0</code> produces seasonal effects
 that evolve over time.</p>
     </div>
     <div class="section level2">
@@ -218,33 +221,38 @@ vignette</p></li>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">RW2_Seas</span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>               <span class="co">## seasonal effects fixed</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   RW2_Seas(n_seas=4) </span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## seasonal effects fixed</span></span></span>
+<span class="r-in"><span><span class="fu">RW2_Seas</span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s_seas <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   RW2_Seas(n_seas=4,s_seas=0) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     n_seas: 4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         sd: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     s_seas: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    sd_seas: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
-<span class="r-in"><span><span class="fu">RW2_Seas</span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s_seas <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="co">## seasonal effects evolve</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   RW2_Seas(n_seas=4,s_seas=0.5) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     n_seas: 4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         sd: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     s_seas: 0.5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    sd_seas: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
-<span class="r-in"><span><span class="fu">RW2_Seas</span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, sd <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>       <span class="co">## first term in random walk fixed at 0</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   RW2_Seas(n_seas=4,sd=0) </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## seasonal effects evolve</span></span></span>
+<span class="r-in"><span><span class="fu">RW2_Seas</span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s_seas <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   RW2_Seas(n_seas=4,s_seas=1) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     n_seas: 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     s_seas: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         sd: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         sd: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     s_seas: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    sd_seas: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## first term in random walk fixed at 0</span></span></span>
+<span class="r-in"><span><span class="fu">RW2_Seas</span><span class="op">(</span>n_seas <span class="op">=</span> <span class="fl">4</span>, s_seas <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>       </span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   RW2_Seas(n_seas=4,s_seas=1,sd=0) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n_seas: 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     s_seas: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         sd: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    sd_seas: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>

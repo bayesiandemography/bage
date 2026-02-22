@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,29 +44,28 @@
 <p>This document describes high-level plans for the development of <code>bage</code>. For detailed planning and issue tracking see <a href="https://github.com/bayesiandemography/bage/issues" class="external-link">GitHub issues</a>. For past changes, see <a href="https://github.com/bayesiandemography/bage/blob/main/NEWS.md" class="external-link">NEWS</a>.</p>
 <hr><div class="section level2">
 <h2 id="scope-of-the-bage-package">Scope of the bage package<a class="anchor" aria-label="anchor" href="#scope-of-the-bage-package"></a></h2>
-<p>What we are aiming for in the long run.</p>
 <div class="section level4">
 <h4 id="included">Included<a class="anchor" aria-label="anchor" href="#included"></a></h4>
 <ul><li>Fast scalable, estimation and forecasting of disaggregated demographic rates</li>
-<li>Measurement error models and confidentialization</li>
-<li>Automated imputation</li>
-<li>Support for complete Bayesian workflow
-<ul><li>Prior predictive distribution</li>
-<li>Posterior prediction distribution</li>
-<li>Simulation</li>
-<li>Model comparison</li>
-</ul></li>
+<li>
+</li><li>Measurement error models and confidentialization</li>
+<li>Automated handling of missing variables, imputation</li>
+<li>Support for complete Bayesian workflow</li>
 </ul></div>
 <div class="section level4">
 <h4 id="not-included">Not included<a class="anchor" aria-label="anchor" href="#not-included"></a></h4>
 <ul><li>Demographic accounts</li>
-<li>Individual-level models</li>
-</ul><hr></div>
+</ul><table style="width:6%;" class="table"><colgroup><col width="5%"></colgroup><tbody><tr class="odd"><td>## Moving out of experimental status</td>
+</tr><tr class="even"><td>#### Current situation</td>
+</tr><tr class="odd"><td>- Still experimenting with algoriths, features - API still subject to change (with warnings)</td>
+</tr><tr class="even"><td>#### Version 1.0.0</td>
+</tr><tr class="odd"><td>- API stabilised: remove experimental tag - Slower deprecation schedule - Higher bar for deprecation, and deprecate over a longer period</td>
+</tr></tbody></table></div>
 </div>
 <div class="section level2">
-<h2 id="upcoming-releases">Upcoming releases<a class="anchor" aria-label="anchor" href="#upcoming-releases"></a></h2>
+<h2 id="upcoming-features">Upcoming features<a class="anchor" aria-label="anchor" href="#upcoming-features"></a></h2>
 <div class="section level4">
-<h4 id="id_0120---fitting-multiple-models">0.12.0 - Fitting multiple models<a class="anchor" aria-label="anchor" href="#id_0120---fitting-multiple-models"></a></h4>
+<h4 id="fitting-multiple-models">Fitting multiple models<a class="anchor" aria-label="anchor" href="#fitting-multiple-models"></a></h4>
 <ul><li>Automated model-fitting for multiple versions of inputs
 <ul><li>Outcome and/or offset specified via rvecs</li>
 <li>Auomatically run model multiple times and pool results</li>
@@ -82,27 +81,36 @@
 <ul><li>Compare models’ ability to impute values when single categories dropped</li>
 </ul></li>
 </ul></div>
-<div class="section level4">
-<h4 id="revised-approach-to-standardization">Revised approach to standardization<a class="anchor" aria-label="anchor" href="#revised-approach-to-standardization"></a></h4>
-<ul><li>Will be implemented if experiments successful</li>
-<li>Revised approach to standardization of terms in prior model
-<ul><li>Estimates for non-time dimensions that already appear in the model will be centered within TMB</li>
-<li>The <code>con</code> argument in <code>set_prior_*()</code> functions (which controls standardization at present) will be removed (it will be redundant, as all terms will be standardized)</li>
-</ul></li>
-</ul></div>
-<div class="section level4">
-<h4 id="sparse-poisson-and-binomial-models">Sparse Poisson and binomial models<a class="anchor" aria-label="anchor" href="#sparse-poisson-and-binomial-models"></a></h4>
-<ul><li>Will be implemented if experiments successful</li>
-<li>Specialised calculations in case where outcomes include high (ie 95% or more) percentage of zeros</li>
-</ul></div>
-<div class="section level4">
-<h4 id="version-100">Version 1.0.0<a class="anchor" aria-label="anchor" href="#version-100"></a></h4>
-<ul><li>API stabilised: remove experimental tag</li>
-<li>Slower deprecation schedule
-<ul><li>Higher bar for deprecation, and deprecate over a longer period</li>
-</ul></li>
-</ul><hr></div>
 </div>
+<div class="section level2">
+<h2 id="extending-suite-of-priors">Extending suite of priors<a class="anchor" aria-label="anchor" href="#extending-suite-of-priors"></a></h2>
+<ul><li>Origin-destination</li>
+<li>Spatial smoothing</li>
+<li>Local level and linear trend priors</li>
+<li>Regime switching</li>
+</ul></div>
+<div class="section level2">
+<h2 id="model-outputs">Model outputs<a class="anchor" aria-label="anchor" href="#model-outputs"></a></h2>
+<ul><li>Automatic generation of model equations</li>
+<li>Automatic generation of HTML document describing model</li>
+<li>Option of more structured output from <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>
+</li>
+</ul></div>
+<div class="section level2">
+<h2 id="optimisation">Optimisation<a class="anchor" aria-label="anchor" href="#optimisation"></a></h2>
+<ul><li>Continued work behind the scenes to increase speed, reduce memory usage</li>
+</ul></div>
+<div class="section level2">
+<h2 id="measurement-error-models">Measurement error models<a class="anchor" aria-label="anchor" href="#measurement-error-models"></a></h2>
+<ul><li>Expand current suite of generic measurement error models</li>
+<li>Utilities (eg small models) to help users create inputs for measurement error models</li>
+</ul></div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a></h2>
+<ul><li>More vignettes</li>
+<li>Shiny app for exploring priors</li>
+<li>Long term: An open access book</li>
+</ul><hr></div>
 <div class="section level2">
 <h2 id="current-deprecated-features">Current deprecated features<a class="anchor" aria-label="anchor" href="#current-deprecated-features"></a></h2>
 <ul><li>Using <code>exposure = 1</code> to specify a counts-only model in <code><a href="reference/mod_pois.html">mod_pois()</a></code>
@@ -115,7 +123,6 @@
 <li>Alternative: omit <code>weights</code> argument from call, or set <code>weights = NULL</code>
 </li>
 </ul></li>
-<li>Users warned that <code>con</code> argument to <code>set_prior_*()</code> functions experimental</li>
 </ul></div>
 </div>
 

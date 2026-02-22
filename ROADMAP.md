@@ -10,30 +10,30 @@ changes, see
 
 ## Scope of the bage package
 
-What we are aiming for in the long run.
-
 #### Included
 
 - Fast scalable, estimation and forecasting of disaggregated demographic
   rates
+- 
 - Measurement error models and confidentialization
-- Automated imputation
+- Automated handling of missing variables, imputation
 - Support for complete Bayesian workflow
-  - Prior predictive distribution
-  - Posterior prediction distribution
-  - Simulation
-  - Model comparison
 
 #### Not included
 
 - Demographic accounts
-- Individual-level models
 
-------------------------------------------------------------------------
+|                                                                                                                                           |
+|-------------------------------------------------------------------------------------------------------------------------------------------|
+| \## Moving out of experimental status                                                                                                     |
+| \#### Current situation                                                                                                                   |
+| \- Still experimenting with algoriths, features - API still subject to change (with warnings)                                             |
+| \#### Version 1.0.0                                                                                                                       |
+| \- API stabilised: remove experimental tag - Slower deprecation schedule - Higher bar for deprecation, and deprecate over a longer period |
 
-## Upcoming releases
+## Upcoming features
 
-#### 0.12.0 - Fitting multiple models
+#### Fitting multiple models
 
 - Automated model-fitting for multiple versions of inputs
   - Outcome and/or offset specified via rvecs
@@ -51,27 +51,36 @@ What we are aiming for in the long run.
   - Compare models’ ability to impute values when single categories
     dropped
 
-#### Revised approach to standardization
+## Extending suite of priors
 
-- Will be implemented if experiments successful
-- Revised approach to standardization of terms in prior model
-  - Estimates for non-time dimensions that already appear in the model
-    will be centered within TMB
-  - The `con` argument in `set_prior_*()` functions (which controls
-    standardization at present) will be removed (it will be redundant,
-    as all terms will be standardized)
+- Origin-destination
+- Spatial smoothing
+- Local level and linear trend priors
+- Regime switching
 
-#### Sparse Poisson and binomial models
+## Model outputs
 
-- Will be implemented if experiments successful
-- Specialised calculations in case where outcomes include high (ie 95%
-  or more) percentage of zeros
+- Automatic generation of model equations
+- Automatic generation of HTML document describing model
+- Option of more structured output from
+  [`components()`](https://generics.r-lib.org/reference/components.html)
 
-#### Version 1.0.0
+## Optimisation
 
-- API stabilised: remove experimental tag
-- Slower deprecation schedule
-  - Higher bar for deprecation, and deprecate over a longer period
+- Continued work behind the scenes to increase speed, reduce memory
+  usage
+
+## Measurement error models
+
+- Expand current suite of generic measurement error models
+- Utilities (eg small models) to help users create inputs for
+  measurement error models
+
+## Documentation
+
+- More vignettes
+- Shiny app for exploring priors
+- Long term: An open access book
 
 ------------------------------------------------------------------------
 
@@ -86,5 +95,3 @@ What we are aiming for in the long run.
   - Soft-deprecated, but will be hard-deprecated before version 1.0.0
   - Alternative: omit `weights` argument from call, or set
     `weights = NULL`
-- Users warned that `con` argument to `set_prior_*()` functions
-  experimental

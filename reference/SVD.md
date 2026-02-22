@@ -6,7 +6,7 @@ effect or interaction involving age.
 ## Usage
 
 ``` r
-SVD(ssvd, v = NULL, n_comp = NULL, indep = TRUE)
+SVD(ssvd, v = NULL, n_comp = 3, indep = TRUE)
 ```
 
 ## Arguments
@@ -24,7 +24,7 @@ SVD(ssvd, v = NULL, n_comp = NULL, indep = TRUE)
 - n_comp:
 
   Number of components from scaled SVD to use in modelling. The default
-  is half the number of components of `ssvd`.
+  is `3`.
 
 - indep:
 
@@ -262,8 +262,8 @@ SVD(HMD)
 #>   SVD(HMD) 
 #>       ssvd: HMD
 #>     n_comp: 3
-SVD(HMD, n_comp = 3)
-#>   SVD(HMD) 
+SVD(HMD, n_comp = 2)
+#>   SVD(HMD,n_comp=2) 
 #>       ssvd: HMD
-#>     n_comp: 3
+#>     n_comp: 2
 ```

@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,11 +40,20 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.8" id="bage-0108">bage 0.10.8<a class="anchor" aria-label="anchor" href="#bage-0108"></a></h2>
+<div class="section level3">
+<h3 id="interface-0-10-8">Interface<a class="anchor" aria-label="anchor" href="#interface-0-10-8"></a></h3>
+<ul><li>Added prior <code><a href="../reference/SVD_AR.html">SVD_Lin()</a></code>, in which SVD coefficients evolve according to a <code><a href="../reference/Lin.html">Lin()</a></code> prior.</li>
+<li>Changed rule for default for <code>n_comp</code> argument of SVD priors. Previously <code>n_comp</code> was half the number of components of the <code>ssvd</code> argument (rounded up), giving a value of <code>3</code> for the SSVD objects implemented in <code>bage</code>. It is now simply <code>3</code>, with no link to the <code>ssvd</code> argument.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.7" id="bage-0107">bage 0.10.7<a class="anchor" aria-label="anchor" href="#bage-0107"></a></h2>
 <div class="section level3">
 <h3 id="interface-0-10-7">Interface<a class="anchor" aria-label="anchor" href="#interface-0-10-7"></a></h3>
 <ul><li>Added <code>rows</code> argument to <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> and <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> allowing users to request results for a subset of <code>data</code>. (<a href="https://github.com/bayesiandemography/bage/issues/106" class="external-link">#106</a>)</li>
 <li>Removed warning about rules for aggregation changing. The warning was introduced in version 0.9.9.</li>
+<li>Removed the default for the <code>s_seas</code> argument in <code><a href="../reference/RW_Seas.html">RW_Seas()</a></code> and <code><a href="../reference/RW2_Seas.html">RW2_Seas()</a></code> priors, which was previous <code>0</code>. In practice, the default of <code>0</code> was not intuivitely obvious, but neither was any other value (eg <code>1</code>), so it is safest to force the user to specify explicitly.</li>
 </ul></div>
 </div>
     <div class="section level2">
@@ -64,8 +73,8 @@
 <h2 class="pkg-version" data-toc-text="0.10.5" id="bage-0105">bage 0.10.5<a class="anchor" aria-label="anchor" href="#bage-0105"></a></h2>
 <div class="section level3">
 <h3 id="added-damped-random-walk-priors-0-10-5">Added ‘damped random walk’ priors<a class="anchor" aria-label="anchor" href="#added-damped-random-walk-priors-0-10-5"></a></h3>
-<ul><li>Added priors <code>drw()</code>, <code>drw2()</code> implementing damped versions of random walks and second-order random walks. In the <code>drw()</code> case, the basic idea is <code>x[t] = phi * x[t-1] + error[t]</code>. In the <code>drw2()</code> case it is <code>x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) +   error[t]</code>. These priors are useful for forecasting.</li>
-<li>Added priors <code>svd_drw()</code> and <code>svd_drw2()</code>. As above, but the random walks are on the coefficients for SVDs.</li>
+<ul><li>Added priors <code><a href="../reference/DRW.html">DRW()</a></code>, <code><a href="../reference/DRW2.html">DRW2()</a></code> implementing damped versions of random walks and second-order random walks. In the <code><a href="../reference/DRW.html">DRW()</a></code> case, the basic idea is <code>x[t] = phi * x[t-1] + error[t]</code>. In the <code><a href="../reference/DRW2.html">DRW2()</a></code> case it is <code>x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) +   error[t]</code>. These priors are useful for forecasting.</li>
+<li>Added priors <code><a href="../reference/SVD_AR.html">SVD_DRW()</a></code> and <code><a href="../reference/SVD_AR.html">SVD_DRW2()</a></code>. As above, but the random walks are on the coefficients for SVDs.</li>
 </ul></div>
 </div>
     <div class="section level2">

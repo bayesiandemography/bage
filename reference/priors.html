@@ -5,39 +5,15 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Priors for Intercept, Main Effects, Interactions — priors"><meta name="description" content="The models created with functions mod_pois(), mod_binom(),
-and mod_norm() always include an intercept,
-and typically include main effects
-and interactions formed from variables in input data.
-Most models, for instance
-include an age effect, and many include
-an interaction between age and sex/gender,
-or age and time.
-The intercept, main effects, and interactions
-all have prior models that capture the expected
-behavior of the term. Current choices for priors
-summarised in the table below.
-Priors where 'forecast' is yes can be used
-in forecasts for a time-varying
-terms such as an age-time interactions.
-Priors where 'along' is yes distinguish
-between 'along' and 'by' dimensions."><meta property="og:description" content="The models created with functions mod_pois(), mod_binom(),
-and mod_norm() always include an intercept,
-and typically include main effects
-and interactions formed from variables in input data.
-Most models, for instance
-include an age effect, and many include
-an interaction between age and sex/gender,
-or age and time.
-The intercept, main effects, and interactions
-all have prior models that capture the expected
-behavior of the term. Current choices for priors
-summarised in the table below.
-Priors where 'forecast' is yes can be used
-in forecasts for a time-varying
-terms such as an age-time interactions.
-Priors where 'along' is yes distinguish
-between 'along' and 'by' dimensions."></head><body>
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Priors for Intercept, Main Effects, Interactions — priors"><meta name="description" content="The models created with mod_pois(), mod_binom(),
+and mod_norm() include terms such as age effects
+and region-time interactions. Each of these terms
+requires a prior distribution. Current options
+for these priors are summarised in the table below."><meta property="og:description" content="The models created with mod_pois(), mod_binom(),
+and mod_norm() include terms such as age effects
+and region-time interactions. Each of these terms
+requires a prior distribution. Current options
+for these priors are summarised in the table below."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -45,7 +21,7 @@ between 'along' and 'by' dimensions."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,40 +49,55 @@ between 'along' and 'by' dimensions."></head><body>
     </div>
 
     <div class="ref-description section level2">
-    <p>The models created with functions <code><a href="mod_pois.html">mod_pois()</a></code>, <code><a href="mod_binom.html">mod_binom()</a></code>,
-and <code><a href="mod_norm.html">mod_norm()</a></code> always include an intercept,
-and typically include main effects
-and interactions formed from variables in input data.
-Most models, for instance
-include an age effect, and many include
-an interaction between age and sex/gender,
-or age and time.</p>
-<p>The intercept, main effects, and interactions
-all have prior models that capture the expected
-behavior of the term. Current choices for priors
-summarised in the table below.</p>
-<p>Priors where 'forecast' is yes can be used
-in forecasts for a time-varying
-terms such as an age-time interactions.</p>
-<p>Priors where 'along' is yes distinguish
-between 'along' and 'by' dimensions.</p>
+    <p>The models created with <code><a href="mod_pois.html">mod_pois()</a></code>, <code><a href="mod_binom.html">mod_binom()</a></code>,
+and <code><a href="mod_norm.html">mod_norm()</a></code> include terms such as age effects
+and region-time interactions. Each of these terms
+requires a prior distribution. Current options
+for these priors are summarised in the table below.</p>
     </div>
 
 
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
 
-<table class="table table"><tr><td><strong>Prior</strong></td><td><strong>Description</strong></td><td><strong>Uses</strong></td><td><strong>Forecast</strong></td><td><strong>Along</strong></td></tr><tr><td><code><a href="N.html">N()</a></code></td><td>Elements drawn from normal distribution</td><td>Term with no natural order</td><td>Yes</td><td>No</td></tr><tr><td><code><a href="NFix.html">NFix()</a></code></td><td><code><a href="N.html">N()</a></code> with standard deviation fixed</td><td>Term with few elements</td><td>Yes</td><td>No</td></tr><tr><td><code><a href="Known.html">Known()</a></code></td><td>Values treated as known</td><td>Simulations, prior knowledge</td><td>No</td><td>No</td></tr><tr><td><code><a href="RW.html">RW()</a></code></td><td>Random walk</td><td>Smoothing</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="RW2.html">RW2()</a></code></td><td>Second-order random walk</td><td>Like <code><a href="RW.html">RW()</a></code>, but with trends</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="DRW.html">DRW()</a></code></td><td>Damped random walk</td><td>Smoothing, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="DRW2.html">DRW2()</a></code></td><td>Damped second-order random walk</td><td>Like <code><a href="DRW.html">DRW()</a></code>, but with trends</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="RW2_Infant.html">RW2_Infant()</a></code></td><td><code><a href="RW2.html">RW2()</a></code> with infant indicator</td><td>Mortality age profiles</td><td>No</td><td>Yes</td></tr><tr><td><code><a href="RW_Seas.html">RW_Seas()</a></code></td><td><code><a href="RW.html">RW()</a></code>, with seasonal effect</td><td>Terms involving time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="RW2_Seas.html">RW2_Seas()</a></code></td><td><code><a href="RW2.html">RW2()</a></code>, with seasonal effect</td><td>Term involving time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="AR.html">AR()</a></code></td><td>Auto-regressive prior of order <em>k</em></td><td>Mean reversion, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="AR1.html">AR1()</a></code></td><td>Special case of <code><a href="AR.html">AR()</a></code></td><td>Mean reversion, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="Lin.html">Lin()</a></code></td><td>Linear trend, with independent errors</td><td>Parsimonious model for time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="Lin_AR.html">Lin_AR()</a></code></td><td>Linear trend, with AR errors</td><td>Term involving time, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="Lin_AR1.html">Lin_AR1()</a></code></td><td>Linear trend, with AR1 errors</td><td>Terms involving time, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="Sp.html">Sp()</a></code></td><td>P-Spline (penalised spline)</td><td>Smoothing, eg over age</td><td>No</td><td>Yes</td></tr><tr><td><code><a href="SVD.html">SVD()</a></code></td><td>Age-sex profile based on SVD</td><td>Age or age-sex</td><td>No</td><td>No</td></tr><tr><td><code><a href="SVD_AR.html">SVD_AR()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="AR.html">AR()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_AR1()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="AR1.html">AR1()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_RW()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="RW.html">RW()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_RW2()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="RW2.html">RW2()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_DRW()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="DRW.html">DRW()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_DRW2()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="DRW2.html">DRW2()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr></table></div>
+<table class="table table"><tr><td><strong>Prior</strong></td><td><strong>Description</strong></td><td><strong>Uses</strong></td><td><strong>Forecast</strong></td><td><strong>Along/By</strong></td></tr><tr><td><code><a href="N.html">N()</a></code></td><td>Elements drawn from normal distribution</td><td>Term with no natural order</td><td>Yes</td><td>No</td></tr><tr><td><code><a href="NFix.html">NFix()</a></code></td><td><code><a href="N.html">N()</a></code> with standard deviation fixed</td><td>Term with few elements</td><td>Yes</td><td>No</td></tr><tr><td><code><a href="Known.html">Known()</a></code></td><td>Values treated as known</td><td>Simulations, prior knowledge</td><td>No</td><td>No</td></tr><tr><td><code><a href="RW.html">RW()</a></code></td><td>Random walk</td><td>Smoothing</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="RW2.html">RW2()</a></code></td><td>Second-order random walk</td><td>Like <code><a href="RW.html">RW()</a></code>, but with trends</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="DRW.html">DRW()</a></code></td><td>Damped random walk</td><td>Smoothing, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="DRW2.html">DRW2()</a></code></td><td>Damped second-order random walk</td><td>Like <code><a href="DRW.html">DRW()</a></code>, but with trends</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="RW2_Infant.html">RW2_Infant()</a></code></td><td><code><a href="RW2.html">RW2()</a></code> with infant indicator</td><td>Mortality age profiles</td><td>No</td><td>Yes</td></tr><tr><td><code><a href="RW_Seas.html">RW_Seas()</a></code></td><td><code><a href="RW.html">RW()</a></code>, with seasonal effect</td><td>Terms involving time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="RW2_Seas.html">RW2_Seas()</a></code></td><td><code><a href="RW2.html">RW2()</a></code>, with seasonal effect</td><td>Term involving time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="AR.html">AR()</a></code></td><td>Auto-regressive prior of order <em>k</em></td><td>Mean reversion, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="AR1.html">AR1()</a></code></td><td>Special case of <code><a href="AR.html">AR()</a></code></td><td>Mean reversion, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="Lin.html">Lin()</a></code></td><td>Linear trend, with independent errors</td><td>Parsimonious model for time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="Lin_AR.html">Lin_AR()</a></code></td><td>Linear trend, with AR errors</td><td>Term involving time, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="Lin_AR1.html">Lin_AR1()</a></code></td><td>Linear trend, with AR1 errors</td><td>Terms involving time, forecasting</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="Sp.html">Sp()</a></code></td><td>P-Spline (penalised spline)</td><td>Smoothing, eg over age</td><td>No</td><td>Yes</td></tr><tr><td><code><a href="SVD.html">SVD()</a></code></td><td>Age-sex profile based on SVD</td><td>Age or age-sex</td><td>No</td><td>No</td></tr><tr><td><code><a href="SVD_AR.html">SVD_AR()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="AR.html">AR()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_AR1()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="AR1.html">AR1()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_Lin()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="Lin.html">Lin()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_RW()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="RW.html">RW()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_RW2()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="RW2.html">RW2()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_DRW()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="DRW.html">DRW()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr><tr><td><code><a href="SVD_AR.html">SVD_DRW2()</a></code></td><td><code><a href="SVD.html">SVD()</a></code>, but coefficients follow <code><a href="DRW2.html">DRW2()</a></code></td><td>Age or age-sex and time</td><td>Yes</td><td>Yes</td></tr></table></div>
+    <div class="section level2">
+    <h2 id="-along-and-by-dimensions">'Along' and 'by' dimensions<a class="anchor" aria-label="anchor" href="#-along-and-by-dimensions"></a></h2>
+
+
+
+<p>Priors for interaction terms often consist of a time-series-style model
+along one dimension, with a separate series for each
+combination of the remaining dimensions. For instance,
+a prior for an age-sex-time interaction might
+consist of a separate random walk along time
+for each combination of age-group and sex.
+In <span class="pkg">bage</span> the dimension with the time-series-type model is
+referred to as the 'along' dimension, and the remaining dimensions
+are referred to as the 'by' dimensions.</p>
+    </div>
     <div class="section level2">
     <h2 id="default-prior">Default prior<a class="anchor" aria-label="anchor" href="#default-prior"></a></h2>
 
 
 
-<p>The rule for selecting a default prior for a term is:</p><ul><li><p>if term has less than 3 elements, use <code><a href="NFix.html">NFix()</a></code>;</p></li>
-<li><p>otherwise, if the term involves time, use <code><a href="RW.html">RW()</a></code>, with time as the `along' dimension;</p></li>
-<li><p>otherwise, if the term involves age, use <code><a href="RW.html">RW()</a></code>, with age as the `along' dimension;</p></li>
+<p>If no prior is specified for a term, then <span class="pkg">bage</span> assigns the term a default prior using
+the following algorithm:</p><ul><li><p>if the term has one or two elements, use <code><a href="NFix.html">NFix()</a></code>;</p></li>
+<li><p>otherwise, if the term involves time, use <code><a href="RW.html">RW()</a></code>, with time as the 'along' dimension;</p></li>
+<li><p>otherwise, if the term involves age, use <code><a href="RW.html">RW()</a></code>, with age as the 'along' dimension;</p></li>
 <li><p>otherwise, use <code><a href="N.html">N()</a></code>.</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="forecasting">Forecasting<a class="anchor" aria-label="anchor" href="#forecasting"></a></h2>
+
+
+
+<p>A model can only be used for forecasting if</p><ul><li><p>the model includes a time dimension, and</p></li>
+<li><p>the prior for the time dimension supports forecasting.</p></li>
+</ul><p>If necessary, the time dimension can be identified
+using <code><a href="set_var_time.html">set_var_time()</a></code>. The table above lists the
+priors that support forecasting.</p>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

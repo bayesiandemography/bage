@@ -10,7 +10,7 @@ the coefficients evolve over time.
 SVD_AR(
   ssvd,
   v = NULL,
-  n_comp = NULL,
+  n_comp = 3,
   indep = TRUE,
   n_coef = 2,
   s = 1,
@@ -22,7 +22,7 @@ SVD_AR(
 SVD_AR1(
   ssvd,
   v = NULL,
-  n_comp = NULL,
+  n_comp = 3,
   indep = TRUE,
   min = 0.8,
   max = 0.98,
@@ -35,7 +35,7 @@ SVD_AR1(
 SVD_DRW(
   ssvd,
   v = NULL,
-  n_comp = NULL,
+  n_comp = 3,
   indep = TRUE,
   s = 1,
   sd = 1,
@@ -49,7 +49,7 @@ SVD_DRW(
 SVD_DRW2(
   ssvd,
   v = NULL,
-  n_comp = NULL,
+  n_comp = 3,
   indep = TRUE,
   s = 1,
   sd = 1,
@@ -61,10 +61,21 @@ SVD_DRW2(
   con = c("none", "by")
 )
 
+SVD_Lin(
+  ssvd,
+  v = NULL,
+  n_comp = 3,
+  indep = TRUE,
+  s = 1,
+  mean_slope = 0,
+  sd_slope = 1,
+  con = c("none", "by")
+)
+
 SVD_RW(
   ssvd,
   v = NULL,
-  n_comp = NULL,
+  n_comp = 3,
   indep = TRUE,
   s = 1,
   sd = 1,
@@ -74,7 +85,7 @@ SVD_RW(
 SVD_RW2(
   ssvd,
   v = NULL,
-  n_comp = NULL,
+  n_comp = 3,
   indep = TRUE,
   s = 1,
   sd = 1,
@@ -98,7 +109,7 @@ SVD_RW2(
 - n_comp:
 
   Number of components from scaled SVD to use in modelling. The default
-  is half the number of components of `ssvd`.
+  is `3`.
 
 - indep:
 
@@ -111,12 +122,13 @@ SVD_RW2(
 
 - s:
 
-  Scale for standard deviations terms.
+  Scale for standard deviations terms. Default is `1`. Can be `0` in
+  `SVD_Lin()`.
 
 - shape1, shape2:
 
-  Parameters for prior for coefficients in `SVD_AR()`, `SVD_DRW()`, and
-  `SVD_DRW2()`. Defaults are `5` and `5`.
+  Parameters for prior for coefficients in `SVD_AR()`, `SVD_AR1()`,
+  `SVD_DRW()`, and `SVD_DRW2()`. Defaults are `5` and `5`.
 
 - con:
 
@@ -138,17 +150,21 @@ SVD_RW2(
 
   Standard deviation in prior for initial slope. Default is `1`.
 
+- mean_slope:
+
+  Mean in prior for initial slope. Default is `0`.
+
 ## Value
 
 An object inheriting from class `"bage_prior"`.
 
 ## Details
 
-`SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, `SVD_RW2()`, `SVD_DRW()`, and
-`SVD_RW2()`, priors assume that, in any given period, the age profiles
-or age-sex profiles for the quantity being modelled looks like they were
-drawn at random from an external demographic database. For instance, the
-`SVD_AR()` prior obtained via
+`SVD_AR()`, `SVD_AR1()`, `SVD_Lin()`, `SVD_RW()`, `SVD_RW2()`,
+`SVD_DRW()`, and `SVD_RW2()`, priors assume that, in any given period,
+the age profiles or age-sex profiles for the quantity being modelled
+looks like they were drawn at random from an external demographic
+database. For instance, the `SVD_AR()` prior obtained via
 
     SVD_AR(HMD)
 
@@ -205,6 +221,14 @@ or
 
 \$\$\alpha\_{k,u,t} = \phi \alpha\_{k,u,t-1} + \epsilon\_{k,u,t};\$\$
 
+with `SVD_Lin()`, it is
+
+\$\$\alpha\_{k,t} = (t - (T+1)/2) \eta + \epsilon\_{k,t}\$\$
+
+or
+
+\$\$\alpha\_{k,u,t} = (t - (T+1)/2) \eta + \epsilon\_{k,u,t};\$\$
+
 with `SVD_RW()`, it is
 
 \$\$\alpha\_{k,t} = \alpha\_{k,t-1} + \epsilon\_{k,t}\$\$
@@ -249,6 +273,7 @@ or
 For details on the time series models, see
 [`AR()`](https://bayesiandemography.github.io/bage/reference/AR.md),
 [`AR1()`](https://bayesiandemography.github.io/bage/reference/AR1.md),
+[`Lin()`](https://bayesiandemography.github.io/bage/reference/Lin.md),
 [`RW()`](https://bayesiandemography.github.io/bage/reference/RW.md),
 [`RW2()`](https://bayesiandemography.github.io/bage/reference/RW2.md),
 [`DRW()`](https://bayesiandemography.github.io/bage/reference/DRW.md),
@@ -296,12 +321,15 @@ Current options for `con` are:
 
 - For details of the construction of scaled SVDS see the [Mathematical
   Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
-  vignette
+  article
 
 ## See also
 
 - [`SVD()`](https://bayesiandemography.github.io/bage/reference/SVD.md)
   SVD prior for non-time-varying terms
+
+- [`Lin()`](https://bayesiandemography.github.io/bage/reference/Lin.md)
+  Linear with independent errors
 
 - [`RW()`](https://bayesiandemography.github.io/bage/reference/RW.md)
   Smoothing via random walk
@@ -341,15 +369,13 @@ SVD_AR1(HMD)
 #>        min: 0.8
 #>        max: 0.98
 #>          s: 1
-#>      along: NULL
 #>        con: none
-SVD_RW(HMD, n_comp = 3)
-#>   SVD_RW(HMD) 
+SVD_RW(HMD, n_comp = 2)
+#>   SVD_RW(HMD,n_comp=2) 
 #>       ssvd: HMD
-#>     n_comp: 3
+#>     n_comp: 2
 #>          s: 1
 #>         sd: 1
-#>      along: NULL
 #>        con: none
 SVD_RW2(HMD, indep = FALSE)
 #>   SVD_RW2(HMD,indep=FALSE) 
@@ -359,6 +385,13 @@ SVD_RW2(HMD, indep = FALSE)
 #>          s: 1
 #>         sd: 1
 #>   sd_slope: 1
-#>      along: NULL
+#>        con: none
+SVD_Lin(HMD, s = 0)
+#>   SVD_Lin(HMD,s=0) 
+#>       ssvd: HMD
+#>     n_comp: 3
+#>          s: 0
+#> mean_slope: 0
+#>   sd_slope: 1
 #>        con: none
 ```

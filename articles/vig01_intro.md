@@ -199,7 +199,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.83     0.35      0.41   11      TRUE   relative convergence (4)
+#>        0.81     0.34      0.40   11      TRUE   relative convergence (4)
 ```
 
 Among other things, a new row appears at the bottom of the printout,
@@ -525,7 +525,7 @@ mod_births
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.71     1.59      1.01   22      TRUE   relative convergence (4)
+#>        2.69     1.57      1.01   22      TRUE   relative convergence (4)
 ```
 
 ## 7 Covariates
@@ -945,8 +945,7 @@ features that are next on the list are:
 `bage` currently has an [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 life cycle badge, to warn users that some features of the `bage`
-interface, such as function arguments, are still evolving. We hope to
-graduate from experimental status by the end of 2025.
+interface, such as function arguments, are still evolving.
 
 ### 13.3 Bug reports and feature requests
 

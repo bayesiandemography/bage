@@ -10,10 +10,10 @@ temrs that involve time.
 ``` r
 RW2_Seas(
   n_seas,
+  s_seas,
   s = 1,
   sd = 1,
   sd_slope = 1,
-  s_seas = 0,
   sd_seas = 1,
   along = NULL,
   con = c("none", "by")
@@ -26,6 +26,11 @@ RW2_Seas(
 
   Number of seasons
 
+- s_seas:
+
+  Scale for innovations in seasonal effects. Can be `0`. When greater
+  than 0, seasonal effects vary from year to year.
+
 - s:
 
   Scale for prior for innovations in random walk. Default is `1`.
@@ -37,10 +42,6 @@ RW2_Seas(
 - sd_slope:
 
   Standard deviation for initial slope of random walk. Default is `1`.
-
-- s_seas:
-
-  Scale for innovations in seasonal effects. Default is `0`.
 
 - sd_seas:
 
@@ -74,9 +75,9 @@ Smaller values for `s` tend to produce smoother series.
 Argument `n_seas` controls the number of seasons. When using quarterly
 data, for instance, `n_seas` should be `4`.
 
-By default, the magnitude of seasonal effects is fixed. However, setting
-`s_seas` to a value greater than zero produces seasonal effects that
-evolve over time.
+Setting `s_seas` to `0` produces seasonal effects that are the same each
+year. Setting `s_seas` to a value greater than `0` produces seasonal
+effects that evolve over time.
 
 ## Mathematical details
 
@@ -173,33 +174,38 @@ Current options for `con` are:
 ## Examples
 
 ``` r
-RW2_Seas(n_seas = 4)               ## seasonal effects fixed
-#>   RW2_Seas(n_seas=4) 
+## seasonal effects fixed
+RW2_Seas(n_seas = 4, s_seas = 0)
+#>   RW2_Seas(n_seas=4,s_seas=0) 
 #>     n_seas: 4
-#>          s: 1
-#>         sd: 1
-#>   sd_slope: 1
 #>     s_seas: 0
-#>    sd_seas: 1
-#>      along: NULL
-#>        con: none
-RW2_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
-#>   RW2_Seas(n_seas=4,s_seas=0.5) 
-#>     n_seas: 4
 #>          s: 1
 #>         sd: 1
 #>   sd_slope: 1
-#>     s_seas: 0.5
 #>    sd_seas: 1
 #>      along: NULL
 #>        con: none
-RW2_Seas(n_seas = 4, sd = 0)       ## first term in random walk fixed at 0
-#>   RW2_Seas(n_seas=4,sd=0) 
+
+## seasonal effects evolve
+RW2_Seas(n_seas = 4, s_seas = 1)
+#>   RW2_Seas(n_seas=4,s_seas=1) 
 #>     n_seas: 4
+#>     s_seas: 1
 #>          s: 1
-#>         sd: 0
+#>         sd: 1
 #>   sd_slope: 1
-#>     s_seas: NULL
+#>    sd_seas: 1
+#>      along: NULL
+#>        con: none
+
+## first term in random walk fixed at 0
+RW2_Seas(n_seas = 4, s_seas = 1, sd = 0)       
+#>   RW2_Seas(n_seas=4,s_seas=1,sd=0) 
+#>     n_seas: 4
+#>     s_seas: 1
+#>          s: 1
+#>         sd: NULL
+#>   sd_slope: 1
 #>    sd_seas: 1
 #>      along: NULL
 #>        con: none

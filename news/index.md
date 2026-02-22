@@ -1,5 +1,20 @@
 # Changelog
 
+## bage 0.10.8
+
+### Interface
+
+- Added prior
+  [`SVD_Lin()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md),
+  in which SVD coefficients evolve according to a
+  [`Lin()`](https://bayesiandemography.github.io/bage/reference/Lin.md)
+  prior.
+- Changed rule for default for `n_comp` argument of SVD priors.
+  Previously `n_comp` was half the number of components of the `ssvd`
+  argument (rounded up), giving a value of `3` for the SSVD objects
+  implemented in `bage`. It is now simply `3`, with no link to the
+  `ssvd` argument.
+
 ## bage 0.10.7
 
 ### Interface
@@ -11,6 +26,13 @@
   ([\#106](https://github.com/bayesiandemography/bage/issues/106))
 - Removed warning about rules for aggregation changing. The warning was
   introduced in version 0.9.9.
+- Removed the default for the `s_seas` argument in
+  [`RW_Seas()`](https://bayesiandemography.github.io/bage/reference/RW_Seas.md)
+  and
+  [`RW2_Seas()`](https://bayesiandemography.github.io/bage/reference/RW2_Seas.md)
+  priors, which was previous `0`. In practice, the default of `0` was
+  not intuivitely obvious, but neither was any other value (eg `1`), so
+  it is safest to force the user to specify explicitly.
 
 ## bage 0.10.6
 
@@ -45,13 +67,21 @@
 
 ### Added ‘damped random walk’ priors
 
-- Added priors `drw()`, `drw2()` implementing damped versions of random
-  walks and second-order random walks. In the `drw()` case, the basic
-  idea is `x[t] = phi * x[t-1] + error[t]`. In the `drw2()` case it is
-  `x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) + error[t]`. These priors are
-  useful for forecasting.
-- Added priors `svd_drw()` and `svd_drw2()`. As above, but the random
-  walks are on the coefficients for SVDs.
+- Added priors
+  [`DRW()`](https://bayesiandemography.github.io/bage/reference/DRW.md),
+  [`DRW2()`](https://bayesiandemography.github.io/bage/reference/DRW2.md)
+  implementing damped versions of random walks and second-order random
+  walks. In the
+  [`DRW()`](https://bayesiandemography.github.io/bage/reference/DRW.md)
+  case, the basic idea is `x[t] = phi * x[t-1] + error[t]`. In the
+  [`DRW2()`](https://bayesiandemography.github.io/bage/reference/DRW2.md)
+  case it is `x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) + error[t]`. These
+  priors are useful for forecasting.
+- Added priors
+  [`SVD_DRW()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md)
+  and
+  [`SVD_DRW2()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md).
+  As above, but the random walks are on the coefficients for SVDs.
 
 ## bage 0.10.3
 

@@ -17,7 +17,7 @@ sex/gender and time, where the coefficients evolve over time."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,7 @@ sex/gender and time, where the coefficients evolve over time.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">SVD_AR</span><span class="op">(</span></span>
 <span>  <span class="va">ssvd</span>,</span>
 <span>  v <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n_comp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_comp <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  n_coef <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -67,7 +67,7 @@ sex/gender and time, where the coefficients evolve over time.</p>
 <span><span class="fu">SVD_AR1</span><span class="op">(</span></span>
 <span>  <span class="va">ssvd</span>,</span>
 <span>  v <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n_comp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_comp <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  min <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  max <span class="op">=</span> <span class="fl">0.98</span>,</span>
@@ -80,7 +80,7 @@ sex/gender and time, where the coefficients evolve over time.</p>
 <span><span class="fu">SVD_DRW</span><span class="op">(</span></span>
 <span>  <span class="va">ssvd</span>,</span>
 <span>  v <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n_comp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_comp <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sd <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -94,7 +94,7 @@ sex/gender and time, where the coefficients evolve over time.</p>
 <span><span class="fu">SVD_DRW2</span><span class="op">(</span></span>
 <span>  <span class="va">ssvd</span>,</span>
 <span>  v <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n_comp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_comp <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sd <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -106,10 +106,21 @@ sex/gender and time, where the coefficients evolve over time.</p>
 <span>  con <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"by"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu">SVD_Lin</span><span class="op">(</span></span>
+<span>  <span class="va">ssvd</span>,</span>
+<span>  v <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_comp <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  mean_slope <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  sd_slope <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  con <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"by"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu">SVD_RW</span><span class="op">(</span></span>
 <span>  <span class="va">ssvd</span>,</span>
 <span>  v <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n_comp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_comp <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sd <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -119,7 +130,7 @@ sex/gender and time, where the coefficients evolve over time.</p>
 <span><span class="fu">SVD_RW2</span><span class="op">(</span></span>
 <span>  <span class="va">ssvd</span>,</span>
 <span>  v <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  n_comp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_comp <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sd <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -146,8 +157,7 @@ recent version is used.</p></dd>
 
 <dt id="arg-n-comp">n_comp<a class="anchor" aria-label="anchor" href="#arg-n-comp"></a></dt>
 <dd><p>Number of components from scaled SVD
-to use in modelling. The default is half
-the number of components of <code>ssvd</code>.</p></dd>
+to use in modelling. The default is <code>3</code>.</p></dd>
 
 
 <dt id="arg-indep">indep<a class="anchor" aria-label="anchor" href="#arg-indep"></a></dt>
@@ -162,12 +172,14 @@ See below for details.</p></dd>
 
 
 <dt id="arg-s">s<a class="anchor" aria-label="anchor" href="#arg-s"></a></dt>
-<dd><p>Scale for standard deviations terms.</p></dd>
+<dd><p>Scale for standard deviations terms.
+Default is <code>1</code>. Can be <code>0</code> in <code>SVD_Lin()</code>.</p></dd>
 
 
 <dt id="arg-shape-shape-">shape1, shape2<a class="anchor" aria-label="anchor" href="#arg-shape-shape-"></a></dt>
 <dd><p>Parameters for prior
-for coefficients in <code>SVD_AR()</code>, <code>SVD_DRW()</code>, and <code>SVD_DRW2()</code>.
+for coefficients in <code>SVD_AR()</code>, <code>SVD_AR1()</code>,
+<code>SVD_DRW()</code>, and <code>SVD_DRW2()</code>.
 Defaults are <code>5</code> and <code>5</code>.</p></dd>
 
 
@@ -194,6 +206,11 @@ Can be <code>0</code>.</p></dd>
 <dd><p>Standard deviation in prior
 for initial slope. Default is <code>1</code>.</p></dd>
 
+
+<dt id="arg-mean-slope">mean_slope<a class="anchor" aria-label="anchor" href="#arg-mean-slope"></a></dt>
+<dd><p>Mean in prior for initial
+slope. Default is <code>0</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -203,6 +220,7 @@ for initial slope. Default is <code>1</code>.</p></dd>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><code>SVD_AR()</code>, <code>SVD_AR1()</code>,
+<code>SVD_Lin()</code>,
 <code>SVD_RW()</code>, <code>SVD_RW2()</code>,
 <code>SVD_DRW()</code>, and <code>SVD_RW2()</code>,
 priors assume that, in any given period,
@@ -246,6 +264,10 @@ of \(\pmb{\alpha}_t\) or \(\pmb{\alpha}_{u,t}\) is</p>
 <p>$$\alpha_{k,t} = \phi \alpha_{k,t-1} + \epsilon_{k,t}$$</p>
 <p>or</p>
 <p>$$\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t};$$</p>
+<p>with <code>SVD_Lin()</code>, it is</p>
+<p>$$\alpha_{k,t} = (t - (T+1)/2) \eta + \epsilon_{k,t}$$</p>
+<p>or</p>
+<p>$$\alpha_{k,u,t} = (t - (T+1)/2) \eta + \epsilon_{k,u,t};$$</p>
 <p>with <code>SVD_RW()</code>, it is</p>
 <p>$$\alpha_{k,t} = \alpha_{k,t-1} + \epsilon_{k,t}$$</p>
 <p>or</p>
@@ -267,7 +289,7 @@ In <code>SVD_AR1()</code>, the variance of \(\epsilon_t\)
 is chosen so that \(\alpha_t\) has marginal variance \(\tau^2\),
 while in <code>SVD_DRW()</code>, \(\epsilon_t\) has variance \(\tau^2\).</p>
 <p>For details on the time series models, see <code><a href="AR.html">AR()</a></code>, <code><a href="AR1.html">AR1()</a></code>,
-<code><a href="RW.html">RW()</a></code>, <code><a href="RW2.html">RW2()</a></code>, <code><a href="DRW.html">DRW()</a></code>, and <code><a href="DRW2.html">DRW2()</a></code>.</p>
+<code><a href="Lin.html">Lin()</a></code>, <code><a href="RW.html">RW()</a></code>, <code><a href="RW2.html">RW2()</a></code>, <code><a href="DRW.html">DRW()</a></code>, and <code><a href="DRW2.html">DRW2()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="constraints">Constraints<a class="anchor" aria-label="anchor" href="#constraints"></a></h2>
@@ -311,12 +333,13 @@ rates from the <a href="https://data-explorer.oecd.org" class="external-link">OE
 <ul><li><p>For details of the construction of
 scaled SVDS see the
 <a href="https://bayesiandemography.github.io/bage/articles/vig02_math.html">Mathematical Details</a>
-vignette</p></li>
+article</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
 <ul><li><p><code><a href="SVD.html">SVD()</a></code> SVD prior for non-time-varying terms</p></li>
+<li><p><code><a href="Lin.html">Lin()</a></code> Linear with independent errors</p></li>
 <li><p><code><a href="RW.html">RW()</a></code> Smoothing via random walk</p></li>
 <li><p><code><a href="RW2.html">RW2()</a></code> Smoothing via second-order random walk</p></li>
 <li><p><code><a href="DRW.html">DRW()</a></code> Smoothing via damped random walk</p></li>
@@ -340,15 +363,13 @@ main effect, or interaction</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        min: 0.8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        max: 0.98</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
-<span class="r-in"><span><span class="fu">SVD_RW</span><span class="op">(</span><span class="va">HMD</span>, n_comp <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   SVD_RW(HMD) </span>
+<span class="r-in"><span><span class="fu">SVD_RW</span><span class="op">(</span><span class="va">HMD</span>, n_comp <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   SVD_RW(HMD,n_comp=2) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       ssvd: HMD</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     n_comp: 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n_comp: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         sd: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
 <span class="r-in"><span><span class="fu">SVD_RW2</span><span class="op">(</span><span class="va">HMD</span>, indep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   SVD_RW2(HMD,indep=FALSE) </span>
@@ -358,7 +379,14 @@ main effect, or interaction</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         sd: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
+<span class="r-in"><span><span class="fu">SVD_Lin</span><span class="op">(</span><span class="va">HMD</span>, s <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   SVD_Lin(HMD,s=0) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       ssvd: HMD</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n_comp: 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mean_slope: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
 </code></pre></div>
     </div>

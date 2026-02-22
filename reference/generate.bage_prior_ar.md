@@ -95,6 +95,12 @@ generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 # S3 method for class 'bage_prior_svd_drw2zero'
 generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
+# S3 method for class 'bage_prior_svd_lin'
+generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+# S3 method for class 'bage_prior_svd_linex'
+generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
 # S3 method for class 'bage_prior_svd_rwrandom'
 generate(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 
