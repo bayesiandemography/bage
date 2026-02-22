@@ -1,4 +1,10 @@
 
+# Submission, 21 February 2026, version 0.10.8
+
+* Current CRAN checks have notes for the three r-oldrel systems. All
+  three notes refer to library size.
+  
+
 # Submission, 19 November 2025, version 0.10.2
 
 * This is a re-submission, responding to a problem picked up by one of

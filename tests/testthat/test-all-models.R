@@ -2,7 +2,7 @@
 ## All combinations of likelihood, data model, and confidentialization
 ## (but very small datasets and simple priors)
 
-## testthat::skip_on_cran()
+testthat::skip_on_cran()
 
 ## No disp, no data models ----------------------------------------------------
 

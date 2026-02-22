@@ -105,6 +105,7 @@ fit_default <- function(mod,
                       DLL = "bage",
                       random = random,
                       silent = TRUE)
+  on.exit(TMB::FreeADFun(f), add = TRUE) ## Can be helpful in loops or simulations if R's GC too slow
   t_optim <- Sys.time()
   if (is_not_testing_or_snapshot())
     cli::cli_progress_message("Finding maximum...") # nocov
@@ -115,6 +116,8 @@ fit_default <- function(mod,
                                   random = random,
                                   map = map,
                                   is_test_nonconv = FALSE)
+  if (!identical(optimizer_out$f, f))
+    on.exit(TMB::FreeADFun(optimizer_out$f), add = TRUE)
   t_report <- Sys.time()
   if (is_not_testing_or_snapshot())
     cli::cli_progress_message("Drawing values for hyper-parameters...") # nocov

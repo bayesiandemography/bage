@@ -1,7 +1,7 @@
 
 ## All priors (but very small datasets)
 
-## testthat::skip_on_cran()
+testthat::skip_on_cran()
 
 testthat::test_that("'ar main effect", {
   set.seed(0)

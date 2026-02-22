@@ -321,7 +321,7 @@ test_that("'draw_true_given_obs_pois_skellam_approx' works near boundary (mu_pos
 })
 
 test_that("'draw_true_given_obs_pois_skellam_approx' empirical mean tracks Gaussian posterior mean (moderate case)", {
-  skip_on_cran()  # Monte Carlo
+  testthat::skip_on_cran()  # Monte Carlo
   set.seed(5)
   y_obs <- 120
   lambda <- 100
@@ -525,7 +525,7 @@ test_that("'draw_true_given_obs_pois_skellam_exact' - no NA/NaN/Inf returned for
 }
 
 test_that("approx vs exact agree: moderate counts, near mean", {
-  skip_on_cran()
+  testthat::skip_on_cran()
   set.seed(101)
   y_obs  <- 28L
   lambda <- 30
@@ -550,7 +550,7 @@ test_that("approx vs exact agree: moderate counts, near mean", {
 })
 
 test_that("approx vs exact agree: large counts", {
-  skip_on_cran()
+  testthat::skip_on_cran()
   set.seed(202)
   y_obs  <- 110L
   lambda <- 100
@@ -571,7 +571,7 @@ test_that("approx vs exact agree: large counts", {
 })
 
 test_that("approx vs exact agree: boundary-ish (small mu_post, nontrivial mass at 0)", {
-  skip_on_cran()
+  testthat::skip_on_cran()
   set.seed(303)
   y_obs  <- 2L
   lambda <- 8
@@ -600,7 +600,7 @@ test_that("approx vs exact agree: boundary-ish (small mu_post, nontrivial mass a
 })
 
 test_that("approx vs exact agree: symmetric case around zero (uses windowing path)", {
-  skip_on_cran()
+  testthat::skip_on_cran()
   set.seed(404)
   # Symmetric Skellam with y near lambda gives mu_post near lambda
   y_obs  <- 15L
@@ -1339,7 +1339,7 @@ test_that("extreme pi values behave sensibly", {
 })
 
 test_that("recovers distribution", {
-  skip_on_cran()
+  testthat::skip_on_cran()
   set.seed(0)
   n <- 1000
   mu <- 0.4
