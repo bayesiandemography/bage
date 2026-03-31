@@ -1,9 +1,9 @@
 
-#' Package 'bage'
+#' bage: Bayesian Estimation and Forecasting of Age-Specific Rates
 #'
-#' Bayesian estimation and forecasting of age-specific rates.
-#' Estimation uses [TMB](https://CRAN.R-project.org/package=TMB),
-#' and is fast.
+#' Modeling of rates, probabilities, and other values, typically
+#' disaggregated by age. Estimation is done using [TMB](https://CRAN.R-project.org/package=TMB),
+#' which makes it fast and scalable.
 #'
 #' @section Example workflow:
 #'
@@ -51,15 +51,15 @@
 #'
 #' - [datasets] Overview of datasets
 #' - [svds] Overview of scaled SVDs
-#'
 #' 
-#' @keywords internal
-"_PACKAGE"
-
 ## usethis namespace: start
 #' @importFrom lifecycle deprecated
 #' @importFrom rvec n_draw
 #' @importFrom tibble tibble
 #' @useDynLib bage, .registration = TRUE
 ## usethis namespace: end
-NULL
+#'
+#' @docType package
+#' @name bage-package
+#' @aliases bage
+"_PACKAGE"
