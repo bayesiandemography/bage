@@ -1,4 +1,9 @@
 
+# bage 0.10.9
+
+* Changed `bage-package` help page to a normal (ie non-internal) page,
+  with `bage` as an alias.
+
 # bage 0.10.8
 
 ## Interface
