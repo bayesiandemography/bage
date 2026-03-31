@@ -37,8 +37,8 @@
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
-#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction.
 #'
 #' Internally, `AR()` derives a value for \eqn{\omega} that
 #' gives every element of \eqn{\beta} a marginal
@@ -182,8 +182,8 @@ AR <- function(n_coef = 2,
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
-#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction.
 #'
 #' Internally, `AR1()` derives a value for \eqn{\omega} that
 #' gives every element of \eqn{\beta} a marginal
@@ -303,8 +303,8 @@ AR1 <- function(s = 1,
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{\phi} is the damping coefficient;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
-#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction.
 #'
 #' Coefficient \eqn{\phi} is constrained
 #' to lie between `min` and `max`.
@@ -453,8 +453,8 @@ DRW <- function(s = 1,
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{\phi} is the damping coefficient;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
-#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction.
 #'
 #' Coefficient \eqn{\phi} is constrained
 #' to lie between `min` and `max`.
@@ -737,8 +737,8 @@ Lin <- function(s = 1,
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the 'along' variable of the interaction; and
-#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+#' - \eqn{u} denotes position within the 'by' variable of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable(s) of the interaction.
 #'
 #' The slopes have priors
 #' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
@@ -867,8 +867,8 @@ Lin_AR <- function(n_coef = 2,
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the 'along' variable of the interaction; and
-#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+#' - \eqn{u} denotes position within the 'by' variable of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable(s) of the interaction.
 #'
 #' The slopes have priors
 #' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
@@ -1415,6 +1415,146 @@ RW2 <- function(s = 1,
                            along = along,
                            con = con)
 }
+
+
+
+
+## HAS_TESTS
+#' Second-Order Random Walk Prior with Autoregressive Errors
+#'
+#' Use one or more second-order random walks,
+#' combined with an autoregressive
+#' error term, to model a main effect
+#' or interaction. Typically used with time.
+#'
+#' If `RW2_AR()` is used with an interaction,
+#' separate random walks are constructed along 
+#' the 'along' variable, within each combination
+#' of the 'by' variables.
+#'
+#' The order of the autoregressive errors is
+#' controlled by the `n_coef` argument. The
+#' default is 2.
+#' 
+#' Argument `s` controls the size of the innovations.
+#' Smaller values tend to give smoother estimates.
+#'
+#' Argument `sd_slope` controls the slopes of
+#' the lines. Larger values can give more steeply
+#' sloped lines.
+#' 
+#' @section Mathematical details:
+#'
+#' When `Lin_AR()` is used with a main effect,
+#'
+#' \deqn{\beta_1 = \alpha + \epsilon_1}
+#' \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
+#' \deqn{\alpha \sim \text{N}(0, 1)}
+#' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{j-\mathtt{n\_coef}} + \varepsilon_j}
+#' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
+#'
+#' and when it is used with an interaction,
+#'
+#' \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
+#' \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
+#' \deqn{\alpha_u \sim \text{N}(0, 1)}
+#' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{u,v-\mathtt{n\_coef}} + \varepsilon_{u,v},}
+#' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
+#' 
+#' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{u} denotes position within the 'by' variable of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable(s) of the interaction.
+#'
+#' The slopes have priors
+#' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
+#' and
+#' \deqn{\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2).}
+#'
+#' Internally, `Lin_AR()` derives a value for \eqn{\omega} that
+#' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
+#' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
+#' has a half-normal prior
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
+#'
+#' The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\mathtt{n\_coef}}}
+#' each have prior
+#'
+#' \deqn{0.5 \phi_k - 0.5 \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
+#'
+#' @inheritSection AR Constraints
+#' 
+#' @inheritParams AR
+#' @param s Scale for the innovations in the
+#' AR process. Default is `1`.
+#' @param mean_slope Mean in prior for slope
+#' of line. Default is 0.
+#' @param sd_slope Standard deviation in the prior for
+#' the slope of the line. Larger values imply
+#' steeper slopes. Default is 1.
+#'
+#' @returns An object of class `"bage_prior_linar"`.
+#'
+#' @seealso
+#' - [Lin_AR1()] Special case of `Lin_AR()`
+#' - [Lin()] Line with independent normal errors
+#' - [AR()] AR process with no line
+#' - [priors] Overview of priors implemented in \pkg{bage}
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   vignette
+#'
+#' @examples
+#' Lin_AR()
+#' Lin_AR(n_coef = 3, s = 0.5, sd_slope = 2)
+#' @export
+Lin_AR <- function(n_coef = 2,
+                   s = 1,
+                   shape1 = 5,
+                   shape2 = 5,
+                   mean_slope = 0,
+                   sd_slope = 1,
+                   along = NULL,
+                   con = c("none", "by")) {
+  poputils::check_n(n = n_coef,
+                    nm_n = "n_coef",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
+  check_number(mean_slope, nm_x = "mean_slope")
+  check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  con <- match.arg(con)
+  n_coef <- as.integer(n_coef)
+  scale <- as.double(s)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
+  mean_slope <- as.double(mean_slope)
+  sd_slope <- as.double(sd_slope)
+  new_bage_prior_linar(n_coef = n_coef,
+                       shape1 = shape1,
+                       shape2 = shape2,
+                       mean_slope = mean_slope,
+                       sd_slope = sd_slope,
+                       min = -1,
+                       max = 1,
+                       scale = scale,
+                       along = along,
+                       con = con,
+                       nm = "Lin_AR")
+}
+
+
+
+
+
+
 
 
 ## HAS_TESTS

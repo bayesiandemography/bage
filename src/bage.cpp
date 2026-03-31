@@ -914,23 +914,6 @@ Type logpost_rwzeroseasfix(const vector<Type>& effectfree,
   return ans;
 }
 
-
-// template <class Type>
-// Type logpost_rwzeroseasfix(const vector<Type>& effectfree,
-// 			   const vector<Type>& hyper,
-// 			   const vector<Type>& hyperrandfree, // seasonal effect
-// 			   const vector<Type>& consts,
-// 			   const matrix<int>& matrix_along_by_effectfree) {
-//   vector<Type> consts_seas = consts.head(2); // n_seas, sd_seas
-//   vector<Type> consts_rw(2);
-//   consts_rw[0] = consts[2]; // scale
-//   consts_rw[1] = consts[1]; // sd_seas 
-//   Type ans = Type(0);
-//   //ans += logpost_seasfix(hyperrandfree, consts_seas);
-//   // ans += logpost_rwrandom(effectfree, hyper, consts_rw, matrix_along_by_effectfree);
-//   return ans;
-// }
-
 template <class Type>
 Type logpost_rwzeroseasvary(const vector<Type>& effectfree,
 			    const vector<Type>& hyper,
@@ -1017,6 +1000,30 @@ Type logpost_rw2random(const vector<Type>& rw,
 }
 
 template <class Type>
+Type logpost_rw2randomar(const vector<Type>& effectfree,
+			 const vector<Type>& hyper,
+			 const vector<Type>& hyperrandfree, // ar
+			 const vector<Type>& consts,
+			 const matrix<int>& matrix_along_by_effectfree) {
+  int n_hyper = hyper.size();
+  vector<Type> consts_rw = consts.head(3); // scale, sd, sd_slope
+  vector<Type> consts_ar = consts.tail(5);
+  vector<Type> hyper_rw = hyper.head(1);
+  vector<Type> hyper_ar = hyper.tail(n_hyper - 1);
+  vector<Type> rw = effectfree - hyperrandfree;
+  Type ans = Type(0);
+  ans += logpost_rw2random(rw,
+			   hyper_rw,
+			   consts_rw,
+			   matrix_along_by_effectfree);
+  ans += logpost_ar_inner(hyperrandfree,
+			  hyper_ar,
+			  consts_ar,
+			  matrix_along_by_effectfree);
+  return ans;
+}
+
+template <class Type>
 Type logpost_rw2randomseasfix(const vector<Type>& effectfree,
 			      const vector<Type>& hyper,
 			      const vector<Type>& hyperrandfree, // seasonal effect
@@ -1081,6 +1088,48 @@ Type logpost_rw2zero(const vector<Type>& rw,
       ans += dnorm(diff, Type(0), sd_innov, true);
     }
   }
+  return ans;
+}
+
+template <class Type>
+Type logpost_rw2zeroar(const vector<Type>& effectfree,
+		       const vector<Type>& hyper,
+		       const vector<Type>& hyperrandfree, // ar
+		       const vector<Type>& consts,
+		       const matrix<int>& matrix_along_by_effectfree) {
+  Type ans = Type(0);
+  // AR part
+  int n_hyper = hyper.size();
+  vector<Type> hyper_ar = hyper.tail(n_hyper - 1);
+  vector<Type> consts_ar = consts.tail(5);
+  ans += logpost_ar_inner(hyperrandfree,
+			  hyper_ar,
+			  consts_ar,
+			  matrix_along_by_effectfree);
+  // RW2 part
+  Type scale_innov = consts[0];
+  Type sd_slope = consts[1];
+  Type log_sd_innov = hyper[0];
+  Type sd_innov = exp(log_sd_innov);
+  int n_along = matrix_along_by_effectfree.rows();
+  int n_by = matrix_along_by_effectfree.cols();
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  // note RW2 part is 0 when i_along = 0
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_1 = matrix_along_by_effectfree(1, i_by);
+    int i_2 = matrix_along_by_effectfree(2, i_by);
+    ans += dnorm(effectfree[i_1], Type(0), sd_slope, true);
+    Type diff = effectfree[i_2] - 2 * effectfree[i_1];
+    ans += dnorm(diff, Type(0), sd_innov, true);
+    for (int i_along = 3; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by_effectfree(i_along, i_by);
+      int i_1 = matrix_along_by_effectfree(i_along - 1, i_by);
+      int i_0 = matrix_along_by_effectfree(i_along - 2, i_by);
+      Type diff = effectfree[i_2] - 2 * effectfree[i_1] + effectfree[i_0];
+      ans += dnorm(diff, Type(0), sd_innov, true);
+    }
+  }
+  // total
   return ans;
 }
 
