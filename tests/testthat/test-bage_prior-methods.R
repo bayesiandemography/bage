@@ -86,6 +86,15 @@ test_that("'comp_hyperrand' works with 'bage_prior_rwzeroseasvary' - interaction
   expect_identical(ans_obtained, ans_expected)                   
 })
 
+test_that("'comp_hyperrand' works with 'bage_prior_rw2randomar'", {
+  dimnames_term <- list(x = letters[1:13],
+                        y = c("a", "b"))
+  ans_obtained <- comp_hyperrand(prior = RW2_AR(along = "x"),
+                                 dimnames_term = dimnames_term)
+  ans_expected <- rep(c("trend", "error"), times = c(26, 26))
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
 test_that("'comp_hyperrand' works with 'bage_prior_rw2randomseasfix'", {
   dimnames_term <- list(x = letters[1:13])
   ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, s_seas = 0, along = "x"),
@@ -99,6 +108,15 @@ test_that("'comp_hyperrand' works with 'bage_prior_rw2randomseasvary'", {
   ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, s_seas = 1, along = "x"),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(c("trend", "season"), each = 13)
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'comp_hyperrand' works with 'bage_prior_rw2zeroar'", {
+  dimnames_term <- list(x = letters[1:13],
+                        y = c("a", "b"))
+  ans_obtained <- comp_hyperrand(prior = RW2_AR(sd = 0, along = "x"),
+                                 dimnames_term = dimnames_term)
+  ans_expected <- rep(c("trend", "error"), times = c(26, 26))
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -9563,6 +9581,27 @@ test_that("'make_hyperrand_one' works with bage_prior_rwzeroseasvary", {
   expect_identical(length(ans), 20L)
 })
 
+test_that("'make_hyperrand_one' works with bage_prior_rw2randomar", {
+  set.seed(0)
+  prior <- RW2_AR()
+  hyperrandfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_one(prior = prior,
+                                     hyperrandfree = hyperrandfree,
+                                     effectfree = effectfree,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  ans_expected <- vctrs::vec_c(effectfree - hyperrandfree,
+                               hyperrandfree)
+  expect_identical(ans_obtained, ans_expected)
+})
+
 test_that("'make_hyperrand_one' works with bage_prior_rw2randomseasfix", {
   set.seed(0)
   prior <- RW2_Seas(n = 3, s_seas = 0)
@@ -9599,6 +9638,27 @@ test_that("'make_hyperrand_one' works with bage_prior_rw2randomseasvary", {
                             var_age = var_age,
                             var_sexgender = var_sexgender)
   expect_identical(length(ans), 20L)
+})
+
+test_that("'make_hyperrand_one' works with bage_prior_rw2zeroar", {
+  set.seed(0)
+  prior <- RW2_AR(sd = 0)
+  hyperrandfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_one(prior = prior,
+                                     hyperrandfree = hyperrandfree,
+                                     effectfree = effectfree,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  ans_expected <- vctrs::vec_c(effectfree - hyperrandfree,
+                               hyperrandfree)
+  expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_hyperrand_one' works with bage_prior_rw2zeroseasfix", {
@@ -13752,6 +13812,8 @@ test_that("'uses_along' works with valid inputs", {
   expect_true(uses_along(RW(sd = 0)))
   expect_true(uses_along(RW_Seas(n_seas = 3, s_seas = 0, sd = 0)))
   expect_true(uses_along(RW_Seas(n_seas = 3, s_seas = 1, sd = 0)))
+  expect_true(uses_along(RW2_AR()))
+  expect_true(uses_along(RW2_AR1(sd = 0)))
   expect_true(uses_along(RW2_Infant()))
   expect_true(uses_along(RW2()))
   expect_true(uses_along(RW2_Seas(n_seas = 3, s_seas = 0)))
@@ -13802,6 +13864,8 @@ test_that("'uses_hyperrandfree' returns TRUE with priors do use hyperrandfree pa
   expect_true(uses_hyperrandfree(RW_Seas(n_seas = 3, s_seas = 1)))
   expect_true(uses_hyperrandfree(RW_Seas(n_seas = 3, s_seas = 0, sd = 0)))
   expect_true(uses_hyperrandfree(RW_Seas(n_seas = 3, s_seas = 1, sd = 0)))
+  expect_true(uses_hyperrandfree(RW2_AR()))
+  expect_true(uses_hyperrandfree(RW2_AR(sd = 0)))
   expect_true(uses_hyperrandfree(RW2_Seas(n_seas = 3, s_seas = 0)))
   expect_true(uses_hyperrandfree(RW2_Seas(n_seas = 3, s_seas = 1)))
   expect_true(uses_hyperrandfree(RW2_Seas(n_seas = 3, s_seas = 0, sd = 0)))
@@ -13833,6 +13897,8 @@ test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
   expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2, sd = 0, s_seas = 1)))
   expect_true(uses_matrix_effectfree_effect(RW2_Infant()))
   expect_true(uses_matrix_effectfree_effect(RW2()))
+  expect_true(uses_matrix_effectfree_effect(RW2_AR()))
+  expect_true(uses_matrix_effectfree_effect(RW2_AR(sd = 0)))
   expect_true(uses_matrix_effectfree_effect(RW2_Seas(n = 2, s_seas = 0)))
   expect_true(uses_matrix_effectfree_effect(RW2_Seas(n = 2, s_seas = 1)))
   expect_true(uses_matrix_effectfree_effect(RW2(sd = 0)))

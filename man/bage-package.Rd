@@ -4,11 +4,10 @@
 \name{bage-package}
 \alias{bage-package}
 \alias{bage}
-\title{bage: Fast Bayesian Estimation and Forecasting of Age-Specific Rates}
+\title{bage: Bayesian Estimation and Forecasting of Age-Specific Rates}
 \description{
 Modeling of rates, probabilities, and other values, typically
-disaggregated by age. The framework is Bayesian, estimation
-is done using \href{https://CRAN.R-project.org/package=TMB}{TMB},
+disaggregated by age. Estimation is done using \href{https://CRAN.R-project.org/package=TMB}{TMB},
 which makes it fast and scalable.
 }
 \section{Example workflow}{

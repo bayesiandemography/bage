@@ -1323,8 +1323,14 @@ make_hyperrand_lin <- function(prior,
     trend[i_along] <- hyperrandfree[[i_by]] * v
   }
   error <- effectfree - trend
-  trend <- matrix_effectfree_effect %*% trend
-  error <- matrix_effectfree_effect %*% error
+  if (getRversion() >= "4.3.0") {
+    trend <- matrix_effectfree_effect %*% trend
+    error <- matrix_effectfree_effect %*% error
+  }
+  else {
+    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
+    error <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(error))
+  }
   ## calculate slope on constrained space
   n_by_constr <- ncol(matrix_along_by_effect)
   slope <- rvec::new_rvec_dbl(length = n_by_constr, n_draw = n_draw)
@@ -1335,66 +1341,6 @@ make_hyperrand_lin <- function(prior,
   }
   vctrs::vec_c(slope, trend, error)
 }
-
-
-## HAS_TESTS
-#' Derive Values for Hyper-Paramers Involving Lines and SVD
-#'
-#' @param prior Object of class 'bage_prior'.
-#' @param hyperrandfree Values for hyper-parameters. An rvec.
-#' @param vals_svd Values for unconstrained effect. An rvec.
-#' @param dimnames_term Dimnames for array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param var_sexgender Name of sex/gender variable
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_hyperrand_lin <- function(prior,
-                               hyperrandfree,
-                               effectfree,
-                               dimnames_term,
-                               var_time,
-                               var_age,
-                               var_sexgender) {
-  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
-                                                                dimnames_term = dimnames_term,
-                                                                var_time = var_time,
-                                                                var_age = var_age,
-                                                                var_sexgender = var_sexgender)
-  matrix_effectfree_effect <- make_matrix_effectfree_effect(prior = prior,
-                                                            dimnames_term = dimnames_term,
-                                                            var_time = var_time,
-                                                            var_age = var_age,
-                                                            var_sexgender = var_sexgender)
-  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effectfree)
-  n_by <- ncol(matrix_along_by_effectfree)
-  v <- seq_len(n_along) - 0.5 * (n_along + 1)
-  n_draw <- rvec::n_draw(hyperrandfree)
-  trend <- rvec::new_rvec_dbl(length = n_along * n_by, n_draw = n_draw)
-  for (i_by in seq_len(n_by)) {
-    i_along <- matrix_along_by_effectfree[, i_by] + 1L
-    trend[i_along] <- hyperrandfree[[i_by]] * v
-  }
-  error <- effectfree - trend
-  trend <- matrix_effectfree_effect %*% trend
-  error <- matrix_effectfree_effect %*% error
-  ## calculate slope on constrained space
-  n_by_constr <- ncol(matrix_along_by_effect)
-  slope <- rvec::new_rvec_dbl(length = n_by_constr, n_draw = n_draw)
-  for (i_by in seq_len(n_by_constr)) {
-    i_1 <- matrix_along_by_effect[1L, i_by] + 1L
-    i_2 <- matrix_along_by_effect[2L, i_by] + 1L
-    slope[[i_by]] <- trend[[i_2]] - trend[[i_1]]
-  }
-  vctrs::vec_c(slope, trend, error)
-}
-
 
 
 ## HAS_TESTS
@@ -1452,8 +1398,14 @@ make_hyperrand_randomseasfix <- function(prior,
     }
   }
   trend <- effectfree - season
-  trend <- matrix_effectfree_effect %*% trend
-  season <- matrix_effectfree_effect %*% season
+  if (getRversion() >= "4.3.0") {
+    trend <- matrix_effectfree_effect %*% trend
+    error <- matrix_effectfree_effect %*% error
+  }
+  else {
+    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
+    error <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(error))
+  }
   vctrs::vec_c(trend, season)
 }
 
@@ -1516,13 +1468,16 @@ make_hyperrand_randomseasvary <- function(prior,
     }
   }
   trend <- effectfree - season
-  trend <- matrix_effectfree_effect %*% trend
-  season <- matrix_effectfree_effect %*% season
+  if (getRversion() >= "4.3.0") {
+    trend <- matrix_effectfree_effect %*% trend
+    season <- matrix_effectfree_effect %*% season
+  }
+  else {
+    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
+    season <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(season))
+  }
   vctrs::vec_c(trend, season)
 }
-
-
-
 
 
 ## HAS_TESTS
@@ -1585,8 +1540,14 @@ make_hyperrand_zeroseasfix <- function(prior,
     }
   }
   trend <- effectfree - season
-  trend <- matrix_effectfree_effect %*% trend
-  season <- matrix_effectfree_effect %*% season
+  if (getRversion() >= "4.3.0") {
+    trend <- matrix_effectfree_effect %*% trend
+    season <- matrix_effectfree_effect %*% season
+  }
+  else {
+    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
+    season <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(season))
+  }
   vctrs::vec_c(trend, season)
 }
 
@@ -1654,8 +1615,14 @@ make_hyperrand_zeroseasvary <- function(prior,
     }
   }
   trend <- effectfree - season
-  trend <- matrix_effectfree_effect %*% trend
-  season <- matrix_effectfree_effect %*% season
+  if (getRversion() >= "4.3.0") {
+    trend <- matrix_effectfree_effect %*% trend
+    season <- matrix_effectfree_effect %*% season
+  }
+  else {
+    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
+    season <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(season))
+  }
   vctrs::vec_c(trend, season)
 }
 

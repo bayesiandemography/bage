@@ -34,8 +34,7 @@ Defaults are \code{0.8} and \code{0.98}.}
 as the 'along' variable. Only used with
 interactions.}
 
-\item{con}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-Constraints on parameters.
+\item{con}{Constraints on parameters.
 Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
 }
@@ -85,8 +84,8 @@ where
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{\phi} is the damping coefficient;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{v} denotes position within the 'along' variable of the interaction; and
-\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+\item \eqn{v} denotes position within the 'along' variable of the interaction.
 }
 
 Coefficient \eqn{\phi} is constrained
@@ -113,16 +112,10 @@ variance of each \eqn{\beta_j} or \eqn{\beta_{u,v}}.
 \section{Constraints}{
 
 
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} The specification of
-constraints is likely to change in future versions of \pkg{bage}.
-
 With some combinations of terms and priors, the values of
-the intercept, main effects, and interactions are
+the intercept, main effects, and interactions
 are only weakly identified.
-For instance, it may be possible to increase the value of the
-intercept and reduce the value of the remaining terms in
-the model with no effect on predicted rates and only a tiny
-effect on prior probabilities. This weak identifiability is
+This weak identifiability is
 typically harmless. However, in some applications, such as
 when trying to obtain interpretable values
 for main effects and interactions, it can be helpful to increase

@@ -336,6 +336,71 @@ test_that("'RW2_Infant' works with valid inputs", {
                                             con = "by"))
 })
 
+test_that("'RW2_AR' works with valid inputs", {
+  expect_identical(RW2_AR(),
+                   new_bage_prior_rw2randomar(scale_rw = 1,
+                                              sd = 1,
+                                              sd_slope = 1,
+                                              n_coef = 2L,
+                                              shape1 = 5,
+                                              shape2 = 5,
+                                              min = -1,
+                                              max = 1,
+                                              scale_ar = 1,
+                                              along = NULL,
+                                              con = "none",
+                                              nm = "RW2_AR"))
+  expect_identical(RW2_AR(sd_slope = 0.1,
+                          s_rw = 0.3,
+                          sd = 0.5,
+                          shape2 = 3,
+                          s_ar = 0.5,
+                          n_coef = 3,
+                          along = "reg",
+                          con = "by"),
+                   new_bage_prior_rw2randomar(scale_rw = 0.3,
+                                              sd = 0.5,
+                                              sd_slope = 0.1,
+                                              n_coef = 3L,
+                                              shape1 = 5,
+                                              shape2 = 3,
+                                              min = -1,
+                                              max = 1,
+                                              scale_ar = 0.5,
+                                              along = "reg",
+                                              con = "by",
+                                              nm = "RW2_AR"))
+  expect_identical(RW2_AR(sd = 0),
+                   new_bage_prior_rw2zeroar(scale_rw = 1,
+                                            sd_slope = 1,
+                                            n_coef = 2L,
+                                            shape1 = 5,
+                                            shape2 = 5,
+                                            min = -1,
+                                            max = 1,
+                                            scale_ar = 1,
+                                            along = NULL,
+                                            con = "none",
+                                            nm = "RW2_AR"))
+  expect_identical(RW2_AR(sd_slope = 0.1,
+                          s_rw = 0.3,
+                          sd = 0,
+                          along = "reg",
+                          con = "by"),
+                   new_bage_prior_rw2zeroar(scale_rw = 0.3,
+                                            sd_slope = 0.1,
+                                            n_coef = 2L,
+                                            shape1 = 5,
+                                            shape2 = 5,
+                                            min = -1,
+                                            max = 1,
+                                            scale_ar = 1,
+                                            along = "reg",
+                                            con = "by",
+                                            nm = "RW2_AR"))
+})
+
+
 test_that("'RW2_Seas' works with valid inputs", {
   expect_identical(RW2_Seas(n_seas = 2, s_seas = 0),
                    new_bage_prior_rw2randomseasfix(n_seas = 2L,
@@ -1192,6 +1257,46 @@ test_that("'new_bage_prior_rw2random' works", {
                         con = "none"))
 })
 
+test_that("'new_bage_prior_rw2randomar' works", {
+  obj <- new_bage_prior_rw2randomar(scale_rw = 1,
+                                    sd = 1,
+                                    sd_slope = 1,
+                                    n_coef = 2L,
+                                    shape1 = 5,
+                                    shape2 = 5,
+                                    min = -1,
+                                    max = 1,
+                                    scale_ar = 1,
+                                    along = NULL,
+                                    con = "none",
+                                    nm = "RW2_AR")
+  expect_s3_class(obj, "bage_prior_rw2randomar")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 37L)
+  expect_identical(obj$const,
+                   c(scale_rw = 1,
+                     sd = 1,
+                     sd_slope = 1,
+                     shape1 = 5,
+                     shape2 = 5,
+                     min = -1,
+                     max = 1,
+                     scale_ar = 1))
+  expect_identical(obj$specific,
+                   list(scale_rw = 1,
+                        sd = 1,
+                        sd_slope = 1,
+                        n_coef = 2L,
+                        shape1 = 5,
+                        shape2 = 5,
+                        min = -1,
+                        max = 1,
+                        scale_ar = 1,
+                        along = NULL,
+                        con = "none",
+                        nm = "RW2_AR"))
+})
+
 test_that("'new_bage_prior_rw2randomseasfix' works", {
   obj <- new_bage_prior_rw2randomseasfix(n_seas = 4,
                                          sd_seas = 1,
@@ -1252,6 +1357,43 @@ test_that("'new_bage_prior_rw2zero' works", {
                         sd_slope = 1,
                         along = NULL,
                         con = "none"))
+})
+
+test_that("'new_bage_prior_rw2zeroar' works", {
+  obj <- new_bage_prior_rw2zeroar(scale_rw = 1,
+                                  sd_slope = 1,
+                                  n_coef = 2L,
+                                  shape1 = 5,
+                                  shape2 = 5,
+                                  min = -1,
+                                  max = 1,
+                                  scale_ar = 1,
+                                  along = NULL,
+                                  con = "none",
+                                  nm = "RW2_AR")
+  expect_s3_class(obj, "bage_prior_rw2zeroar")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 38L)
+  expect_identical(obj$const,
+                   c(scale_rw = 1,
+                     sd_slope = 1,
+                     shape1 = 5,
+                     shape2 = 5,
+                     min = -1,
+                     max = 1,
+                     scale_ar = 1))
+  expect_identical(obj$specific,
+                   list(scale_rw = 1,
+                        sd_slope = 1,
+                        n_coef = 2L,
+                        shape1 = 5,
+                        shape2 = 5,
+                        min = -1,
+                        max = 1,
+                        scale_ar = 1,
+                        along = NULL,
+                        con = "none",
+                        nm = "RW2_AR"))
 })
 
 test_that("'new_bage_prior_rw2zeroseasfix' works", {

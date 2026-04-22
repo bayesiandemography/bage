@@ -1435,7 +1435,15 @@ Type logpost_has_hyperrandfree(const vector<Type>& effectfree,
     ans = logpost_svd_lin(effectfree, hyper, hyperrandfree, consts,
 			  matrix_along_by_effectfree);
     break;
-  default:                                                                                                // # nocov
+  case 37:
+    ans = logpost_rw2randomar(effectfree, hyper, hyperrandfree, consts,
+			      matrix_along_by_effectfree);
+    break;
+  case 38:
+    ans = logpost_rw2zeroar(effectfree, hyper, hyperrandfree, consts,
+			    matrix_along_by_effectfree);
+    break;
+default:                                                                                                // # nocov
     Rf_error("Internal error: function 'logpost_has_hyperrandfree' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;

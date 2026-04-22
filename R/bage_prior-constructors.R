@@ -54,16 +54,10 @@
 #'
 #' @section Constraints:
 #'
-#' `r lifecycle::badge("experimental")` The specification of
-#' constraints is likely to change in future versions of \pkg{bage}.
-#'
 #' With some combinations of terms and priors, the values of
-#' the intercept, main effects, and interactions are
+#' the intercept, main effects, and interactions
 #' are only weakly identified.
-#' For instance, it may be possible to increase the value of the
-#' intercept and reduce the value of the remaining terms in
-#' the model with no effect on predicted rates and only a tiny
-#' effect on prior probabilities. This weak identifiability is
+#' This weak identifiability is
 #' typically harmless. However, in some applications, such as
 #' when trying to obtain interpretable values
 #' for main effects and interactions, it can be helpful to increase
@@ -87,8 +81,7 @@
 #' @param along Name of the variable to be used
 #' as the 'along' variable. Only used with
 #' interactions.
-#' @param con `r lifecycle::badge("experimental")`
-#' Constraints on parameters.
+#' @param con Constraints on parameters.
 #' Current choices are `"none"` and `"by"`.
 #' Default is `"none"`. See below for details.
 #'
@@ -97,7 +90,8 @@
 #' @seealso
 #' - [AR1()] Special case of `AR()`. Can be more
 #'   numerically stable than higher-order models.
-#' - [Lin_AR()], [Lin_AR1()] Straight line with AR errors
+#' - [Lin_AR()], [Lin_AR1()] Line with AR errors
+#' - [RW2_AR()], [RW2_AR1()] RW2 with AR errors
 #' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -214,6 +208,7 @@ AR <- function(n_coef = 2,
 #' @seealso
 #' - [AR()] Generalization of `AR1()`
 #' - [Lin_AR()], [Lin_AR1()] Line with AR errors
+#' - [RW2_AR()], [RW2_AR1()] RW2 with AR errors
 #' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -441,7 +436,7 @@ DRW <- function(s = 1,
 #'
 #' \deqn{\beta_1 \sim \text{N}(0, \mathtt{sd}^2)}
 #' \deqn{\beta_2 \sim \text{N}(\beta_1, \mathtt{sd\_slope}^2)} 
-#' \deqn{\beta_j \sim \text{N}(\beta_{j-1} + \phi (\beta_{j-1} \beta_{j-2}), \tau^2), \quad j = 2, \cdots, J}
+#' \deqn{\beta_j \sim \text{N}(\beta_{j-1} + \phi (\beta_{j-1} - \beta_{j-2}), \tau^2), \quad j = 2, \cdots, J}
 #'
 #' and when it is used with an interaction,
 #'
@@ -720,25 +715,23 @@ Lin <- function(s = 1,
 #'
 #' When `Lin_AR()` is used with a main effect,
 #'
-#' \deqn{\beta_1 = \alpha + \epsilon_1}
-#' \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
-#' \deqn{\alpha \sim \text{N}(0, 1)}
+#' \deqn{\beta_j = \alpha_j + \epsilon_j}
+#' \deqn{\alpha_j = (j - (J+1)/2) \eta}
 #' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{j-\mathtt{n\_coef}} + \varepsilon_j}
 #' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
-#' \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
-#' \deqn{\alpha_u \sim \text{N}(0, 1)}
+#' \deqn{\beta_{u,v} = \alpha_{u,v} + \epsilon_{u,v}}
+#' \deqn{\alpha_{u,v} = (v - (V + 1)/2) \eta_u}
 #' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{u,v-\mathtt{n\_coef}} + \varepsilon_{u,v},}
 #' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the 'by' variable of the interaction; and
-#' - \eqn{v} denotes position within the 'along' variable(s) of the interaction.
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction.
 #'
 #' The slopes have priors
 #' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
@@ -759,13 +752,17 @@ Lin <- function(s = 1,
 #' @inheritSection AR Constraints
 #' 
 #' @inheritParams AR
-#' @param s Scale for the innovations in the
-#' AR process. Default is `1`.
 #' @param mean_slope Mean in prior for slope
 #' of line. Default is 0.
 #' @param sd_slope Standard deviation in the prior for
 #' the slope of the line. Larger values imply
 #' steeper slopes. Default is 1.
+#' @param s Scale for the innovations in the
+#' AR process. Default is `1`.
+#' @param shape1,shape2 Parameters for
+#' beta-distribution prior
+#' for coefficients in the AR process.
+#' Defaults are `5` and `5`.
 #'
 #' @returns An object of class `"bage_prior_linar"`.
 #'
@@ -850,25 +847,23 @@ Lin_AR <- function(n_coef = 2,
 #'
 #' When `Lin_AR1()` is being used with a main effect,
 #'
-#' \deqn{\beta_1 = \alpha + \epsilon_1}
-#' \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
-#' \deqn{\alpha \sim \text{N}(0, 1)}
+#' \deqn{\beta_j = \alpha_j + \epsilon_j}
+#' \deqn{\alpha_j = (j - (J+1)/2) \eta}
 #' \deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j}
 #' \deqn{\varepsilon \sim \text{N}(0, \omega^2),}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
-#' \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
-#' \deqn{\alpha_u \sim \text{N}(0, 1)}
-#' \deqn{\epsilon_{u,v} = \phi \epsilon_{u,v-1} + \varepsilon_{u,v},}
-#' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
+#' \deqn{\beta_{u,v} = \alpha_{u,v} + \epsilon_{u,v}}
+#' \deqn{\alpha_{u,v} = (v - (V + 1)/2) \eta_u}
+#' \deqn{\epsilon_{u,v} = \phi \epsilon_{u,v-1} + \varepsilon_{u,v}}
+#' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2),}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the 'by' variable of the interaction; and
-#' - \eqn{v} denotes position within the 'along' variable(s) of the interaction.
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction.
 #'
 #' The slopes have priors
 #' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
@@ -893,7 +888,7 @@ Lin_AR <- function(n_coef = 2,
 #'
 #' @inheritParams Lin_AR
 #' @param min,max Minimum and maximum values
-#' for autocorrelation coefficient.
+#' for autocorrelation coefficient in the AR process.
 #' Defaults are `0.8` and `0.98`.
 #'
 #' @returns An object of class `"bage_prior_linar"`.
@@ -1417,66 +1412,66 @@ RW2 <- function(s = 1,
 }
 
 
-
-
 ## HAS_TESTS
 #' Second-Order Random Walk Prior with Autoregressive Errors
 #'
 #' Use one or more second-order random walks,
 #' combined with an autoregressive
 #' error term, to model a main effect
-#' or interaction. Typically used with time.
+#' or an interaction. Typically used with time.
 #'
 #' If `RW2_AR()` is used with an interaction,
 #' separate random walks are constructed along 
 #' the 'along' variable, within each combination
 #' of the 'by' variables.
 #'
-#' The order of the autoregressive errors is
-#' controlled by the `n_coef` argument. The
-#' default is 2.
-#' 
-#' Argument `s` controls the size of the innovations.
-#' Smaller values tend to give smoother estimates.
+#' Parameters controlling the RW2 process:
 #'
-#' Argument `sd_slope` controls the slopes of
-#' the lines. Larger values can give more steeply
-#' sloped lines.
-#' 
+#' - `s_rw`
+#' - `sd`
+#' - `sd_slope`
+#'
+#' Parameters controlling the AR process:
+#'
+#' - `n_coef`
+#' - `s_ar`
+#' - `shape1`
+#' - `shape2`
+#'
 #' @section Mathematical details:
 #'
-#' When `Lin_AR()` is used with a main effect,
+#' When `RW2_AR()` is used with a main effect,
 #'
-#' \deqn{\beta_1 = \alpha + \epsilon_1}
-#' \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
-#' \deqn{\alpha \sim \text{N}(0, 1)}
+#' \deqn{\beta_j = \alpha_j + \epsilon_j}
+#' \deqn{\alpha_1 \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\alpha_2 \sim \text{N}(\alpha_1, \mathtt{sd\_slope}^2)}
+#' \deqn{\alpha_j \sim \text{N}(2\alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j = 3, \cdots, J}
 #' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{j-\mathtt{n\_coef}} + \varepsilon_j}
 #' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
-#' \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
-#' \deqn{\alpha_u \sim \text{N}(0, 1)}
-#' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{u,v-\mathtt{n\_coef}} + \varepsilon_{u,v},}
-#' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
+#' \deqn{\beta_{u,v} = \alpha_{u,v} + \epsilon_{u,v}}
+#' \deqn{\alpha_{u,1} \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\alpha_{u,2} \sim \text{N}(\alpha_{u,1}, \mathtt{sd\_slope}^2)}
+#' \deqn{\alpha_{u,v} \sim \text{N}(2\alpha_{u,v-1} - \alpha_{u,v-2}, \tau^2), \quad v = 3, \cdots, V}
+#' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{u,v-\mathtt{n\_coef}} + \varepsilon_{u,v}}
+#' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2),}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the 'by' variable of the interaction; and
-#' - \eqn{v} denotes position within the 'along' variable(s) of the interaction.
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction.
 #'
-#' The slopes have priors
-#' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
-#' and
-#' \deqn{\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2).}
+#' The \eqn{\tau} parameter in the random walk has prior 
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s\_rw}^2)}
 #'
-#' Internally, `Lin_AR()` derives a value for \eqn{\omega} that
+#' Internally, `RW2_AR()` derives a value for \eqn{\omega} that
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
-#' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
+#' variance of \eqn{\nu^2}. Parameter \eqn{\nu}
 #' has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
+#' \deqn{\nu \sim \text{N}^+(0, \mathtt{s\_ar}^2).}
 #'
 #' The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\mathtt{n\_coef}}}
 #' each have prior
@@ -1486,20 +1481,23 @@ RW2 <- function(s = 1,
 #' @inheritSection AR Constraints
 #' 
 #' @inheritParams AR
-#' @param s Scale for the innovations in the
-#' AR process. Default is `1`.
-#' @param mean_slope Mean in prior for slope
-#' of line. Default is 0.
+#' @param s_rw Scale for the innovations in the
+#' RW2 process. Default is `1`.
+#' @param sd Standard deviation for initial term
+#' in RW2 process. Default is `1`. Can be `0`.
 #' @param sd_slope Standard deviation in the prior for
-#' the slope of the line. Larger values imply
+#' the initial slope of the RW2 process. Larger values imply
 #' steeper slopes. Default is 1.
+#' @param s_ar Scale for the innovations in the
+#' AR process. Default is `1`.
 #'
-#' @returns An object of class `"bage_prior_linar"`.
+#' @returns An object of class `"bage_prior_rw2randomar"`
+#' or `"bage_prior_rw2zeroar"`.
 #'
 #' @seealso
-#' - [Lin_AR1()] Special case of `Lin_AR()`
-#' - [Lin()] Line with independent normal errors
-#' - [AR()] AR process with no line
+#' - [RW2_AR1()] Special case of `RW2_AR()`
+#' - [RW2()] Second-order random walk
+#' - [AR()] AR process
 #' - [priors] Overview of priors implemented in \pkg{bage}
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -1507,54 +1505,230 @@ RW2 <- function(s = 1,
 #'   vignette
 #'
 #' @examples
-#' Lin_AR()
-#' Lin_AR(n_coef = 3, s = 0.5, sd_slope = 2)
+#' RW2_AR()
+#' RW2_AR(sd_slope = 2, n_coef = 3, s_ar = 0.5)
 #' @export
-Lin_AR <- function(n_coef = 2,
-                   s = 1,
+RW2_AR <- function(s_rw = 1,
+                   sd = 1,
+                   sd_slope = 1,
+                   n_coef = 2,
+                   s_ar = 1,
                    shape1 = 5,
                    shape2 = 5,
-                   mean_slope = 0,
-                   sd_slope = 1,
                    along = NULL,
                    con = c("none", "by")) {
+  check_scale(s_rw, nm_x = "s_rw", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
+  check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   poputils::check_n(n = n_coef,
                     nm_n = "n_coef",
                     min = 1L,
                     max = NULL,
                     divisible_by = NULL)
-  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(s_ar, nm_x = "s_rw", zero_ok = FALSE)
   check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
   check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
-  check_number(mean_slope, nm_x = "mean_slope")
-  check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   con <- match.arg(con)
+  scale_rw <- as.double(s_rw)
+  sd <- as.double(sd)
+  sd_slope <- as.double(sd_slope)
   n_coef <- as.integer(n_coef)
-  scale <- as.double(s)
+  scale_ar <- as.double(s_ar)
   shape1 <- as.double(shape1)
   shape2 <- as.double(shape2)
-  mean_slope <- as.double(mean_slope)
-  sd_slope <- as.double(sd_slope)
-  new_bage_prior_linar(n_coef = n_coef,
-                       shape1 = shape1,
-                       shape2 = shape2,
-                       mean_slope = mean_slope,
-                       sd_slope = sd_slope,
-                       min = -1,
-                       max = 1,
-                       scale = scale,
-                       along = along,
-                       con = con,
-                       nm = "Lin_AR")
+  if (sd > 0)
+    new_bage_prior_rw2randomar(scale_rw = scale_rw,
+                               sd = sd,
+                               sd_slope = sd_slope,
+                               n_coef = n_coef,
+                               shape1 = shape1,
+                               shape2 = shape2,
+                               min = -1,
+                               max = 1,
+                               scale_ar = scale_ar,
+                               along = along,
+                               con = con,
+                               nm = "RW2_AR")
+  else
+    new_bage_prior_rw2zeroar(scale_rw = scale_rw,
+                             sd_slope = sd_slope,
+                             n_coef = n_coef,
+                             shape1 = shape1,
+                             shape2 = shape2,
+                             min = -1,
+                             max = 1,
+                             scale_ar = scale_ar,
+                             along = along,
+                             con = con,
+                             nm = "RW2_AR")
 }
 
 
-
-
-
-
+## HAS_TESTS
+#' Second-Order Random Walk Prior with
+#' First Order Autoregressive Errors
+#'
+#' Use one or more second-order random walks,
+#' combined with an AR1
+#' error term, to model a main effect
+#' or an interaction. Typically used with time.
+#'
+#' If `RW2_AR1()` is used with an interaction,
+#' separate random walks are constructed along 
+#' the 'along' variable, within each combination
+#' of the 'by' variables.
+#'
+#' Parameters controlling the RW2 process:
+#'
+#' - `s_rw`
+#' - `sd`
+#' - `sd_slope`
+#'
+#' Parameters controlling the AR1 process:
+#'
+#' - `s_ar`
+#' - `shape1`
+#' - `shape2`
+#' - `min`
+#' - `max`
+#'
+#' @section Mathematical details:
+#'
+#' When `RW2_AR1()` is used with a main effect,
+#'
+#' \deqn{\beta_j = \alpha_j + \epsilon_j}
+#' \deqn{\alpha_1 \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\alpha_2 \sim \text{N}(\alpha_1, \mathtt{sd\_slope}^2)}
+#' \deqn{\alpha_j \sim \text{N}(2\alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j = 3, \cdots, J}
+#' \deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j}
+#' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
+#'
+#' and when it is used with an interaction,
+#'
+#' \deqn{\beta_{u,v} = \alpha_{u,v} + \epsilon_{u,v}}
+#' \deqn{\alpha_{u,1} \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\alpha_{u,2} \sim \text{N}(\alpha_{u,1}, \mathtt{sd\_slope}^2)}
+#' \deqn{\alpha_{u,v} \sim \text{N}(2\alpha_{u,v-1} - \alpha_{u,v-2}, \tau^2), \quad v = 3, \cdots, V}
+#' \deqn{\epsilon_{u,v} = \phi \epsilon_{u,v-1} + \varepsilon_{u,v}}
+#' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2),}
+#' 
+#' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction.
+#'
+#' The \eqn{\tau} parameter in the random walk has prior 
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s\_rw}^2)}
+#'
+#' Internally, `RW2_AR()` derives a value for \eqn{\omega} that
+#' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
+#' variance of \eqn{\nu^2}. Parameter \eqn{\nu}
+#' has a half-normal prior
+#' \deqn{\nu \sim \text{N}^+(0, \mathtt{s\_ar}^2).}
+#'
+#' Coefficient \eqn{\phi} is constrained
+#' to lie between `min` and `max`.
+#' Its prior distribution is
+#' 
+#' \deqn{\phi = (\mathtt{max} - \mathtt{min}) \phi' - \mathtt{min}}
+#' 
+#' where
+#' 
+#' \deqn{\phi' \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
+#'
+#' @inheritSection AR Constraints
+#' 
+#' @inheritParams AR
+#' @param s_rw Scale for the innovations in the
+#' RW2 process. Default is `1`.
+#' @param sd Standard deviation for initial term
+#' in RW2 process. Default is `1`. Can be `0`.
+#' @param sd_slope Standard deviation in the prior for
+#' the initial slope of RW2 process. Larger values imply
+#' steeper slopes. Default is 1.
+#' @param s_ar Scale for the innovations in the
+#' AR1 process. Default is `1`.
+#' @param min,max Minimum and maximum values
+#' for autocorrelation coefficient in AR1 process.
+#' Defaults are `0.8` and `0.98`.
+#'
+#' @returns An object of class `"bage_prior_rw2randomar"`
+#' or `"bage_prior_rw2zeroar"`.
+#'
+#' @seealso
+#' - [RW2_AR()] Generalization of `RW2_AR1()`
+#' - [Lin_AR1()] Sepcial case of `RW2_AR1()`
+#' - [RW2()] Second-order random walk
+#' - [AR1()] AR1 process
+#' - [priors] Overview of priors implemented in \pkg{bage}
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#' - [Mathematical Details](https://bayesiandemography.github.io/bage/articles/vig02_math.html)
+#'   vignette
+#'
+#' @examples
+#' RW2_AR1()
+#' RW2_AR1(sd_slope = 2, s_ar = 0.5)
+#' @export
+RW2_AR1 <- function(s_rw = 1,
+                    sd = 1,
+                    sd_slope = 1,
+                    n_coef = 2,
+                    s_ar = 1,
+                    shape1 = 5,
+                    shape2 = 5,
+                    along = NULL,
+                    con = c("none", "by")) {
+  check_scale(s_rw, nm_x = "s_rw", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
+  check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
+  poputils::check_n(n = n_coef,
+                    nm_n = "n_coef",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
+  check_scale(s_ar, nm_x = "s_rw", zero_ok = FALSE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  con <- match.arg(con)
+  scale_rw <- as.double(s_rw)
+  sd <- as.double(sd)
+  sd_slope <- as.double(sd_slope)
+  n_coef <- as.integer(n_coef)
+  scale_ar <- as.double(s_ar)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
+  if (sd > 0)
+    new_bage_prior_rw2randomar(scale_rw = scale_rw,
+                               sd = sd,
+                               sd_slope = sd_slope,
+                               n_coef = n_coef,
+                               shape1 = shape1,
+                               shape2 = shape2,
+                               min = -1,
+                               max = 1,
+                               scale_ar = scale_ar,
+                               along = along,
+                               con = con,
+                               nm = "RW2_AR")
+  else
+    new_bage_prior_rw2zeroar(scale_rw = scale_rw,
+                             sd_slope = sd_slope,
+                             n_coef = n_coef,
+                             shape1 = shape1,
+                             shape2 = shape2,
+                             min = -1,
+                             max = 1,
+                             scale_ar = scale_ar,
+                             along = along,
+                             con = con,
+                             nm = "RW2_AR")
+}
 
 
 ## HAS_TESTS
@@ -3015,6 +3189,7 @@ new_bage_prior_rwzeroseasvary <- function(n_seas,
   ans
 }
 
+
 ## HAS_TESTS
 new_bage_prior_rw2infant <- function(scale,
                                      sd_slope,
@@ -3048,6 +3223,45 @@ new_bage_prior_rw2random <- function(scale,
   class(ans) <- c("bage_prior_rw2random", "bage_prior")
   ans
 }
+
+## NO_TESTS
+new_bage_prior_rw2randomar <- function(scale_rw,
+                                       sd,
+                                       sd_slope,
+                                       n_coef,
+                                       shape1,
+                                       shape2,
+                                       min,
+                                       max,
+                                       scale_ar,
+                                       along,
+                                       con,
+                                       nm) {
+  ans <- list(i_prior = 37L,
+              const = c(scale_rw = scale_rw,
+                        sd = sd,
+                        sd_slope = sd_slope,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max,
+                        scale_ar = scale_ar),
+              specific = list(scale_rw = scale_rw,
+                              sd = sd,
+                              sd_slope = sd_slope,
+                              n_coef = n_coef,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              scale_ar = scale_ar,
+                              along = along,
+                              con = con,
+                              nm = nm))
+  class(ans) <- c("bage_prior_rw2randomar", "bage_prior")
+  ans
+}
+
 
 ## HAS_TESTS
 new_bage_prior_rw2randomseasfix <- function(n_seas,
@@ -3117,6 +3331,43 @@ new_bage_prior_rw2zero <- function(scale,
   class(ans) <- c("bage_prior_rw2zero", "bage_prior")
   ans
 }
+
+
+## NO_TESTS
+new_bage_prior_rw2zeroar <- function(scale_rw,
+                                     sd_slope,
+                                     n_coef,
+                                     shape1,
+                                     shape2,
+                                     min,
+                                     max,
+                                     scale_ar,
+                                     along,
+                                     con,
+                                     nm) {
+  ans <- list(i_prior = 38L,
+              const = c(scale_rw = scale_rw,
+                        sd_slope = sd_slope,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max,
+                        scale_ar = scale_ar),
+              specific = list(scale_rw = scale_rw,
+                              sd_slope = sd_slope,
+                              n_coef = n_coef,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              scale_ar = scale_ar,
+                              along = along,
+                              con = con,
+                              nm = nm))
+  class(ans) <- c("bage_prior_rw2zeroar", "bage_prior")
+  ans
+}
+
 
 ## HAS_TESTS
 new_bage_prior_rw2zeroseasfix <- function(n_seas,

@@ -30,8 +30,7 @@ for initial slope of random walk. Default is \code{1}.}
 as the 'along' variable. Only used with
 interactions.}
 
-\item{con}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-Constraints on parameters.
+\item{con}{Constraints on parameters.
 Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
 }
@@ -80,16 +79,10 @@ to follow a \link[=RW2]{second-order random walk}.
 \section{Constraints}{
 
 
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} The specification of
-constraints is likely to change in future versions of \pkg{bage}.
-
 With some combinations of terms and priors, the values of
-the intercept, main effects, and interactions are
+the intercept, main effects, and interactions
 are only weakly identified.
-For instance, it may be possible to increase the value of the
-intercept and reduce the value of the remaining terms in
-the model with no effect on predicted rates and only a tiny
-effect on prior probabilities. This weak identifiability is
+This weak identifiability is
 typically harmless. However, in some applications, such as
 when trying to obtain interpretable values
 for main effects and interactions, it can be helpful to increase

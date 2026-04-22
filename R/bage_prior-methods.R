@@ -117,6 +117,17 @@ comp_hyperrand.bage_prior_rwzeroseasvary <- function(prior,
 
 ## HAS_TESTS
 #' @export
+comp_hyperrand.bage_prior_rw2randomar <- function(prior,
+                                                  dimnames_term,
+                                                  var_age,
+                                                  var_time,
+                                                  var_sexgender) {
+  n_effect <- prod(lengths(dimnames_term))
+  rep(c("trend", "error"), each =  n_effect)
+}
+
+## HAS_TESTS
+#' @export
 comp_hyperrand.bage_prior_rw2randomseasfix <- function(prior,
                                                        dimnames_term,
                                                        var_age,
@@ -135,6 +146,17 @@ comp_hyperrand.bage_prior_rw2randomseasvary <- function(prior,
                                                         var_sexgender) {
   n <- prod(lengths(dimnames_term))
   rep(c("trend", "season"), each = n)
+}
+
+## HAS_TESTS
+#' @export
+comp_hyperrand.bage_prior_rw2zeroar <- function(prior,
+                                                dimnames_term,
+                                                var_age,
+                                                var_time,
+                                                var_sexgender) {
+  n_effect <- prod(lengths(dimnames_term))
+  rep(c("trend", "error"), each =  n_effect)
 }
 
 ## HAS_TESTS
@@ -7176,6 +7198,19 @@ make_hyperrand_one.bage_prior_rwzeroseasvary <- function(prior,
 
 ## HAS_TESTS
 #' @export
+make_hyperrand_one.bage_prior_rw2randomar <- function(prior,
+                                                      hyperrandfree,
+                                                      effectfree,
+                                                      dimnames_term,
+                                                      var_time,
+                                                      var_age,
+                                                      var_sexgender) {
+  trend <- effectfree - hyperrandfree
+  vctrs::vec_c(trend, hyperrandfree)
+}
+
+## HAS_TESTS
+#' @export
 make_hyperrand_one.bage_prior_rw2randomseasfix <- function(prior,
                                                            hyperrandfree,
                                                            effectfree,
@@ -7207,6 +7242,19 @@ make_hyperrand_one.bage_prior_rw2randomseasvary <- function(prior,
                                 var_time = var_time,
                                 var_age = var_age,
                                 var_sexgender = var_sexgender)
+
+## HAS_TESTS
+#' @export
+make_hyperrand_one.bage_prior_rw2zeroar <- function(prior,
+                                                    hyperrandfree,
+                                                    effectfree,
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    var_sexgender) {
+  trend <- effectfree - hyperrandfree
+  vctrs::vec_c(trend, hyperrandfree)
+}
 
 ## HAS_TESTS
 #' @export
@@ -11591,6 +11639,10 @@ uses_along.bage_prior_rw2random <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
+uses_along.bage_prior_rw2randomar <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
 uses_along.bage_prior_rw2randomseasfix <- function(prior) TRUE
 
 ## HAS_TESTS
@@ -11600,6 +11652,10 @@ uses_along.bage_prior_rw2randomseasvary <- function(prior) TRUE
 ## HAS_TESTS
 #' @export
 uses_along.bage_prior_rw2zero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_rw2zeroar <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
@@ -11706,11 +11762,19 @@ uses_hyperrandfree.bage_prior_rwzeroseasvary <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
+uses_hyperrandfree.bage_prior_rw2randomar <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
 uses_hyperrandfree.bage_prior_rw2randomseasfix <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
 uses_hyperrandfree.bage_prior_rw2randomseasvary <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_hyperrandfree.bage_prior_rw2zeroar <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
@@ -11810,6 +11874,10 @@ uses_matrix_effectfree_effect.bage_prior_rw2random <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
+uses_matrix_effectfree_effect.bage_prior_rw2randomar <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
 uses_matrix_effectfree_effect.bage_prior_rw2randomseasfix <- function(prior) TRUE
 
 ## HAS_TESTS
@@ -11819,6 +11887,10 @@ uses_matrix_effectfree_effect.bage_prior_rw2randomseasvary <- function(prior) TR
 ## HAS_TESTS
 #' @export
 uses_matrix_effectfree_effect.bage_prior_rw2zero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_rw2zeroar <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export

@@ -27,8 +27,7 @@ for coefficients. Defaults are \code{5} and \code{5}.}
 as the 'along' variable. Only used with
 interactions.}
 
-\item{con}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-Constraints on parameters.
+\item{con}{Constraints on parameters.
 Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
 }
@@ -72,8 +71,8 @@ where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{v} denotes position within the 'along' variable of the interaction; and
-\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
+\item \eqn{v} denotes position within the 'along' variable of the interaction.
 }
 
 Internally, \code{AR()} derives a value for \eqn{\omega} that
@@ -92,16 +91,10 @@ each have prior
 \section{Constraints}{
 
 
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} The specification of
-constraints is likely to change in future versions of \pkg{bage}.
-
 With some combinations of terms and priors, the values of
-the intercept, main effects, and interactions are
+the intercept, main effects, and interactions
 are only weakly identified.
-For instance, it may be possible to increase the value of the
-intercept and reduce the value of the remaining terms in
-the model with no effect on predicted rates and only a tiny
-effect on prior probabilities. This weak identifiability is
+This weak identifiability is
 typically harmless. However, in some applications, such as
 when trying to obtain interpretable values
 for main effects and interactions, it can be helpful to increase
@@ -133,7 +126,8 @@ AR(along = "cohort")
 \itemize{
 \item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}. Can be more
 numerically stable than higher-order models.
-\item \code{\link[=Lin_AR]{Lin_AR()}}, \code{\link[=Lin_AR1]{Lin_AR1()}} Straight line with AR errors
+\item \code{\link[=Lin_AR]{Lin_AR()}}, \code{\link[=Lin_AR1]{Lin_AR1()}} Line with AR errors
+\item \code{\link[=RW2_AR]{RW2_AR()}}, \code{\link[=RW2_AR1]{RW2_AR1()}} RW2 with AR errors
 \item \link{priors} Overview of priors implemented in \pkg{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
