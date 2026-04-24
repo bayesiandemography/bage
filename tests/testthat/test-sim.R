@@ -493,7 +493,7 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
 })
 
 
-## 'draw_vals_dffect_svd_dynamic' ---------------------------------------------
+## 'draw_vals_effect_svd_dynamic' ---------------------------------------------
 
 test_that("'draw_vals_effect_svd_dynamic' works with bage_prior_svd_ar - age x time", {
   prior <- SVD_AR1(HMD, n_comp = 3)
@@ -543,7 +543,47 @@ test_that("'draw_vals_hyper_mod' works with bage_mod_pois", {
 })
 
 
-## draw_vals_hyperrand_mod --------------------------------------------------------
+## 'draw_vals_hyperrand_ar' ---------------------------------------------------
+
+test_that("'draw_vals_hyperrand_ar' works with bage_prior_rw2randomar - con is 'none'", {
+  set.seed(0)
+  prior <- RW2_AR()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(time = 1:10, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  ans <- draw_vals_hyperrand_ar(prior = prior,
+                                vals_hyper = vals_hyper,
+                                dimnames_term = dimnames_term,
+                                var_age = var_age,
+                                var_time = var_time)
+  expect_identical(names(ans), "error")
+  expect_identical(nrow(ans$error), 40L)
+})
+
+test_that("'draw_vals_hyperrand_ar' works with bage_prior_rw2randomar - con = 'by'", {
+  set.seed(0)
+  prior <- RW2_AR(con = "by")
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(time = 1:10, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  ans <- draw_vals_hyperrand_ar(prior = prior,
+                                vals_hyper = vals_hyper,
+                                dimnames_term = dimnames_term,
+                                var_age = var_age,
+                                var_time = var_time)
+  expect_identical(names(ans), "error")
+  expect_identical(nrow(ans$error), 40L)
+  expect_equal(rowSums(matrix(ans$error[,1], nr = 10)), rep(0, 10))
+})
+
+
+## draw_vals_hyperrand_mod ----------------------------------------------------
 
 test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
     set.seed(0)
@@ -850,8 +890,31 @@ test_that("'draw_vals_sd' works", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+## draw_vals_sd_ar ------------------------------------------------------------
 
-## draw_vals_sd_seas ---------------------------------------------------------------
+test_that("'draw_vals_sd_ar' works", {
+  prior <- RW2_AR1(s_ar = 0.2)
+  n_sim <- 10
+  set.seed(0)
+  ans_obtained <- draw_vals_sd_ar(prior = prior, n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- abs(rnorm(n = 10, sd = 0.2))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+## draw_vals_sd_rw ------------------------------------------------------------
+
+test_that("'draw_vals_sd_rw' works", {
+  prior <- RW2_AR1(s_rw = 0.2)
+  n_sim <- 10
+  set.seed(0)
+  ans_obtained <- draw_vals_sd_rw(prior = prior, n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- abs(rnorm(n = 10, sd = 0.2))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+## draw_vals_sd_seas ----------------------------------------------------------
 
 test_that("'draw_vals_sd_seas' works", {
   prior <- RW_Seas(n = 2, s_seas = 0.5)

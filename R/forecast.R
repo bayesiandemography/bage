@@ -595,6 +595,60 @@ forecast_rw2 <- function(rw2_est,
 
 
 ## HAS_TESTS
+forecast_rw2_ar <- function(prior,
+                            dimnames_term,
+                            var_time,
+                            var_age,
+                            components,
+                            labels_forecast) {
+  con <- prior$specific$con
+  term <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_est <- make_matrix_along_by_effect(prior = prior,
+                                            dimnames_term = dimnames_term,
+                                            var_time = var_time,
+                                            var_age = var_age)
+  matrix_forecast <- make_matrix_along_by_effect(prior = prior,
+                                                 dimnames_term = dimnames_forecast,
+                                                 var_time = var_time,
+                                                 var_age = var_age)
+  rw2_est <- get_from_comp_trend(components = components, term = term)
+  ar_est <- get_from_comp_error(components = components, term = term)
+  sd_rw <- get_from_comp_sd_rw(components = components, term = term)
+  coef <- get_from_comp_coef(components = components, term = term)
+  sd_ar <- get_from_comp_sd_ar(components = components, term = term)
+  .fitted_rw <- forecast_rw2(rw2_est = rw2_est,
+                             sd = sd_rw,
+                             matrix_along_by_est = matrix_est,
+                             matrix_along_by_forecast = matrix_forecast)
+  .fitted_ar <- forecast_ar(ar_est = ar_est,
+                            coef = coef,
+                            sd = sd_ar,
+                            matrix_along_by_est = matrix_est,
+                            matrix_along_by_forecast = matrix_forecast)
+  if (con == "by") {
+    .fitted_rw <- con_by_fitted(prior = prior,
+                                fitted = .fitted_rw,
+                                dimnames_term = dimnames_forecast,
+                                var_time = var_time,
+                                var_age = var_age)
+    .fitted_ar <- con_by_fitted(prior = prior,
+                                fitted = .fitted_ar,
+                                dimnames_term = dimnames_forecast,
+                                var_time = var_time,
+                                var_age = var_age)
+  }
+  .fitted_effect <- .fitted_rw + .fitted_ar
+  n_level <- length(.fitted_effect)
+  tibble::tibble(term = term,
+                 component = rep(c("effect", "trend", "error"), each = n_level),
+                 level = rep(levels_forecast, times = 3L),
+                 .fitted = vctrs::vec_c(.fitted_effect, .fitted_rw, .fitted_ar))
+}
+
+
+## HAS_TESTS
 #' Forecast SVD Cofficients that Follow a Random Walk
 #'
 #' @param prior Object of class 'bage_prior'

@@ -1288,6 +1288,69 @@ test_that("'draw_vals_effect' works with bage_prior_rw2random - n_by = 4, con = 
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
+
+test_that("'draw_vals_effect' works with bage_prior_rw2randomar - n_by = 4, con is 'none'", {
+  prior <- RW2_AR()
+  n_sim <- 10
+  dimnames_term <- list(time = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(40L, 10L))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_rw2random - n_by = 4, con = 'by'", {
+  prior <- RW2_AR1(con = 'by')
+  n_sim <- 10
+  dimnames_term <- list(time = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(40L, 10L))
+  a <- array(ans, dim = c(10, 4, 10))
+  expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_rw2randomseasfix - con is 'none'", {
   prior <- RW2_Seas(n_seas = 2, s_seas = 0, s = 0.01)
   n_sim <- 10
@@ -1444,6 +1507,68 @@ test_that("'draw_vals_effect' works with bage_prior_rw2zero - n_by = 4, con is '
 
 test_that("'draw_vals_effect' works with bage_prior_rw2zero - n_by = 4, con = 'by'", {
   prior <- RW2(sd = 0, con = 'by')
+  n_sim <- 10
+  dimnames_term <- list(time = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(40L, 10L))
+  a <- array(ans, dim = c(10, 4, 10))
+  expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_rw2zeroar - n_by = 4, con is 'none'", {
+  prior <- RW2_AR1(sd = 0)
+  n_sim <- 10
+  dimnames_term <- list(time = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(40L, 10L))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_rw2zeroar - n_by = 4, con = 'by'", {
+  prior <- RW2_AR(sd = 0, con = 'by')
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -2389,6 +2514,14 @@ test_that("'draw_vals_hyper' works with bage_prior_rw2random", {
   expect_identical(length(ans$sd), 10L)
 })
 
+test_that("'draw_vals_hyper' works with bage_prior_rw2randomar", {
+  prior <- RW2_AR1()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("coef", "sd_rw", "sd_ar"))
+  expect_identical(length(ans$sd_ar), 10L)
+})
+
 test_that("'draw_vals_hyper' works with bage_prior_rw2randomseasfix", {
   prior <- RW2_Seas(n_seas = 2, s_seas = 0)
   ans <- draw_vals_hyper(prior = prior,
@@ -2412,6 +2545,14 @@ test_that("'draw_vals_hyper' works with bage_prior_rw2zero", {
                          n_sim = 10)
   expect_identical(names(ans), "sd")
   expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw2zeroar", {
+  prior <- RW2_AR()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("coef", "sd_rw", "sd_ar"))
+  expect_identical(length(ans$sd_ar), 10L)
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_rw2zeroseasfix", {
@@ -2813,6 +2954,45 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasvary - con is '
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomar - con is 'none'", {
+  set.seed(0)
+  prior <- RW2_AR()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(time = 1:10, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             dimnames_term = dimnames_term,
+                             var_age = var_age,
+                             var_time = var_time,
+                             n_sim = n_sim)
+  expect_identical(names(ans), "error")
+  expect_identical(nrow(ans$error), 40L)
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomar - con = 'by'", {
+  set.seed(0)
+  prior <- RW2_AR(con = "by")
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(time = 1:10, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             dimnames_term = dimnames_term,
+                             var_age = var_age,
+                             var_time = var_time,
+                             n_sim = n_sim)
+  expect_identical(names(ans), "error")
+  expect_identical(nrow(ans$error), 40L)
+  expect_equal(rowSums(matrix(ans$error[,1], nr = 10)), rep(0, 10))
+})
+
 test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - con is 'none'", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s_seas = 0, s = 0.01)
@@ -2891,6 +3071,45 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasvary - con i
   expect_identical(names(ans), c("trend", "season"))
   expect_equal(rowSums(matrix(ans$trend[,1], nr = 3)), rep(0, 3))
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroar - con is 'none'", {
+  set.seed(0)
+  prior <- RW2_AR(sd = 0)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(time = 1:10, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             dimnames_term = dimnames_term,
+                             var_age = var_age,
+                             var_time = var_time,
+                             n_sim = n_sim)
+  expect_identical(names(ans), "error")
+  expect_identical(nrow(ans$error), 40L)
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroar - con = 'by'", {
+  set.seed(0)
+  prior <- RW2_AR(con = "by", sd = 0)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(time = 1:10, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             dimnames_term = dimnames_term,
+                             var_age = var_age,
+                             var_time = var_time,
+                             n_sim = n_sim)
+  expect_identical(names(ans), "error")
+  expect_identical(nrow(ans$error), 40L)
+  expect_equal(rowSums(matrix(ans$error[,1], nr = 10)), rep(0, 10))
 })
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - con is 'none'", {
@@ -4905,6 +5124,61 @@ test_that("'forecast_term' works with bage_prior_rw2random - n_by = 2, con is 'b
   expect_equal(ans$.fitted[3], -ans$.fitted[9])  
 })
 
+test_that("'forecast_term' works with bage_prior_rw2randomar - n_by = 1", {
+  set.seed(0)
+  prior <- RW2_AR1()
+  dimnames_term <- list(year = 2001:2005)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = c("coef", "sd_rw", "sd_ar"),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = rep(c("effect", "trend", "error"), each = 5),
+                                                level = rep(as.character(2001:2005), 3),
+                                                .fitted = rvec::rnorm_rvec(n = 15, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_term(prior = prior,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                components = components,
+                                labels_forecast = labels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = rep(c("effect", "trend", "error"),
+                                                 each = 6),
+                                 level = rep(as.character(2006:2011), 3))
+  rw <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_rw <- components$.fitted[components$level == "sd_rw"]
+  ar <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_ar <- components$.fitted[components$level == "sd_ar"]
+  coef <- components$.fitted[components$level == "coef"]
+  set.seed(1)
+  rw[1] <- rvec::rnorm_rvec(n = 1,
+                            mean = 2 * components$.fitted[13] - components$.fitted[12],
+                            sd = sd_rw)
+  rw[2] <- rvec::rnorm_rvec(n = 1,
+                            mean = 2 * rw[1] - components$.fitted[13],
+                            sd = sd_rw)
+  for (i in 3:6)
+    rw[i] <- rvec::rnorm_rvec(n = 1,
+                              mean = 2 * rw[i-1] - rw[i-2],
+                              sd = sd_rw)
+  ar[1] <- rvec::rnorm_rvec(n = 1,
+                            mean = coef * components$.fitted[18],
+                            sd = sd_ar)
+  for (i in 2:6)
+    ar[i] <- rvec::rnorm_rvec(n = 1,
+                              mean = coef * ar[i-1],
+                              sd = sd_ar)
+  ans_expected$.fitted <- vctrs::vec_c(rw + ar, rw, ar)
+  expect_equal(ans_obtained, ans_expected)
+})
+
 test_that("'forecast_term' works with bage_prior_rw2randomseasfix", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s_seas = 0)
@@ -5325,6 +5599,61 @@ test_that("'forecast_term' works with bage_prior_rw2zeroseasfix", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'forecast_term' works with bage_prior_rw2zeroar - n_by = 1", {
+  set.seed(0)
+  prior <- RW2_AR1(sd = 0)
+  dimnames_term <- list(year = 2001:2005)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = c("coef", "sd_rw", "sd_ar"),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = rep(c("effect", "trend", "error"), each = 5),
+                                                level = rep(as.character(2001:2005), 3),
+                                                .fitted = rvec::rnorm_rvec(n = 15, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_term(prior = prior,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                components = components,
+                                labels_forecast = labels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = rep(c("effect", "trend", "error"),
+                                                 each = 6),
+                                 level = rep(as.character(2006:2011), 3))
+  rw <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_rw <- components$.fitted[components$level == "sd_rw"]
+  ar <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_ar <- components$.fitted[components$level == "sd_ar"]
+  coef <- components$.fitted[components$level == "coef"]
+  set.seed(1)
+  rw[1] <- rvec::rnorm_rvec(n = 1,
+                            mean = 2 * components$.fitted[13] - components$.fitted[12],
+                            sd = sd_rw)
+  rw[2] <- rvec::rnorm_rvec(n = 1,
+                            mean = 2 * rw[1] - components$.fitted[13],
+                            sd = sd_rw)
+  for (i in 3:6)
+    rw[i] <- rvec::rnorm_rvec(n = 1,
+                              mean = 2 * rw[i-1] - rw[i-2],
+                              sd = sd_rw)
+  ar[1] <- rvec::rnorm_rvec(n = 1,
+                            mean = coef * components$.fitted[18],
+                            sd = sd_ar)
+  for (i in 2:6)
+    ar[i] <- rvec::rnorm_rvec(n = 1,
+                              mean = coef * ar[i-1],
+                              sd = sd_ar)
+  ans_expected$.fitted <- vctrs::vec_c(rw + ar, rw, ar)
+  expect_equal(ans_obtained, ans_expected)
+})
+
 test_that("'forecast_term' works with bage_prior_rw2zeroseasfix - con is 'by'", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s_seas = 0, sd = 0, con = 'by')
@@ -5361,6 +5690,61 @@ test_that("'forecast_term' works with bage_prior_rw2zeroseasfix - con is 'by'", 
                                                 .fitted = trend))
   set.seed(1)
   ans <- forecast_term(prior = prior,
+test_that("'forecast_term' works with bage_prior_rw2zeroar - n_by = 1", {
+  set.seed(0)
+  prior <- RW2_AR1(sd = 0)
+  dimnames_term <- list(year = 2001:2005)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = c("coef", "sd_rw", "sd_ar"),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = rep(c("effect", "trend", "error"), each = 5),
+                                                level = rep(as.character(2001:2005), 3),
+                                                .fitted = rvec::rnorm_rvec(n = 15, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_term(prior = prior,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                components = components,
+                                labels_forecast = labels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = rep(c("effect", "trend", "error"),
+                                                 each = 6),
+                                 level = rep(as.character(2006:2011), 3))
+  rw <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_rw <- components$.fitted[components$level == "sd_rw"]
+  ar <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_ar <- components$.fitted[components$level == "sd_ar"]
+  coef <- components$.fitted[components$level == "coef"]
+  set.seed(1)
+  rw[1] <- rvec::rnorm_rvec(n = 1,
+                            mean = 2 * components$.fitted[13] - components$.fitted[12],
+                            sd = sd_rw)
+  rw[2] <- rvec::rnorm_rvec(n = 1,
+                            mean = 2 * rw[1] - components$.fitted[13],
+                            sd = sd_rw)
+  for (i in 3:6)
+    rw[i] <- rvec::rnorm_rvec(n = 1,
+                              mean = 2 * rw[i-1] - rw[i-2],
+                              sd = sd_rw)
+  ar[1] <- rvec::rnorm_rvec(n = 1,
+                            mean = coef * components$.fitted[18],
+                            sd = sd_ar)
+  for (i in 2:6)
+    ar[i] <- rvec::rnorm_rvec(n = 1,
+                              mean = coef * ar[i-1],
+                              sd = sd_ar)
+  ans_expected$.fitted <- vctrs::vec_c(rw + ar, rw, ar)
+  expect_equal(ans_obtained, ans_expected)
+})
+
                        dimnames_term = dimnames_term,
                        var_time = var_time,
                        var_age = var_age,
@@ -7134,6 +7518,39 @@ test_that("'generate' works with bage_prior_rw2random, n_by = 2, con = 'by'", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'generate' works with bage_prior_rw2randomar", {
+  x <- RW2_AR()
+  set.seed(0)
+  n_along <- 20
+  n_by <- 1
+  n_draw <- 25
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  set.seed(0)
+  sd_rw <- draw_vals_sd_rw(x, n_sim = n_draw)
+  sd_init <- x$specific$sd
+  sd_slope <- x$specific$sd_slope
+  rw <- draw_vals_rw2(sd = sd_rw,
+                      sd_init = sd_init,
+                      sd_slope = sd_slope,
+                      matrix_along_by = matrix(seq_len(n_along) - 1L, nc = 1),
+                      levels_effect = seq_len(n_along))
+  coef <- draw_vals_coef(x, n_sim = n_draw)
+  sd_ar <- draw_vals_sd_ar(x, n_sim = n_draw)
+  ar <- draw_vals_ar(coef = coef,
+                     sd = sd_ar,
+                      matrix_along_by = matrix(seq_len(n_along) - 1L, nc = 1),
+                     levels_effect = seq_len(n_along))
+  ans_expected <- rw + ar
+  draw <- rep(seq_len(n_draw), each = n_along)
+  draw <- paste("Draw", draw)
+  draw <- factor(draw, levels = unique(draw))
+  ans_expected <- tibble(draw = draw,
+                         by = factor("By 1"),
+                         along = rep(seq_len(n_along), times = n_draw),
+                         value = as.double(ans_expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
 test_that("'generate' works with bage_prior_rw2randomseasfix", {
   x <- RW2_Seas(n = 3, s_seas = 0, sd_seas = 0.2)
   set.seed(0)
@@ -7346,6 +7763,38 @@ test_that("'generate' works with bage_prior_rw2zero", {
                                 sd_slope = sd_slope,
                                 matrix_along_by = matrix(seq_len(n_along) - 1L, nc = 1),
                                 levels_effect = seq_len(n_along))
+  draw <- rep(seq_len(n_draw), each = n_along)
+  draw <- paste("Draw", draw)
+  draw <- factor(draw, levels = unique(draw))
+  ans_expected <- tibble(draw = draw,
+                         by = factor("By 1"),
+                         along = rep(seq_len(n_along), times = n_draw),
+                         value = as.double(ans_expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with bage_prior_rw2zeroar", {
+  x <- RW2_AR(sd = 0)
+  set.seed(0)
+  n_along <- 20
+  n_by <- 1
+  n_draw <- 25
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  set.seed(0)
+  sd_rw <- draw_vals_sd_rw(x, n_sim = n_draw)
+  sd_slope <- x$specific$sd_slope
+  rw <- draw_vals_rw2(sd = sd_rw,
+                      sd_init = 0,
+                      sd_slope = sd_slope,
+                      matrix_along_by = matrix(seq_len(n_along) - 1L, nc = 1),
+                      levels_effect = seq_len(n_along))
+  coef <- draw_vals_coef(x, n_sim = n_draw)
+  sd_ar <- draw_vals_sd_ar(x, n_sim = n_draw)
+  ar <- draw_vals_ar(coef = coef,
+                     sd = sd_ar,
+                      matrix_along_by = matrix(seq_len(n_along) - 1L, nc = 1),
+                     levels_effect = seq_len(n_along))
+  ans_expected <- rw + ar
   draw <- rep(seq_len(n_draw), each = n_along)
   draw <- paste("Draw", draw)
   draw <- factor(draw, levels = unique(draw))
@@ -8031,9 +8480,11 @@ test_that("'has_hyperrandfree' returns TRUE with prior with hyperrandfree", {
   expect_true(has_hyperrandfree(RW_Seas(n_seas=2, sd = 0, s_seas = 0)))
   expect_true(has_hyperrandfree(RW_Seas(n_seas=2, s_seas = 0.1)))
   expect_true(has_hyperrandfree(RW_Seas(n_seas=2, s_seas = 0.1, sd = 0)))
+  expect_true(has_hyperrandfree(RW2_AR()))
   expect_true(has_hyperrandfree(RW2_Seas(n_seas=2, s_seas = 0)))
   expect_true(has_hyperrandfree(RW2_Seas(n_seas=2, sd = 0, s_seas = 0)))
   expect_true(has_hyperrandfree(RW2_Seas(n_seas=2, s_seas = 0.1)))
+  expect_true(has_hyperrandfree(RW2_AR1(sd = 0)))
   expect_true(has_hyperrandfree(RW2_Seas(n_seas=2, s_seas = 0.1, sd = 0)))
   expect_true(has_hyperrandfree(SVD_Lin(HMD)))
 })

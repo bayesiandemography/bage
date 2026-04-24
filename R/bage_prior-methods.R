@@ -733,6 +733,7 @@ draw_vals_effect.bage_prior_rwzeroseasvary <- function(prior,
   trend + season
 }
 
+
 ## HAS_TESTS
 #' @export
 draw_vals_effect.bage_prior_rw2infant <- function(prior,
@@ -815,6 +816,46 @@ draw_vals_effect.bage_prior_rw2random <- function(prior,
 
 ## HAS_TESTS
 #' @export
+draw_vals_effect.bage_prior_rw2randomar <- function(prior,
+                                                    vals_hyper,
+                                                    vals_hyperrand,
+                                                    vals_spline,
+                                                    vals_svd,
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    var_sexgender,
+                                                    n_sim) {
+  sd_init <- prior$specific$sd
+  sd_slope <- prior$specific$sd_slope
+  con <- prior$specific$con
+  sd_rw <- vals_hyper$sd_rw
+  error <- vals_hyperrand$error
+  i_along <- make_i_along(prior = prior,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  matrix_along_by_effect <- make_matrix_along_by_inner(i_along = i_along,
+                                                       dim = dim)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  rw <- draw_vals_rw2(sd = sd_rw,
+                      sd_init = sd_init,
+                      sd_slope = sd_slope,
+                      matrix_along_by = matrix_along_by_effect,
+                      levels_effect = levels_effect)
+  ans <- rw + error
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = i_along,
+                            dim = dim)
+    ans <- m %*% ans
+    ans <- Matrix::as.matrix(ans)
+  }
+  ans  
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_effect.bage_prior_rw2randomseasfix <- function(prior,
                                                        vals_hyper,
                                                        vals_hyperrand,
@@ -883,6 +924,47 @@ draw_vals_effect.bage_prior_rw2zero <- function(prior,
   }
   ans  
 }
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_rw2zeroar <- function(prior,
+                                                  vals_hyper,
+                                                  vals_hyperrand,
+                                                  vals_spline,
+                                                  vals_svd,
+                                                  dimnames_term,
+                                                  var_time,
+                                                  var_age,
+                                                  var_sexgender,
+                                                  n_sim) {
+  sd_slope <- prior$specific$sd_slope
+  con <- prior$specific$con
+  sd_rw <- vals_hyper$sd_rw
+  error <- vals_hyperrand$error
+  i_along <- make_i_along(prior = prior,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  matrix_along_by_effect <- make_matrix_along_by_inner(i_along = i_along,
+                                                       dim = dim)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  rw <- draw_vals_rw2(sd = sd_rw,
+                      sd_init = 0,
+                      sd_slope = sd_slope,
+                      matrix_along_by = matrix_along_by_effect,
+                      levels_effect = levels_effect)
+  ans <- rw + error
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = i_along,
+                            dim = dim)
+    ans <- m %*% ans
+    ans <- Matrix::as.matrix(ans)
+  }
+  ans  
+}
+
+
 
 ## HAS_TESTS
 #' @export
@@ -1350,6 +1432,17 @@ draw_vals_hyper.bage_prior_rw2random <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
+draw_vals_hyper.bage_prior_rw2randomar <- function(prior, n_sim) {
+  coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
+  sd_rw <- draw_vals_sd_rw(prior = prior, n_sim = n_sim)
+  sd_ar <- draw_vals_sd_ar(prior = prior, n_sim = n_sim)
+  list(coef = coef,
+       sd_rw = sd_rw,
+       sd_ar = sd_ar)
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_hyper.bage_prior_rw2randomseasfix <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(sd = sd)
@@ -1369,6 +1462,17 @@ draw_vals_hyper.bage_prior_rw2randomseasvary <- function(prior, n_sim) {
 draw_vals_hyper.bage_prior_rw2zero <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rw2zeroar <- function(prior, n_sim) {
+  coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
+  sd_rw <- draw_vals_sd_rw(prior = prior, n_sim = n_sim)
+  sd_ar <- draw_vals_sd_ar(prior = prior, n_sim = n_sim)
+  list(coef = coef,
+       sd_rw = sd_rw,
+       sd_ar = sd_ar)
 }
 
 ## HAS_TESTS
@@ -1808,6 +1912,22 @@ draw_vals_hyperrand.bage_prior_rwzeroseasvary <- function(prior,
 
 ## HAS_TESTS
 #' @export
+draw_vals_hyperrand.bage_prior_rw2randomar <- function(prior,
+                                                       vals_hyper,
+                                                       dimnames_term,
+                                                       var_time,
+                                                       var_age,
+                                                       var_sexgender,
+                                                       n_sim) {
+  draw_vals_hyperrand_ar(prior = prior,
+                         vals_hyper = vals_hyper,
+                         dimnames_term = dimnames_term,
+                         var_age = var_age,
+                         var_time = var_time)
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_hyperrand.bage_prior_rw2randomseasfix <- function(prior,
                                                             vals_hyper,
                                                             dimnames_term,
@@ -1897,6 +2017,22 @@ draw_vals_hyperrand.bage_prior_rw2randomseasvary <- function(prior,
   }
   list(trend = trend,
        season = season)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior_rw2zeroar <- function(prior,
+                                                     vals_hyper,
+                                                     dimnames_term,
+                                                     var_time,
+                                                     var_age,
+                                                     var_sexgender,
+                                                     n_sim) {
+  draw_vals_hyperrand_ar(prior = prior,
+                         vals_hyper = vals_hyper,
+                         dimnames_term = dimnames_term,
+                         var_time = var_time,
+                         var_age = var_age)
 }
 
 ## HAS_TESTS
@@ -3142,6 +3278,24 @@ forecast_term.bage_prior_rw2random <- function(prior,
 
 ## HAS_TESTS
 #' @export
+forecast_term.bage_prior_rw2randomar <- function(prior,
+                                                 dimnames_term,
+                                                 var_time,
+                                                 var_age,
+                                                 var_sexgender,
+                                                 components,
+                                                 labels_forecast) {
+  forecast_rw2_ar(prior = prior,
+                  dimnames_term = dimnames_term,
+                  var_time = var_time,
+                  var_age = var_age,
+                  components = components,
+                  labels_forecast = labels_forecast)
+}
+
+
+## HAS_TESTS
+#' @export
 forecast_term.bage_prior_rw2randomseasfix <- function(prior,
                                                       dimnames_term,
                                                       var_time,
@@ -3286,6 +3440,25 @@ forecast_term.bage_prior_rw2zero <- function(prior,
                  level = levels_forecast,
                  .fitted = .fitted)
 }
+
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_rw2zeroar <- function(prior,
+                                               dimnames_term,
+                                               var_time,
+                                               var_age,
+                                               var_sexgender,
+                                               components,
+                                               labels_forecast) {
+  forecast_rw2_ar(prior = prior,
+                  dimnames_term = dimnames_term,
+                  var_time = var_time,
+                  var_age = var_age,
+                  components = components,
+                  labels_forecast = labels_forecast)
+}
+
 
 ## HAS_TESTS
 #' @export
@@ -4627,6 +4800,49 @@ generate.bage_prior_rw2random <- function(x,
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
 #' @export
+generate.bage_prior_rw2randomar <- function(x,
+                                            n_along = 20,
+                                            n_by = 1,
+                                            n_draw = 25,
+                                            ...) {
+  check_has_no_dots(...)
+  con <- x$specific$con
+  sd_init <- x$specific$sd
+  sd_slope <- x$specific$sd_slope
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd_rw <- draw_vals_sd_rw(prior = x, n_sim = n_draw)
+  rw <- draw_vals_rw2(sd = sd_rw,
+                      sd_init = sd_init,
+                      sd_slope = sd_slope,
+                      matrix_along_by = matrix_along_by,
+                      levels_effect = levels_effect)
+  coef <- draw_vals_coef(prior = x, n_sim = n_draw)
+  sd_ar <- draw_vals_sd_ar(prior = x, n_sim = n_draw)
+  ar <- draw_vals_ar(coef = coef,
+                     sd = sd_ar,
+                     matrix_along_by = matrix_along_by,
+                     levels_effect = levels_effect)
+  value <- rw + ar
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
 generate.bage_prior_rw2randomseasfix <- function(x,
                                                  n_along = 20,
                                                  n_by = 1,
@@ -4731,6 +4947,46 @@ generate.bage_prior_rw2zero <- function(x,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by,
                          levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_rw2zeroar <- function(x,
+                                          n_along = 20,
+                                          n_by = 1,
+                                          n_draw = 25,
+                                          ...) {
+  check_has_no_dots(...)
+  sd_slope <- x$specific$sd_slope
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd_rw <- draw_vals_sd_rw(prior = x, n_sim = n_draw)
+  rw <- draw_vals_rw2(sd = sd_rw,
+                      sd_init = 0,
+                      sd_slope = sd_slope,
+                      matrix_along_by = matrix_along_by,
+                      levels_effect = levels_effect)
+  coef <- draw_vals_coef(prior = x, n_sim = n_draw)
+  sd_ar <- draw_vals_sd_ar(prior = x, n_sim = n_draw)
+  ar <- draw_vals_ar(coef = coef,
+                     sd = sd_ar,
+                     matrix_along_by = matrix_along_by,
+                     levels_effect = levels_effect)
+  value <- rw + ar
   if (con == "by") {
     m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
     value <- m %*% value
@@ -5360,11 +5616,19 @@ has_hyperrandfree.bage_prior_rwzeroseasvary <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
+has_hyperrandfree.bage_prior_rw2randomar <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
 has_hyperrandfree.bage_prior_rw2randomseasfix <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
 has_hyperrandfree.bage_prior_rw2randomseasvary <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+has_hyperrandfree.bage_prior_rw2zeroar <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export

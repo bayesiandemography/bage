@@ -612,6 +612,39 @@ draw_vals_hyper_mod <- function(mod, n_sim) {
 
 
 ## HAS_TESTS
+#' @export
+draw_vals_hyperrand_ar <- function(prior,
+                                   vals_hyper,
+                                   dimnames_term,
+                                   var_time,
+                                   var_age) {
+  con <- prior$specific$con
+  coef <- vals_hyper$coef
+  sd_ar <- vals_hyper$sd_ar
+  matrix_along_by <- make_matrix_along_by_effect(prior = prior,
+                                                 dimnames_term = dimnames_term,
+                                                 var_time = var_time,
+                                                 var_age = var_age)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  ans <- draw_vals_ar(coef = coef,
+                      sd = sd_ar,
+                      matrix_along_by = matrix_along_by,
+                      levels_effect = levels_effect)
+  if (con == "by") {
+    i_along <- make_i_along(prior = prior,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    dim <- lengths(dimnames_term)
+    m <- make_matrix_con_by(i_along = i_along,
+                            dim = dim)
+    ans <- m %*% ans
+  }
+  list(error = ans)
+}
+
+
+## HAS_TESTS
 #' Draw Values for Hyper-Parameters that can be
 #' Treated as Random Effects
 #'
@@ -833,6 +866,38 @@ draw_vals_rw2 <- function(sd, sd_init, sd_slope, matrix_along_by, levels_effect)
 #' @noRd
 draw_vals_sd <- function(prior, n_sim) {
     scale <- prior$specific$scale
+    ans <- stats::rnorm(n = n_sim, sd = scale)
+    ans <- abs(ans)
+    ans
+}
+
+## HAS_TESTS
+#' Draw the 'sd_ar' parameter for a prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param n_sim Number of draws
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+draw_vals_sd_ar <- function(prior, n_sim) {
+    scale <- prior$specific$scale_ar
+    ans <- stats::rnorm(n = n_sim, sd = scale)
+    ans <- abs(ans)
+    ans
+}
+
+## HAS_TESTS
+#' Draw the 'sd_rw' parameter for a prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param n_sim Number of draws
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+draw_vals_sd_rw <- function(prior, n_sim) {
+    scale <- prior$specific$scale_rw
     ans <- stats::rnorm(n = n_sim, sd = scale)
     ans <- abs(ans)
     ans

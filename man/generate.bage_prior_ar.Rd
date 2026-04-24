@@ -19,9 +19,11 @@
 \alias{generate.bage_prior_rwzeroseasfix}
 \alias{generate.bage_prior_rwzeroseasvary}
 \alias{generate.bage_prior_rw2random}
+\alias{generate.bage_prior_rw2randomar}
 \alias{generate.bage_prior_rw2randomseasfix}
 \alias{generate.bage_prior_rw2randomseasvary}
 \alias{generate.bage_prior_rw2zero}
+\alias{generate.bage_prior_rw2zeroar}
 \alias{generate.bage_prior_rw2zeroseasfix}
 \alias{generate.bage_prior_rw2zeroseasvary}
 \alias{generate.bage_prior_spline}
@@ -75,11 +77,15 @@
 
 \method{generate}{bage_prior_rw2random}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
+\method{generate}{bage_prior_rw2randomar}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+
 \method{generate}{bage_prior_rw2randomseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
 \method{generate}{bage_prior_rw2randomseasvary}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
 \method{generate}{bage_prior_rw2zero}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rw2zeroar}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
 \method{generate}{bage_prior_rw2zeroseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 

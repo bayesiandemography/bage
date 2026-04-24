@@ -42,6 +42,25 @@ get_from_comp_effect <- function(components, term) {
 }
 
 ## HAS_TESTS
+#' Get Fitted Values for 'error' from 'components'
+#'
+#' @param components A tibble with estimates for hyper-parameters
+#' @param term Name of term
+#'
+#' @returns An rvec
+#'
+#' @noRd
+get_from_comp_error <- function(components, term) {
+  is_term <- components$term == term
+  is_error <- components$component == "error"
+  is_get <- is_term & is_error
+  if (!any(is_get))
+    cli::cli_abort(paste("Internal error: No values with term {.val {term}}",
+                         "and component {.val error}."))
+  components$.fitted[is_get]
+}
+
+## HAS_TESTS
 #' Get Fitted Values for 'sd' from 'components'
 #'
 #' @param components A tibble with estimates for hyper-parameters
@@ -58,6 +77,46 @@ get_from_comp_sd <- function(components, term) {
   if (!any(is_get))
     cli::cli_abort(paste("Internal error: No values with term {.val {term}},",
                          "component {.val hyper}, and level {.val sd}."))
+  components$.fitted[is_get]
+}
+
+## HAS_TESTS
+#' Get Fitted Values for 'sd_ar' from 'components'
+#'
+#' @param components A tibble with estimates for hyper-parameters
+#' @param term Name of term
+#'
+#' @returns An rvec
+#'
+#' @noRd
+get_from_comp_sd_ar <- function(components, term) {
+  is_term <- components$term == term
+  is_hyper <- components$component == "hyper"
+  is_sd_ar <- components$level == "sd_ar"
+  is_get <- is_term & is_hyper & is_sd_ar
+  if (!any(is_get))
+    cli::cli_abort(paste("Internal error: No values with term {.val {term}},",
+                         "component {.val hyper}, and level {.val sd_ar}."))
+  components$.fitted[is_get]
+}
+
+## HAS_TESTS
+#' Get Fitted Values for 'sd_rw' from 'components'
+#'
+#' @param components A tibble with estimates for hyper-parameters
+#' @param term Name of term
+#'
+#' @returns An rvec
+#'
+#' @noRd
+get_from_comp_sd_rw <- function(components, term) {
+  is_term <- components$term == term
+  is_hyper <- components$component == "hyper"
+  is_sd_rw <- components$level == "sd_rw"
+  is_get <- is_term & is_hyper & is_sd_rw
+  if (!any(is_get))
+    cli::cli_abort(paste("Internal error: No values with term {.val {term}},",
+                         "component {.val hyper}, and level {.val sd_rw}."))
   components$.fitted[is_get]
 }
 

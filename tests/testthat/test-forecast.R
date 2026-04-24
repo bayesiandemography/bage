@@ -964,6 +964,91 @@ test_that("'forecast_rw2' works with  n_by = 2", {
 })
 
 
+## 'forecast_rw2_ar' ----------------------------------------------------------
+
+test_that("'forecast_rw2_ar' works with bage_prior_rw2randomar - n_by = 1", {
+  set.seed(0)
+  prior <- RW2_AR1()
+  dimnames_term <- list(year = 2001:2005)
+  var_time <- "year"
+  var_age <- "age"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = c("coef", "sd_rw", "sd_ar"),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = rep(c("effect", "trend", "error"), each = 5),
+                                                level = rep(as.character(2001:2005), 3),
+                                                .fitted = rvec::rnorm_rvec(n = 15, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_rw2_ar(prior = prior,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                components = components,
+                                labels_forecast = labels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = rep(c("effect", "trend", "error"),
+                                                 each = 6),
+                                 level = rep(as.character(2006:2011), 3))
+  rw <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_rw <- components$.fitted[components$level == "sd_rw"]
+  ar <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_ar <- components$.fitted[components$level == "sd_ar"]
+  coef <- components$.fitted[components$level == "coef"]
+  set.seed(1)
+  rw[1] <- rvec::rnorm_rvec(n = 1,
+                            mean = 2 * components$.fitted[13] - components$.fitted[12],
+                            sd = sd_rw)
+  rw[2] <- rvec::rnorm_rvec(n = 1,
+                            mean = 2 * rw[1] - components$.fitted[13],
+                            sd = sd_rw)
+  for (i in 3:6)
+    rw[i] <- rvec::rnorm_rvec(n = 1,
+                              mean = 2 * rw[i-1] - rw[i-2],
+                              sd = sd_rw)
+  ar[1] <- rvec::rnorm_rvec(n = 1,
+                            mean = coef * components$.fitted[18],
+                            sd = sd_ar)
+  for (i in 2:6)
+    ar[i] <- rvec::rnorm_rvec(n = 1,
+                              mean = coef * ar[i-1],
+                              sd = sd_ar)
+  ans_expected$.fitted <- vctrs::vec_c(rw + ar, rw, ar)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_rw2_ar' works with bage_prior_rw2randomar - n_by = 2, con is 'by'", {
+  set.seed(0)
+  prior <- RW2_AR(con = 'by')
+  dimnames_term <- list(year = 2001:2005,
+                        reg = 1:2)
+  var_time <- "year"
+  var_age <- "age"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = c("coef", "sd_rw", "sd_ar"),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = rep(c("effect", "trend", "error"), each = 10),
+                                                level = rep(paste(2001:2005,
+                                                                  rep(1:2, each = 5),
+                                                                  sep = "."), times = 3),
+                                                .fitted = rvec::rnorm_rvec(n = 30, n_draw = 10)))
+  set.seed(1)
+  ans <- forecast_rw2_ar(prior = prior,
+                         dimnames_term = dimnames_term,
+                         var_time = var_time,
+                         var_age = var_age,
+                         components = components,
+                         labels_forecast = labels_forecast)
+  expect_equal(ans$.fitted[3], -ans$.fitted[9])  
+})
+
+
+
 ## 'forecast_rw2_svd' ----------------------------------------------------------
 
 test_that("'forecast_rw2_svd' works", {
