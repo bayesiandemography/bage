@@ -708,104 +708,6 @@ impute_outcome_true <- function(nm_distn,
 }
 
 
-## HAS_TESTS
-#' Reformat Parts of Forecasted 'components' Data Frame Dealing with
-#' Hyper-Parameters that are Treated as Random Effects
-#'
-#' @param components_forecast A data frame with forecasted
-#' (time-varying) parameters
-#' @param components A data frame with estimated
-#' (time-varying and non-time-varying) parameters
-#' @param priors List of objects of class 'bage_prior'.
-#' @param dimnames_terms Dimnames for array representations of terms
-#' being forecast
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#'
-#' @returns A modified version of 'components'
-#'
-#' @noRd
-infer_trend_seas_err_forecast <- function(components,
-                                              priors,
-                                              dimnames_terms,
-                                              var_time,
-                                              var_age) {
-  nms <- names(dimnames_terms)
-  for (nm in nms) {
-    prior <- priors[[nm]]
-    dimnames_term <- dimnames_terms[[nm]]
-    components <- infer_trend_seas_err_forecast_one(prior = prior,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age,
-                                                        components = components)
-  }
-  components
-}
-
-
-## HAS_TESTS
-#' Derive 'Components' Output for Terms with Fixed Seasonal Effect
-#' - Forecasts
-#'
-#' Derive 'seasonal' from 'effect' and 'trend'
-#'
-#' @param prior Object of class 'bage_prior'.
-#' @param dimnames_term Dimnames for array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param components A data frame.
-#'
-#' @returns A modifed version of 'components'
-#'
-#' @noRd
-infer_trend_seas_err_seasfix_forecast <- function(prior,
-                                                      dimnames_term,
-                                                      var_time,
-                                                      var_age,
-                                                      components) {
-  nm <- dimnames_to_nm(dimnames_term)
-  is_season <- with(components, (term == nm) & (component == "season"))
-  is_trend <- with(components, (term == nm) & (component == "trend"))
-  is_effect <- with(components, (term == nm) & (component == "effect"))
-  trend <- components$.fitted[is_trend]
-  effect <- components$.fitted[is_effect]
-  season <- effect - trend
-  components$.fitted[is_season] <- season
-  components
-}
-
-
-## HAS_TESTS
-#' Derive 'Components' Output for Terms with Varying Seasonal Effect - Forecasts
-#'
-#' Derive 'seasonal' from 'effect' and 'trend'
-#'
-#' @param prior Object of class 'bage_prior'.
-#' @param dimnames_term Dimnames for array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param components A data frame.
-#'
-#' @returns A modifed version of 'components'
-#'
-#' @noRd
-infer_trend_seas_err_seasvary_forecast <- function(prior,
-                                                       dimnames_term,
-                                                       var_time,
-                                                       var_age,
-                                                       components) {
-  nm <- dimnames_to_nm(dimnames_term)
-  is_trend <- with(components, (term == nm) & (component == "trend"))
-  is_season <- with(components, (term == nm) & (component == "season"))
-  is_effect <- with(components, (term == nm) & (component == "effect"))
-  trend <- components$.fitted[is_trend]
-  effect <- components$.fitted[is_effect]
-  season <- effect - trend
-  components$.fitted[is_season] <- season
-  components
-}
-
 
 ## HAS_TESTS
 #' Derive the Name of the 'along' Dimension for Terms in Model
@@ -1400,11 +1302,11 @@ make_hyperrand_randomseasfix <- function(prior,
   trend <- effectfree - season
   if (getRversion() >= "4.3.0") {
     trend <- matrix_effectfree_effect %*% trend
-    error <- matrix_effectfree_effect %*% error
+    season <- matrix_effectfree_effect %*% season
   }
   else {
     trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
-    error <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(error))
+    season <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(season))
   }
   vctrs::vec_c(trend, season)
 }
@@ -2664,4 +2566,26 @@ transform_hyper_drw <- function(prior) {
     ans
   }
   list(exp, shifted_inv_logit)
+}
+
+## HAS_TESTS
+#' Create Functions Needed to Transform Hyper-Parameters
+#' from Random Walk with AR Errors
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns A named list
+#' @noRd
+transform_hyper_rw_ar <- function(prior) {
+  specific <- prior$specific
+  n_coef <- specific$n_coef
+  min <- specific$min
+  max <- specific$max
+  shifted_inv_logit <- function(x) {
+    ans_raw <- exp(x) / (1 + exp(x))
+    ans <- (max - min) * ans_raw + min
+    ans
+  }
+  rep(list(sd_rw = exp, coef = shifted_inv_logit, sd_ar = exp),
+      times = c(1L, n_coef, 1L))
 }

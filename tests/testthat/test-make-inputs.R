@@ -494,6 +494,18 @@ test_that("'init_val_sd' works", {
 })
 
 
+## 'is_ar1' -------------------------------------------------------------------
+
+test_that("'is_ar1' works", {
+  expect_true(is_ar1(AR1()))
+  expect_true(is_ar1(Lin_AR1()))
+  expect_true(is_ar1(RW2_AR1()))
+  expect_false(is_ar1(AR()))
+  expect_false(is_ar1(Lin_AR()))
+  expect_false(is_ar1(RW2_AR()))
+})
+
+
 ## 'is_prior_ok_for_term_along' -----------------------------------------------
 
 test_that("'is_prior_ok_for_term_along' works", {
@@ -2267,17 +2279,39 @@ test_that("'str_call_args_along' works - has along", {
 
 ## 'str_call_args_ar' ---------------------------------------------------------
 
-test_that("'str_call_args_ar' works - AR1", {
+test_that("'str_call_args_ar' works - AR1 - no suffix", {
   prior <- AR1(s = 0.5)
-  ans_obtained <- str_call_args_ar(prior)
+  ans_obtained <- str_call_args_ar(prior, suffix = NULL)
   ans_expected <- c("s=0.5", "", "", "", "")
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'str_call_args_svd' works - AR", {
+test_that("'str_call_args_svd' works - AR - no suffix", {
   prior <- AR(n_coef = 3, shape1 = 2, shape2 = 2)
-  ans_obtained <- str_call_args_ar(prior)
+  ans_obtained <- str_call_args_ar(prior, suffix = NULL)
   ans_expected <- c("n_coef=3", "", "shape1=2", "shape2=2")
+  expect_identical(ans_obtained, ans_expected)
+  prior <- AR(n_coef = 3, shape1 = 2, shape2 = 2, s = 0.1)
+  ans_obtained <- str_call_args_ar(prior, suffix = NULL)
+  ans_expected <- c("n_coef=3", "s=0.1", "shape1=2", "shape2=2")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_ar' works - AR1 - has suffix", {
+  prior <- RW2_AR1(s_ar = 0.5)
+  ans_obtained <- str_call_args_ar(prior, suffix = "ar")
+  ans_expected <- c("s_ar=0.5", "", "", "", "")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_svd' works - AR - has suffix", {
+  prior <- RW2_AR(n_coef = 3, shape1 = 2, shape2 = 2)
+  ans_obtained <- str_call_args_ar(prior, suffix = "ar")
+  ans_expected <- c("n_coef=3", "", "shape1=2", "shape2=2")
+  expect_identical(ans_obtained, ans_expected)
+  prior <- RW2_AR(s_ar = 0.5, n_coef = 3, shape1 = 2, shape2 = 2)
+  ans_obtained <- str_call_args_ar(prior, suffix = "ar")
+  ans_expected <- c("n_coef=3", "s_ar=0.5", "shape1=2", "shape2=2")
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -2380,6 +2414,40 @@ test_that("'str_call_args_scale' works - scale not 1", {
   prior <- N(s = 0.3)
   ans_obtained <- str_call_args_scale(prior)
   ans_expected <- "s=0.3"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_scale_ar' ---------------------------------------------------
+
+test_that("'str_call_args_scale_ar' works - scale_ar = 1", {
+  prior <- RW2_AR()
+  ans_obtained <- str_call_args_scale_ar(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_scale_ar' works - scale_ar not 1", {
+  prior <- RW2_AR1(s_ar = 0.3)
+  ans_obtained <- str_call_args_scale_ar(prior)
+  ans_expected <- "s_ar=0.3"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_scale_rw' ---------------------------------------------------
+
+test_that("'str_call_args_scale_rw' works - scale_rw = 1", {
+  prior <- RW2_AR()
+  ans_obtained <- str_call_args_scale_rw(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_scale_rw' works - scale_rw not 1", {
+  prior <- RW2_AR1(s_rw = 0.3)
+  ans_obtained <- str_call_args_scale_rw(prior)
+  ans_expected <- "s_rw=0.3"
   expect_identical(ans_obtained, ans_expected)
 })
 

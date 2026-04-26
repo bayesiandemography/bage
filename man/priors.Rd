@@ -20,6 +20,8 @@ for these priors are summarised in the table below.
    \code{\link[=RW2]{RW2()}} \tab Second-order random walk \tab Like \code{RW()}, but with trends \tab Yes \tab Yes \cr
    \code{\link[=DRW]{DRW()}} \tab Damped random walk \tab Smoothing, forecasting \tab Yes \tab Yes \cr
    \code{\link[=DRW2]{DRW2()}} \tab Damped second-order random walk \tab Like \code{DRW()}, but with trends \tab Yes \tab Yes \cr
+   \code{\link[=RW2_AR]{RW2_AR()}} \tab \code{RW2()} with AR errors \tab Terms involving time, forecasting \tab Yes \tab Yes \cr
+   \code{\link[=RW2_AR1]{RW2_AR1()}} \tab \code{RW2()} with AR1 errors \tab Terms involving time, forecasting \tab Yes \tab Yes \cr
    \code{\link[=RW2_Infant]{RW2_Infant()}} \tab \code{RW2()} with infant indicator \tab Mortality age profiles \tab No \tab Yes \cr
    \code{\link[=RW_Seas]{RW_Seas()}} \tab \code{RW()}, with seasonal effect \tab Terms involving time \tab Yes \tab Yes \cr
    \code{\link[=RW2_Seas]{RW2_Seas()}} \tab \code{RW2()}, with seasonal effect \tab Term involving time \tab Yes \tab Yes \cr

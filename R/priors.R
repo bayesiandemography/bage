@@ -19,6 +19,8 @@
 #' | [RW2()]   | Second-order random walk | Like `RW()`, but with trends | Yes | Yes |
 #' | [DRW()]    | Damped random walk | Smoothing, forecasting | Yes | Yes |
 #' | [DRW2()]   | Damped second-order random walk | Like `DRW()`, but with trends | Yes | Yes |
+#' | [RW2_AR()]   | `RW2()` with AR errors | Terms involving time, forecasting | Yes | Yes |
+#' | [RW2_AR1()]   | `RW2()` with AR1 errors | Terms involving time, forecasting | Yes | Yes |
 #' | [RW2_Infant()]   | `RW2()` with infant indicator | Mortality age profiles | No | Yes |
 #' | [RW_Seas()] | `RW()`, with seasonal effect | Terms involving time | Yes | Yes |
 #' | [RW2_Seas()] | `RW2()`, with seasonal effect | Term involving time | Yes | Yes |

@@ -1676,58 +1676,56 @@ RW2_AR <- function(s_rw = 1,
 RW2_AR1 <- function(s_rw = 1,
                     sd = 1,
                     sd_slope = 1,
-                    n_coef = 2,
                     s_ar = 1,
                     shape1 = 5,
                     shape2 = 5,
+                    min = 0.8,
+                    max = 0.98,
                     along = NULL,
                     con = c("none", "by")) {
   check_scale(s_rw, nm_x = "s_rw", zero_ok = FALSE)
   check_scale(sd, nm_x = "sd", zero_ok = TRUE)
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
-  poputils::check_n(n = n_coef,
-                    nm_n = "n_coef",
-                    min = 1L,
-                    max = NULL,
-                    divisible_by = NULL)
   check_scale(s_ar, nm_x = "s_rw", zero_ok = FALSE)
   check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
   check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
+  check_min_max_ar(min = min, max = max)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   con <- match.arg(con)
   scale_rw <- as.double(s_rw)
   sd <- as.double(sd)
   sd_slope <- as.double(sd_slope)
-  n_coef <- as.integer(n_coef)
   scale_ar <- as.double(s_ar)
   shape1 <- as.double(shape1)
   shape2 <- as.double(shape2)
+  min <- as.double(min)
+  max <- as.double(max)
   if (sd > 0)
     new_bage_prior_rw2randomar(scale_rw = scale_rw,
                                sd = sd,
                                sd_slope = sd_slope,
-                               n_coef = n_coef,
+                               n_coef = 1L,
                                shape1 = shape1,
                                shape2 = shape2,
-                               min = -1,
-                               max = 1,
+                               min = min,
+                               max = max,
                                scale_ar = scale_ar,
                                along = along,
                                con = con,
-                               nm = "RW2_AR")
+                               nm = "RW2_AR1")
   else
     new_bage_prior_rw2zeroar(scale_rw = scale_rw,
                              sd_slope = sd_slope,
-                             n_coef = n_coef,
+                             n_coef = 1L,
                              shape1 = shape1,
                              shape2 = shape2,
-                             min = -1,
-                             max = 1,
+                             min = min,
+                             max = max,
                              scale_ar = scale_ar,
                              along = along,
                              con = con,
-                             nm = "RW2_AR")
+                             nm = "RW2_AR1")
 }
 
 
@@ -3224,7 +3222,7 @@ new_bage_prior_rw2random <- function(scale,
   ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 new_bage_prior_rw2randomar <- function(scale_rw,
                                        sd,
                                        sd_slope,

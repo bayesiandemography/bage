@@ -5,9 +5,9 @@
     Output
         AR() 
           n_coef: 2
-             min: -1
-             max: 1
                s: 1
+          shape1: 5
+          shape2: 5
            along: NULL
              con: none
 
@@ -17,9 +17,11 @@
       print(AR1(min = 0.2))
     Output
         AR1(min=0.2) 
+               s: 1
+          shape1: 5
+          shape2: 5
              min: 0.2
              max: 0.98
-               s: 1
            along: NULL
              con: none
 
@@ -124,10 +126,10 @@
         Lin_AR() 
           n_coef: 2
                s: 1
+          shape1: 5
+          shape2: 5
       mean_slope: 0
         sd_slope: 1
-             min: -1
-             max: 1
            along: NULL
              con: none
 

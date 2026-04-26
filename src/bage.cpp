@@ -1094,15 +1094,30 @@ Type logpost_rw2zero(const vector<Type>& rw,
 template <class Type>
 Type logpost_rw2zeroar(const vector<Type>& effectfree,
 		       const vector<Type>& hyper,
-		       const vector<Type>& hyperrandfree, // ar
+		       const vector<Type>& hyperrandfree, // ar except first el
 		       const vector<Type>& consts,
 		       const matrix<int>& matrix_along_by_effectfree) {
+  int n_along = matrix_along_by_effectfree.rows();
+  int n_by = matrix_along_by_effectfree.cols();
   Type ans = Type(0);
   // AR part
+  vector<Type> ar(n_along * n_by);
+  int i_hyperrand = 0;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_along; i_along++) {
+      int i_ar = matrix_along_by_effectfree(i_along, i_by);
+      if (i_along == 0)
+	ar[i_ar] = effectfree[i_ar];
+      else {
+	ar[i_ar] = hyperrandfree[i_hyperrand];
+	i_hyperrand++;
+      }
+    }
+  }
   int n_hyper = hyper.size();
   vector<Type> hyper_ar = hyper.tail(n_hyper - 1);
   vector<Type> consts_ar = consts.tail(5);
-  ans += logpost_ar_inner(hyperrandfree,
+  ans += logpost_ar_inner(ar,
 			  hyper_ar,
 			  consts_ar,
 			  matrix_along_by_effectfree);
@@ -1111,27 +1126,31 @@ Type logpost_rw2zeroar(const vector<Type>& effectfree,
   Type sd_slope = consts[1];
   Type log_sd_innov = hyper[0];
   Type sd_innov = exp(log_sd_innov);
-  int n_along = matrix_along_by_effectfree.rows();
-  int n_by = matrix_along_by_effectfree.cols();
   ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
   // note RW2 part is 0 when i_along = 0
   for (int i_by = 0; i_by < n_by; i_by++) {
     int i_1 = matrix_along_by_effectfree(1, i_by);
     int i_2 = matrix_along_by_effectfree(2, i_by);
-    ans += dnorm(effectfree[i_1], Type(0), sd_slope, true);
-    Type diff = effectfree[i_2] - 2 * effectfree[i_1];
-    ans += dnorm(diff, Type(0), sd_innov, true);
+    Type rw_1 = effectfree[i_1] - ar[i_1];
+    Type rw_2 = effectfree[i_2] - ar[i_2];
+    ans += dnorm(rw_1, Type(0), sd_innov, true);
+    Type diff = rw_2 - rw_1;
+    ans += dnorm(diff, Type(0), sd_slope, true);
     for (int i_along = 3; i_along < n_along; i_along++) {
       int i_2 = matrix_along_by_effectfree(i_along, i_by);
       int i_1 = matrix_along_by_effectfree(i_along - 1, i_by);
       int i_0 = matrix_along_by_effectfree(i_along - 2, i_by);
-      Type diff = effectfree[i_2] - 2 * effectfree[i_1] + effectfree[i_0];
+      Type rw_2 = effectfree[i_2] - ar[i_2];
+      Type rw_1 = effectfree[i_1] - ar[i_1];
+      Type rw_0 = effectfree[i_0] - ar[i_0];
+      Type diff = rw_2 - 2 * rw_1 + rw_0;
       ans += dnorm(diff, Type(0), sd_innov, true);
     }
   }
   // total
   return ans;
 }
+
 
 template <class Type>
 Type logpost_rw2zeroseasfix(const vector<Type>& effectfree,

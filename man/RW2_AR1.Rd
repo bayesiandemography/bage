@@ -9,10 +9,11 @@ RW2_AR1(
   s_rw = 1,
   sd = 1,
   sd_slope = 1,
-  n_coef = 2,
   s_ar = 1,
   shape1 = 5,
   shape2 = 5,
+  min = 0.8,
+  max = 0.98,
   along = NULL,
   con = c("none", "by")
 )
@@ -28,14 +29,15 @@ in RW2 process. Default is \code{1}. Can be \code{0}.}
 the initial slope of RW2 process. Larger values imply
 steeper slopes. Default is 1.}
 
-\item{n_coef}{Number of lagged terms in the
-model, ie the order of the model. Default is \code{2}.}
-
 \item{s_ar}{Scale for the innovations in the
 AR1 process. Default is \code{1}.}
 
 \item{shape1, shape2}{Parameters for beta-distribution prior
 for coefficients. Defaults are \code{5} and \code{5}.}
+
+\item{min, max}{Minimum and maximum values
+for autocorrelation coefficient in AR1 process.
+Defaults are \code{0.8} and \code{0.98}.}
 
 \item{along}{Name of the variable to be used
 as the 'along' variable. Only used with
@@ -44,10 +46,6 @@ interactions.}
 \item{con}{Constraints on parameters.
 Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
-
-\item{min, max}{Minimum and maximum values
-for autocorrelation coefficient in AR1 process.
-Defaults are \code{0.8} and \code{0.98}.}
 }
 \value{
 An object of class \code{"bage_prior_rw2randomar"}

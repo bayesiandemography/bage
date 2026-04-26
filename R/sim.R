@@ -595,7 +595,6 @@ draw_vals_effect_svd_dynamic <- function(prior,
 }
 
 
-
 ## HAS_TESTS
 #' Draw Values for Ordinary Hyper-Parameters
 #'
@@ -612,7 +611,19 @@ draw_vals_hyper_mod <- function(mod, n_sim) {
 
 
 ## HAS_TESTS
-#' @export
+#' Draw Values for Hyper-Parameters that can be
+#' Treated as Random Effects - in an AR prior
+#'
+#' @param prior Object of class "bage_prior"
+#' @param vals_hyper List of numeric vectors
+#' @param dimnames_term List of dimension names
+#' @param var_name Name of time variable
+#' @param var_time Name of age variable
+#' @param n_sim Number of draws
+#'
+#' @returns A named list
+#'
+#' @noRd
 draw_vals_hyperrand_ar <- function(prior,
                                    vals_hyper,
                                    dimnames_term,

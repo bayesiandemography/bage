@@ -1253,6 +1253,7 @@ fit.bage_mod <- function(object,
                 optimizer = optimizer,
                 quiet = quiet,
                 start_oldpar = start_oldpar,
+                max_jitter = max_jitter,
                 aggregate = aggregate)
   }
   else if (method == "inner-outer")
@@ -1549,15 +1550,7 @@ forecast.bage_mod <- function(object,
     }
   }
   else if (output == "components") {
-    dn_terms_forecast_time <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
-                                                           var_time = var_time,
-                                                           labels_forecast = labels,
-                                                           time_only = TRUE)
-    ans <- infer_trend_seas_err_forecast(components = comp_forecast,
-                                         priors = priors,
-                                         dimnames_terms = dn_terms_forecast_time,
-                                         var_time = var_time,
-                                         var_age = var_age)
+    ans <- comp_forecast
     if (include_estimates) {
       ans <- vctrs::vec_rbind(comp_est, ans)
       ans <- sort_components(components = ans, mod = object)

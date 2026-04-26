@@ -267,6 +267,17 @@ infer_var_time <- function(formula) {
 init_val_sd <- function() log(0.05)
 
 
+#' Test Whether Auto-Regressive Prior is First Order
+#'
+#' @param prior AR prior (including Lin_AR, etc)
+#'
+#' @returns Logical flag
+#'
+#' @noRd
+is_ar1 <- function(prior) {
+  nm <- prior$specific$nm
+  grepl("AR1", nm)
+}
 
 
 ## HAS_TESTS
@@ -1930,24 +1941,32 @@ str_call_args_along <- function(prior) {
 #' Does not include 'along'.
 #'
 #' @param prior Prior with AR components
+#' @param suffix Suffix for s argument
 #'
 #' @returns A character vector
 #'
 #' @noRd
-str_call_args_ar <- function(prior) {
+str_call_args_ar <- function(prior, suffix) {
   specific <- prior$specific
   n_coef <- specific$n_coef
-  scale <- specific$scale
+  if (is.null(suffix)) {
+    scale <- specific$scale
+    nm_s <- "s"
+  }
+  else {
+    scale <- specific[[paste0("scale_", suffix)]]
+    nm_s <- paste0("s_", suffix)
+  }
   shape1 <- specific$shape1
   shape2 <- specific$shape2
   min <- specific$min
   max <- specific$max
   nm <- specific$nm
-  is_ar1 <- grepl("AR1", nm)
+  is_ar1 <- is_ar1(prior)
   if (is_ar1) {
     ans <- character(5L)
     if (scale != 1)
-      ans[[1L]] <- sprintf("s=%s", scale)
+      ans[[1L]] <- sprintf("%s=%s", nm_s, scale)
     if (shape1 != 5)
       ans[[2L]] <- sprintf("shape1=%s", shape1)
     if (shape2 != 5)
@@ -1962,7 +1981,7 @@ str_call_args_ar <- function(prior) {
     if (n_coef != 2L)
       ans[[1L]] <- sprintf("n_coef=%d", n_coef)
     if (scale != 1)
-      ans[[2L]] <- sprintf("s=%s", scale)
+      ans[[2L]] <- sprintf("%s=%s", nm_s, scale)
     if (shape1 != 5)
       ans[[3L]] <- sprintf("shape1=%s", shape1)
     if (shape2 != 5)
@@ -2094,6 +2113,40 @@ str_call_args_scale <- function(prior) {
     ""
   else
     sprintf("s=%s", scale)
+}
+
+
+## HAS_TESTS
+#' Compile Args for 'scale_ar' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 'scale' parameter
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_scale_ar <- function(prior) {
+  scale_ar <- prior$specific$scale_ar
+  if (identical(scale_ar, 1))
+    ""
+  else
+    sprintf("s_ar=%s", scale_ar)
+}
+
+
+## HAS_TESTS
+#' Compile Args for 'scale_rw' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 'scale' parameter
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_scale_rw <- function(prior) {
+  scale_rw <- prior$specific$scale_rw
+  if (identical(scale_rw, 1))
+    ""
+  else
+    sprintf("s_rw=%s", scale_rw)
 }
 
 
