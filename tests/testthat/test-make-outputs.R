@@ -1912,7 +1912,7 @@ test_that("'make_levels_svd_term' works - con = 'none', time:age:sex", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_svd_term' works - con = 'none', time:age:reg", {
+test_that("'make_levels_svd_by' works - con = 'none', time:age:reg", {
   prior <- SVD_Lin(HMD, n_comp = 3)
   dimnames_term <- list(time = 2001:2005,
                         age = c(0:59, "60+"),
@@ -1931,7 +1931,7 @@ test_that("'make_levels_svd_term' works - con = 'none', time:age:reg", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_svd_term' works - con = 'by', time:age:sex", {
+test_that("'make_levels_svd_by' works - con = 'by', time:age:sex", {
   prior <- SVD_Lin(HMD, n_comp = 3, con = "by")
   dimnames_term <- list(time = 2001:2005,
                         age = c(0:59, "60+"),
@@ -1950,23 +1950,20 @@ test_that("'make_levels_svd_term' works - con = 'by', time:age:sex", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_svd_term' works - con = 'by', time:age:reg", {
-  prior <- SVD_Lin(HMD, n_comp = 3, con = "by")
+test_that("'make_levels_svd_by' throws error when prior does not have along dimension", {
+  prior <- N()
   dimnames_term <- list(time = 2001:2005,
                         age = c(0:59, "60+"),
                         reg = c("a", "b", "c"))
   var_age <- "age"
   var_sexgender <- "sex"
   var_time <- "time"
-  ans_obtained <- make_levels_svd_by(prior = prior,
-                                     dimnames_term = dimnames_term,
+  expect_error(make_levels_svd_by(prior = prior,
+                                     dimnames_term = dimnames_by,
                                      var_time = var_time,
                                      var_age = var_age,
-                                     var_sexgender = var_sexgender)
-  ans_expected <- paste(paste0("comp", 1:3),
-                        rep(c("reg1", "reg2"), each = 3),
-                        sep = ".")
-  expect_identical(ans_obtained, ans_expected)
+                                  var_sexgender = var_sexgender),
+               "Internal error: Prior does not")
 })
 
 

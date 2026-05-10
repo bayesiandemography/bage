@@ -48,7 +48,6 @@ Suggests:
     tidyr
 Config/testthat/edition: 3
 Config/Needs/website: bookdown
-RoxygenNote: 7.3.3
 LinkingTo: 
     TMB (>= 1.9.1),
     RcppEigen
@@ -56,3 +55,4 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 URL: https://bayesiandemography.github.io/bage/, https://github.com/bayesiandemography/bage
 BugReports: https://github.com/bayesiandemography/bage/issues
+Config/roxygen2/version: 8.0.0

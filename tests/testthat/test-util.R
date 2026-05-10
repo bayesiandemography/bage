@@ -1221,6 +1221,17 @@ test_that("safe_chol_prec aborts when jitter exceeds max_jitter", {
 })
 
 
+## 'rvec_matmult' -------------------------------------------------------------
+
+test_that("two branches of 'rvec_matmult' give same answer", {
+  A <- matrix(1:9, nr = 3)
+  x <- rvec::rvec(matrix(1:30, nr = 3))
+  expect_equal(rvec_matmult(A, x, use_new_matrixops = TRUE),
+               rvec_matmult(A, x, use_new_matrixops = FALSE))
+})
+       
+
+
 ## 'sample_post_binom_betabinom' ----------------------------------------------
 
 test_that("basic valid inputs work and return integers", {

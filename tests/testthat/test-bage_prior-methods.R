@@ -5538,7 +5538,7 @@ test_that("'forecast_term' works with bage_prior_rw2zero - n_by = 2, con is 'by'
   expect_equal(ans$.fitted[3], -ans$.fitted[9])  
 })
 
-test_that("'forecast_term' works with bage_prior_rw2zeroseasfix", {
+test_that("'forecast_term' works with bage_prior_rw2zeroseasfix - n_by = 1", {
   set.seed(0)
   prior <- RW2_Seas(sd = 0, n_seas = 2, s_seas = 0)
   dimnames_term <- list(year = 2001:2005)
@@ -5597,6 +5597,48 @@ test_that("'forecast_term' works with bage_prior_rw2zeroseasfix", {
   ans_expected$.fitted[1:6] <- effect_forecast
   ans_expected$.fitted[7:12] <- rw2_forecast
   expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_term' works with bage_prior_rw2zeroseasfix - n_by = 2, con is 'by'", {
+  set.seed(0)
+  prior <- RW2_Seas(sd = 0, con = 'by', s_seas = 0, n_seas = 3)
+  dimnames_term <- list(year = 2001:2004,
+                        reg = 1:2)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- as.character(2006:2011)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "trend",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "season",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)))
+  set.seed(1)
+  ans <- forecast_term(prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_time = var_time,
+                       var_age = var_age,
+                       var_sexgender = var_sexgender,
+                       components = components,
+                       labels_forecast = labels_forecast)
+  expect_equal(ans$.fitted[3], -ans$.fitted[9])  
 })
 
 test_that("'forecast_term' works with bage_prior_rw2zeroar - n_by = 1", {
@@ -7472,7 +7514,7 @@ test_that("'generate' works with bage_prior_rw2random, n_by = 2, con = 'by'", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'generate' works with bage_prior_rw2randomar", {
+test_that("'generate' works with bage_prior_rw2randomar, n_by = 1", {
   x <- RW2_AR()
   set.seed(0)
   n_along <- 20
@@ -7504,6 +7546,79 @@ test_that("'generate' works with bage_prior_rw2randomar", {
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
+
+test_that("'generate' works with bage_prior_rw2randomar, n_by = 2, con = 'by'", {
+  x <- RW2_AR1(con = "by")
+  set.seed(0)
+  n_along <- 10
+  n_by <- 2
+  n_draw <- 25
+  ans <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  ans <- xtabs(value ~ draw + by + along, ans)
+  sum <- ans[,1,] + ans[,2,]
+  expect_true(all(abs(sum) < 0.00001))
+})
+
+test_that("'generate' works with bage_prior_rw2random, n_by = 2, con = 'by'", {
+  x <- RW2(con = "by")
+  set.seed(0)
+  n_along <- 10
+  n_by <- 2
+  n_draw <- 25
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  set.seed(0)
+  sd <- draw_vals_sd(x, n_sim = n_draw)
+  sd_init <- x$specific$sd
+  sd_slope <- x$specific$sd_slope
+  value <- draw_vals_rw2(sd = sd,
+                         sd_init = sd_init,
+                         sd_slope = sd_slope,
+                         matrix_along_by = matrix(seq_len(n_along * n_by) - 1L, nc = n_by),
+                         levels_effect = seq_len(n_along * n_by))
+  value <- array(value, c(n_along, n_by, n_draw))
+  means <- apply(value, c(1, 3), mean)
+  value[,1,] <- value[,1,] - means
+  value[,2,] <- value[,2,] - means
+  draw <- rep(seq_len(n_draw), each = n_along * n_by)
+  draw <- paste("Draw", draw)
+  draw <- factor(draw, levels = unique(draw))
+  ans_expected <- tibble(draw = draw,
+                         by = factor(rep(rep(paste("By", 1:2), each = n_along), times = n_draw)),
+                         along = rep(seq_len(n_along), times = n_by * n_draw),
+                         value = as.double(value))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with bage_prior_rw2random, n_by = 2, con = 'by'", {
+  x <- RW2(con = "by")
+  set.seed(0)
+  n_along <- 10
+  n_by <- 2
+  n_draw <- 25
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  set.seed(0)
+  sd <- draw_vals_sd(x, n_sim = n_draw)
+  sd_init <- x$specific$sd
+  sd_slope <- x$specific$sd_slope
+  value <- draw_vals_rw2(sd = sd,
+                         sd_init = sd_init,
+                         sd_slope = sd_slope,
+                         matrix_along_by = matrix(seq_len(n_along * n_by) - 1L, nc = n_by),
+                         levels_effect = seq_len(n_along * n_by))
+  value <- array(value, c(n_along, n_by, n_draw))
+  means <- apply(value, c(1, 3), mean)
+  value[,1,] <- value[,1,] - means
+  value[,2,] <- value[,2,] - means
+  draw <- rep(seq_len(n_draw), each = n_along * n_by)
+  draw <- paste("Draw", draw)
+  draw <- factor(draw, levels = unique(draw))
+  ans_expected <- tibble(draw = draw,
+                         by = factor(rep(rep(paste("By", 1:2), each = n_along), times = n_draw)),
+                         along = rep(seq_len(n_along), times = n_by * n_draw),
+                         value = as.double(value))
+  expect_equal(ans_obtained, ans_expected)
+})
+
 
 test_that("'generate' works with bage_prior_rw2randomseasfix", {
   x <- RW2_Seas(n = 3, s_seas = 0, sd_seas = 0.2)
@@ -7759,29 +7874,16 @@ test_that("'generate' works with bage_prior_rw2zeroar", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'generate' works with bage_prior_rw2zero, n_by = 2", {
-  x <- RW2(sd = 0)
+test_that("'generate' works with bage_prior_rw2zeroar, n_by = 2, con = 'by'", {
+  x <- RW2_AR1(con = "by", sd = 0)
   set.seed(0)
   n_along <- 10
   n_by <- 2
   n_draw <- 25
-  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
-  set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
-  sd_slope <- x$specific$sd_slope
-  value <- draw_vals_rw2(sd = sd,
-                         sd_init = 0,
-                         sd_slope = sd_slope,
-                         matrix_along_by = matrix(seq_len(n_along * n_by) - 1L, nc = n_by),
-                         levels_effect = seq_len(n_along * n_by))
-  draw <- rep(seq_len(n_draw), each = n_along * n_by)
-  draw <- paste("Draw", draw)
-  draw <- factor(draw, levels = unique(draw))
-  ans_expected <- tibble(draw = draw,
-                         by = factor(rep(rep(paste("By", 1:2), each = n_along), times = n_draw)),
-                         along = rep(seq_len(n_along), times = n_by * n_draw),
-                         value = as.double(value))
-  expect_equal(ans_obtained, ans_expected)
+  ans <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  ans <- xtabs(value ~ draw + by + along, ans)
+  sum <- ans[,1,] + ans[,2,]
+  expect_true(all(abs(sum) < 0.00001))
 })
 
 test_that("'generate' works with bage_prior_rw2zero, n_by = 2, con = 'by'", {
@@ -12217,6 +12319,28 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_linex - age
   expect_equal(ans1, ans2, tolerance = 0.01)
 })
 
+test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_linex - age-time-reg interaction, con = 'by'", {
+  prior <- SVD_Lin(HMD, n_comp = 2, s = 0, con = "by")
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2005,
+                        reg = c("a", "b", "c"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  m <- make_matrix_effectfree_effect(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+  ans <- m %*% c(1, -2.34, -0.02, 0.5)
+  ans <- array(ans, dim = c(14, 5, 3))
+  dimnames(ans) <- dimnames_term
+  age_sums <- apply(ans, "age", sum)
+  expect_true(all(abs(age_sums) < 0.0001))
+  reg_sums <- apply(ans, "reg", sum)
+  expect_true(all(abs(reg_sums) < 0.0001))
+})
+
 test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rwrandom - age-time interaction", {
   prior <- SVD_RW(HMD, n_comp = 2)
   dimnames_term = list(time = 2001:2005,
@@ -13160,6 +13284,7 @@ test_that("'print' works", {
   expect_snapshot(print(Lin()))
   expect_snapshot(print(Lin(s = 0)))
   expect_snapshot(print(Lin_AR()))
+  expect_snapshot(print(Lin_AR1()))
   expect_snapshot(print(N()))
   expect_snapshot(print(NFix()))
   expect_snapshot(print(RW()))
@@ -13170,6 +13295,10 @@ test_that("'print' works", {
   expect_snapshot(print(RW_Seas(n_seas = 2, s_seas = 1, sd = 0)))
   expect_snapshot(print(RW2_Infant()))
   expect_snapshot(print(RW2()))
+  expect_snapshot(print(RW2_AR()))
+  expect_snapshot(print(RW2_AR1()))
+  expect_snapshot(print(RW2_AR(sd = 0)))
+  expect_snapshot(print(RW2_AR1(sd = 0)))
   expect_snapshot(print(RW2_Seas(n_seas = 2, s_seas = 0)))
   expect_snapshot(print(RW2_Seas(n_seas = 2, s_seas = 1)))
   expect_snapshot(print(RW2(sd = 0)))
@@ -13191,7 +13320,9 @@ test_that("'print' works", {
   expect_snapshot(print(SVD_DRW2(HMD, sd = 0)))
   expect_snapshot(print(SVD_DRW2(HMD, sd = 0, indep = FALSE)))
   expect_snapshot(print(SVD_Lin(HMD)))
+  expect_snapshot(print(SVD_Lin(HMD, indep = FALSE)))
   expect_snapshot(print(SVD_Lin(HMD, s = 0)))
+  expect_snapshot(print(SVD_Lin(HMD, s = 0, indep = FALSE)))
   expect_snapshot(print(SVD_RW(HMD)))
   expect_snapshot(print(SVD_RW(HMD, indep = FALSE)))
   expect_snapshot(print(SVD_RW(HMD, sd = 0)))

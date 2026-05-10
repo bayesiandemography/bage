@@ -96,314 +96,6 @@ dbetabinom <- function(x, size, shape1, shape2, log = FALSE) {
 
 
 ## HAS_TESTS
-#' Insert a Variable Into a Data Frame,
-#' After Another Variable
-#'
-#' @param df A data frame (including a tibble)
-#' @param nm_after Name of the variable that the
-#' 'x' should come after
-#' @param x New variable
-#' @param nm_x Name of new variable
-#'
-#' @returns A modified version of 'df'
-#'
-#' @noRd
-insert_after <- function(df, nm_after, x, nm_x) {
-  nms_df <- names(df)
-  n_df <- length(nms_df)
-  i_after <- match(nm_after, names(df), nomatch = n_df)
-  if (i_after < n_df) {
-    s_before <- seq_len(i_after)
-    s_after <- seq.int(from = i_after + 1L, to = n_df)
-    ans <- vctrs::vec_cbind(df[s_before],
-                            x,
-                            df[s_after],
-                            .name_repair = "universal_quiet")
-  }
-  else {
-    ans <- vctrs::vec_cbind(df,
-                            x,
-                            .name_repair = "universal_quiet")
-  }
-  names(ans)[[i_after + 1L]] <- nm_x
-  ans
-}
-
-
-## HAS_TESTS
-#' Insert a Variable Into a Data Frame,
-#' Before Another Variable
-#'
-#' @param df A data frame (including a tibble)
-#' @param nm_before Name of the variable that the
-#' 'x' should come before
-#' @param x New variable
-#' @param nm_x Name of new variable
-#'
-#' @returns A modified version of 'df'
-#'
-#' @noRd
-insert_before <- function(df, nm_before, x, nm_x) {
-  nms_df <- names(df)
-  n_df <- length(nms_df)
-  i_before <- match(nm_before, names(df))
-  if (i_before > 1L) {
-    s_before <- seq_len(i_before - 1L)
-    s_after <- seq.int(from = i_before, to = n_df)
-    ans <- vctrs::vec_cbind(df[s_before],
-                            x,
-                            df[s_after],
-                            .name_repair = "universal_quiet")
-  }
-  else {
-    ans <- vctrs::vec_cbind(x,
-                            df,
-                            .name_repair = "universal_quiet")
-  }
-  names(ans)[[i_before]] <- nm_x
-  ans
-}
-
-
-## HAS_TESTS
-#' Check Whether Currently in Test or Snapshot
-#'
-#' Based on testthat::is_testing() and testthat::is_snapshot()
-#' 
-#' @returns TRUE or FALSE
-#'
-#' @noRd
-is_not_testing_or_snapshot <- function() {
-  is_testing <- identical(Sys.getenv("TESTTHAT"), "true")
-  is_snapshot <- identical(Sys.getenv("TESTTHAT_IS_SNAPSHOT"), "true")
-  !is_testing && !is_snapshot
-}
-
-
-## HAS_TESTS
-#' Test Whether Two Objects Have the Same Class
-#'
-#' @param x,y Objects
-#'
-#' @returns TRUE or FALSE
-#'
-#' @noRd
-is_same_class <- function(x, y)
-  identical(class(x)[[1L]], class(y)[[1L]])
-
-## HAS_TESTS
-#' Use a precision matrix to construct scaled eigen vectors
-#'
-#' The scaled eigen vectors can be used to draw from a
-#' multivariate normal distribution with the given
-#' pecision matrix.
-#'
-#' @param prec A symmetric positive definite matrix.
-#'
-#' @returns A matrix with the same dimensions as 'prec'
-#'
-#' @noRd
-make_scaled_eigen <- function(prec) {
-    tolerance <- 1e-6
-    eigen <- eigen(prec, symmetric = TRUE)
-    vals <- eigen$values
-    vecs <- eigen$vectors
-    min_valid_val <- -tolerance * abs(vals[[1L]]) ## based on MASS::mvrnorm
-    if (any(vals < min_valid_val))
-        cli::cli_abort("Estimated precision matrix not positive definite.")  ## nocov
-    vals <- pmax(vals, abs(min_valid_val))
-    sqrt_inv_vals <- sqrt(1 / vals)
-    vecs %*% diag(sqrt_inv_vals)
-}
-
-
-#' Paste Two Vectors Separated by a Dot
-#'
-#' @param x A vector
-#' @param y A vector
-#'
-#' @returns A character vector
-#'
-#' @noRd
-paste_dot <- function(x, y) paste(x, y, sep = ".")
-
-
-## HAS_TESTS
-#' Version of 'rpois' With Upper Limit on size * prob
-#'
-#' Binomial can have numerical problems
-#' and valgrind errors with very large size * prob, so switch
-#' to just setting random variate to size * prob, above a
-#' given threshold. Warn the user that this is happening.
-#'
-#' Assume that length(size) == length(prob)
-#' (Which may mean length(as.numeric(size))
-#'   != length(as.numeric(prob)))
-#'
-#' @param size Trials. A numeric vector
-#' or an rvec.
-#' @param prob Probability of success. A
-#' numeric vector or an rvec.
-#'
-#' @returns A numeric vector or an rvec
-#'
-#' @noRd
-rbinom_guarded <- function(size, prob) {
-  threshold <- 1e8
-  if (!identical(length(size), length(prob)))
-    cli::cli_abort("Internal error: size and prob have different lengths.")
-  is_rvec_size <- rvec::is_rvec(size)
-  is_rvec_prob <- rvec::is_rvec(prob)
-  has_rvec <- is_rvec_size || is_rvec_prob
-  if (has_rvec) {
-    if (is_rvec_size) {
-      n_val <- length(size) 
-      n_draw <- rvec::n_draw(size)
-    }
-    else {
-      n_val <- length(prob)
-      n_draw <- rvec::n_draw(prob)
-    }
-    if (is_rvec_size)
-      size <- as.numeric(size)
-    else
-      size <- rep(size, times = n_draw)
-    if (is_rvec_prob)
-      prob <- as.numeric(prob)
-    else
-      prob <- rep(prob, times = n_draw)
-  }
-  mean <- size * prob
-  is_gt <- !is.na(mean) & (mean > threshold)
-  n_gt <- sum(is_gt)
-  if (n_gt > 0L) {
-    pc <- 100 * mean(is_gt)
-    pc <- signif(pc, digits = 2)
-    cli::cli_warn(c("Large values for {.arg size} * {.arg prob} used to generate binomial variates.",
-                    i = "{.val {pc}} percent of values exceed {.val {threshold}}.",
-                    i = "Using deterministic approximation to generate variates for these values."))
-  }
-  ans <- mean
-  is_lt <- !is_gt
-  ans[is_lt] <- stats::rbinom(n = sum(is_lt),
-                              size = size[is_lt],
-                              prob = prob[is_lt])
-  
-  if (has_rvec) {
-    ans <- matrix(ans, nrow = n_val, ncol = n_draw)
-    ans <- rvec::rvec_dbl(ans)
-  }
-  ans
-}
-
-
-## HAS_TESTS
-#' Draw from multivariate normal, using results
-#' from a Cholesky decomposition
-#'
-#' @param n Number of draws
-#' @param mean Mean of distribution
-#' @param CH Cholesky decomposition of precision matrix
-#'
-#' @returns A matrix, with each columns being one draw
-#'
-#' @noRd
-rmvnorm_chol <- function(n, mean, CH) {
-  n_val <- length(mean)
-  Z <- matrix(stats::rnorm(n = n_val * n),
-              nrow = n_val,
-              ncol = n)
-  L <- Matrix::expand(CH)$L           # lower triangular, sparseMatrix
-  E <- Matrix::solve(Matrix::t(L), Z) # solve L^T E = Z  => E = L^{-T} Z
-  mean + E
-}
-
-
-## HAS_TESTS
-#' Version of 'nbinom' With Upper Limit on Mean
-#'
-#' Negative binomial can have numerical problems
-#' and valgrind errors with very large lambda, so switch
-#' to just setting random variate to lambda, above a
-#' given threshold. Warn the user that this is happening.
-#'
-#' @param lambda Expected values. A numeric vector
-#' or an rvec.
-#'
-#' @returns A numeric vector or an rvec
-#'
-#' @noRd
-rpois_guarded <- function(lambda) {
-  threshold <- 1e8
-  is_rvec <- rvec::is_rvec(lambda)
-  if (is_rvec) {
-    n_val <- length(lambda)
-    n_draw <- rvec::n_draw(lambda)
-    lambda <- as.numeric(lambda)
-  }
-  is_gt <- !is.na(lambda) & (lambda > threshold)
-  n_gt <- sum(is_gt)
-  if (n_gt > 0L) {
-    pc <- 100 * mean(is_gt)
-    pc <- signif(pc, digits = 2)
-    cli::cli_warn(c("Large values for {.arg lambda} used to generate Poisson variates.",
-                    i = "{.val {pc}} percent of values for {.arg lambda} are above {.val {threshold}}.",
-                    i = "Using deterministic approximation to generate variates for these values."))
-  }
-  ans <- lambda
-  is_lt <- !is_gt
-  ans[is_lt] <- stats::rpois(n = sum(is_lt), lambda = lambda[is_lt])
-  if (is_rvec) {
-    ans <- matrix(ans, nrow = n_val, ncol = n_draw)
-    ans <- rvec::rvec_dbl(ans)
-  }
-  ans
-}
-
-
-## HAS_TESTS
-#' Version of 'rpois' With Upper Limit on Lambda
-#'
-#' Poisson can have numerical problems
-#' and valgrind errors with very large lambda, so switch
-#' to just setting random variate to lambda, above a
-#' given threshold. Warn the user that this is happening.
-#'
-#' @param lambda Expected values. A numeric vector
-#' or an rvec.
-#'
-#' @returns A numeric vector or an rvec
-#'
-#' @noRd
-rpois_guarded <- function(lambda) {
-  threshold <- 1e8
-  is_rvec <- rvec::is_rvec(lambda)
-  if (is_rvec) {
-    n_val <- length(lambda)
-    n_draw <- rvec::n_draw(lambda)
-    lambda <- as.numeric(lambda)
-  }
-  is_gt <- !is.na(lambda) & (lambda > threshold)
-  n_gt <- sum(is_gt)
-  if (n_gt > 0L) {
-    pc <- 100 * mean(is_gt)
-    pc <- signif(pc, digits = 2)
-    cli::cli_warn(c("Large values for {.arg lambda} used to generate Poisson variates.",
-                    i = "{.val {pc}} percent of values for {.arg lambda} are above {.val {threshold}}.",
-                    i = "Using deterministic approximation to generate variates for these values."))
-  }
-  ans <- lambda
-  is_lt <- !is_gt
-  ans[is_lt] <- stats::rpois(n = sum(is_lt), lambda = lambda[is_lt])
-  if (is_rvec) {
-    ans <- matrix(ans, nrow = n_val, ncol = n_draw)
-    ans <- rvec::rvec_dbl(ans)
-  }
-  ans
-}
-
-
-## HAS_TESTS
 #' Draw from Posterior Distribution of True Values
 #' Given Observed Values, for Poisson plus Symmetric Skellam
 #'
@@ -630,6 +322,103 @@ dskellam_exact <- function(x, mu1, mu2) {
 }
 
 
+## HAS_TESTS
+#' Insert a Variable Into a Data Frame,
+#' After Another Variable
+#'
+#' @param df A data frame (including a tibble)
+#' @param nm_after Name of the variable that the
+#' 'x' should come after
+#' @param x New variable
+#' @param nm_x Name of new variable
+#'
+#' @returns A modified version of 'df'
+#'
+#' @noRd
+insert_after <- function(df, nm_after, x, nm_x) {
+  nms_df <- names(df)
+  n_df <- length(nms_df)
+  i_after <- match(nm_after, names(df), nomatch = n_df)
+  if (i_after < n_df) {
+    s_before <- seq_len(i_after)
+    s_after <- seq.int(from = i_after + 1L, to = n_df)
+    ans <- vctrs::vec_cbind(df[s_before],
+                            x,
+                            df[s_after],
+                            .name_repair = "universal_quiet")
+  }
+  else {
+    ans <- vctrs::vec_cbind(df,
+                            x,
+                            .name_repair = "universal_quiet")
+  }
+  names(ans)[[i_after + 1L]] <- nm_x
+  ans
+}
+
+
+## HAS_TESTS
+#' Insert a Variable Into a Data Frame,
+#' Before Another Variable
+#'
+#' @param df A data frame (including a tibble)
+#' @param nm_before Name of the variable that the
+#' 'x' should come before
+#' @param x New variable
+#' @param nm_x Name of new variable
+#'
+#' @returns A modified version of 'df'
+#'
+#' @noRd
+insert_before <- function(df, nm_before, x, nm_x) {
+  nms_df <- names(df)
+  n_df <- length(nms_df)
+  i_before <- match(nm_before, names(df))
+  if (i_before > 1L) {
+    s_before <- seq_len(i_before - 1L)
+    s_after <- seq.int(from = i_before, to = n_df)
+    ans <- vctrs::vec_cbind(df[s_before],
+                            x,
+                            df[s_after],
+                            .name_repair = "universal_quiet")
+  }
+  else {
+    ans <- vctrs::vec_cbind(x,
+                            df,
+                            .name_repair = "universal_quiet")
+  }
+  names(ans)[[i_before]] <- nm_x
+  ans
+}
+
+
+## HAS_TESTS
+#' Check Whether Currently in Test or Snapshot
+#'
+#' Based on testthat::is_testing() and testthat::is_snapshot()
+#' 
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+is_not_testing_or_snapshot <- function() {
+  is_testing <- identical(Sys.getenv("TESTTHAT"), "true")
+  is_snapshot <- identical(Sys.getenv("TESTTHAT_IS_SNAPSHOT"), "true")
+  !is_testing && !is_snapshot
+}
+
+
+## HAS_TESTS
+#' Test Whether Two Objects Have the Same Class
+#'
+#' @param x,y Objects
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+is_same_class <- function(x, y)
+  identical(class(x)[[1L]], class(y)[[1L]])
+
+
 #' Safe Calculation of Log Density of Symmetric Skellam
 #'
 #' @param x Values where density required
@@ -662,6 +451,217 @@ log_skellam_safe <- function(x, m, threshold) {
   ans
 }
 
+
+## HAS_TESTS
+#' Use a precision matrix to construct scaled eigen vectors
+#'
+#' The scaled eigen vectors can be used to draw from a
+#' multivariate normal distribution with the given
+#' pecision matrix.
+#'
+#' @param prec A symmetric positive definite matrix.
+#'
+#' @returns A matrix with the same dimensions as 'prec'
+#'
+#' @noRd
+make_scaled_eigen <- function(prec) {
+    tolerance <- 1e-6
+    eigen <- eigen(prec, symmetric = TRUE)
+    vals <- eigen$values
+    vecs <- eigen$vectors
+    min_valid_val <- -tolerance * abs(vals[[1L]]) ## based on MASS::mvrnorm
+    if (any(vals < min_valid_val))
+        cli::cli_abort("Estimated precision matrix not positive definite.")  ## nocov
+    vals <- pmax(vals, abs(min_valid_val))
+    sqrt_inv_vals <- sqrt(1 / vals)
+    vecs %*% diag(sqrt_inv_vals)
+}
+
+
+#' Paste Two Vectors Separated by a Dot
+#'
+#' @param x A vector
+#' @param y A vector
+#'
+#' @returns A character vector
+#'
+#' @noRd
+paste_dot <- function(x, y) paste(x, y, sep = ".")
+
+
+## HAS_TESTS
+#' Version of 'rpois' With Upper Limit on size * prob
+#'
+#' Binomial can have numerical problems
+#' and valgrind errors with very large size * prob, so switch
+#' to just setting random variate to size * prob, above a
+#' given threshold. Warn the user that this is happening.
+#'
+#' Assume that length(size) == length(prob)
+#' (Which may mean length(as.numeric(size))
+#'   != length(as.numeric(prob)))
+#'
+#' @param size Trials. A numeric vector
+#' or an rvec.
+#' @param prob Probability of success. A
+#' numeric vector or an rvec.
+#'
+#' @returns A numeric vector or an rvec
+#'
+#' @noRd
+rbinom_guarded <- function(size, prob) {
+  threshold <- 1e8
+  if (!identical(length(size), length(prob)))
+    cli::cli_abort("Internal error: size and prob have different lengths.")
+  is_rvec_size <- rvec::is_rvec(size)
+  is_rvec_prob <- rvec::is_rvec(prob)
+  has_rvec <- is_rvec_size || is_rvec_prob
+  if (has_rvec) {
+    if (is_rvec_size) {
+      n_val <- length(size) 
+      n_draw <- rvec::n_draw(size)
+    }
+    else {
+      n_val <- length(prob)
+      n_draw <- rvec::n_draw(prob)
+    }
+    if (is_rvec_size)
+      size <- as.numeric(size)
+    else
+      size <- rep(size, times = n_draw)
+    if (is_rvec_prob)
+      prob <- as.numeric(prob)
+    else
+      prob <- rep(prob, times = n_draw)
+  }
+  mean <- size * prob
+  is_gt <- !is.na(mean) & (mean > threshold)
+  n_gt <- sum(is_gt)
+  if (n_gt > 0L) {
+    pc <- 100 * mean(is_gt)
+    pc <- signif(pc, digits = 2)
+    cli::cli_warn(c("Large values for {.arg size} * {.arg prob} used to generate binomial variates.",
+                    i = "{.val {pc}} percent of values exceed {.val {threshold}}.",
+                    i = "Using deterministic approximation to generate variates for these values."))
+  }
+  ans <- mean
+  is_lt <- !is_gt
+  ans[is_lt] <- stats::rbinom(n = sum(is_lt),
+                              size = size[is_lt],
+                              prob = prob[is_lt])
+  
+  if (has_rvec) {
+    ans <- matrix(ans, nrow = n_val, ncol = n_draw)
+    ans <- rvec::rvec_dbl(ans)
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Draw from multivariate normal, using results
+#' from a Cholesky decomposition
+#'
+#' @param n Number of draws
+#' @param mean Mean of distribution
+#' @param CH Cholesky decomposition of precision matrix
+#'
+#' @returns A matrix, with each columns being one draw
+#'
+#' @noRd
+rmvnorm_chol <- function(n, mean, CH) {
+  n_val <- length(mean)
+  Z <- matrix(stats::rnorm(n = n_val * n),
+              nrow = n_val,
+              ncol = n)
+  L <- Matrix::expand(CH)$L           # lower triangular, sparseMatrix
+  E <- Matrix::solve(Matrix::t(L), Z) # solve L^T E = Z  => E = L^{-T} Z
+  mean + E
+}
+
+
+## HAS_TESTS
+#' Version of 'nbinom' With Upper Limit on Mean
+#'
+#' Negative binomial can have numerical problems
+#' and valgrind errors with very large lambda, so switch
+#' to just setting random variate to lambda, above a
+#' given threshold. Warn the user that this is happening.
+#'
+#' @param lambda Expected values. A numeric vector
+#' or an rvec.
+#'
+#' @returns A numeric vector or an rvec
+#'
+#' @noRd
+rpois_guarded <- function(lambda) {
+  threshold <- 1e8
+  is_rvec <- rvec::is_rvec(lambda)
+  if (is_rvec) {
+    n_val <- length(lambda)
+    n_draw <- rvec::n_draw(lambda)
+    lambda <- as.numeric(lambda)
+  }
+  is_gt <- !is.na(lambda) & (lambda > threshold)
+  n_gt <- sum(is_gt)
+  if (n_gt > 0L) {
+    pc <- 100 * mean(is_gt)
+    pc <- signif(pc, digits = 2)
+    cli::cli_warn(c("Large values for {.arg lambda} used to generate Poisson variates.",
+                    i = "{.val {pc}} percent of values for {.arg lambda} are above {.val {threshold}}.",
+                    i = "Using deterministic approximation to generate variates for these values."))
+  }
+  ans <- lambda
+  is_lt <- !is_gt
+  ans[is_lt] <- stats::rpois(n = sum(is_lt), lambda = lambda[is_lt])
+  if (is_rvec) {
+    ans <- matrix(ans, nrow = n_val, ncol = n_draw)
+    ans <- rvec::rvec_dbl(ans)
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Version of 'rpois' With Upper Limit on Lambda
+#'
+#' Poisson can have numerical problems
+#' and valgrind errors with very large lambda, so switch
+#' to just setting random variate to lambda, above a
+#' given threshold. Warn the user that this is happening.
+#'
+#' @param lambda Expected values. A numeric vector
+#' or an rvec.
+#'
+#' @returns A numeric vector or an rvec
+#'
+#' @noRd
+rpois_guarded <- function(lambda) {
+  threshold <- 1e8
+  is_rvec <- rvec::is_rvec(lambda)
+  if (is_rvec) {
+    n_val <- length(lambda)
+    n_draw <- rvec::n_draw(lambda)
+    lambda <- as.numeric(lambda)
+  }
+  is_gt <- !is.na(lambda) & (lambda > threshold)
+  n_gt <- sum(is_gt)
+  if (n_gt > 0L) {
+    pc <- 100 * mean(is_gt)
+    pc <- signif(pc, digits = 2)
+    cli::cli_warn(c("Large values for {.arg lambda} used to generate Poisson variates.",
+                    i = "{.val {pc}} percent of values for {.arg lambda} are above {.val {threshold}}.",
+                    i = "Using deterministic approximation to generate variates for these values."))
+  }
+  ans <- lambda
+  is_lt <- !is_gt
+  ans[is_lt] <- stats::rpois(n = sum(is_lt), lambda = lambda[is_lt])
+  if (is_rvec) {
+    ans <- matrix(ans, nrow = n_val, ncol = n_draw)
+    ans <- rvec::rvec_dbl(ans)
+  }
+  ans
+}
 
 #' Draw MVN Using Sparse Cholesky (With Fallbacks)
 #'
@@ -708,6 +708,25 @@ rmvn_from_sparse_CH <- function(CH, mu, n_draw, prec) {
                       mean = mu,
                       CH = CH)
   ans
+}
+
+#' Multiple Matrix by rvec
+#'
+#' Temporary hack to accommodate pre 4.3.0 versions of R.
+#' Will remove eventually.
+#'
+#' @param A Matrix
+#' @param x Rvec
+#' @param use_new_matrixops Whether to use post-4.3.0 operator
+#'
+#' @returns An rvec
+#'
+#' @noRd
+rvec_matmult <- function(A, x, use_new_matrixops = getRversion() >= "4.3.0") {
+  if (use_new_matrixops)
+    A %*% x
+  else
+    rvec::rvec_dbl(A %*% as.matrix(x))
 }
 
 

@@ -901,9 +901,19 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
   data <- mod$data
   var_time <- mod$var_time
   vars <- all.vars(formula[-2L])
-  ans <- lapply(data[vars], unique)
-  ans[[var_time]] <- labels_forecast
-  ans <- vctrs::vec_expand_grid(!!!ans)
+  if (length(vars) > 1L) {
+    ans <- data[vars]
+    ans <- ans[-match(var_time, names(ans))]
+    ans <- unique(ans)
+    n_forecast <- length(labels_forecast)
+    n_data <- nrow(ans)
+    ans <- vctrs::vec_rep_each(ans, times = n_forecast)
+    ans[[var_time]] <- rep(labels_forecast, each = n_data)
+  }
+  else {
+    ans <- tibble::tibble(labels_forecast)
+    names(ans) <- var_time
+  }
   ans <- chr_to_int(ans)
   ans <- vctrs::vec_rbind(data, ans)
   i_original <- seq_len(nrow(data))
@@ -934,6 +944,10 @@ make_data_forecast_labels_covariates <- function(mod, data_forecast) {
   var_time <- mod$var_time
   vars <- all.vars(formula[-2L])
   vars_covariates <- all.vars(formula_covariates)
+  if (identical(length(vars), 1L))
+    cli::cli_abort(c("Unable to derive covariate values for forecasted periods.",
+                     i = paste("Can't predict values for covariates when only",
+                               "variable is time variable ({.var {var_time}}).")))
   vars_no_time <- setdiff(vars, var_time)
   map_vars_cov <- vctrs::vec_split(data[vars_covariates], data[vars_no_time])
   map_vars_cov$val <- lapply(map_vars_cov$val, unique)
@@ -946,7 +960,8 @@ make_data_forecast_labels_covariates <- function(mod, data_forecast) {
   }
   key_data <- Reduce(paste_dot, data_forecast[vars_no_time])
   key_covariates <- Reduce(paste_dot, map_vars_cov$key)
-  covariates <- map_vars_cov$val[match(key_data, key_covariates)]
+  i_data <- match(key_data, key_covariates)
+  covariates <- map_vars_cov$val[i_data]
   covariates <- vctrs::vec_rbind(!!!covariates)
   ans <- tibble::tibble(data_forecast)
   for (nm in names(covariates))
@@ -982,6 +997,21 @@ make_data_forecast_newdata <- function(mod, newdata) {
   if (n_not_in_newdata > 0L)
     cli::cli_abort(paste("Variable{?s} in model but not in {.arg newdata}:",
                          "{.val {nms_model[not_in_newdata]}}."))
+  nms_model_nontime <- setdiff(nms_model, var_time)
+  for (nm in nms_model_nontime) {
+    var_data <- data[[nm]]
+    var_newdata <- newdata[[nm]]
+    levels_data <- unique(var_data)
+    levels_newdata <- unique(var_newdata)
+    is_in_data <- levels_newdata %in% levels_data
+    i_not_in_data <- match(FALSE, is_in_data, nomatch = 0L)
+    if (i_not_in_data > 0L) {
+      val_not_in_data <- levels_newdata[[i_not_in_data]]
+      cli::cli_abort(c("{.arg newdata} contains value not found in {.arg data}.",
+                       i = paste("Value not found: {.val {val_not_in_data}}",
+                                 "in variable {.var {nm}}.")))                          
+    }
+  }
   labels_new <- unique(newdata[[var_time]])
   labels_est <- unique(data[[var_time]])
   i_dup <- match(labels_new, labels_est, nomatch = 0L)

@@ -1,6 +1,24 @@
 
 # bage 0.10.9
 
+
+## Interface
+
+* Added priors `RW2_AR()` and `RW2_AR`(), which combine a RW2 trend
+  and an AR residual: a generalization of `Lin_AR()` and `Lin_AR1()`.
+* Stricter testing of `newdata` argument to `forecast()`. `newdata`
+  cannot contain values (except for times) not found in `data`.
+* Change to the behaviour of the `forecast()` function when the
+  `label` argument is used. Previously, if called with a `labels`
+  argument, `forecast()` returned values for all possible combinations
+  of non-time-varying classification variables. Now, if called with a
+  `labels` argument, `forecast()` returns values for the combinations
+  of non-time-varying classification variables that are found in
+  `data`. With the previous behavior, `forecast()` could return values
+  for structural zeros, or other unwanted combinations of variables.
+
+## Documentation
+
 * Changed `bage-package` help page to a normal (ie non-internal) page,
   with `bage` as an alias.
 

@@ -1363,7 +1363,7 @@ generics::forecast
 #' [mod_binom()], or [mod_norm()].
 #' @param newdata Data frame with data for
 #' future periods.
-#' @param labels Labels for future values.
+#' @param labels Labels for future time periods.
 #' @param output Type of output returned.
 #' `"augment"` (the default) or `"components"`.
 #' @param include_estimates Whether to

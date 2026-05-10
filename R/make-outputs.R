@@ -27,8 +27,8 @@ append_implied_comp <- function(components, mod) {
   implied <- vctrs::vec_rbind(!!!implied)
   vctrs::vec_rbind(components, implied)
 }
-                     
-  
+
+
 
 ## HAS_TESTS
 #' Combined Stored Draws and Point Estimates
@@ -857,12 +857,12 @@ make_comp_hyperrand <- function(mod) {
 #'
 #' @noRd
 make_copies_repdata <- function(data, n) {
-    n_row_data <- nrow(data)
-    .replicate <- make_levels_replicate(n = n, n_row_data = n_row_data)
-    .replicate <- tibble::tibble(.replicate = .replicate)
-    data <- rep(list(data), times = n + 1L) # n replicates, plus original
-    data <- vctrs::vec_rbind(!!!data)
-    vctrs::vec_cbind(.replicate, data)
+  n_row_data <- nrow(data)
+  .replicate <- make_levels_replicate(n = n, n_row_data = n_row_data)
+  .replicate <- tibble::tibble(.replicate = .replicate)
+  data <- rep(list(data), times = n + 1L) # n replicates, plus original
+  data <- vctrs::vec_rbind(!!!data)
+  vctrs::vec_cbind(.replicate, data)
 }
 
 
@@ -992,7 +992,7 @@ make_draws_disp <- function(est, draws_post) {
   ans <- exp(ans)
   ans
 }
- 
+
 
 ## HAS_TESTS
 #' Make Draws from Free Effect Parameters
@@ -1225,14 +1225,8 @@ make_hyperrand_lin <- function(prior,
     trend[i_along] <- hyperrandfree[[i_by]] * v
   }
   error <- effectfree - trend
-  if (getRversion() >= "4.3.0") {
-    trend <- matrix_effectfree_effect %*% trend
-    error <- matrix_effectfree_effect %*% error
-  }
-  else {
-    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
-    error <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(error))
-  }
+  trend <- rvec_matmult(matrix_effectfree_effect, trend)
+  error <- rvec_matmult(matrix_effectfree_effect, error)
   ## calculate slope on constrained space
   n_by_constr <- ncol(matrix_along_by_effect)
   slope <- rvec::new_rvec_dbl(length = n_by_constr, n_draw = n_draw)
@@ -1300,18 +1294,12 @@ make_hyperrand_randomseasfix <- function(prior,
     }
   }
   trend <- effectfree - season
-  if (getRversion() >= "4.3.0") {
-    trend <- matrix_effectfree_effect %*% trend
-    season <- matrix_effectfree_effect %*% season
-  }
-  else {
-    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
-    season <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(season))
-  }
+  trend <- rvec_matmult(matrix_effectfree_effect, trend)
+  season <- rvec_matmult(matrix_effectfree_effect, season)
   vctrs::vec_c(trend, season)
 }
 
-  
+
 ## HAS_TESTS
 #' Derive Values for Hyper-Parameters Involving Varying Seasonal Effects
 #' and Random Initial Value Random Walk
@@ -1370,14 +1358,8 @@ make_hyperrand_randomseasvary <- function(prior,
     }
   }
   trend <- effectfree - season
-  if (getRversion() >= "4.3.0") {
-    trend <- matrix_effectfree_effect %*% trend
-    season <- matrix_effectfree_effect %*% season
-  }
-  else {
-    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
-    season <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(season))
-  }
+  trend <- rvec_matmult(matrix_effectfree_effect, trend)
+  season <- rvec_matmult(matrix_effectfree_effect, season)
   vctrs::vec_c(trend, season)
 }
 
@@ -1398,12 +1380,12 @@ make_hyperrand_randomseasvary <- function(prior,
 #'
 #' @noRd
 make_hyperrand_zeroseasfix <- function(prior,
-                                   hyperrandfree,
-                                   effectfree,
-                                   dimnames_term,
-                                   var_time,
-                                   var_age,
-                                   var_sexgender) {
+                                       hyperrandfree,
+                                       effectfree,
+                                       dimnames_term,
+                                       var_time,
+                                       var_age,
+                                       var_sexgender) {
   n_seas <- prior$specific$n_seas
   matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
                                                                 dimnames_term = dimnames_term,
@@ -1442,18 +1424,12 @@ make_hyperrand_zeroseasfix <- function(prior,
     }
   }
   trend <- effectfree - season
-  if (getRversion() >= "4.3.0") {
-    trend <- matrix_effectfree_effect %*% trend
-    season <- matrix_effectfree_effect %*% season
-  }
-  else {
-    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
-    season <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(season))
-  }
+  trend <- rvec_matmult(matrix_effectfree_effect, trend)
+  season <- rvec_matmult(matrix_effectfree_effect, season)
   vctrs::vec_c(trend, season)
 }
 
-  
+
 ## HAS_TESTS
 #' Derive Values for Hyper-Parameters Involving Varying Seasonal Effects
 #' and Zero Initial Value Random Walk
@@ -1517,14 +1493,8 @@ make_hyperrand_zeroseasvary <- function(prior,
     }
   }
   trend <- effectfree - season
-  if (getRversion() >= "4.3.0") {
-    trend <- matrix_effectfree_effect %*% trend
-    season <- matrix_effectfree_effect %*% season
-  }
-  else {
-    trend <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(trend))
-    season <- rvec::rvec_dbl(matrix_effectfree_effect %*% as.matrix(season))
-  }
+  trend <- rvec_matmult(matrix_effectfree_effect, trend)
+  season <- rvec_matmult(matrix_effectfree_effect, season)
   vctrs::vec_c(trend, season)
 }
 
@@ -1542,23 +1512,23 @@ make_hyperrand_zeroseasvary <- function(prior,
 #' 
 #' @noRd
 make_is_fixed <- function(est, map) {
-    if (is.null(map)) {
-        n <- length(unlist(est))
-        ans <- rep(FALSE, times = n)
+  if (is.null(map)) {
+    n <- length(unlist(est))
+    ans <- rep(FALSE, times = n)
+  }
+  else {
+    ans <- est
+    nms_est <- names(est)
+    nms_map <- names(map)
+    for (nm in nms_est) {
+      if (nm %in% nms_map)
+        ans[[nm]] <- is.na(map[[nm]])
+      else
+        ans[[nm]] <- rep(FALSE, times = length(ans[[nm]]))
     }
-    else {
-        ans <- est
-        nms_est <- names(est)
-        nms_map <- names(map)
-        for (nm in nms_est) {
-            if (nm %in% nms_map)
-                ans[[nm]] <- is.na(map[[nm]])
-            else
-                ans[[nm]] <- rep(FALSE, times = length(ans[[nm]]))
-        }
-        ans <- unlist(ans)
-    }
-    ans
+    ans <- unlist(ans)
+  }
+  ans
 }
 
 
@@ -1678,11 +1648,11 @@ make_levels_hyperrand <- function(mod, unlist) {
 #'
 #' @noRd
 make_levels_replicate <- function(n, n_row_data) {
-    ans <- paste("Replicate", seq_len(n))
-    ans <- c("Original", ans)
-    ans <- factor(rep(ans, each = n_row_data),
-                  levels = ans)
-    ans
+  ans <- paste("Replicate", seq_len(n))
+  ans <- c("Original", ans)
+  ans <- factor(rep(ans, each = n_row_data),
+                levels = ans)
+  ans
 }
 
 
@@ -1819,7 +1789,7 @@ make_levels_svd_by <- function(prior,
   if (con == "by") {
     i_along <- match(var_time, names(dimnames_noagesex))
     dimnames_noagesextime <- make_unconstr_dimnames_by(i_along = i_along,
-                                                   dimnames_term = dimnames_noagesex)
+                                                       dimnames_term = dimnames_noagesex)
   }
   else {
     i_time <- match(var_time, names(dimnames_noagesex))
@@ -2506,7 +2476,7 @@ sort_components <- function(components, mod) {
   ord <- order(i_term, i_comp)
   components[ord, , drop = FALSE]
 }
-  
+
 
 ## HAS_TESTS
 #' Transfer Draws for Dispersion between Models

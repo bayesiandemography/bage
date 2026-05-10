@@ -23,7 +23,7 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 \item{newdata}{Data frame with data for
 future periods.}
 
-\item{labels}{Labels for future values.}
+\item{labels}{Labels for future time periods.}
 
 \item{output}{Type of output returned.
 \code{"augment"} (the default) or \code{"components"}.}

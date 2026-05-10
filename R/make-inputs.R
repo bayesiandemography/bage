@@ -2230,7 +2230,7 @@ str_call_args_svd <- function(prior) {
 ## HAS_TESTS
 #' Check Whether User Specified an Offset
 #'
-#' @param mod
+#' @param mod Object of class 'bage_mod'
 #'
 #' @returns TRUE or FALSE
 #'

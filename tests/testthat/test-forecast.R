@@ -1507,6 +1507,23 @@ test_that("'make_data_forecast_labels' works - with covariates", {
   expect_setequal(ans$income, ans$age + 1)
 })
 
+test_that("'make_data_forecast_labels' throws error when only variable is time", {
+  set.seed(0)
+  data <- data.frame(time = 2000:2005)
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  data$income <- data$time + 1
+  formula <- deaths ~ time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure) |>
+    set_covariates(~income)
+  expect_error(make_data_forecast_labels(mod = mod,
+                                         labels_forecast = 2006:2008),
+               "Unable to derive covariate values for forecasted periods.")
+})
+
 
 ## 'make_data_forecast_labels_covariates' -------------------------------------
 
@@ -1622,7 +1639,6 @@ test_that("'make_data_forecast_newdata' works with covariates", {
   expect_identical(ans_obtained, newdata)
 })
 
-
 test_that("'make_data_forecast_newdata' raises correct error with variables missing", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
@@ -1642,6 +1658,23 @@ test_that("'make_data_forecast_newdata' raises correct error with variables miss
   newdata <- newdata[-1]
   expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
                "Variables in model but not in `newdata`: \"age\" and \"time\".")
+})
+
+test_that("'make_data_forecast_newdata' raises correct error with values missing", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  newdata <- make_data_forecast_labels(mod = mod,
+                                       labels_forecast = 2006:2008)
+  newdata <- rbind(newdata, data.frame(age = 0, time = 2006, sex = "D", deaths = NA, exposure = NA))
+  expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
+               "`newdata` contains value not found in `data`.")
 })
 
 test_that("'make_data_forecast_newdata' raises correct error when periods overlap - time is integer", {
@@ -1679,7 +1712,6 @@ test_that("'make_data_forecast_newdata' raises correct error when periods overla
   expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
                "Times in `newdata` and `data` overlap.")
 })
-
 
 
 ## 'make_dimnames_terms_forecast' ---------------------------------------------

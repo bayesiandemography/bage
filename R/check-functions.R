@@ -1419,7 +1419,7 @@ check_var_prec <- function(x, est) {
 ## HAS_TESTS
 #' Check 'vars_inner' Argument
 #'
-#' @param vars_inner
+#' @param vars_inner A character vector.
 #'
 #' @returns TRUE, invisibly
 #'

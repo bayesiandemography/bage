@@ -44,7 +44,7 @@ adding it to the model:
 \item All numeric variables are standardized, using
 \code{x <- scale(x)}.
 \item Categorical variables are converted to sets of indicator
-variables, using \link[stats:contrast]{treatment} contrasts.
+variables, using \link[stats:contr.treatment]{treatment} contrasts.
 For instance, variable \code{x} with categories
 \code{"high"}, \code{"medium"}, and \code{"low"},
 is converted into two indicator variables, one called \code{xmedium} and one

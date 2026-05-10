@@ -3596,10 +3596,7 @@ forecast_term.bage_prior_svd_ar <- function(prior,
                                           var_time = var_time,
                                           var_age = var_age,
                                           var_sexgender = var_sexgender)
-  if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3649,10 +3646,7 @@ forecast_term.bage_prior_svd_drwrandom <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-  if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3702,10 +3696,7 @@ forecast_term.bage_prior_svd_drwzero <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-  if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3756,10 +3747,7 @@ forecast_term.bage_prior_svd_drw2random <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-  if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3809,10 +3797,7 @@ forecast_term.bage_prior_svd_drw2zero <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-  if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3862,10 +3847,7 @@ forecast_term.bage_prior_svd_lin <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-  if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3915,10 +3897,7 @@ forecast_term.bage_prior_svd_linex <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-    if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -3968,10 +3947,7 @@ forecast_term.bage_prior_svd_rwrandom <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-    if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -4021,10 +3997,7 @@ forecast_term.bage_prior_svd_rwzero <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-    if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -4075,10 +4048,7 @@ forecast_term.bage_prior_svd_rw2random <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-    if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
@@ -4128,10 +4098,7 @@ forecast_term.bage_prior_svd_rw2zero <- function(prior,
                                               var_time = var_time,
                                               var_age = var_age,
                                               var_sexgender = var_sexgender)
-    if (getRversion() < "4.3.0")
-    effect_forecast <- rvec::rvec(matrix %*% as.matrix(svd_forecast) + offset)
-  else
-    effect_forecast <- matrix %*% svd_forecast + offset
+  effect_forecast <- rvec_matmult(matrix, svd_forecast) + offset
   nm <- dimnames_to_nm(dimnames_term)
   levels_effect <- dimnames_to_levels(dimnames_forecast)
   levels_svd <- make_levels_svd_term(prior = prior,
