@@ -1224,12 +1224,19 @@ test_that("safe_chol_prec aborts when jitter exceeds max_jitter", {
 ## 'rvec_matmult' -------------------------------------------------------------
 
 test_that("two branches of 'rvec_matmult' give same answer", {
+  testthat::skip_if(getRversion() < "4.3.0")
   A <- matrix(1:9, nr = 3)
   x <- rvec::rvec(matrix(1:30, nr = 3))
   expect_equal(rvec_matmult(A, x, use_new_matrixops = TRUE),
                rvec_matmult(A, x, use_new_matrixops = FALSE))
 })
-       
+
+test_that("old branch of 'rvec_matmult' works", {
+  A <- matrix(1:9, nrow = 3)
+  x <- rvec::rvec(matrix(1:30, nrow = 3))
+  ans <- rvec_matmult(A, x, use_new_matrixops = FALSE)
+  expect_s3_class(ans, "rvec")
+})       
 
 
 ## 'sample_post_binom_betabinom' ----------------------------------------------
