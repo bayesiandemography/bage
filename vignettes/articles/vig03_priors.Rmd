@@ -193,7 +193,7 @@ N(s = 0.01) |>
 
 Defaults:
 
--  `s`: `1`
+- `s`: `1`
 - `sd`: `1`
 
 ### Examples
@@ -243,8 +243,8 @@ RW(s = 0.01, sd = 0) |>
 
 Defaults:
 
--        `s`: `1`
--       `sd`: `1`
+- `s`: `1`
+- `sd`: `1`
 - `sd_slope`: `1`
 
 ### Examples
@@ -309,7 +309,7 @@ The prior for each $\phi_k$ is
 Defaults:
 
 -`n_coef`: `2`
--     `s`: `1`
+- `s`: `1`
 
 
 ### Examples
@@ -383,7 +383,7 @@ The prior for $\phi$ is
 
 Defaults:
 
--   `s`: `1`
+- `s`: `1`
 - `min`: `0.8`
 - `max`: `0.98`
 
@@ -435,9 +435,9 @@ AR1(s = 0.01, min = -1, max = 1) |>
 
 Default:
 
--          `s`: `1`
+- `s`: `1`
 - `mean_slope`: `0`
--   `sd_slope`: `1`
+- `sd_slope`: `1`
 
 
 ### Examples
@@ -510,9 +510,9 @@ Lin(con = "by") |>
 
 Defaults
 
--   `n_comp`: `NULL`
--        `s`: `1`
--       `sd`: `1`
+- `n_comp`: `NULL`
+- `s`: `1`
+- `sd`: `1`
 - `sd_slope`: `1`
 
 
@@ -557,19 +557,21 @@ Sp(s = 0.01, sd = 0.01, sd_slope = 0.01) |>
   \alpha_1 & \sim \text{N}(0, \mathtt{sd}^2) \\
   \alpha_2 & \sim \text{N}(\alpha_1, \mathtt{sd\_slope}^2) \\
   \alpha_j & \sim \text{N}(2\alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j = 3, \cdots, J \\
-  \tau & \sim \text{N}^+(0, \mathtt{s}^2)
-  \epsilon_j & \sim \text{N}\left(\phi_1 \epsilon_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{j-\mathtt{n\_coef}},  \omega^2\right)
+  \tau & \sim \text{N}^+(0, \mathtt{s}^2) \\
+  \epsilon_j & \sim \text{N}\left(\phi_1 \epsilon_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{j-\mathtt{n\_coef}},  \omega^2\right) \\
   \tau & \sim \text{N}^+\left(0, \mathtt{s}^2\right) \\
   \frac{\phi_k + 1}{2} & \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2})
 \end{align}
 
 Defaults:
 
--     `s_rw`: `1`
--       `sd`: `1`
+- `s_rw`: `1`
+- `sd`: `1`
 - `sd_slope`: `1`
--   `n_coef`: `2`
--     `s_ar`: `1`
+- `n_coef`: `2`
+- `s_ar`: `1`
+- `shape1`: `5`
+- `shape2`: `5`
 
 ### Examples
 
@@ -594,7 +596,82 @@ RW2_AR(s_rw = 0.1, sd = 0.1, sd_slope = 0.1) |>
   plot_cor_one()
 ```
 
-TODO: Finish
+#### Reduce `s_ar` {-}
+
+```{r}
+set.seed(0)
+
+RW2_AR(s_ar = 0.1) |>
+  generate(n_draw = 8) |>
+  plot_cor_one()
+```
+
+
+## Second Order Random Walk with First Order Autoregressive Errors `RW2_AR1()`
+
+### Model
+
+\begin{align}
+  \beta_j & = \alpha_j + \epsilon_j \\
+  \alpha_1 & \sim \text{N}(0, \mathtt{sd}^2) \\
+  \alpha_2 & \sim \text{N}(\alpha_1, \mathtt{sd\_slope}^2) \\
+  \alpha_j & \sim \text{N}(2\alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j = 3, \cdots, J \\
+  \tau & \sim \text{N}^+(0, \mathtt{s}^2) \\
+  \epsilon_j & \sim \text{N}\left(\phi, \omega^2\right) \\
+\end{align}
+
+TMB derives a value of $\omega$ that gives each $\epsilon_j$ variance $\tau^2$. The prior for $\tau$ is
+\begin{equation}
+  \tau  \sim \text{N}^+(0, \mathtt{s}^2).
+\end{equation}
+The prior for $\phi$ is
+\begin{equation}
+  \frac{\phi - \mathtt{min}}{\mathtt{max} - \mathtt{min}} \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).
+\end{equation}
+
+
+Defaults:
+
+- `s_rw`: `1`
+- `sd`: `1`
+- `sd_slope`: `1`
+- `s_ar`: `1`
+- `shape1`: `5`
+- `shape2`: `5`
+- `min`: `0.8`
+- `max`: `0.98`
+
+### Examples
+
+#### All defaults {-}
+
+```{r}
+set.seed(0)
+
+RW2_AR1() |>
+  generate(n_draw = 8) |>
+  plot_cor_one()
+```
+
+#### Reduce `s_rw`, `s`, `sd_slope` {-}
+
+```{r}
+set.seed(0)
+
+RW2_AR1(s_rw = 0.1, sd = 0.1, sd_slope = 0.1) |>
+  generate(n_draw = 8) |>
+  plot_cor_one()
+```
+
+#### Reduce `s_ar` {-}
+
+```{r}
+set.seed(0)
+
+RW2_AR1(s_ar = 0.1) |>
+  generate(n_draw = 8) |>
+  plot_cor_one()
+```
 
 ## Linear with AR Errors `Lin_AR()`
 
@@ -609,9 +686,17 @@ TODO: Finish
   \frac{\phi_k + 1}{2} & \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2})
 \end{align}
 
-#### All defaults {-}
+Defaults:
 
-`n_coef = 2`, `s = 1`, `mean_slope = 0`, `sd_slope = 1`
+- `n_coef`: `2`
+- `s`: `1`
+- `mean_slope`: `0`
+- `sd_slope`: `1`
+
+
+### Examples
+
+#### All defaults {-}
 
 ```{r}
 set.seed(0)
@@ -623,8 +708,6 @@ Lin_AR() |>
 
 #### Reduce `s`, `sd_slope`
 
-`s = 0.1`, `mean_slope = 0`, `sd_slope = 0.01`
-
 ```{r}
 set.seed(0)
 
@@ -632,7 +715,6 @@ Lin_AR(s = 0.1, sd_slope = 0.01) |>
   generate(n_draw = 8) |>
   plot_cor_one()
 ```
-
 
 ## Linear with AR1 Errors `Lin_AR1()`
 
@@ -647,9 +729,18 @@ Lin_AR(s = 0.1, sd_slope = 0.01) |>
   \frac{\phi - \mathtt{min}}{\mathtt{max} - \mathtt{min}} \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2})
 \end{align}
 
-#### All defaults {-}
+Defaults:
 
-`s = 1`, `min = 0.8`, `max = 0.98`, `mean_slope = 0`, `sd_slope = 1`
+- `s`: `1`
+- `min`: `0.8`
+- `max`: `0.98`
+- `mean_slope`: `0`
+- `sd_slope`: `1`
+
+
+### Examples
+
+#### All defaults {-}
 
 ```{r}
 set.seed(0)
@@ -660,8 +751,6 @@ Lin_AR1() |>
 ```
 
 #### Modify `min`, `max`
-
-`s = 1`, `min = -1`, `max = 1`, `mean_slope = 0`, `sd_slope = 1`
 
 ```{r}
 set.seed(0)
@@ -674,8 +763,6 @@ Lin_AR1(min = -1, max = 1) |>
 
 #### Reduce `s`, `sd_slope`
 
-`s = 0.1`, `min = 0.8`, `max = 0.98`, `mean_slope = 0`, `sd_slope = 0.02`
-
 ```{r}
 set.seed(0)
 
@@ -683,7 +770,6 @@ Lin_AR1(s = 0.1, sd_slope = 0.02) |>
   generate(n_draw = 8) |>
   plot_cor_one()
 ```
-
 
 
 ## Random Walk with Seasonal Effects `RW_Seas()`
@@ -701,9 +787,14 @@ Lin_AR1(s = 0.1, sd_slope = 0.02) |>
   \omega & \sim \text{N}^+\left(0, \mathtt{s\_seas}^2\right)
 \end{align}
 
-#### All defaults {-} plus `s_seas = 0`
+Defaults:
 
-`s = 1`, `sd = 1`, `sd_seas = 1`, `s_seas = 0`, 
+- `s`: `1`
+- `sd`: `1`
+- `sd_seas`: `1`
+- `s_seas`: `0`
+
+#### All defaults plus `s_seas = 0` {-}
 
 ```{r}
 set.seed(0)
@@ -715,8 +806,6 @@ RW_Seas(n_seas = 4, s_seas = 0) |>
 
 #### Reduce `s`, `sd`
 
-`s = 0.01`, `sd = 0`, `s_seas = 0` 
-
 ```{r}
 set.seed(0)
 
@@ -725,9 +814,7 @@ RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 0) |>
   plot_cor_one()
 ```
 
-#### Increase `s_seas`
-
-`s = 0.01`, `sd = 0`, `s_seas = 1`, `sd_seas = 1` 
+#### Non-zero `s_seas`
 
 ```{r}
 set.seed(0)
@@ -739,8 +826,6 @@ RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 1) |>
 
 #### Reduce `sd_seas`
 
-`s = 0.01`, `sd = 0`, `s_seas = 1`, `s_seas = 0`, `sd_seas = 0.01` 
-
 ```{r}
 set.seed(0)
 
@@ -748,7 +833,6 @@ RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 0, sd_seas = 0.01) |>
   generate(n_draw = 8) |>
   plot_cor_one()
 ```
-
 
 
 ## Second-Order Random Walk with Seasonal Effects `RW2_Seas()`
@@ -767,9 +851,18 @@ RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 0, sd_seas = 0.01) |>
   \omega & \sim \text{N}^+\left(0, \mathtt{s\_seas}^2\right)
 \end{align}
 
-#### All defaults {-}, plus `s_seas = 0`
+Defaults:
 
-`s = 1`, `sd = 1`, `sd_slope = 1`, `s_seas = 0`, `sd_seas = 1` 
+- `s`: `1`
+- `sd`: `1`
+- `sd_slope`: `1`
+- `s_seas`: `0`
+- `sd_seas`: `1` 
+
+
+### Examples
+
+#### All defaults {-}, plus `s_seas = 0`
 
 ```{r}
 set.seed(0)
@@ -782,8 +875,6 @@ RW2_Seas(n_seas = 4, s_seas = 0) |>
 
 #### Reduce `s`, `sd`, `sd_slope`, `sd_seas`
 
-`s = 0.01`, `sd = 0`, `sd_slope = 0.01`, `s_seas = 0`, `sd_seas = 0.01` 
-
 ```{r}
 set.seed(0)
 
@@ -792,10 +883,6 @@ RW2_Seas(n_seas = 4, s = 0.01, sd = 0, sd_slope = 0.01,
   generate(n_draw = 8) |>
   plot_cor_one()
 ```
-
-
-
-
 
 # SVD-Based Priors
 
@@ -807,9 +894,15 @@ RW2_Seas(n_seas = 4, s = 0.01, sd = 0, sd_slope = 0.01,
   \pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g}
 \end{equation}
 
-#### All defaults {-}
+Defaults:
 
-`n_comp = NULL`, `indep = TRUE`
+- `n_comp`: `NULL`
+- `indep`: `TRUE`
+
+
+### Experiments
+
+#### All defaults {-}
 
 ```{r, fig.height = 3}
 set.seed(0)
@@ -819,10 +912,7 @@ SVD(HMD) |>
   plot_svd_one()
 ```
 
-
 #### Increase `n_comp`
-
-`n_comp = 5`, `indep = TRUE`
 
 ```{r, fig.height = 2}
 SVD(HMD, n_comp = 5) |>
@@ -847,7 +937,9 @@ SVD(HMD, indep = FALSE) |>
 ```
 
 
-## Dynamic SVD Prior: `SVD_AR()`
+## Dynamic SVD Prior with Autoregressive Weights `SVD_AR()`
+
+### Model
 
 ```{r, fig.height = 8}
 SVD_AR(HMD, indep = FALSE, s = 0.1) |>
@@ -864,3 +956,6 @@ SVD_AR(HMD, indep = FALSE, s = 0.1) |>
             legend.position = "top",
             legend.title = element_blank())
 ```
+
+
+### Examples
