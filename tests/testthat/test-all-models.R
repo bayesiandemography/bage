@@ -1790,10 +1790,3 @@ testthat::test_that("norm, no weights - noise datamod", {
                      quiet = TRUE)
   expect_s3_class(compfn, "tbl_df")
 })
-
-
-
-
-
-
-
