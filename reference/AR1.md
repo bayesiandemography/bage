@@ -41,8 +41,8 @@ AR1(
 
 - con:
 
-  **\[experimental\]** Constraints on parameters. Current choices are
-  `"none"` and `"by"`. Default is `"none"`. See below for details.
+  Constraints on parameters. Current choices are `"none"` and `"by"`.
+  Default is `"none"`. See below for details.
 
 ## Value
 
@@ -78,10 +78,10 @@ where
 
 - \\j\\ denotes position within the main effect;
 
-- \\v\\ denotes position within the 'along' variable of the interaction;
+- \\u\\ denotes position within the 'by' variable(s) of the interaction;
   and
 
-- \\u\\ denotes position within the 'by' variable(s) of the interaction.
+- \\v\\ denotes position within the 'along' variable of the interaction.
 
 Internally, `AR1()` derives a value for \\\omega\\ that gives every
 element of \\\beta\\ a marginal variance of \\\tau^2\\. Parameter
@@ -99,14 +99,8 @@ where
 
 ## Constraints
 
-**\[experimental\]** The specification of constraints is likely to
-change in future versions of bage.
-
 With some combinations of terms and priors, the values of the intercept,
-main effects, and interactions are are only weakly identified. For
-instance, it may be possible to increase the value of the intercept and
-reduce the value of the remaining terms in the model with no effect on
-predicted rates and only a tiny effect on prior probabilities. This weak
+main effects, and interactions are only weakly identified. This weak
 identifiability is typically harmless. However, in some applications,
 such as when trying to obtain interpretable values for main effects and
 interactions, it can be helpful to increase identifiability through the
@@ -137,6 +131,10 @@ Current options for `con` are:
   [`Lin_AR1()`](https://bayesiandemography.github.io/bage/reference/Lin_AR1.md)
   Line with AR errors
 
+- [`RW2_AR()`](https://bayesiandemography.github.io/bage/reference/RW2_AR.md),
+  [`RW2_AR1()`](https://bayesiandemography.github.io/bage/reference/RW2_AR1.md)
+  RW2 with AR errors
+
 - [priors](https://bayesiandemography.github.io/bage/reference/priors.md)
   Overview of priors implemented in bage
 
@@ -152,23 +150,29 @@ Current options for `con` are:
 ``` r
 AR1()
 #>   AR1() 
+#>          s: 1
+#>     shape1: 5
+#>     shape2: 5
 #>        min: 0.8
 #>        max: 0.98
-#>          s: 1
 #>      along: NULL
 #>        con: none
 AR1(min = 0, max = 1, s = 2.4)
 #>   AR1(s=2.4,min=0,max=1) 
+#>          s: 2.4
+#>     shape1: 5
+#>     shape2: 5
 #>        min: 0
 #>        max: 1
-#>          s: 2.4
 #>      along: NULL
 #>        con: none
 AR1(along = "cohort")
 #>   AR1(along="cohort") 
+#>          s: 1
+#>     shape1: 5
+#>     shape2: 5
 #>        min: 0.8
 #>        max: 0.98
-#>          s: 1
 #>      along: cohort
 #>        con: none
 ```

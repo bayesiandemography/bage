@@ -5,7 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Linear Prior with Autoregressive Errors — Lin_AR"><meta name="description" content="Use a line or lines with autoregressive
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Linear Prior with Autoregressive Errors — Lin_AR"><meta name="description" content="Use a line or lines with autoregressive
 errors to model a main effect
 or interaction. Typically used with time."><meta property="og:description" content="Use a line or lines with autoregressive
 errors to model a main effect
@@ -17,7 +17,7 @@ or interaction. Typically used with time."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,8 +79,10 @@ AR process. Default is <code>1</code>.</p></dd>
 
 
 <dt id="arg-shape-shape-">shape1, shape2<a class="anchor" aria-label="anchor" href="#arg-shape-shape-"></a></dt>
-<dd><p>Parameters for beta-distribution prior
-for coefficients. Defaults are <code>5</code> and <code>5</code>.</p></dd>
+<dd><p>Parameters for
+beta-distribution prior
+for coefficients in the AR process.
+Defaults are <code>5</code> and <code>5</code>.</p></dd>
 
 
 <dt id="arg-mean-slope">mean_slope<a class="anchor" aria-label="anchor" href="#arg-mean-slope"></a></dt>
@@ -101,8 +103,7 @@ interactions.</p></dd>
 
 
 <dt id="arg-con">con<a class="anchor" aria-label="anchor" href="#arg-con"></a></dt>
-<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
-Constraints on parameters.
+<dd><p>Constraints on parameters.
 Current choices are <code>"none"</code> and <code>"by"</code>.
 Default is <code>"none"</code>. See below for details.</p></dd>
 
@@ -132,21 +133,19 @@ sloped lines.</p>
 
 
 <p>When <code>Lin_AR()</code> is used with a main effect,</p>
-<p>$$\beta_1 = \alpha + \epsilon_1$$
-$$\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j &gt; 1$$
-$$\alpha \sim \text{N}(0, 1)$$
+<p>$$\beta_j = \alpha_j + \epsilon_j$$
+$$\alpha_j = (j - (J+1)/2) \eta$$
 $$\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{j-\mathtt{n\_coef}} + \varepsilon_j$$
 $$\varepsilon_j \sim \text{N}(0, \omega^2),$$</p>
 <p>and when it is used with an interaction,</p>
-<p>$$\beta_{u,1} = \alpha_u + \epsilon_{u,1}$$
-$$\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V$$
-$$\alpha_u \sim \text{N}(0, 1)$$
+<p>$$\beta_{u,v} = \alpha_{u,v} + \epsilon_{u,v}$$
+$$\alpha_{u,v} = (v - (V + 1)/2) \eta_u$$
 $$\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{u,v-\mathtt{n\_coef}} + \varepsilon_{u,v},$$
 $$\varepsilon_{u,v} \sim \text{N}(0, \omega^2).$$</p>
 <p>where</p><ul><li><p>\(\pmb{\beta}\) is the main effect or interaction;</p></li>
 <li><p>\(j\) denotes position within the main effect;</p></li>
-<li><p>\(u\) denotes position within the 'along' variable of the interaction; and</p></li>
-<li><p>\(u\) denotes position within the 'by' variable(s) of the interaction.</p></li>
+<li><p>\(u\) denotes position within the 'by' variable(s) of the interaction; and</p></li>
+<li><p>\(v\) denotes position within the 'along' variable of the interaction.</p></li>
 </ul><p>The slopes have priors
 $$\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)$$
 and
@@ -165,15 +164,10 @@ each have prior</p>
 
 
 
-<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a> The specification of
-constraints is likely to change in future versions of <span class="pkg">bage</span>.</p>
 <p>With some combinations of terms and priors, the values of
-the intercept, main effects, and interactions are
+the intercept, main effects, and interactions
 are only weakly identified.
-For instance, it may be possible to increase the value of the
-intercept and reduce the value of the remaining terms in
-the model with no effect on predicted rates and only a tiny
-effect on prior probabilities. This weak identifiability is
+This weak identifiability is
 typically harmless. However, in some applications, such as
 when trying to obtain interpretable values
 for main effects and interactions, it can be helpful to increase
@@ -205,20 +199,20 @@ vignette</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Lin_AR() </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     n_coef: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape1: 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape2: 5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> mean_slope: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        min: -1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        max: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
 <span class="r-in"><span><span class="fu">Lin_AR</span><span class="op">(</span>n_coef <span class="op">=</span> <span class="fl">3</span>, s <span class="op">=</span> <span class="fl">0.5</span>, sd_slope <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Lin_AR(n_coef=3,s=0.5,sd_slope=2) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     n_coef: 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          s: 0.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape1: 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape2: 5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> mean_slope: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        min: -1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        max: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
 </code></pre></div>

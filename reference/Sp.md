@@ -43,8 +43,8 @@ Sp(
 
 - con:
 
-  **\[experimental\]** Constraints on parameters. Current choices are
-  `"none"` and `"by"`. Default is `"none"`. See below for details.
+  Constraints on parameters. Current choices are `"none"` and `"by"`.
+  Default is `"none"`. See below for details.
 
 ## Value
 
@@ -88,14 +88,8 @@ walk](https://bayesiandemography.github.io/bage/reference/RW2.md).
 
 ## Constraints
 
-**\[experimental\]** The specification of constraints is likely to
-change in future versions of bage.
-
 With some combinations of terms and priors, the values of the intercept,
-main effects, and interactions are are only weakly identified. For
-instance, it may be possible to increase the value of the intercept and
-reduce the value of the remaining terms in the model with no effect on
-predicted rates and only a tiny effect on prior probabilities. This weak
+main effects, and interactions are only weakly identified. This weak
 identifiability is typically harmless. However, in some applications,
 such as when trying to obtain interpretable values for main effects and
 interactions, it can be helpful to increase identifiability through the

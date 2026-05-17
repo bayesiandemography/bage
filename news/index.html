@@ -5,7 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Changelog"></head><body>
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Changelog"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,20 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.10.8" id="bage-0108">bage 0.10.8<a class="anchor" aria-label="anchor" href="#bage-0108"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.10.9" id="bage-0109">bage 0.10.9<a class="anchor" aria-label="anchor" href="#bage-0109"></a></h2>
+<div class="section level3">
+<h3 id="interface-0-10-9">Interface<a class="anchor" aria-label="anchor" href="#interface-0-10-9"></a></h3>
+<ul><li>Added priors <code><a href="../reference/RW2_AR.html">RW2_AR()</a></code> and <code>RW2_AR</code>(), which combine a RW2 trend and an AR residual: a generalization of <code><a href="../reference/Lin_AR.html">Lin_AR()</a></code> and <code><a href="../reference/Lin_AR1.html">Lin_AR1()</a></code>.</li>
+<li>Stricter testing of <code>newdata</code> argument to <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code>. <code>newdata</code> cannot contain values (except for times) not found in <code>data</code>.</li>
+<li>Change to the behaviour of the <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> function when the <code>label</code> argument is used. Previously, if called with a <code>labels</code> argument, <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> returned values for all possible combinations of non-time-varying classification variables. Now, if called with a <code>labels</code> argument, <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> returns values for the combinations of non-time-varying classification variables that are found in <code>data</code>. With the previous behavior, <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> could return values for structural zeros, or other unwanted combinations of variables.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-10-9">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-10-9"></a></h3>
+<ul><li>Changed <code>bage-package</code> help page to a normal (ie non-internal) page, with <code>bage</code> as an alias.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.8" id="bage-0108">bage 0.10.8<a class="anchor" aria-label="anchor" href="#bage-0108"></a></h2><p class="text-muted">CRAN release: 2026-02-22</p>
 <div class="section level3">
 <h3 id="interface-0-10-8">Interface<a class="anchor" aria-label="anchor" href="#interface-0-10-8"></a></h3>
 <ul><li>Added prior <code><a href="../reference/SVD_AR.html">SVD_Lin()</a></code>, in which SVD coefficients evolve according to a <code><a href="../reference/Lin.html">Lin()</a></code> prior.</li>
@@ -73,7 +86,7 @@
 <h2 class="pkg-version" data-toc-text="0.10.5" id="bage-0105">bage 0.10.5<a class="anchor" aria-label="anchor" href="#bage-0105"></a></h2>
 <div class="section level3">
 <h3 id="added-damped-random-walk-priors-0-10-5">Added ‘damped random walk’ priors<a class="anchor" aria-label="anchor" href="#added-damped-random-walk-priors-0-10-5"></a></h3>
-<ul><li>Added priors <code><a href="../reference/DRW.html">DRW()</a></code>, <code><a href="../reference/DRW2.html">DRW2()</a></code> implementing damped versions of random walks and second-order random walks. In the <code><a href="../reference/DRW.html">DRW()</a></code> case, the basic idea is <code>x[t] = phi * x[t-1] + error[t]</code>. In the <code><a href="../reference/DRW2.html">DRW2()</a></code> case it is <code>x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) +   error[t]</code>. These priors are useful for forecasting.</li>
+<ul><li>Added priors <code><a href="../reference/DRW.html">DRW()</a></code>, <code><a href="../reference/DRW2.html">DRW2()</a></code> implementing damped versions of random walks and second-order random walks. In the <code><a href="../reference/DRW.html">DRW()</a></code> case, the basic idea is <code>x[t] = phi * x[t-1] + error[t]</code>. In the <code><a href="../reference/DRW2.html">DRW2()</a></code> case it is <code>x[t] = x[t-1] + phi * (x[t-1] - x[t-2]) + error[t]</code>. These priors are useful for forecasting.</li>
 <li>Added priors <code><a href="../reference/SVD_AR.html">SVD_DRW()</a></code> and <code><a href="../reference/SVD_AR.html">SVD_DRW2()</a></code>. As above, but the random walks are on the coefficients for SVDs.</li>
 </ul></div>
 </div>
@@ -201,7 +214,7 @@
 <div class="section level3">
 <h3 id="bug-fixes-0-9-5">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-9-5"></a></h3>
 <ul><li>Fixed bug in RR3, where values for rates were being calculated from confidentialized values of the outcome variable, rather than (imputed) true values.</li>
-<li>Fixed bug in aggregation of exposure for Poisson where <code>exposure =   1</code>, and aggregation of weights in normal models where <code>weights = 1</code>.</li>
+<li>Fixed bug in aggregation of exposure for Poisson where <code>exposure = 1</code>, and aggregation of weights in normal models where <code>weights = 1</code>.</li>
 </ul></div>
 </div>
     <div class="section level2">
@@ -300,7 +313,7 @@
 <h2 class="pkg-version" data-toc-text="0.8.4" id="bage-084">bage 0.8.4<a class="anchor" aria-label="anchor" href="#bage-084"></a></h2>
 <div class="section level3">
 <h3 id="changes-to-interface-0-8-4">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-8-4"></a></h3>
-<ul><li>Changed <code>zero_sum</code> argument to <code>con</code> (short for “constraint”). <code>con   = "none"</code> corresponds to <code>zero_sum = FALSE</code>, and <code>con = "by"</code> corresponds to <code>zero_sum = TRUE</code>. Additional options will be added in future.</li>
+<ul><li>Changed <code>zero_sum</code> argument to <code>con</code> (short for “constraint”). <code>con = "none"</code> corresponds to <code>zero_sum = FALSE</code>, and <code>con = "by"</code> corresponds to <code>zero_sum = TRUE</code>. Additional options will be added in future.</li>
 <li>Added <code>sd</code> argument to <code><a href="../reference/RW.html">RW()</a></code>, <code><a href="../reference/RW2.html">RW2()</a></code>, <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code> and <code><a href="../reference/SVD_AR.html">SVD_RW2()</a></code>. The initial value of the random walks are drawn from a <code>N(0, sd^2)</code> prior. By default <code>sd</code> equals <code>1</code>, but it can be set to
 <ol start="0" style="list-style-type: decimal"><li>
 </li></ol></li>

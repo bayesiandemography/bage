@@ -12,7 +12,7 @@ applied to the outcome variable.
 
 **Data models for outcome variable**
 
-|                                                                                                         |                                           |          |           |          |
-|---------------------------------------------------------------------------------------------------------|-------------------------------------------|----------|-----------|----------|
-| **Function**                                                                                            | **Confidentialization procedure**         | **pois** | **binom** | **norm** |
-| [`set_confidential_rr3()`](https://bayesiandemography.github.io/bage/reference/set_confidential_rr3.md) | Outcome randomly rounded to multiple of 3 | Yes      | Yes       | No       |
+|  |  |  |  |  |
+|----|----|----|----|----|
+| **Function** | **Confidentialization procedure** | **pois** | **binom** | **norm** |
+| [`set_confidential_rr3()`](https://bayesiandemography.github.io/bage/reference/set_confidential_rr3.md) | Outcome randomly rounded to multiple of 3 | Yes | Yes | No |

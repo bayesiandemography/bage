@@ -40,8 +40,8 @@ AR(
 
 - con:
 
-  **\[experimental\]** Constraints on parameters. Current choices are
-  `"none"` and `"by"`. Default is `"none"`. See below for details.
+  Constraints on parameters. Current choices are `"none"` and `"by"`.
+  Default is `"none"`. See below for details.
 
 ## Value
 
@@ -79,10 +79,10 @@ where
 
 - \\j\\ denotes position within the main effect;
 
-- \\v\\ denotes position within the 'along' variable of the interaction;
+- \\u\\ denotes position within the 'by' variable(s) of the interaction;
   and
 
-- \\u\\ denotes position within the 'by' variable(s) of the interaction.
+- \\v\\ denotes position within the 'along' variable of the interaction.
 
 Internally, `AR()` derives a value for \\\omega\\ that gives every
 element of \\\beta\\ a marginal variance of \\\tau^2\\. Parameter
@@ -97,14 +97,8 @@ The correlation coefficients \\\phi_1, \cdots,
 
 ## Constraints
 
-**\[experimental\]** The specification of constraints is likely to
-change in future versions of bage.
-
 With some combinations of terms and priors, the values of the intercept,
-main effects, and interactions are are only weakly identified. For
-instance, it may be possible to increase the value of the intercept and
-reduce the value of the remaining terms in the model with no effect on
-predicted rates and only a tiny effect on prior probabilities. This weak
+main effects, and interactions are only weakly identified. This weak
 identifiability is typically harmless. However, in some applications,
 such as when trying to obtain interpretable values for main effects and
 interactions, it can be helpful to increase identifiability through the
@@ -131,7 +125,11 @@ Current options for `con` are:
 
 - [`Lin_AR()`](https://bayesiandemography.github.io/bage/reference/Lin_AR.md),
   [`Lin_AR1()`](https://bayesiandemography.github.io/bage/reference/Lin_AR1.md)
-  Straight line with AR errors
+  Line with AR errors
+
+- [`RW2_AR()`](https://bayesiandemography.github.io/bage/reference/RW2_AR.md),
+  [`RW2_AR1()`](https://bayesiandemography.github.io/bage/reference/RW2_AR1.md)
+  RW2 with AR errors
 
 - [priors](https://bayesiandemography.github.io/bage/reference/priors.md)
   Overview of priors implemented in bage
@@ -149,25 +147,25 @@ Current options for `con` are:
 AR(n_coef = 3)
 #>   AR(n_coef=3) 
 #>     n_coef: 3
-#>        min: -1
-#>        max: 1
 #>          s: 1
+#>     shape1: 5
+#>     shape2: 5
 #>      along: NULL
 #>        con: none
 AR(n_coef = 3, s = 2.4)
 #>   AR(n_coef=3,s=2.4) 
 #>     n_coef: 3
-#>        min: -1
-#>        max: 1
 #>          s: 2.4
+#>     shape1: 5
+#>     shape2: 5
 #>      along: NULL
 #>        con: none
 AR(along = "cohort")
 #>   AR(along="cohort") 
 #>     n_coef: 2
-#>        min: -1
-#>        max: 1
 #>          s: 1
+#>     shape1: 5
+#>     shape2: 5
 #>      along: cohort
 #>        con: none
 ```

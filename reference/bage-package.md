@@ -1,7 +1,9 @@
-# Package 'bage'
+# bage: Bayesian Estimation and Forecasting of Age-Specific Rates
 
-Bayesian estimation and forecasting of age-specific rates. Estimation
-uses [TMB](https://CRAN.R-project.org/package=TMB), and is fast.
+Modeling of rates, probabilities, and other values, typically
+disaggregated by age. Estimation is done using
+[TMB](https://CRAN.R-project.org/package=TMB), which makes it fast and
+scalable.
 
 ## Example workflow
 
@@ -106,6 +108,8 @@ Useful links:
 **Maintainer**: John Bryant <john@bayesiandemography.com>
 
 Authors:
+
+- John Bryant <john@bayesiandemography.com>
 
 - Junni Zhang <junnizhang@163.com>
 

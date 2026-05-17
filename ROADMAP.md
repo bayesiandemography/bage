@@ -23,12 +23,12 @@ changes, see
 
 - Demographic accounts
 
-|                                                                                                                                           |
-|-------------------------------------------------------------------------------------------------------------------------------------------|
-| \## Moving out of experimental status                                                                                                     |
-| \#### Current situation                                                                                                                   |
-| \- Still experimenting with algoriths, features - API still subject to change (with warnings)                                             |
-| \#### Version 1.0.0                                                                                                                       |
+|  |
+|----|
+| \## Moving out of experimental status |
+| \#### Current situation |
+| \- Still experimenting with algoriths, features - API still subject to change (with warnings) |
+| \#### Version 1.0.0 |
 | \- API stabilised: remove experimental tag - Slower deprecation schedule - Higher bar for deprecation, and deprecate over a longer period |
 
 ## Upcoming features

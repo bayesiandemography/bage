@@ -5,8 +5,6 @@
 Specification document - a mathematical description of models used by
 bage.
 
-Note: some features described here have not been implemented yet.
-
 ## 2 Input data
 
 - outcome variable: events, numbers of people, or some sort of measure
@@ -37,10 +35,10 @@ w_i) = (1 + \xi \mu_i w_i ) \times \mu_i w_i. \end{equation}\\ We allow
 For \\\xi \> 0\\, Equations [(3.1)](#eq:lik-pois-1) and
 [(3.2)](#eq:lik-pois-2) are equivalent to \\\begin{equation} y_i \sim
 \text{NegBinom}\left(\xi^{-1}, \[1 + \mu_i w_i \xi\]^{-1}\right)
-\end{equation}\\ (Norton, Christen, and Fox 2018; Simpson 2022). This is
-the format we use internally for estimation. When values for
-\\\gamma_i\\ are needed, we generate them on the fly, using the fact
-that \\\begin{equation} \gamma_i \mid y_i, w_i, \mu_i, \xi \sim
+\end{equation}\\ (Norton et al. 2018; Simpson 2022). This is the format
+we use internally for estimation. When values for \\\gamma_i\\ are
+needed, we generate them on the fly, using the fact that
+\\\begin{equation} \gamma_i \mid y_i, w_i, \mu_i, \xi \sim
 \text{Gamma}\left(y_i + \xi^{-1}, w_i + (\xi \mu_i)^{-1}\right).
 \end{equation}\\
 
@@ -149,7 +147,7 @@ for females and males sum to zero, and within each combination of time
 and sex, the values for regions sum to zero.
 
 Except in the case of dynamic SVD-based priors (eg Sections
-[5.18](#sec:pr-svd-rw)), `"by"` constraints are implemented internally
+[5.20](#sec:pr-svd-rw)), `"by"` constraints are implemented internally
 by drawing values within an unrestricted lower-dimensional space, and
 then transforming to the restricted higher-dimensional space. For
 instance, a random walk prior for a time-region interaction with \\R\\
@@ -177,7 +175,7 @@ values for \\\pmb{\beta}^{(m)}\\, and then subtract means.
 
 The intercept term \\\pmb{\beta}^{(0)}\\ can only be given a
 fixed-normal prior (Section [5.3](#sec:pr-fnorm)) or a Known prior
-(Section [5.20](#sec:pr-known)).
+(Section [5.22](#sec:pr-known)).
 
 ### 5.2 N()
 
@@ -189,18 +187,12 @@ Exchangeable normal
 \\ \tau_m & \sim \text{N}^+\left(0, A\_{\tau}^{(m)2}\right)
 \end{align}\\
 
-#### 5.2.2 Contribution to posterior density
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\prod\_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, \tau_m^2)
-\end{equation}\\
-
-#### 5.2.3 Forecasting
+#### 5.2.2 Forecasting
 
 \\\begin{equation} \beta\_{J_m+h+1}^{(m)} \sim \text{N}(0, \tau_m^2)
 \end{equation}\\
 
-#### 5.2.4 Code
+#### 5.2.3 Code
 
     N(s = 1)
 
@@ -215,17 +207,12 @@ Exchangeable normal, with fixed standard deviation
 \\\begin{equation} \beta_j^{(m)} \sim \text{N}\left(0,
 A\_{\beta}^{(m)2}\right) \end{equation}\\
 
-#### 5.3.2 Contribution to posterior density
-
-\\\begin{equation} \prod\_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0,
-A\_{\beta}^{(m)2}) \end{equation}\\
-
-#### 5.3.3 Forecasting
+#### 5.3.2 Forecasting
 
 \\\begin{equation} \beta\_{J_m+h+1}^{(m)} \sim \text{N}(0,
 A\_{\beta}^{(m)2}) \end{equation}\\
 
-#### 5.3.4 Code
+#### 5.3.3 Code
 
     NFix(sd = 1)
 
@@ -249,14 +236,7 @@ Random walk
 When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
 be applied.
 
-#### 5.4.2 Contribution to posterior density
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\prod\_{u=1}^{U_m} \text{N}\left(\beta\_{u,1}^{(m)} \mid 0,
-(A_0^{(m)})^2\right) \prod\_{v=2}^{V_m} \text{N}\left(\beta\_{u,v}^{(m)}
-\mid \beta\_{u,v-1}^{(m)}, \tau_m^2 \right) \end{equation}\\
-
-#### 5.4.3 Forecasting
+#### 5.4.2 Forecasting
 
 \\\begin{equation} \beta\_{u,V_m+h}^{(m)} \sim
 \text{N}(\beta\_{u,V_m+h-1}^{(m)}, \tau_m^2) \end{equation}\\
@@ -265,7 +245,7 @@ If the prior includes sum-to-zero constraints, means are subtracted from
 the forecasted values within each combination of ‘along’ and ‘by’
 variables.
 
-#### 5.4.4 Code
+#### 5.4.3 Code
 
     RW(s = 1,
        along = NULL,
@@ -296,16 +276,7 @@ Second-order random walk
 When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
 be applied.
 
-#### 5.5.2 Contribution to posterior density
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\prod\_{u=1}^{U_m} \text{N}(\beta\_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2)
-\text{N}(\beta\_{u,2}^{(m)} \mid \beta\_{u,1}^{(m)},
-(A\_{\eta}^{(m)})^2) \prod\_{v=3}^{V_m} \text{N}\left(\beta\_{u,v}^{(m)}
-\mid 2 \beta\_{u,v-1}^{(m)} - \beta\_{u,v-2}^{(m)}, \tau_m^2 \right)
-\end{equation}\\
-
-#### 5.5.3 Forecasting
+#### 5.5.2 Forecasting
 
 \\\begin{equation} \beta\_{u,V_m+h}^{(m)} \sim \text{N}(2
 \beta\_{u,V_m+h-1}^{(m)} - \beta\_{u,V_m+h-2}^{(m)}, \tau_m^2)
@@ -315,7 +286,7 @@ If the prior includes sum-to-zero constraints, means are subtracted from
 the forecasted values within each combination of ‘along’ and ‘by’
 variables.
 
-#### 5.5.4 Code
+#### 5.5.3 Code
 
     RW2(s = 1,
         sd = 1,
@@ -329,9 +300,239 @@ variables.
 - `along` used to identify ‘along’ and ‘by’ dimensions
 - if `con` is `"by"`, sum-to-zero constraints are applied
 
-### 5.6 RW2_Infant()
+### 5.6 DRW()
 
 #### 5.6.1 Model
+
+Damped Random walk
+
+\\\begin{align} \beta\_{u,1}^{(m)} & \sim \text{N}\left(0,
+(A_0^{(m)})^2\right) \\ \beta\_{u,v}^{(m)} & \sim \text{N}(\phi_m
+\beta\_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\ \phi_m & =
+a\_{0m} + (a\_{1m} - a\_{0m}) \phi_m^{\prime} \\ \phi_m^{\prime} & \sim
+\text{Beta}(S_1^{(m)}, S_2^{(m)}) \end{align}\\
+
+\\A_0^{(m)}\\ can be 0, implying that \\\beta\_{u,1}^{(m)}\\ is fixed at
+0.
+
+We require that \\-1 \le a\_{0m} \< a\_{1m} \le 1\\.
+
+When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
+be applied.
+
+#### 5.6.2 Forecasting
+
+\\\begin{equation} \beta\_{u,V_m+h}^{(m)} \sim \text{N}(\phi_m
+\beta\_{u,V_m+h-1}^{(m)}, \tau_m^2) \end{equation}\\
+
+If the prior includes sum-to-zero constraints, means are subtracted from
+the forecasted values within each combination of ‘along’ and ‘by’
+variables.
+
+#### 5.6.3 Code
+
+    DRW(s = 1,
+        sd = 1,
+        shape1 = 5,
+        shape2 = 5,
+        min = 0.8,
+        max = 0.98,
+        along = NULL,
+        con = c("none", "by"))
+
+- `s` is \\A\_{\tau}^{(m)}\\. Defaults to 1.
+- `sd` is \\A_0^{(m)}\\. Defaults to 1.
+- `shape1` is \\S_1^{(m)}\\
+- `shape2` is \\S_2^{(m)}\\
+- `min` is \\a\_{0m}\\
+- `max` is \\a\_{1m}\\
+- `along` used to identify ‘along’ and ‘by’ dimensions.
+- if `con` is `"by"`, sum-to-zero constraints are applied.
+
+### 5.7 DRW2()
+
+#### 5.7.1 Model
+
+Damped second-order random walk
+
+\\\begin{align} \beta\_{u,1}^{(m)} & \sim \text{N}\left(0,
+(A_0^{(m)})^2\right) \\ \beta\_{u,2}^{(m)} & \sim
+\text{N}\left(\beta\_{u,1}, (A\_{\eta}^{(m)})^2\right) \\
+\beta\_{u,v}^{(m)} & \sim \text{N}\left(\beta\_{u,v-1}^{(m)} + \phi_m
+(\beta\_{u,v-1}^{(m)} - \beta\_{u,v-2}^{(m)}), \tau_m^2\right), \quad v
+= 3, \cdots, V_m \\ \phi_m & = a\_{0m} + (a\_{1m} - a\_{0m})
+\phi_m^{\prime} \\ \phi_m^{\prime} & \sim \text{Beta}(S_1^{(m)},
+S_2^{(m)}) \\ \tau_m & \sim \text{N}^+\left(0,
+(A\_{\tau}^{(m)})^2\right) \end{align}\\
+
+\\A_0^{(m)}\\ can be 0, implying that \\\beta\_{u,1}^{(m)}\\ is fixed at
+0.
+
+We require that \\-1 \le a\_{0m} \< a\_{1m} \le 1\\.
+
+When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
+be applied.
+
+#### 5.7.2 Forecasting
+
+\\\begin{equation} \beta\_{u,V_m+h}^{(m)} \sim \text{N}(
+\beta\_{u,V_m+h-1}^{(m)} + \phi_m (\beta\_{u,V_m+h-1}^{(m)} -
+\beta\_{u,V_m+h-2}^{(m)}), \tau_m^2) \end{equation}\\
+
+If the prior includes sum-to-zero constraints, means are subtracted from
+the forecasted values within each combination of ‘along’ and ‘by’
+variables.
+
+#### 5.7.3 Code
+
+    DRW2(s = 1,
+         sd = 1,
+         sd_slope = 1,
+         shape1 = 5,
+         shape2 = 5,
+         min = 0.8,
+         max = 0.98,
+         along = NULL,
+         con = c("none", "by"))
+
+- `s` is \\A\_{\tau}^{(m)}\\
+- `sd` is \\A_0^{(m)}\\
+- `sd_slope` is \\A\_{\eta}^{(m)}\\
+- `shape1` is \\S_1^{(m)}\\
+- `shape2` is \\S_2^{(m)}\\
+- `min` is \\a\_{0m}\\
+- `max` is \\a\_{1m}\\
+- `along` used to identify ‘along’ and ‘by’ dimensions
+- if `con` is `"by"`, sum-to-zero constraints are applied
+
+### 5.8 AR()
+
+#### 5.8.1 Model
+
+\\\begin{equation} \beta\_{u,v}^{(m)} \sim \text{N}\left(\phi_1^{(m)}
+\beta\_{u,v-1}^{(m)} + \cdots + \phi\_{K_m}^{(m)}
+\beta\_{u,v-{K_m}}^{(m)}, \omega_m^2\right), \quad v = K_m + 1, \cdots,
+V_m. \end{equation}\\ Internally, TMB derives values for
+\\\beta\_{u,v}^{(m)}, v = 1, \cdots, K_m\\, and for \\\omega_m\\, that
+imply a stationary distribution, and that give every term
+\\\beta\_{u,v}^{(m)}\\ the same marginal variance. We denote this
+marginal variance \\\tau_m^2\\, and assign it a prior \\\begin{equation}
+\tau_m \sim \text{N}^+(0, A\_{\tau}^{(m)2}). \end{equation}\\ Each of
+the \\\phi_k^{(m)}\\ has prior \\\begin{equation} \frac{\phi_k^{(m)} +
+1}{2} \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}). \end{equation}\\
+
+#### 5.8.2 Forecasting
+
+\\\begin{equation} \beta\_{u,V_m + h}^{(m)} \sim
+\text{N}\left(\phi_1^{(m)} \beta\_{u,V_m + h - 1}^{(m)} + \cdots +
+\phi\_{K_m}^{(m)} \beta\_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
+\end{equation}\\
+
+#### 5.8.3 Code
+
+    AR(n_coef = 2,
+       s = 1,
+       shape1 = 5,
+       shape2 = 5,
+       along = NULL,
+       con = c("none", "by"))
+
+- `n_coef` is \\K_m\\
+- `s` is \\A\_{\tau}^{(m)}\\
+- `shape1` is \\S_1^{(m)}\\
+- `shape2` is \\S_2^{(m)}\\
+- `along` is used to indentify the ‘along’ and ‘by’ dimensions
+
+### 5.9 AR1()
+
+Special case or
+[`AR()`](https://bayesiandemography.github.io/bage/reference/AR.md),
+with extra options for autocorrelation coefficient.
+
+#### 5.9.1 Model
+
+\\\begin{align} \beta\_{u,1}^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+\beta\_{u,v}^{(m)} & \sim \text{N}(\phi_m \beta\_{u,v-1}^{(m)}, (1 -
+\phi_m^2) \tau_m^2) \quad v = 2, \cdots, V_m \\ \phi_m & = a\_{0,m} +
+(a\_{1,m} - a\_{0,m}) \phi_m^{\prime} \\ \phi_m^{\prime} & \sim
+\text{Beta}(S_1^{(m)}, S_2^{(m)}) \\ \tau_m & \sim \text{N}^+\left(0,
+A\_{\tau}^{(m)2}\right). \end{align}\\ This is adapted from the
+specification used for AR1 densities in
+[TMB](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.md). It
+implies that the marginal variance of all \\\beta\_{u,v}^{(m)}\\ is
+\\\tau_m^2\\. We require that \\-1 \< a\_{0m} \< a\_{1m} \< 1\\.
+
+#### 5.9.2 Forecasting
+
+\\\begin{equation} \beta\_{J_m + h}^{(m)} \sim \text{N}\left(\phi_m
+\beta\_{J_m + h - 1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
+\end{equation}\\
+
+#### 5.9.3 Code
+
+    AR1(s = 1,
+        shape1 = 5,
+        shape2 = 5,
+        min = 0.8,
+        max = 0.98,
+        along = NULL,
+        con = c("none", "by"))
+
+- `s` is \\A\_{\tau}^{(m)}\\
+- `shape1` is \\S_1^{(m)}\\
+- `shape2` is \\S_2^{(m)}\\
+- `min` is \\a\_{0m}\\
+- `max` is \\a\_{1m}\\
+- `along` is used to identify ‘along’ and ‘by’ dimensions
+
+The defaults for `min` and `max` are based on the defaults for function
+`ets()` in R package **forecast** (Hyndman and Khandakar 2008).
+
+### 5.10 Lin()
+
+#### 5.10.1 Model
+
+\\\begin{align} \beta\_{u,v}^{(m)} & = \alpha\_{u,v}^{(m)} +
+\epsilon\_{u,v}^{(m)} \\ \alpha\_{u,v}^{(m)} & = \left(v - \frac{V_m +
+1}{2}\right) \eta_u^{(m)} \\ \eta_u^{(m)} & \sim
+\text{N}\left(B\_{\eta}^{(m)}, (A\_{\eta}^{(m)})^2\right)\\
+\epsilon\_{u,v}^{(m)} & \sim \text{N}(0, \tau_m^2) \\ \tau_m & \sim
+\text{N}^+\left(0, (A\_{\tau}^{(m)})^2\right) \end{align}\\
+
+Note that \\\sum\_{v=1}^{V_m} \alpha\_{u,v}^{(m)} = 0\\.
+
+Scale parameter \\A\_{\tau}^{(m)}\\ is allowed to equal 0, in which case
+the model reduces to \\\begin{align} \beta\_{u,v}^{(m)} & = \left(v -
+\frac{V_m + 1}{2}\right) \eta_u^{(m)} \\ \eta_u^{(m)} & \sim
+\text{N}\left(B\_{\eta}^{(m)}, (A\_{\eta}^{(m)})^2\right) \end{align}\\
+
+#### 5.10.2 Forecasting
+
+\\\begin{equation} \beta\_{u,V_m + h}^{(m)} \sim
+\text{N}\left(\left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)},
+\tau_m^2\right) \end{equation}\\
+
+When \\A\_{\tau}^{(m)} = 0\\, this reduces to \\\begin{equation}
+\beta\_{u,V_m + h}^{(m)} = \left(\frac{V_m - 1}{2}+ h\right)
+\eta_u^{(m)} \end{equation}\\
+
+#### 5.10.3 Code
+
+    Lin(s = 1,
+        mean_slope = 0,
+        sd_slope = 1,
+        along = NULL,
+        con = c("none", "by"))
+
+- `s` is \\A\_{\tau}^{(m)}\\
+- `mean_slope` is \\B\_{\eta}^{(m)}\\
+- `sd_slope` is \\A\_{\eta}^{(m)}\\
+- `along` is used to indentify ‘along’ and ‘by’ dimensions
+- if `con` is `"by"`, sum-to-zero constraints are applied
+
+### 5.11 RW2_Infant()
+
+#### 5.11.1 Model
 
 Second-order random walk with infant indicator. Designed for age
 profiles for mortality rates. Along dimension must be age.
@@ -347,23 +548,13 @@ profiles for mortality rates. Along dimension must be age.
 When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
 be applied.
 
-#### 5.6.2 Contribution to posterior density
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\prod\_{u=1}^{U_m} \text{N}(\beta\_{u,1}^{(m)} \mid 0, 1)
-\text{N}(\beta\_{u,2}^{(m)} \mid 0, (A\_{\eta}^{(m)})^2)
-\text{N}\left(\beta\_{u,3}^{(m)} \mid 2 \beta\_{u,2}^{(m)}, \tau_m^2
-\right) \prod\_{v=4}^{V_m} \text{N}\left(\beta\_{u,v}^{(m)} \mid 2
-\beta\_{u,v-1}^{(m)} - \beta\_{u,v-2}^{(m)}, \tau_m^2 \right)
-\end{equation}\\
-
-#### 5.6.3 Forecasting
+#### 5.11.2 Forecasting
 
 Terms with an
 [`RW2_Infant()`](https://bayesiandemography.github.io/bage/reference/RW2_Infant.md)
 prior cannot be forecasted.
 
-#### 5.6.4 Code
+#### 5.11.3 Code
 
     RW2_Infant(s = 1,
                sd_slope = 1,
@@ -373,9 +564,133 @@ prior cannot be forecasted.
 - `sd_slope` is \\A\_{\eta}^{(m)}\\
 - if `con` is `"by"`, sum-to-zero constraints are applied
 
-### 5.7 RW_Seas()
+### 5.12 RW2_AR()
 
-#### 5.7.1 Model
+#### 5.12.1 Model
+
+\\\begin{align} \beta\_{u,v}^{(m)} & = \alpha\_{u,v}^{(m)} +
+\epsilon\_{u,v}^{(m)} \\ \alpha\_{u,1}^{(m)} & \sim \text{N}\left(0,
+(A_0^{(m)})^2\right) \\ \alpha\_{u,2}^{(m)} & \sim
+\text{N}\left(\alpha\_{u,1}, (A\_{\eta}^{(m)})^2\right) \\
+\alpha\_{u,v}^{(m)} & \sim \text{N}\left(2 \alpha\_{u,v-1}^{(m)} -
+\alpha\_{u,v-2}^{(m)}, \tau_m^2\right), \quad v = 3, \cdots, V_m \\
+\tau_m & \sim \text{N}^+\left(0, (A\_{\tau}^{(m)})^2\right) \\
+\epsilon\_{u,v}^{(m)} & \sim \text{N}\left(\phi_1^{(m)}
+\epsilon\_{u,v-1}^{(m)} + \cdots + \phi\_{K_m}^{(m)}
+\epsilon\_{u,v-{K_m}}^{(m)}, \omega_m^2\right), \quad v = K_m + 1,
+\cdots, V_m \end{align}\\
+
+\\A_0^{(m)}\\ can be 0, implying that \\\alpha\_{u,1}^{(m)}\\ is fixed
+at 0.
+
+Internally, TMB derives values for \\\epsilon\_{u,v}^{(m)}, v = 1,
+\cdots, K_m\\, and for \\\omega_m\\, that provide the
+\\\epsilon\_{u,v}^{(m)}\\ with a stationary distribution in which each
+term has the same marginal variance. We denote this marginal variance
+\\\tilde{\tau}\_m^2\\, and assign it a prior \\\begin{equation}
+\tilde{\tau}\_m \sim \text{N}^+(0, (A\_{\tilde{\tau}}^{(m)})^2).
+\end{equation}\\ Each of the individual \\\phi_k^{(m)}\\ has prior
+\\\begin{equation} \frac{\phi_k^{(m)} + 1}{2} \sim
+\text{Beta}(S_1^{(m)}, S_2^{(m)}). \end{equation}\\
+
+When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
+be applied.
+
+#### 5.12.2 Forecasting
+
+\\\begin{align} \beta\_{u,V_m+h}^{(m)} & = \alpha\_{u,V_m+h}^{(m)} +
+\epsilon\_{u,V_m+h}^{(m)} \\ \alpha\_{u,V_m+h}^{(m)} \sim \text{N}(2
+\alpha\_{u,V_m+h-1}^{(m)} - \alpha\_{u,V_m+h-2}^{(m)}, \tau_m^2) \\
+\epsilon\_{u,V_m+h}^{(m)} & \sim \text{N}\left(\phi_1^{(m)}
+\epsilon\_{u,V_m + h - 1}^{(m)} + \cdots + \phi\_{K_m}^{(m)}
+\epsilon\_{u,V_m+h-K_m}^{(m)}, \omega_m^2\right) \end{align}\\
+
+#### 5.12.3 Code
+
+    RW2_AR(s_rw = 1,
+           sd = 1,
+           sd_slope = 1,
+           n_coef = 2,
+           s_ar = 1,
+           shape1 = 5,
+           shape2 = 5,
+           along = NULL,
+           con = c("none", "by"))
+
+- `s_rw` is \\A\_{\tau}^{(m)}\\
+- `sd` is \\A_0^{(m)}\\
+- `sd_slope` is \\A\_{\eta}^{(m)}\\
+- `n_coef` is \\K_m\\
+- `s_ar` is \\A\_{\tilde{\tau}}^{(m)}\\
+- `shape1` is \\S_1^{(m)}\\
+- `shape2` is \\S_2^{(m)}\\
+- `along` is used to indentify ‘along’ and ‘by’ variables
+- if `con` is `"by"`, sum-to-zero constraints are applied
+
+### 5.13 RW2_AR1()
+
+Special case or
+[`RW2_AR()`](https://bayesiandemography.github.io/bage/reference/RW2_AR.md),
+with extra options for autocorrelation coefficient.
+
+#### 5.13.1 Model
+
+\\\begin{align} \beta\_{u,v}^{(m)} & = \alpha\_{u,v}^{(m)} +
+\epsilon\_{u,v}^{(m)} \\ \alpha\_{u,1}^{(m)} & \sim \text{N}\left(0,
+(A_0^{(m)})^2\right) \\ \alpha\_{u,2}^{(m)} & \sim
+\text{N}\left(\alpha\_{u,1}, (A\_{\eta}^{(m)})^2\right) \\
+\alpha\_{u,v}^{(m)} & \sim \text{N}\left(2 \alpha\_{u,v-1}^{(m)} -
+\alpha\_{u,v-2}^{(m)}, \tau_m^2\right), \quad v = 3, \cdots, V_m \\
+\tau_m & \sim \text{N}^+\left(0, (A\_{\tau}^{(m)})^2\right) \\
+\epsilon\_{u,1}^{(m)} & \sim \text{N}\left(0, \tilde{\tau}\_m^2 \right)
+\\ \epsilon\_{u,v}^{(m)} & \sim \text{N}\left(\phi_m
+\epsilon\_{u,v-1}^{(m)}, (1 - \phi_m^2) \tilde{\tau}\_m^2 \right), \quad
+v = 2, \cdots, V_m \\ \phi_m & = a\_{0,m} + (a\_{1,m} - a\_{0,m})
+\phi_m^{\prime} \\ \phi_m^{\prime} & \sim \text{Beta}(S_1^{(m)},
+S_2^{(m)}) \\ \tilde{\tau}\_m & \sim \text{N}^+\left(0,
+(A\_{\tilde{\tau}}^{(m)})^2\right). \end{align}\\
+
+\\A_0^{(m)}\\ can be 0, implying that \\\alpha\_{u,1}^{(m)}\\ is fixed
+at 0.
+
+When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
+be applied.
+
+#### 5.13.2 Forecasting
+
+\\\begin{align} \beta\_{u,V_m+h}^{(m)} & = \alpha\_{u,V_m+h}^{(m)} +
+\epsilon\_{u,V_m+h}^{(m)} \\ \alpha\_{u,V_m+h}^{(m)} & \sim \text{N}(2
+\alpha\_{u,V_m+h-1}^{(m)} - \alpha\_{u,V_m+h-2}^{(m)}, \tau_m^2) \\
+\epsilon\_{u,V_m+h}^{(m)} & \sim \text{N}\left(\phi_m, \omega_m^2\right)
+\end{align}\\
+
+#### 5.13.3 Code
+
+    RW2_AR1(s_rw = 1,
+            sd = 1,
+            sd_slope = 1,
+            s_ar = 1,
+            shape1 = 5,
+            shape2 = 5,
+            min = 0.8,
+            max = 0.98,
+            along = NULL,
+            con = c("none", "by"))
+
+- `s_rw` is \\A\_{\tau}^{(m)}\\
+- `sd` is \\A_0^{(m)}\\
+- `sd_slope` is \\A\_{\eta}^{(m)}\\
+- `s_ar` is \\A\_{\tilde{\tau}}^{(m)}\\
+- `shape1` is \\S_1^{(m)}\\
+- `shape2` is \\S_2^{(m)}\\
+- `min` is \\a\_{0,m}\\
+- `max` is \\a\_{1,m}\\
+- `along` is used to indentify ‘along’ and ‘by’ variables
+- if `con` is `"by"`, sum-to-zero constraints are applied
+
+### 5.14 RW_Seas()
+
+#### 5.14.1 Model
 
 Random walk with seasonal effect
 
@@ -400,20 +715,7 @@ effects are fixed over time.
 When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
 be applied.
 
-#### 5.7.2 Contribution to posterior density
-
-\\\begin{align} & \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\text{N}(\omega_m \mid 0, A\_{\omega}^{(m)2}) \notag \\ & \quad \times
-\prod\_{u=1}^{U_m} \bigg( \text{N}\left(\alpha\_{u,1}^{(m)} \mid 0,
-(A_0^{(m)})^2 \right) \prod\_{v=2}^{V_m}
-\text{N}\left(\alpha\_{u,v}^{(m)} \mid \alpha\_{u,v-1}^{(m)}, \tau_m^2
-\right) \notag \\ & \quad \times \prod\_{v=1}^{S_m-1}
-\text{N}\left(\lambda\_{u,v}^{(m)} \mid 0, (A\_{\lambda}^{(m)})^2\right)
-\prod\_{\substack{v \> S_m \\ (v-1) \bmod S_m \neq 0}}^{V_m}
-\text{N}\left(\lambda\_{u,v}^{(m)} \mid \lambda\_{u,v-S_m}^{(m)},
-\omega_m^2\right) \bigg) \end{align}\\
-
-#### 5.7.3 Forecasting
+#### 5.14.2 Forecasting
 
 \\\begin{align} \alpha\_{J_m+h}^{(m)} & \sim
 \text{N}(\alpha\_{J_m+h-1}^{(m)}, \tau_m^2) \\ \lambda\_{J_m+h}^{(m)} &
@@ -421,7 +723,7 @@ be applied.
 \beta\_{J_m+h}^{(m)} & = \alpha\_{J_m+h}^{(m)} + \lambda\_{J_m+h}^{(m)}
 \end{align}\\
 
-#### 5.7.4 Code
+#### 5.14.3 Code
 
     RW_Seas(n_seas,
             s = 1,
@@ -439,9 +741,9 @@ be applied.
 - `along` used to identify ‘along’ and ‘by’ dimensions
 - if `con` is `"by"`, sum-to-zero constraints are applied
 
-### 5.8 RW2_Seas()
+### 5.15 RW2_Seas()
 
-#### 5.8.1 Model
+#### 5.15.1 Model
 
 Second-order random work, with seasonal effect
 
@@ -468,21 +770,7 @@ effects are fixed over time.
 When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
 be applied.
 
-#### 5.8.2 Contribution to posterior density
-
-\\\begin{align} & \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\text{N}(\omega_m \mid 0, A\_{\omega}^{(m)2}) \notag \\ & \times
-\prod\_{u=1}^{U_m} \bigg( \text{N}(\alpha\_{u,1}^{(m)} \mid 0,
-(A_0^{(m)})^2 ) \text{N}(\alpha\_{u,2}^{(m)} \mid \alpha\_{u,1}^{(m)},
-(A\_{\eta}^{(m)})^2 ) \notag \\ & \quad \times \prod\_{v=3}^{V_m}
-\text{N}(\alpha\_{u,v}^{(m)} \mid 2 \alpha\_{u,v-1}^{(m)} -
-\alpha\_{u,v-2}^{(m)}, \tau_m^2 ) \notag \\ & \quad \times
-\prod\_{v=1}^{S_m-1} \text{N}(\lambda\_{u,v}^{(m)} \mid 0,
-(A\_{\lambda}^{(m)})^2) \notag \\ & \quad \times \prod\_{\substack{v \>
-S_m \\ (v-1) \bmod S_m \neq 0}}^{V_m} \text{N}(\lambda\_{u,v}^{(m)} \mid
-\lambda\_{u,v-S_m}^{(m)}, \omega_m^2) \bigg) \end{align}\\
-
-#### 5.8.3 Forecasting
+#### 5.15.2 Forecasting
 
 \\\begin{align} \alpha\_{J_m+h}^{(m)} & \sim \text{N}(2
 \alpha\_{J_m+h-1}^{(m)} - \alpha\_{J_m+h-2}^{(m)}, \tau_m^2) \\
@@ -490,7 +778,7 @@ S_m \\ (v-1) \bmod S_m \neq 0}}^{V_m} \text{N}(\lambda\_{u,v}^{(m)} \mid
 \omega_m^2) \\ \beta\_{J_m+h}^{(m)} & = \alpha\_{J_m+h}^{(m)} +
 \lambda\_{J_m+h}^{(m)} \end{align}\\
 
-#### 5.8.4 Code
+#### 5.15.3 Code
 
     RW2_Seas(n_seas,
              s = 1,
@@ -510,290 +798,9 @@ S_m \\ (v-1) \bmod S_m \neq 0}}^{V_m} \text{N}(\lambda\_{u,v}^{(m)} \mid
 - `along` used to identify ‘along’ and ‘by’ dimensions
 - if `con` is `"by"`, sum-to-zero constraints are applied
 
-### 5.9 DRW()
+### 5.16 Lin_AR()
 
-#### 5.9.1 Model
-
-Damped Random walk
-
-\\\begin{align} \beta\_{u,1}^{(m)} & \sim \text{N}\left(0,
-(A_0^{(m)})^2\right) \\ \beta\_{u,v}^{(m)} & \sim \text{N}(\phi_m
-\beta\_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\ \phi_m & =
-a\_{0m} + (a\_{1m} - a\_{0m}) \phi_m^{\prime} \\ \phi_m^{\prime} & \sim
-\text{Beta}(S_1^{(m)}, S_2^{(m)}) \end{align}\\
-
-\\A_0^{(m)}\\ can be 0, implying that \\\beta\_{u,1}^{(m)}\\ is fixed at
-0.
-
-We require that \\-1 \le a\_{0m} \< a\_{1m} \le 1\\.
-
-When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
-be applied.
-
-#### 5.9.2 Contribution to posterior density
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)})
-\prod\_{u=1}^{U_m} \text{N}\left(\beta\_{u,1}^{(m)} \mid 0,
-(A_0^{(m)})^2\right) \prod\_{v=2}^{V_m} \text{N}\left(\beta\_{u,v}^{(m)}
-\mid \phi_m \beta\_{u,v-1}^{(m)}, \tau_m^2 \right) \end{equation}\\
-
-#### 5.9.3 Forecasting
-
-\\\begin{equation} \beta\_{u,V_m+h}^{(m)} \sim \text{N}(\phi_m
-\beta\_{u,V_m+h-1}^{(m)}, \tau_m^2) \end{equation}\\
-
-If the prior includes sum-to-zero constraints, means are subtracted from
-the forecasted values within each combination of ‘along’ and ‘by’
-variables.
-
-#### 5.9.4 Code
-
-    DRW(s = 1,
-        sd = 1,
-        shape1 = 5,
-        shape2 = 5,
-        min = 0.8,
-        max = 0.98,
-        along = NULL,
-        con = c("none", "by"))
-
-- `s` is \\A\_{\tau}^{(m)}\\. Defaults to 1.
-- `sd` is \\A_0^{(m)}\\. Defaults to 1.
-- `shape1` is \\S_1^{(m)}\\
-- `shape2` is \\S_2^{(m)}\\
-- `min` is \\a\_{0m}\\
-- `max` is \\a\_{1m}\\
-- `along` used to identify ‘along’ and ‘by’ dimensions.
-- if `con` is `"by"`, sum-to-zero constraints are applied.
-
-### 5.10 DRW2()
-
-#### 5.10.1 Model
-
-Damped second-order random walk
-
-\\\begin{align} \beta\_{u,1}^{(m)} & \sim \text{N}\left(0,
-(A_0^{(m)})^2\right) \\ \beta\_{u,2}^{(m)} & \sim
-\text{N}\left(\beta\_{u,1}, (A\_{\eta}^{(m)})^2\right) \\
-\beta\_{u,v}^{(m)} & \sim \text{N}\left(\beta\_{u,v-1}^{(m)} + \phi_m
-(\beta\_{u,v-1}^{(m)} - \beta\_{u,v-2}^{(m)}), \tau_m^2\right), \quad v
-= 3, \cdots, V_m \\ \phi_m & = a\_{0m} + (a\_{1m} - a\_{0m})
-\phi_m^{\prime} \\ \phi_m^{\prime} & \sim \text{Beta}(S_1^{(m)},
-S_2^{(m)}) \\ \tau_m & \sim \text{N}^+\left(0,
-(A\_{\tau}^{(m)})^2\right) \end{align}\\
-
-\\A_0^{(m)}\\ can be 0, implying that \\\beta\_{u,1}^{(m)}\\ is fixed at
-0.
-
-We require that \\-1 \le a\_{0m} \< a\_{1m} \le 1\\.
-
-When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
-be applied.
-
-#### 5.10.2 Contribution to posterior density
-
-\\\begin{align} & \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2}) \text{Beta}(
-\phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \prod\_{u=1}^{U_m}
-\text{N}(\beta\_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2)
-\text{N}(\beta\_{u,2}^{(m)} \mid \beta\_{u,1}^{(m)},
-(A\_{\eta}^{(m)})^2) \\ & \quad \quad \times \prod\_{v=3}^{V_m}
-\text{N}\left(\beta\_{u,v}^{(m)} \mid \beta\_{u,v-1}^{(m)} + \phi_m
-(\beta\_{u,v-1}^{(m)} - \beta\_{u,v-2}^{(m)}), \tau_m^2 \right)
-\end{align}\\
-
-#### 5.10.3 Forecasting
-
-\\\begin{equation} \beta\_{u,V_m+h}^{(m)} \sim \text{N}(
-\beta\_{u,V_m+h-1}^{(m)} + \phi_m (\beta\_{u,V_m+h-1}^{(m)} -
-\beta\_{u,V_m+h-2}^{(m)}), \tau_m^2) \end{equation}\\
-
-If the prior includes sum-to-zero constraints, means are subtracted from
-the forecasted values within each combination of ‘along’ and ‘by’
-variables.
-
-#### 5.10.4 Code
-
-    DRW2(s = 1,
-         sd = 1,
-         sd_slope = 1,
-         shape1 = 5,
-         shape2 = 5,
-         min = 0.8,
-         max = 0.98,
-         along = NULL,
-         con = c("none", "by"))
-
-- `s` is \\A\_{\tau}^{(m)}\\
-- `sd` is \\A_0^{(m)}\\
-- `sd_slope` is \\A\_{\eta}^{(m)}\\
-- `shape1` is \\S_1^{(m)}\\
-- `shape2` is \\S_2^{(m)}\\
-- `min` is \\a\_{0m}\\
-- `max` is \\a\_{1m}\\
-- `along` used to identify ‘along’ and ‘by’ dimensions
-- if `con` is `"by"`, sum-to-zero constraints are applied
-
-### 5.11 AR()
-
-#### 5.11.1 Model
-
-\\\begin{equation} \beta\_{u,v}^{(m)} \sim \text{N}\left(\phi_1^{(m)}
-\beta\_{u,v-1}^{(m)} + \cdots + \phi\_{K_m}^{(m)}
-\beta\_{u,v-{K_m}}^{(m)}, \omega_m^2\right), \quad v = K_m + 1, \cdots,
-V_m. \end{equation}\\ Internally, TMB derives values for
-\\\beta\_{u,v}^{(m)}, v = 1, \cdots, K_m\\, and for \\\omega_m\\, that
-imply a stationary distribution, and that give every term
-\\\beta\_{u,v}^{(m)}\\ the same marginal variance. We denote this
-marginal variance \\\tau_m^2\\, and assign it a prior \\\begin{equation}
-\tau_m \sim \text{N}^+(0, A\_{\tau}^{(m)2}). \end{equation}\\ Each of
-the \\\phi_k^{(m)}\\ has prior \\\begin{equation} \frac{\phi_k^{(m)} +
-1}{2} \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}). \end{equation}\\
-
-#### 5.11.2 Contribution to posterior density
-
-\\\begin{equation} \text{N}^+\left(\tau_m \mid 0, A\_{\tau}^{(m)2}
-\right) \prod\_{k=1}^{K_m} \text{Beta}\left(\tfrac{1}{2} \phi_k^{(m)} +
-\tfrac{1}{2} \mid 2, 2 \right) \prod\_{u=1}^{U_m} p\left(
-\beta\_{u,1}^{(m)}, \cdots, \beta\_{u,V_m}^{(m)} \mid \phi_1^{(m)},
-\cdots, \phi\_{K_m}^{(m)}, \tau_m \right) \end{equation}\\ where
-\\p\left( \beta\_{u,1}^{(m)}, \cdots, \beta\_{u,V_m}^{(m)} \mid
-\phi_1^{(m)}, \cdots, \phi\_{K_m}^{(m)}, \tau_m \right)\\ is calculated
-internally by TMB.
-
-#### 5.11.3 Forecasting
-
-\\\begin{equation} \beta\_{u,V_m + h}^{(m)} \sim
-\text{N}\left(\phi_1^{(m)} \beta\_{u,V_m + h - 1}^{(m)} + \cdots +
-\phi\_{K_m}^{(m)} \beta\_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
-\end{equation}\\
-
-#### 5.11.4 Code
-
-    AR(n_coef = 2,
-       s = 1,
-       shape1 = 5,
-       shape2 = 5,
-       along = NULL,
-       con = c("none", "by"))
-
-- `n_coef` is \\K_m\\
-- `s` is \\A\_{\tau}^{(m)}\\
-- `shape1` is \\S_1^{(m)}\\
-- `shape2` is \\S_2^{(m)}\\
-- `along` is used to indentify the ‘along’ and ‘by’ dimensions
-
-### 5.12 AR1()
-
-Special case or
-[`AR()`](https://bayesiandemography.github.io/bage/reference/AR.md),
-with extra options for autocorrelation coefficient.
-
-#### 5.12.1 Model
-
-\\\begin{align} \beta\_{u,1}^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-\beta\_{u,v}^{(m)} & \sim \text{N}(\phi_m \beta\_{u,v-1}^{(m)}, (1 -
-\phi_m^2) \tau_m^2) \quad v = 2, \cdots, V_m \\ \phi_m & = a\_{0,m} +
-(a\_{1,m} - a\_{0,m}) \phi_m^{\prime} \\ \phi_m^{\prime} & \sim
-\text{Beta}(S_1^{(m)}, S_2^{(m)}) \\ \tau_m & \sim \text{N}^+\left(0,
-A\_{\tau}^{(m)2}\right). \end{align}\\ This is adapted from the
-specification used for AR1 densities in
-[TMB](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.md). It
-implies that the marginal variance of all \\\beta\_{u,v}^{(m)}\\ is
-\\\tau_m^2\\. We require that \\-1 \< a\_{0m} \< a\_{1m} \< 1\\.
-
-#### 5.12.2 Contribution to posterior density
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)})
-\prod\_{u=1}^{U_m} \text{N}\left(\beta\_{u,1}^{(m)} \mid 0, \tau_m^2
-\right) \prod\_{u=1}^{U_m} \prod\_{j=2}^{V_m}
-\text{N}\left(\beta\_{u,v}^{(m)} \mid \phi_m \beta\_{u,v-1}^{(m)}, (1 -
-\phi_m^2) \tau_m^2 \right) \end{equation}\\
-
-#### 5.12.3 Forecasting
-
-\\\begin{equation} \beta\_{J_m + h}^{(m)} \sim \text{N}\left(\phi_m
-\beta\_{J_m + h - 1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
-\end{equation}\\
-
-#### 5.12.4 Code
-
-    AR1(s = 1,
-        shape1 = 5,
-        shape2 = 5,
-        min = 0.8,
-        max = 0.98,
-        along = NULL,
-        con = c("none", "by"))
-
-- `s` is \\A\_{\tau}^{(m)}\\
-- `shape1` is \\S_1^{(m)}\\
-- `shape2` is \\S_2^{(m)}\\
-- `min` is \\a\_{0m}\\
-- `max` is \\a\_{1m}\\
-- `along` is used to identify ‘along’ and ‘by’ dimensions
-
-The defaults for `min` and `max` are based on the defaults for function
-`ets()` in R package **forecast** (Hyndman and Khandakar 2008).
-
-### 5.13 Lin()
-
-#### 5.13.1 Model
-
-\\\begin{align} \beta\_{u,v}^{(m)} & = \alpha\_{u,v}^{(m)} +
-\epsilon\_{u,v}^{(m)} \\ \alpha\_{u,v}^{(m)} & = \left(v - \frac{V_m +
-1}{2}\right) \eta_u^{(m)} \\ \eta_u^{(m)} & \sim
-\text{N}\left(B\_{\eta}^{(m)}, (A\_{\eta}^{(m)})^2\right)\\
-\epsilon\_{u,v}^{(m)} & \sim \text{N}(0, \tau_m^2) \\ \tau_m & \sim
-\text{N}^+\left(0, (A\_{\tau}^{(m)})^2\right) \end{align}\\
-
-Note that \\\sum\_{v=1}^{V_m} \alpha\_{u,v}^{(m)} = 0\\.
-
-Scale parameter \\A\_{\tau}^{(m)}\\ is allowed to equal 0, in which case
-the model reduces to \\\begin{align} \beta\_{u,v}^{(m)} & = \left(v -
-\frac{V_m + 1}{2}\right) \eta_u^{(m)} \\ \eta_u^{(m)} & \sim
-\text{N}\left(B\_{\eta}^{(m)}, (A\_{\eta}^{(m)})^2\right) \end{align}\\
-
-#### 5.13.2 Contribution to posterior density
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\prod\_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B\_{\eta}^{(m)},
-A\_{\eta}^{(m)2}) \prod\_{u=1}^{U_m} \prod\_{v=1}^{V_m}
-\text{N}\left(\beta\_{u,v}^{(m)} \\\middle\|\\ v - \frac{V_m + 1}{2},
-\tau_m^2 \right) \end{equation}\\
-
-When \\A\_{\tau}^{(m)} = 0\\, this reduces to \\\begin{equation}
-\prod\_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B\_{\eta}^{(m)},
-A\_{\eta}^{(m)2}) \end{equation}\\
-
-#### 5.13.3 Forecasting
-
-\\\begin{equation} \beta\_{u,V_m + h}^{(m)} \sim
-\text{N}\left(\left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)},
-\tau_m^2\right) \end{equation}\\
-
-When \\A\_{\tau}^{(m)} = 0\\, this reduces to \\\begin{equation}
-\beta\_{u,V_m + h}^{(m)} = \left(\frac{V_m - 1}{2}+ h\right)
-\eta_u^{(m)} \end{equation}\\
-
-#### 5.13.4 Code
-
-    Lin(s = 1,
-        mean_slope = 0,
-        sd_slope = 1,
-        along = NULL,
-        con = c("none", "by"))
-
-- `s` is \\A\_{\tau}^{(m)}\\
-- `mean_slope` is \\B\_{\eta}^{(m)}\\
-- `sd_slope` is \\A\_{\eta}^{(m)}\\
-- `along` is used to indentify ‘along’ and ‘by’ dimensions
-- if `con` is `"by"`, sum-to-zero constraints are applied
-
-### 5.14 Lin_AR()
-
-#### 5.14.1 Model
+#### 5.16.1 Model
 
 \\\begin{align} \beta\_{u,v}^{(m)} & = \alpha\_{u,v}^{(m)} +
 \epsilon\_{u,v}^{(m)} \\ \alpha\_{u,v}^{(m)} & = \left(v - \frac{V_m +
@@ -815,19 +822,10 @@ term has the same marginal variance. We denote this marginal variance
 \\\phi_k^{(m)}\\ has prior \\\begin{equation} \frac{\phi_k^{(m)} + 1}{2}
 \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}). \end{equation}\\
 
-#### 5.14.2 Contribution to posterior density
+When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
+be applied.
 
-\\\begin{align} & \text{N}^+\left(\tau_m \mid 0, A\_{\tau}^{(m)2}
-\right) \prod\_{k=1}^{K_m} \text{Beta}\left( \tfrac{1}{2} \phi_k^{(m)} +
-\tfrac{1}{2} \mid S_1^{(m)}, S_2^{(m)} \right) \notag \\ & \quad \times
-\prod\_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A\_{\eta}^{(m)2})
-p\left( \epsilon\_{u,1}^{(m)}, \cdots, \epsilon\_{u,V_m}^{(m)} \mid
-\phi_1^{(m)}, \cdots, \phi\_{K_m}^{(m)}, \tau_m \right) \end{align}\\
-where \\p\left( \epsilon\_{u,1}^{(m)}, \cdots, \epsilon\_{u,V_m}^{(m)}
-\mid \phi_1^{(m)}, \cdots, \phi\_{K_m}^{(m)}, \tau_m \right)\\ is
-calculated internally by TMB.
-
-#### 5.14.3 Forecasting
+#### 5.16.2 Forecasting
 
 \\\begin{align} \beta\_{u, V_m + h}^{(m)} & = \left(\frac{V_m - 1}{2}+
 h\right) \eta_u^{(m)} + \epsilon\_{u,V_m+h}^{(m)} \\
@@ -835,7 +833,7 @@ h\right) \eta_u^{(m)} + \epsilon\_{u,V_m+h}^{(m)} \\
 \epsilon\_{u,V_m + h - 1}^{(m)} + \cdots + \phi\_{K_m}^{(m)}
 \epsilon\_{u,V_m+h-K_m}^{(m)}, \omega_m^2\right) \end{align}\\
 
-#### 5.14.4 Code
+#### 5.16.3 Code
 
     Lin_AR(n_coef = 2,
            s = 1,
@@ -855,9 +853,9 @@ h\right) \eta_u^{(m)} + \epsilon\_{u,V_m+h}^{(m)} \\
 - `along` is used to indentify ‘along’ and ‘by’ variables
 - if `con` is `"by"`, sum-to-zero constraints are applied
 
-### 5.15 Lin_AR1()
+### 5.17 Lin_AR1()
 
-#### 5.15.1 Model
+#### 5.17.1 Model
 
 \\\begin{align} \beta\_{u,v}^{(m)} & = \alpha\_{u,v}^{(m)} +
 \epsilon\_{u,v}^{(m)} \\ \alpha\_{u,v}^{(m)} & = \left(v - \frac{V_m +
@@ -873,24 +871,17 @@ S_2^{(m)}) \\ \tau_m & \sim \text{N}^+\left(0, A\_{\tau}^{(m)2}\right).
 
 Note that \\\sum\_{v=1}^{V_m} \alpha\_{u,v}^{(m)} = 0\\.
 
-#### 5.15.2 Contribution to posterior density
+When \\U_m \> 1\\, constraints (Section [5.1.2](#sec:constraints)) can
+be applied.
 
-\\\begin{align} & \text{N}^+\left(\tau_m \mid 0, A\_{\tau}^{(m)2}
-\right) \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \notag
-\\ & \quad \times \prod\_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0,
-A\_{\eta}^{(m)2}) \text{N}\left(\epsilon\_{u,1}^{(m)} \mid 0, \tau_m^2
-\right) \prod\_{v=2}^{V_m} \text{N}\left(\epsilon\_{u,v}^{(m)} \mid
-\phi_m \epsilon\_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right)
-\end{align}\\
-
-#### 5.15.3 Forecasting
+#### 5.17.2 Forecasting
 
 \\\begin{align} \beta\_{u, V_m + h}^{(m)} & = \left(\frac{V_m - 1}{2}+
 h\right) \eta_u^{(m)} + \epsilon\_{u,V_m+h}^{(m)} \\
 \epsilon\_{u,V_m+h}^{(m)} & \sim \text{N}\left(\phi_m \epsilon\_{u,V_m +
 h - 1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right) \end{align}\\
 
-#### 5.15.4 Code
+#### 5.17.3 Code
 
     Lin_AR1(s = 1,
             shape1 = 5,
@@ -912,9 +903,9 @@ h - 1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right) \end{align}\\
 - `along` is used to indentify ‘along’ and ‘by’ variables
 - if `con` is `"by"`, sum-to-zero constraints are applied
 
-### 5.16 Sp()
+### 5.18 Sp()
 
-#### 5.16.1 Model
+#### 5.18.1 Model
 
 Penalised spline (P-spline)
 
@@ -931,21 +922,13 @@ composed of elements from the \\u\\th combination of the ‘by’ variables,
 V_m)^{\top}\\. The B-splines are centered, so that \\\pmb{1}^{\top}
 \pmb{b}\_k^{(m)}(\pmb{v}) = 0\\, \\k = 1, \cdots, K_m\\.
 
-#### 5.16.2 Contribution to posterior density
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\prod\_{u=1}^{U_m} \prod\_{k=1}^2 \text{N}(\alpha\_{u,k}^{(m)} \mid
-0, 1) \prod\_{u=1}^{U_m}\prod\_{k=3}^{K_m}
-\text{N}\left(\alpha\_{u,k}^{(m)} - 2 \alpha\_{u,k-1}^{(m)} +
-\alpha\_{u,k-2}^{(m)} \mid 0, \tau_m^2 \right) \end{equation}\\
-
-#### 5.16.3 Forecasting
+#### 5.18.2 Forecasting
 
 Terms with a
 [`Sp()`](https://bayesiandemography.github.io/bage/reference/Sp.md)
 prior cannot be forecasted.
 
-#### 5.16.4 Code
+#### 5.18.3 Code
 
     Sp(n = NULL,
        s = 1)
@@ -955,9 +938,9 @@ prior cannot be forecasted.
   prior. Defaults to 1.
 - `along` is used to identify ‘along’ and ‘by’ variables
 
-### 5.17 SVD()
+### 5.19 SVD()
 
-#### 5.17.1 Model
+#### 5.19.1 Model
 
 **Age but no sex or gender**
 
@@ -994,19 +977,11 @@ data that separate sexes/genders. The prior is \\\begin{equation}
 \alpha\_{s,u,k}^{(m)} \sim \text{N}(0, 1), \quad s = 1, \cdots, S; \quad
 u = 1, \cdots, U_m; \quad k = 1, \cdots, K_m. \end{equation}\\
 
-#### 5.17.2 Contribution to posterior density
-
-\\\begin{equation} \prod\_{u=1}^{U_m}\prod\_{k=1}^{K_m}
-\text{N}\left(\alpha\_{uk}^{(m)} \mid 0, 1 \right) \end{equation}\\ for
-the age-only and joint models, and \\\begin{equation} \prod\_{s=1}^S
-\prod\_{u=1}^{U_m}\prod\_{k=1}^{K_m} \text{N}\left(\alpha\_{s,u,k}^{(m)}
-\mid 0, 1 \right) \end{equation}\\ for the independent model
-
-#### 5.17.3 Forecasting
+#### 5.19.2 Forecasting
 
 Terms with an SVD prior cannot be forecasted.
 
-#### 5.17.4 Code
+#### 5.19.3 Code
 
     SVD(ssvd,
         n_comp = NULL,
@@ -1018,9 +993,9 @@ where - `ssvd` is an object containing \\\pmb{F}\\ and \\\pmb{g}\\ -
 `indep` determines whether and independent or joint model will be used
 if the term being modelled contains a sex or gender variable.
 
-### 5.18 SVD_RW()
+### 5.20 SVD_RW()
 
-#### 5.18.1 Model
+#### 5.20.1 Model
 
 The
 [`SVD_RW()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md)
@@ -1037,32 +1012,14 @@ joint models with \\K_m\\ SVD components,
 \tau_m & \sim \text{N}^+\left(0, (A\_{\tau}^{(m)})^2\right)
 \end{align}\\
 
-#### 5.18.2 Contribution to posterior density
-
-In the combined-sex/gender and joint models,
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\prod\_{u=1}^{U_m} \prod\_{k=1}^{K_m} \text{N}(\alpha\_{u,k,1}^{(m)}
-\mid 0, (A_0^{(m)})^2) \prod\_{t=2}^{T}
-\text{N}\left(\alpha\_{u,k,t}^{(m)} \mid \alpha\_{u,k,t-1}^{(m)},
-\tau_m^2 \right), \end{equation}\\
-
-and in the independent model,
-
-\\\begin{equation} \text{N}(\tau_m \mid 0, A\_{\tau}^{(m)2})
-\prod\_{u=1}^{U_m} \prod\_{s=1}^{S} \prod\_{k=1}^{K_m}
-\text{N}(\alpha\_{u,s,k,1}^{(m)} \mid 0, (A_0^{(m)})^2) \prod\_{t=2}^{T}
-\text{N}\left(\alpha\_{u,s,k,t}^{(m)} \mid \alpha\_{u,s,k,t-1}^{(m)},
-\tau_m^2 \right) \end{equation}\\
-
-#### 5.18.3 Forecasting
+#### 5.20.2 Forecasting
 
 \\\begin{align} \alpha\_{u,k,T+h}^{(m)} & \sim
 \text{N}(\alpha\_{u,k,T+h-1}^{(m)}, \tau_m^2) \\
 \pmb{\beta}\_{u,T+h}^{(m)} & = \pmb{F}^{(m)}
 \pmb{\alpha}\_{u,T+h}^{(m)} + \pmb{g}^{(m)} \end{align}\\
 
-#### 5.18.4 Code
+#### 5.20.3 Code
 
     SVD_RW(ssvd,
            n_comp = NULL,
@@ -1080,7 +1037,7 @@ where
 - `s` is \\A\_{\tau}^{(m)}\\
 - `sd` is \\A_0^{(m)}\\
 
-### 5.19 SVD_RW2(), SVD_AR(), SVD_AR1()
+### 5.21 SVD_RW2(), SVD_AR(), SVD_AR1()
 
 The
 [`SVD_RW2()`](https://bayesiandemography.github.io/bage/reference/SVD_AR.md),
@@ -1097,21 +1054,17 @@ priors for the along dimension taking the place of the
 [`RW()`](https://bayesiandemography.github.io/bage/reference/RW.md)
 prior.
 
-### 5.20 Known
+### 5.22 Known
 
-#### 5.20.1 Model
+#### 5.22.1 Model
 
 Elements of \\\pmb{\beta}^{(m)}\\ are treated as known with certainty.
 
-#### 5.20.2 Contribution to posterior density
-
-Known priors make no contribution to the posterior density.
-
-#### 5.20.3 Forecasting
+#### 5.22.2 Forecasting
 
 Main effects with a known prior cannot be forecasted.
 
-#### 5.20.4 Code
+#### 5.22.3 Code
 
     Known(values)
 
@@ -1132,12 +1085,7 @@ category as the omitted variable.
 The elements of \\\pmb{\zeta}\\ have prior \\\begin{equation} \zeta_p
 \sim \text{N}(0, 1) \end{equation}\\
 
-### 6.2 Contribution to posterior density
-
-\\\begin{equation} \prod\_{p=1}^P \text{N}(\zeta_p \| 0, 1)
-\end{equation}\\
-
-### 6.3 Forecasting
+### 6.2 Forecasting
 
 A model with covariates can be used for forecasting provided that
 
@@ -1146,7 +1094,7 @@ A model with covariates can be used for forecasting provided that
   inferred from the classifying variables (other than time), or are
   supplied by the user.
 
-### 6.4 Code
+### 6.3 Code
 
     set_covariates(mod, formula)
 
@@ -1160,12 +1108,7 @@ A model with covariates can be used for forecasting provided that
 Use exponential distribution, parameterised using mean,
 \\\begin{equation} \xi \sim \text{Exp}(\mu\_{\xi}) \end{equation}\\
 
-### 7.2 Contribution to prior density
-
-\\\begin{equation} p(\xi) = \frac{1}{\mu\_{\xi}}
-\exp\left(\frac{-\xi}{\mu\_{\xi}}\right) \end{equation}\\
-
-### 7.3 Code
+### 7.2 Code
 
     set_disp(mean = 1)
 
@@ -1190,17 +1133,17 @@ Notation:
   exposure, distinguish between \\w^{\text{true}}\\ and
   \\w^{\text{obs}}\\.
 
-| Model               |                                                                     System model                                                                      |                                                                                                                                               Data model                                                                                                                                               |
-|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| Poisson undercount  |     \\\begin{aligned}y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})\end{aligned}\\     |                                                                              \\\begin{aligned}y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi\_{g\[i\]}) \\ \pi_g \sim \text{Beta}(a_g, b_g)\end{aligned}\\                                                                               |
-| Poisson overcount   |     \\\begin{aligned}y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})\end{aligned}\\     |                                                       \\\begin{aligned}y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{Poisson}(\kappa\_{g\[i\]} \gamma_i w_i) \\ \kappa_g \sim \text{Gamma}(a_g, b_g)\end{aligned}\\                                                       |
-| Poisson miscount    |     \\\begin{aligned}y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})\end{aligned}\\     | \\\begin{aligned}y_i^{\text{obs}} = u_i + v_i \\ u_i \sim \text{Binomial}(y_i^{\text{true}}, \pi\_{g\[i\]}) \\ v_i \sim \text{Poisson}(\kappa\_{h\[i\]} \gamma_i w_i) \\ \pi_g \sim \text{Beta}(a_g^{(\pi)}, b_g^{(\pi)}) \\ \kappa_h \sim \text{Gamma}(a_h^{(\kappa)}, b_h^{(\kappa)})\end{aligned}\\ |
-| Poisson noise       |                                                \\ y_i^{\text{true}} \sim \text{Poisson}(\mu_i w_i) \\                                                 |                                                                             \\\begin{aligned}y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{Skellam}(m\_{g\[i\]}, m\_{g\[i\]})\end{aligned}\\                                                                              |
-| Poisson exposure    |                                                \\ y_i \sim \text{Poisson}(\mu_i w_i^{\text{true}}) \\                                                 |                                                                               \\\begin{aligned}w_i^{\text{obs}} \sim \text{InvGamma}(2 + d\_{g\[i\]}^{-1}, \\ \[1 + d\_{g\[i\]}^{-1}\] w_i^{\text{true}})\end{aligned}\\                                                                               |
-| Binomial undercount | \\\begin{aligned}y_i^{\text{true}} \sim \text{Binomial}(w_i, \gamma_i) \\ \gamma_i \sim \text{Beta}(\mu_i \xi^{-1}, (1-\mu_i)\xi^{-1})\end{aligned}\\ |                                                                              \\\begin{aligned}y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi\_{g\[i\]}) \\ \pi_g \sim \text{Beta}(a_g, b_g)\end{aligned}\\                                                                               |
-| Normal noise        |                                           \\ y_i^{\text{true}} \sim \text{N}(\gamma_i, w_i^{-1}\sigma^2) \\                                           |                                                                                    \\\begin{aligned}y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{N}(0, s\_{g\[i\]}^2)\end{aligned}\\                                                                                     |
+| Model | System model | Data model |
+|:---|:--:|:--:|
+| Poisson undercount | \\\begin{aligned}y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})\end{aligned}\\ | \\\begin{aligned}y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi\_{g\[i\]}) \\ \pi_g \sim \text{Beta}(a_g, b_g)\end{aligned}\\ |
+| Poisson overcount | \\\begin{aligned}y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})\end{aligned}\\ | \\\begin{aligned}y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{Poisson}(\kappa\_{g\[i\]} \gamma_i w_i) \\ \kappa_g \sim \text{Gamma}(a_g, b_g)\end{aligned}\\ |
+| Poisson miscount | \\\begin{aligned}y_i^{\text{true}} \sim \text{Poisson}(\gamma_i w_i) \\ \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})\end{aligned}\\ | \\\begin{aligned}y_i^{\text{obs}} = u_i + v_i \\ u_i \sim \text{Binomial}(y_i^{\text{true}}, \pi\_{g\[i\]}) \\ v_i \sim \text{Poisson}(\kappa\_{h\[i\]} \gamma_i w_i) \\ \pi_g \sim \text{Beta}(a_g^{(\pi)}, b_g^{(\pi)}) \\ \kappa_h \sim \text{Gamma}(a_h^{(\kappa)}, b_h^{(\kappa)})\end{aligned}\\ |
+| Poisson noise | \\ y_i^{\text{true}} \sim \text{Poisson}(\mu_i w_i) \\ | \\\begin{aligned}y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{Skellam}(m\_{g\[i\]}, m\_{g\[i\]})\end{aligned}\\ |
+| Poisson exposure | \\ y_i \sim \text{Poisson}(\mu_i w_i^{\text{true}}) \\ | \\\begin{aligned}w_i^{\text{obs}} \sim \text{InvGamma}(2 + d\_{g\[i\]}^{-1}, \\ \[1 + d\_{g\[i\]}^{-1}\] w_i^{\text{true}})\end{aligned}\\ |
+| Binomial undercount | \\\begin{aligned}y_i^{\text{true}} \sim \text{Binomial}(w_i, \gamma_i) \\ \gamma_i \sim \text{Beta}(\mu_i \xi^{-1}, (1-\mu_i)\xi^{-1})\end{aligned}\\ | \\\begin{aligned}y_i^{\text{obs}} \sim \text{Binomial}(y_i^{\text{true}}, \pi\_{g\[i\]}) \\ \pi_g \sim \text{Beta}(a_g, b_g)\end{aligned}\\ |
+| Normal noise | \\ y_i^{\text{true}} \sim \text{N}(\gamma_i, w_i^{-1}\sigma^2) \\ | \\\begin{aligned}y_i^{\text{obs}} = y_i^{\text{true}} + \epsilon_i \\ \epsilon_i \sim \text{N}(0, s\_{g\[i\]}^2)\end{aligned}\\ |
 
-Table 8.1: System models and data models
+Table 8.1: System models and data models {.table}
 
 ### 8.2 Poisson with undercount in outcome variable
 
@@ -1794,51 +1737,51 @@ given values for the true outcomes.
 
 TODO - UPDATE THIS
 
-| Quantity                        | Definition                                                                                           |
-|:--------------------------------|:-----------------------------------------------------------------------------------------------------|
-| \\i\\                           | Index for cell, \\i = 1, \cdots, n\\.                                                                |
-| \\y_i\\                         | Value for outcome variable.                                                                          |
-| \\w_i\\                         | Exposure, number of trials, or weight.                                                               |
-| \\\gamma_i\\                    | Super-population rate, probability, or mean.                                                         |
-| \\\mu_i\\                       | Cell-specific mean.                                                                                  |
-| \\\xi\\                         | Dispersion parameter.                                                                                |
-| \\g()\\                         | Log, logit, or identity function.                                                                    |
-| \\m\\                           | Index for intercept, main effect, or interaction. \\m = 0, \cdots, M\\.                              |
-| \\j\\                           | Index for element of a main effect or interaction.                                                   |
-| \\u\\                           | Index for combination of ‘by’ variables for an interaction. \\u = 1, \cdots U_m\\. \\U_m V_m = J_m\\ |
-| \\v\\                           | Index for the ‘along’ dimension of an interaction. \\v = 1, \cdots V_m\\. \\U_m V_m = J_m\\          |
-| \\\beta^{(0)}\\                 | Intercept.                                                                                           |
-| \\\pmb{\beta}^{(m)}\\           | Main effect or interaction. \\m = 1, \cdots, M\\.                                                    |
-| \\\beta_j^{(m)}\\               | \\j\\th element of \\\pmb{\beta}^{(m)}\\. \\j = 1, \cdots, J_m\\.                                    |
-| \\\pmb{X}^{(m)}\\               | Matrix mapping \\\pmb{\beta}^{(m)}\\ to \\\pmb{y}\\.                                                 |
-| \\\pmb{Z}\\                     | Matrix of covariates.                                                                                |
-| \\\pmb{\zeta}\\                 | Parameter vector for covariates \\\pmb{Z}^{(m)}\\.                                                   |
-| \\A_0\\                         | Scale parameter in prior for intercept \\\beta^{(0)}\\ or initial value.                             |
-| \\\tau_m\\                      | Standard deviation parameter for main effect or interaction.                                         |
-| \\A\_{\tau}^{(m)}\\             | Scale parameter in prior for \\\tau_m\\.                                                             |
-| \\\pmb{\alpha}^{(m)}\\          | Parameter vector for P-spline and SVD priors.                                                        |
-| \\\alpha_k^{(m)}\\              | \\k\\th element of \\\pmb{\alpha}^{(m)}\\. \\k = 1, \cdots, K_m\\.                                   |
-| \\\pmb{V}^{(m)}\\               | Covariance matrix for multivariate normal prior.                                                     |
-| \\h_j^{(m)}\\                   | Linear covariate                                                                                     |
-| \\\eta^{(m)}\\                  | Parameter specific to main effect or interaction \\\pmb{\beta}^{(m)}\\.                              |
-| \\\eta_u^{(m)}\\                | Parameter specific to \\u\\th combination of ‘by’ variables in interaction \\\pmb{\beta}^{(m)}\\.    |
-| \\A\_{\eta}^{(m)}\\             | Standard deviation in normal prior for \\\eta_m\\.                                                   |
-| \\\omega_m\\                    | Standard deviation of parameter \\\eta_c\\ in multivariate priors.                                   |
-| \\\phi_m\\                      | Correlation coefficient in AR1 densities.                                                            |
-| \\a\_{0m}\\, \\a\_{1m}\\        | Minimum and maximum values for \\\phi_m\\.                                                           |
-| \\\pmb{B}^{(m)}\\               | B-spline matrix in P-spline prior.                                                                   |
-| \\\pmb{b}\_k^{(m)}\\            | B-spline. \\k = 1, \cdots, K_m\\.                                                                    |
-| \\\pmb{F}^{(m)}\\               | Matrix in SVD prior.                                                                                 |
-| \\\pmb{g}^{(m)}\\               | Offset in SVD prior.                                                                                 |
-| \\\pmb{\beta}\_{\text{trend}}\\ | Trend effect.                                                                                        |
-| \\\pmb{\beta}\_{\text{cyc}}\\   | Cyclical effect.                                                                                     |
-| \\\pmb{\beta}\_{\text{seas}}\\  | Seasonal effect.                                                                                     |
-| \\\varphi\\                     | Global shrinkage parameter in shrinkage prior.                                                       |
-| \\A\_{\varphi}\\                | Scale term in prior for \\\varphi\\.                                                                 |
-| \\\vartheta_p\\                 | Local shrinkage parameter in shrinkage prior.                                                        |
-| \\p_0\\                         | Expected number of non-zero coefficients in \\\pmb{\zeta}\\.                                         |
-| \\\hat{\sigma}\\                | Empirical scale estimate in prior for \\\varphi\\.                                                   |
-| \\\pi\\                         | Vector of hyper-parameters                                                                           |
+| Quantity | Definition |
+|:---|:---|
+| \\i\\ | Index for cell, \\i = 1, \cdots, n\\. |
+| \\y_i\\ | Value for outcome variable. |
+| \\w_i\\ | Exposure, number of trials, or weight. |
+| \\\gamma_i\\ | Super-population rate, probability, or mean. |
+| \\\mu_i\\ | Cell-specific mean. |
+| \\\xi\\ | Dispersion parameter. |
+| \\g()\\ | Log, logit, or identity function. |
+| \\m\\ | Index for intercept, main effect, or interaction. \\m = 0, \cdots, M\\. |
+| \\j\\ | Index for element of a main effect or interaction. |
+| \\u\\ | Index for combination of ‘by’ variables for an interaction. \\u = 1, \cdots U_m\\. \\U_m V_m = J_m\\ |
+| \\v\\ | Index for the ‘along’ dimension of an interaction. \\v = 1, \cdots V_m\\. \\U_m V_m = J_m\\ |
+| \\\beta^{(0)}\\ | Intercept. |
+| \\\pmb{\beta}^{(m)}\\ | Main effect or interaction. \\m = 1, \cdots, M\\. |
+| \\\beta_j^{(m)}\\ | \\j\\th element of \\\pmb{\beta}^{(m)}\\. \\j = 1, \cdots, J_m\\. |
+| \\\pmb{X}^{(m)}\\ | Matrix mapping \\\pmb{\beta}^{(m)}\\ to \\\pmb{y}\\. |
+| \\\pmb{Z}\\ | Matrix of covariates. |
+| \\\pmb{\zeta}\\ | Parameter vector for covariates \\\pmb{Z}^{(m)}\\. |
+| \\A_0\\ | Scale parameter in prior for intercept \\\beta^{(0)}\\ or initial value. |
+| \\\tau_m\\ | Standard deviation parameter for main effect or interaction. |
+| \\A\_{\tau}^{(m)}\\ | Scale parameter in prior for \\\tau_m\\. |
+| \\\pmb{\alpha}^{(m)}\\ | Parameter vector for P-spline and SVD priors. |
+| \\\alpha_k^{(m)}\\ | \\k\\th element of \\\pmb{\alpha}^{(m)}\\. \\k = 1, \cdots, K_m\\. |
+| \\\pmb{V}^{(m)}\\ | Covariance matrix for multivariate normal prior. |
+| \\h_j^{(m)}\\ | Linear covariate |
+| \\\eta^{(m)}\\ | Parameter specific to main effect or interaction \\\pmb{\beta}^{(m)}\\. |
+| \\\eta_u^{(m)}\\ | Parameter specific to \\u\\th combination of ‘by’ variables in interaction \\\pmb{\beta}^{(m)}\\. |
+| \\A\_{\eta}^{(m)}\\ | Standard deviation in normal prior for \\\eta_m\\. |
+| \\\omega_m\\ | Standard deviation of parameter \\\eta_c\\ in multivariate priors. |
+| \\\phi_m\\ | Correlation coefficient in AR1 densities. |
+| \\a\_{0m}\\, \\a\_{1m}\\ | Minimum and maximum values for \\\phi_m\\. |
+| \\\pmb{B}^{(m)}\\ | B-spline matrix in P-spline prior. |
+| \\\pmb{b}\_k^{(m)}\\ | B-spline. \\k = 1, \cdots, K_m\\. |
+| \\\pmb{F}^{(m)}\\ | Matrix in SVD prior. |
+| \\\pmb{g}^{(m)}\\ | Offset in SVD prior. |
+| \\\pmb{\beta}\_{\text{trend}}\\ | Trend effect. |
+| \\\pmb{\beta}\_{\text{cyc}}\\ | Cyclical effect. |
+| \\\pmb{\beta}\_{\text{seas}}\\ | Seasonal effect. |
+| \\\varphi\\ | Global shrinkage parameter in shrinkage prior. |
+| \\A\_{\varphi}\\ | Scale term in prior for \\\varphi\\. |
+| \\\vartheta_p\\ | Local shrinkage parameter in shrinkage prior. |
+| \\p_0\\ | Expected number of non-zero coefficients in \\\pmb{\zeta}\\. |
+| \\\hat{\sigma}\\ | Empirical scale estimate in prior for \\\varphi\\. |
+| \\\pi\\ | Vector of hyper-parameters |
 
 ### 14.2 SVD prior for age
 
@@ -2081,9 +2024,9 @@ Hyperparameters in Hierarchical Models: Improving on Gibbs for
 High-Dimensional Latent Fields and Large Datasets.” *Communications in
 Statistics-Simulation and Computation* 47 (9): 2639–55.
 
-Simpson, Dan. 2022. “Priors Part 4: Specifying Priors That Appropriately
-Penalise Complexity.”
-<https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html>.
+Simpson, Dan. 2022. *Priors Part 4: Specifying Priors That Appropriately
+Penalise Complexity*.
+[Https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html](https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html).
 
 Wood, Simon N. 2017. *Generalized Additive Models: An Introduction with
 R*. Chapman; Hall/CRC.

@@ -38,6 +38,11 @@
   Random Walk Prior
 - [`RW2()`](https://bayesiandemography.github.io/bage/reference/RW2.md)
   : Second-Order Random Walk Prior
+- [`RW2_AR()`](https://bayesiandemography.github.io/bage/reference/RW2_AR.md)
+  : Second-Order Random Walk Prior with Autoregressive Errors
+- [`RW2_AR1()`](https://bayesiandemography.github.io/bage/reference/RW2_AR1.md)
+  : Second-Order Random Walk Prior with First Order Autoregressive
+  Errors
 - [`RW2_Infant()`](https://bayesiandemography.github.io/bage/reference/RW2_Infant.md)
   : Second-Order Random Walk Prior with 'Infant' Indicator
 - [`RW2_Seas()`](https://bayesiandemography.github.io/bage/reference/RW2_Seas.md)
@@ -61,6 +66,9 @@
   : Scaled SVD Components from World Marriage Database
 - [`augment(`*`<bage_mod>`*`)`](https://bayesiandemography.github.io/bage/reference/augment.bage_mod.md)
   : Extract Data and Modeled Values
+- [`bage-package`](https://bayesiandemography.github.io/bage/reference/bage-package.md)
+  [`bage`](https://bayesiandemography.github.io/bage/reference/bage-package.md)
+  : bage: Bayesian Estimation and Forecasting of Age-Specific Rates
 - [`components(`*`<bage_mod>`*`)`](https://bayesiandemography.github.io/bage/reference/components.bage_mod.md)
   : Extract Values for Hyper-Parameters
 - [`components(`*`<bage_ssvd>`*`)`](https://bayesiandemography.github.io/bage/reference/components.bage_ssvd.md)
@@ -99,9 +107,11 @@
   [`generate(`*`<bage_prior_rwzeroseasfix>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_rwzeroseasvary>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_rw2random>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_rw2randomar>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_rw2randomseasfix>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_rw2randomseasvary>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_rw2zero>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
+  [`generate(`*`<bage_prior_rw2zeroar>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_rw2zeroseasfix>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_rw2zeroseasvary>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)
   [`generate(`*`<bage_prior_spline>`*`)`](https://bayesiandemography.github.io/bage/reference/generate.bage_prior_ar.md)

@@ -57,7 +57,7 @@ by scaling any numeric variables to have mean 0 and standard deviation
 1, and by converting any categorical variables to sets of indicator
 variables. The conversion to indicator variables follows the rules that
 R uses for “treatment” contrasts. If the categorical has \\C\\
-categories, then \\C-1\\ indicator variabls are constructed, with the
+categories, then \\C-1\\ indicator variables are constructed, with the
 first category being omitted.
 
 Each element of \\\pmb{\eta}\\ has prior \\\begin{equation} \eta_p \sim
@@ -74,6 +74,7 @@ Besides **bage** itself, we use **dplyr** and **vctrs** for data
 manipulation, and **ggplot2** for plotting results.
 
 ``` r
+
 suppressPackageStartupMessages({
   library(bage)
   library(dplyr)
@@ -85,6 +86,7 @@ Our data is a subset of the the data frame `kor_births`, which is part
 of **bage**.
 
 ``` r
+
 births <- kor_births |>
   filter(region %in% levels(region)[1:5])
 ```
@@ -96,6 +98,7 @@ region, and year. It also contains a numeric variable called
 `"High"`) describing population density in 2020.
 
 ``` r
+
 births
 #> # A tibble: 585 × 7
 #>    age   region  time births  popn gdp_pc_2023 dens_2020
@@ -126,14 +129,12 @@ to instruct
 to treat these variables as covariates.
 
 ``` r
+
 mod_gdp_dens <- mod_pois(births ~ (age + region + time)^2,
                          data = births,
                          exposure = popn) |>
   set_covariates(~ gdp_pc_2023 + dens_2020) |>
   fit()
-#> Building log-posterior function...
-#> Finding maximum...
-#> Drawing values for hyper-parameters...
 mod_gdp_dens
 #> 
 #>     ------ Fitted Poisson model ------
@@ -159,7 +160,7 @@ mod_gdp_dens
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.45     0.82      0.48   30      TRUE   relative convergence (4)
+#>        1.47     0.83      0.50   30      TRUE   relative convergence (4)
 ```
 
 To obtain estimates of the coefficients (ie estimates of the
@@ -168,6 +169,7 @@ To obtain estimates of the coefficients (ie estimates of the
 and filter out rows for the `"covariates"` term.
 
 ``` r
+
 mod_gdp_dens |>
   components() |>
   filter(term == "covariates")
@@ -185,6 +187,7 @@ larger-than-usual numbers of births. To allow for this possibility, we
 create a dragon-year covariate, and incorporate it into a new model.
 
 ``` r
+
 births <- births |>
   mutate(is_dragon_year = time == 2012)
 mod_dragon <- mod_pois(births ~ (age + region + time)^2,
@@ -192,9 +195,6 @@ mod_dragon <- mod_pois(births ~ (age + region + time)^2,
                       exposure = popn) |>
   set_covariates(~ is_dragon_year) |>
   fit()
-#> Building log-posterior function...
-#> Finding maximum...
-#> Drawing values for hyper-parameters...
 
 mod_dragon |>
   components() |>
@@ -215,6 +215,7 @@ name of the age group. We turn this variable into a factor with
 `"baseline"` as its first level.
 
 ``` r
+
 births <- births |>
   mutate(is_dragon_year_age = if_else(time == 2012, age, "baseline"),
          is_dragon_year_age = factor(is_dragon_year_age, 
@@ -238,17 +239,15 @@ births |>
 #> # ℹ 1 more variable: is_dragon_year_age <fct>
 ```
 
-We create a new model with the age-sepcific dragon-year indicator.
+We create a new model with the age-specific dragon-year indicator.
 
 ``` r
+
 mod_dragon_age <- mod_pois(births ~ (age + region + time)^2,
                          data = births,
                          exposure = popn) |>
   set_covariates(~ is_dragon_year_age) |>
   fit()
-#> Building log-posterior function...
-#> Finding maximum...
-#> Drawing values for hyper-parameters...
 mod_dragon_age
 #> 
 #>     ------ Fitted Poisson model ------
@@ -274,13 +273,14 @@ mod_dragon_age
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.02     0.42      0.55   22      TRUE   relative convergence (4)
+#>        1.05     0.43      0.58   22      TRUE   relative convergence (4)
 ```
 
 Rather than a single dragon-year coefficient, we have a coefficient for
 each age group. We extract them and tidy up the labels.
 
 ``` r
+
 mod_dragon_age |>
   components() |>
   filter(term == "covariates") |>
@@ -306,26 +306,24 @@ If all the covariates in a model are fixed, then the model can be
 forecasted as normal.
 
 ``` r
+
 mod_gdp_dens |>
-  forecast(labels = 2024:2025)
-#> `components()` for past values...
-#> `components()` for future values...
-#> `augment()` for future values...
-#> # A tibble: 90 × 10
-#>    age   region   time births  popn gdp_pc_2023 dens_2020 .observed
-#>    <chr> <fct>   <int>  <dbl> <int>       <dbl> <chr>         <dbl>
-#>  1 10-14 Busan    2024     NA    NA        25.7 High             NA
-#>  2 10-14 Busan    2025     NA    NA        25.7 High             NA
-#>  3 10-14 Daegu    2024     NA    NA        22.3 Medium           NA
-#>  4 10-14 Daegu    2025     NA    NA        22.3 Medium           NA
-#>  5 10-14 Gwangju  2024     NA    NA        26.0 Medium           NA
-#>  6 10-14 Gwangju  2025     NA    NA        26.0 Medium           NA
-#>  7 10-14 Incheon  2024     NA    NA        29.3 Medium           NA
-#>  8 10-14 Incheon  2025     NA    NA        29.3 Medium           NA
-#>  9 10-14 Seoul    2024     NA    NA        43.4 High             NA
-#> 10 10-14 Seoul    2025     NA    NA        43.4 High             NA
+  forecast(labels = 2024:2025) |>
+  select(age, region, time, .fitted)
+#> # A tibble: 90 × 4
+#>    age   region   time                    .fitted
+#>    <chr> <fct>   <int>               <rdbl<1000>>
+#>  1 10-14 Busan    2024 6.1e-06 (3.3e-06, 1.1e-05)
+#>  2 10-14 Busan    2024 6.1e-06 (3.3e-06, 1.1e-05)
+#>  3 10-14 Daegu    2024   5.5e-06 (2.9e-06, 1e-05)
+#>  4 10-14 Daegu    2024   5.4e-06 (2.9e-06, 1e-05)
+#>  5 10-14 Gwangju  2024 7.4e-06 (3.9e-06, 1.4e-05)
+#>  6 10-14 Gwangju  2024 7.5e-06 (3.8e-06, 1.4e-05)
+#>  7 10-14 Incheon  2024 7.2e-06 (3.8e-06, 1.4e-05)
+#>  8 10-14 Incheon  2024 7.3e-06 (3.9e-06, 1.4e-05)
+#>  9 10-14 Seoul    2024   4e-06 (2.1e-06, 7.5e-06)
+#> 10 10-14 Seoul    2024   4e-06 (2.1e-06, 7.3e-06)
 #> # ℹ 80 more rows
-#> # ℹ 2 more variables: .fitted <rdbl<1000>>, .expected <rdbl<1000>>
 ```
 
 If, however, a covariate varies over time, forecasting only works if
@@ -338,43 +336,47 @@ in an error:
 Instead we need to create a `newdata` data frame…
 
 ``` r
-newdata <- expand.grid(age = unique(kor_births$age),
-                       region = unique(kor_births$region),
+
+gdp_dens <- births |>
+  select(region, gdp_pc_2023, dens_2020) |>
+  unique()
+
+newdata <- expand.grid(age = unique(births$age),
+                       region = unique(births$region),
                        time = 2024:2025) |>
-  mutate(is_dragon_year = FALSE)
+  mutate(is_dragon_year = FALSE) |>
+  left_join(gdp_dens, by = "region")
+
 head(newdata)
-#>     age region time is_dragon_year
-#> 1 10-14  Busan 2024          FALSE
-#> 2 15-19  Busan 2024          FALSE
-#> 3 20-24  Busan 2024          FALSE
-#> 4 25-29  Busan 2024          FALSE
-#> 5 30-34  Busan 2024          FALSE
-#> 6 35-39  Busan 2024          FALSE
+#>     age region time is_dragon_year gdp_pc_2023 dens_2020
+#> 1 10-14  Busan 2024          FALSE      25.686      High
+#> 2 15-19  Busan 2024          FALSE      25.686      High
+#> 3 20-24  Busan 2024          FALSE      25.686      High
+#> 4 25-29  Busan 2024          FALSE      25.686      High
+#> 5 30-34  Busan 2024          FALSE      25.686      High
+#> 6 35-39  Busan 2024          FALSE      25.686      High
 ```
 
 …and supply it to
 [`forecast()`](https://generics.r-lib.org/reference/forecast.html).
 
 ``` r
+
 mod_dragon |>
-  forecast(newdata = newdata)
-#> `components()` for past values...
-#> `components()` for future values...
-#> `augment()` for future values...
-#> # A tibble: 288 × 11
-#>    age   region           time births  popn gdp_pc_2023 dens_2020 is_dragon_year
-#>    <chr> <fct>           <int>  <dbl> <int>       <dbl> <chr>     <lgl>         
-#>  1 10-14 Busan            2024     NA    NA          NA NA        FALSE         
-#>  2 15-19 Busan            2024     NA    NA          NA NA        FALSE         
-#>  3 20-24 Busan            2024     NA    NA          NA NA        FALSE         
-#>  4 25-29 Busan            2024     NA    NA          NA NA        FALSE         
-#>  5 30-34 Busan            2024     NA    NA          NA NA        FALSE         
-#>  6 35-39 Busan            2024     NA    NA          NA NA        FALSE         
-#>  7 40-44 Busan            2024     NA    NA          NA NA        FALSE         
-#>  8 45-49 Busan            2024     NA    NA          NA NA        FALSE         
-#>  9 50-54 Busan            2024     NA    NA          NA NA        FALSE         
-#> 10 10-14 Chungcheongbuk…  2024     NA    NA          NA NA        FALSE         
-#> # ℹ 278 more rows
-#> # ℹ 3 more variables: .observed <dbl>, .fitted <rdbl<1000>>,
-#> #   .expected <rdbl<1000>>
+  forecast(newdata = newdata) |>
+  select(age, region, time, .fitted)
+#> # A tibble: 90 × 4
+#>    age   region  time                    .fitted
+#>    <chr> <fct>  <int>               <rdbl<1000>>
+#>  1 10-14 Busan   2024 6.3e-06 (3.3e-06, 1.1e-05)
+#>  2 15-19 Busan   2024 0.00034 (0.00024, 0.00047)
+#>  3 20-24 Busan   2024    0.0029 (0.0021, 0.0039)
+#>  4 25-29 Busan   2024       0.017 (0.013, 0.022)
+#>  5 30-34 Busan   2024         0.06 (0.045, 0.08)
+#>  6 35-39 Busan   2024       0.043 (0.032, 0.057)
+#>  7 40-44 Busan   2024      0.0077 (0.0057, 0.01)
+#>  8 45-49 Busan   2024 0.00018 (0.00013, 0.00024)
+#>  9 50-54 Busan   2024 4.8e-06 (2.8e-06, 8.9e-06)
+#> 10 10-14 Daegu   2024   5.7e-06 (3e-06, 9.9e-06)
+#> # ℹ 80 more rows
 ```

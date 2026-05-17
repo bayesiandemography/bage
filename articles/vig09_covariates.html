@@ -13,8 +13,8 @@
     }
   };
 </script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Covariates">
 </head>
@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -123,7 +123,7 @@ where</p>
 <p>where
 - <span class="math inline">\(\pmb{Z}\)</span> is an <span class="math inline">\(I \times P\)</span> matrix of covariates; and
 - <span class="math inline">\(\pmb{\eta}\)</span> is a vector of coefficients.</p>
-<p>The covariate matrix <span class="math inline">\(\pmb{Z}\)</span> is derived from the raw covariate data by scaling any numeric variables to have mean 0 and standard deviation 1, and by converting any categorical variables to sets of indicator variables. The conversion to indicator variables follows the rules that R uses for “treatment” contrasts. If the categorical has <span class="math inline">\(C\)</span> categories, then <span class="math inline">\(C-1\)</span> indicator variabls are constructed, with the first category being omitted.</p>
+<p>The covariate matrix <span class="math inline">\(\pmb{Z}\)</span> is derived from the raw covariate data by scaling any numeric variables to have mean 0 and standard deviation 1, and by converting any categorical variables to sets of indicator variables. The conversion to indicator variables follows the rules that R uses for “treatment” contrasts. If the categorical has <span class="math inline">\(C\)</span> categories, then <span class="math inline">\(C-1\)</span> indicator variables are constructed, with the first category being omitted.</p>
 <p>Each element of <span class="math inline">\(\pmb{\eta}\)</span> has prior
 <span class="math display">\[\begin{equation}
   \eta_p \sim \text{N}(0, 1)
@@ -179,9 +179,6 @@ where</p>
 <span>                         exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_covariates.html">set_covariates</a></span><span class="op">(</span><span class="op">~</span> <span class="va">gdp_pc_2023</span> <span class="op">+</span> <span class="va">dens_2020</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
 <span><span class="va">mod_gdp_dens</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
@@ -207,7 +204,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.45     0.82      0.48   30      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.47     0.83      0.50   30      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>To obtain estimates of the coefficients (ie estimates of the <span class="math inline">\(\zeta_p\)</span>) we call function <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> and filter out rows for the <code>"covariates"</code> term.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_gdp_dens</span> <span class="op">|&gt;</span></span>
@@ -232,9 +229,6 @@ where</p>
 <span>                      exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_covariates.html">set_covariates</a></span><span class="op">(</span><span class="op">~</span> <span class="va">is_dragon_year</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
 <span></span>
 <span><span class="va">mod_dragon</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -267,16 +261,13 @@ where</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10-14 Incheon  <span style="text-decoration: underline;">2</span>011      0 <span style="text-decoration: underline;">83</span>927        29.3 Medium    FALSE         </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 125 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: is_dragon_year_age &lt;fct&gt;</span></span></span></code></pre></div>
-<p>We create a new model with the age-sepcific dragon-year indicator.</p>
+<p>We create a new model with the age-specific dragon-year indicator.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_dragon_age</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">births</span> <span class="op">~</span> <span class="op">(</span><span class="va">age</span> <span class="op">+</span> <span class="va">region</span> <span class="op">+</span> <span class="va">time</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>                         data <span class="op">=</span> <span class="va">births</span>,</span>
 <span>                         exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_covariates.html">set_covariates</a></span><span class="op">(</span><span class="op">~</span> <span class="va">is_dragon_year_age</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Building log-posterior function...</span></span>
-<span><span class="co">#&gt; Finding maximum...</span></span>
-<span><span class="co">#&gt; Drawing values for hyper-parameters...</span></span>
 <span><span class="va">mod_dragon_age</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
@@ -302,7 +293,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.02     0.42      0.55   22      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.05     0.43      0.58   22      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Rather than a single dragon-year coefficient, we have a coefficient for each age group. We extract them and tidy up the labels.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_dragon_age</span> <span class="op">|&gt;</span></span>
@@ -330,65 +321,64 @@ where</p>
 <p>If all the covariates in a model are fixed, then the model can be forecasted as normal.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_gdp_dens</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2024</span><span class="op">:</span><span class="fl">2025</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `components()` for past values...</span></span>
-<span><span class="co">#&gt; `components()` for future values...</span></span>
-<span><span class="co">#&gt; `augment()` for future values...</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 90 × 10</span></span></span>
-<span><span class="co">#&gt;    age   region   time births  popn gdp_pc_2023 dens_2020 .observed</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10-14 Busan    <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        25.7 High             <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 10-14 Busan    <span style="text-decoration: underline;">2</span>025     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        25.7 High             <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Daegu    <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        22.3 Medium           <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 10-14 Daegu    <span style="text-decoration: underline;">2</span>025     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        22.3 Medium           <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 10-14 Gwangju  <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        26.0 Medium           <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 10-14 Gwangju  <span style="text-decoration: underline;">2</span>025     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        26.0 Medium           <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 10-14 Incheon  <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        29.3 Medium           <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 10-14 Incheon  <span style="text-decoration: underline;">2</span>025     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        29.3 Medium           <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 10-14 Seoul    <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        43.4 High             <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10-14 Seoul    <span style="text-decoration: underline;">2</span>025     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        43.4 High             <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 80 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: .fitted &lt;rdbl&lt;1000&gt;&gt;, .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2024</span><span class="op">:</span><span class="fl">2025</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">region</span>, <span class="va">time</span>, <span class="va">.fitted</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 90 × 4</span></span></span>
+<span><span class="co">#&gt;    age   region   time                    .fitted</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10-14 Busan    <span style="text-decoration: underline;">2</span>024 6.1e-06 (3.3e-06, 1.1e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 10-14 Busan    <span style="text-decoration: underline;">2</span>024 6.1e-06 (3.3e-06, 1.1e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Daegu    <span style="text-decoration: underline;">2</span>024   5.5e-06 (2.9e-06, 1e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 10-14 Daegu    <span style="text-decoration: underline;">2</span>024   5.4e-06 (2.9e-06, 1e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 10-14 Gwangju  <span style="text-decoration: underline;">2</span>024 7.4e-06 (3.9e-06, 1.4e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 10-14 Gwangju  <span style="text-decoration: underline;">2</span>024 7.5e-06 (3.8e-06, 1.4e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 10-14 Incheon  <span style="text-decoration: underline;">2</span>024 7.2e-06 (3.8e-06, 1.4e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 10-14 Incheon  <span style="text-decoration: underline;">2</span>024 7.3e-06 (3.9e-06, 1.4e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 10-14 Seoul    <span style="text-decoration: underline;">2</span>024   4e-06 (2.1e-06, 7.5e-06)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10-14 Seoul    <span style="text-decoration: underline;">2</span>024   4e-06 (2.1e-06, 7.3e-06)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 80 more rows</span></span></span></code></pre></div>
 <p>If, however, a covariate varies over time, forecasting only works if values for future periods are provided. The following code will result in an error:</p>
 <pre><code><span><span class="va">mod_dragon</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2024</span><span class="op">:</span><span class="fl">2025</span><span class="op">)</span></span></code></pre>
 <p>Instead we need to create a <code>newdata</code> data frame…</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">newdata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">kor_births</span><span class="op">$</span><span class="va">age</span><span class="op">)</span>,</span>
-<span>                       region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">kor_births</span><span class="op">$</span><span class="va">region</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="va">gdp_dens</span> <span class="op">&lt;-</span> <span class="va">births</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">region</span>, <span class="va">gdp_pc_2023</span>, <span class="va">dens_2020</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">newdata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">births</span><span class="op">$</span><span class="va">age</span><span class="op">)</span>,</span>
+<span>                       region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">births</span><span class="op">$</span><span class="va">region</span><span class="op">)</span>,</span>
 <span>                       time <span class="op">=</span> <span class="fl">2024</span><span class="op">:</span><span class="fl">2025</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>is_dragon_year <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>is_dragon_year <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">gdp_dens</span>, by <span class="op">=</span> <span class="st">"region"</span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">newdata</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     age region time is_dragon_year</span></span>
-<span><span class="co">#&gt; 1 10-14  Busan 2024          FALSE</span></span>
-<span><span class="co">#&gt; 2 15-19  Busan 2024          FALSE</span></span>
-<span><span class="co">#&gt; 3 20-24  Busan 2024          FALSE</span></span>
-<span><span class="co">#&gt; 4 25-29  Busan 2024          FALSE</span></span>
-<span><span class="co">#&gt; 5 30-34  Busan 2024          FALSE</span></span>
-<span><span class="co">#&gt; 6 35-39  Busan 2024          FALSE</span></span></code></pre></div>
+<span><span class="co">#&gt;     age region time is_dragon_year gdp_pc_2023 dens_2020</span></span>
+<span><span class="co">#&gt; 1 10-14  Busan 2024          FALSE      25.686      High</span></span>
+<span><span class="co">#&gt; 2 15-19  Busan 2024          FALSE      25.686      High</span></span>
+<span><span class="co">#&gt; 3 20-24  Busan 2024          FALSE      25.686      High</span></span>
+<span><span class="co">#&gt; 4 25-29  Busan 2024          FALSE      25.686      High</span></span>
+<span><span class="co">#&gt; 5 30-34  Busan 2024          FALSE      25.686      High</span></span>
+<span><span class="co">#&gt; 6 35-39  Busan 2024          FALSE      25.686      High</span></span></code></pre></div>
 <p>…and supply it to <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code>.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_dragon</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>newdata <span class="op">=</span> <span class="va">newdata</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `components()` for past values...</span></span>
-<span><span class="co">#&gt; `components()` for future values...</span></span>
-<span><span class="co">#&gt; `augment()` for future values...</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 288 × 11</span></span></span>
-<span><span class="co">#&gt;    age   region           time births  popn gdp_pc_2023 dens_2020 is_dragon_year</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10-14 Busan            <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 15-19 Busan            <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 20-24 Busan            <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 25-29 Busan            <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 30-34 Busan            <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 35-39 Busan            <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 40-44 Busan            <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 45-49 Busan            <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 50-54 Busan            <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10-14 Chungcheongbuk…  <span style="text-decoration: underline;">2</span>024     <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>        FALSE         </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 278 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3 more variables: .observed &lt;dbl&gt;, .fitted &lt;rdbl&lt;1000&gt;&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>newdata <span class="op">=</span> <span class="va">newdata</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">region</span>, <span class="va">time</span>, <span class="va">.fitted</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 90 × 4</span></span></span>
+<span><span class="co">#&gt;    age   region  time                    .fitted</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10-14 Busan   <span style="text-decoration: underline;">2</span>024 6.3e-06 (3.3e-06, 1.1e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 15-19 Busan   <span style="text-decoration: underline;">2</span>024 0.00034 (0.00024, 0.00047)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 20-24 Busan   <span style="text-decoration: underline;">2</span>024    0.0029 (0.0021, 0.0039)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 25-29 Busan   <span style="text-decoration: underline;">2</span>024       0.017 (0.013, 0.022)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 30-34 Busan   <span style="text-decoration: underline;">2</span>024         0.06 (0.045, 0.08)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 35-39 Busan   <span style="text-decoration: underline;">2</span>024       0.043 (0.032, 0.057)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 40-44 Busan   <span style="text-decoration: underline;">2</span>024      0.0077 (0.0057, 0.01)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 45-49 Busan   <span style="text-decoration: underline;">2</span>024 0.00018 (0.00013, 0.00024)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 50-54 Busan   <span style="text-decoration: underline;">2</span>024 4.8e-06 (2.8e-06, 8.9e-06)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10-14 Daegu   <span style="text-decoration: underline;">2</span>024   5.7e-06 (3e-06, 9.9e-06)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 80 more rows</span></span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

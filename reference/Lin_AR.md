@@ -31,8 +31,8 @@ Lin_AR(
 
 - shape1, shape2:
 
-  Parameters for beta-distribution prior for coefficients. Defaults are
-  `5` and `5`.
+  Parameters for beta-distribution prior for coefficients in the AR
+  process. Defaults are `5` and `5`.
 
 - mean_slope:
 
@@ -50,8 +50,8 @@ Lin_AR(
 
 - con:
 
-  **\[experimental\]** Constraints on parameters. Current choices are
-  `"none"` and `"by"`. Default is `"none"`. See below for details.
+  Constraints on parameters. Current choices are `"none"` and `"by"`.
+  Default is `"none"`. See below for details.
 
 ## Value
 
@@ -76,20 +76,18 @@ give more steeply sloped lines.
 
 When `Lin_AR()` is used with a main effect,
 
-\$\$\beta_1 = \alpha + \epsilon_1\$\$ \$\$\beta_j = \alpha + (j - 1)
-\eta + \epsilon_j, \quad j \> 1\$\$ \$\$\alpha \sim \text{N}(0, 1)\$\$
-\$\$\epsilon_j = \phi_1 \epsilon\_{j-1} + \cdots +
+\$\$\beta_j = \alpha_j + \epsilon_j\$\$ \$\$\alpha_j = (j - (J+1)/2)
+\eta\$\$ \$\$\epsilon_j = \phi_1 \epsilon\_{j-1} + \cdots +
 \phi\_{\mathtt{n\\coef}} \epsilon\_{j-\mathtt{n\\coef}} +
 \varepsilon_j\$\$ \$\$\varepsilon_j \sim \text{N}(0, \omega^2),\$\$
 
 and when it is used with an interaction,
 
-\$\$\beta\_{u,1} = \alpha_u + \epsilon\_{u,1}\$\$ \$\$\beta\_{u,v} =
-\eta (v - 1) + \epsilon\_{u,v}, \quad v = 2, \cdots, V\$\$ \$\$\alpha_u
-\sim \text{N}(0, 1)\$\$ \$\$\epsilon\_{u,v} = \phi_1 \epsilon\_{u,v-1} +
-\cdots + \phi\_{\mathtt{n\\coef}} \epsilon\_{u,v-\mathtt{n\\coef}} +
-\varepsilon\_{u,v},\$\$ \$\$\varepsilon\_{u,v} \sim \text{N}(0,
-\omega^2).\$\$
+\$\$\beta\_{u,v} = \alpha\_{u,v} + \epsilon\_{u,v}\$\$ \$\$\alpha\_{u,v}
+= (v - (V + 1)/2) \eta_u\$\$ \$\$\epsilon\_{u,v} = \phi_1
+\epsilon\_{u,v-1} + \cdots + \phi\_{\mathtt{n\\coef}}
+\epsilon\_{u,v-\mathtt{n\\coef}} + \varepsilon\_{u,v},\$\$
+\$\$\varepsilon\_{u,v} \sim \text{N}(0, \omega^2).\$\$
 
 where
 
@@ -97,10 +95,10 @@ where
 
 - \\j\\ denotes position within the main effect;
 
-- \\u\\ denotes position within the 'along' variable of the interaction;
+- \\u\\ denotes position within the 'by' variable(s) of the interaction;
   and
 
-- \\u\\ denotes position within the 'by' variable(s) of the interaction.
+- \\v\\ denotes position within the 'along' variable of the interaction.
 
 The slopes have priors \$\$\eta \sim \text{N}(\mathtt{mean\\slope},
 \mathtt{sd\\slope}^2)\$\$ and \$\$\eta_u \sim
@@ -119,14 +117,8 @@ The correlation coefficients \\\phi_1, \cdots,
 
 ## Constraints
 
-**\[experimental\]** The specification of constraints is likely to
-change in future versions of bage.
-
 With some combinations of terms and priors, the values of the intercept,
-main effects, and interactions are are only weakly identified. For
-instance, it may be possible to increase the value of the intercept and
-reduce the value of the remaining terms in the model with no effect on
-predicted rates and only a tiny effect on prior probabilities. This weak
+main effects, and interactions are only weakly identified. This weak
 identifiability is typically harmless. However, in some applications,
 such as when trying to obtain interpretable values for main effects and
 interactions, it can be helpful to increase identifiability through the
@@ -168,20 +160,20 @@ Lin_AR()
 #>   Lin_AR() 
 #>     n_coef: 2
 #>          s: 1
+#>     shape1: 5
+#>     shape2: 5
 #> mean_slope: 0
 #>   sd_slope: 1
-#>        min: -1
-#>        max: 1
 #>      along: NULL
 #>        con: none
 Lin_AR(n_coef = 3, s = 0.5, sd_slope = 2)
 #>   Lin_AR(n_coef=3,s=0.5,sd_slope=2) 
 #>     n_coef: 3
 #>          s: 0.5
+#>     shape1: 5
+#>     shape2: 5
 #> mean_slope: 0
 #>   sd_slope: 2
-#>        min: -1
-#>        max: 1
 #>      along: NULL
 #>        con: none
 ```

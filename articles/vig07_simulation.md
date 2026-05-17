@@ -42,6 +42,7 @@ We reduce the number of ages and time periods to speed up the
 calculations.
 
 ``` r
+
 library(bage)
 #> Loading required package: rvec
 #> 
@@ -70,6 +71,7 @@ In upcoming releases of `bage` we intend to default informative versions
 of priors. For the time being, however, we create the priors by hand.
 
 ``` r
+
 mod <- mod_pois(divorces ~ age + sex + time,
                 data = divorces_small,
                     exposure = population) |>
@@ -107,6 +109,7 @@ repeats the experiment 100 times, generating a different dataset each
 time.
 
 ``` r
+
 set.seed(0)
 res <- report_sim(mod_est = mod)
 res
@@ -168,6 +171,7 @@ random walk, while the estimation model continues to use a first-order
 autoregressive prior,
 
 ``` r
+
 mod_rw <- mod |>
   set_prior(time ~ RW(s = 0.05))
 mod_rw  
@@ -194,6 +198,7 @@ A simulation where the estimation model differs from the data generation
 mode can be generated as follows:
 
 ``` r
+
 set.seed(0)
 report_sim(mod_est = mod, mod_sim = mod_rw) ## not run
 ```

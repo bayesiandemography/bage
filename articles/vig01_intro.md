@@ -36,6 +36,7 @@ demographic data. Packages `dplyr` and `tidyr` are core
 use `ggplot2` for graphics.
 
 ``` r
+
 library(bage)
 library(poputils)
 library(dplyr)
@@ -50,6 +51,7 @@ We analyse a dataset called `nzl_injuries`. The dataset is included in
 Zealand, classified by age, sex, ethnicity, and year.
 
 ``` r
+
 head(nzl_injuries)
 #> # A tibble: 6 × 6
 #>   age   sex    ethnicity  year injuries  popn
@@ -63,6 +65,7 @@ head(nzl_injuries)
 ```
 
 ``` r
+
 nzl_injuries |>
   filter(year %in% c(2000, 2006, 2012, 2018)) |>
   ggplot(aes(x = age_mid(age), y = injuries / popn, color = sex)) +
@@ -84,6 +87,7 @@ draws from Poisson distributions. The expected number of injuries varies
 with different combinations of age, sex, ethnicity, and year.
 
 ``` r
+
 mod <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
                 data = nzl_injuries,
                 exposure = popn)
@@ -120,6 +124,7 @@ feature of Bayesian methods.
 Printing a model object provides information on its structure:
 
 ``` r
+
 mod
 #> 
 #>     ------ Unfitted Poisson model ------
@@ -167,6 +172,7 @@ quantities in the model. For that, we need function
 [`fit()`](https://generics.r-lib.org/reference/fit.html).
 
 ``` r
+
 mod <- mod |>
   fit()
 ```
@@ -176,6 +182,7 @@ mod <- mod |>
 The printout for a fitted model differs from that of an unfitted model.
 
 ``` r
+
 mod
 #> 
 #>     ------ Fitted Poisson model ------
@@ -199,7 +206,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.81     0.34      0.40   11      TRUE   relative convergence (4)
+#>        0.83     0.34      0.41   11      TRUE   relative convergence (4)
 ```
 
 Among other things, a new row appears at the bottom of the printout,
@@ -233,6 +240,7 @@ Both of these are generic functions that work on many sorts of R objects
 the original dataset plus some additional columns of estimated values,
 
 ``` r
+
 aug <- mod |>
   augment()
 aug
@@ -256,6 +264,7 @@ aug
 The additional columns are `.observed`, `.fitted`, and `.expected`.
 
 ``` r
+
 aug |>
   select(.observed, .fitted, .expected) 
 #> # A tibble: 912 × 3
@@ -290,6 +299,7 @@ is used to extract values for higher-level parameters. It returns values
 for all the parameters.
 
 ``` r
+
 comp <- mod |>
   components()
 comp
@@ -314,6 +324,7 @@ The output from
 may require a bit of tidying,
 
 ``` r
+
 age_effect <- comp |>
   filter(term == "age",
          component == "effect") |>
@@ -362,6 +373,7 @@ use the
 function from `rvec` to create 95% credible intervals.
 
 ``` r
+
 data_plot <- aug |>
   filter(year == 2018) |>
   mutate(draws_ci(.fitted))
@@ -394,6 +406,7 @@ to plot model-based point estimates, and
 to plot direct estimates.
 
 ``` r
+
 ggplot(data_plot, aes(x = age_mid(age))) +
   facet_grid(vars(sex), vars(ethnicity)) +
   geom_ribbon(aes(ymin = .fitted.lower,
@@ -464,6 +477,7 @@ Priors can be over-ridden using
 [`set_prior()`](https://bayesiandemography.github.io/bage/reference/set_prior.md):
 
 ``` r
+
 mod <- mod |>
   set_prior(year ~ AR1())
 ```
@@ -472,6 +486,7 @@ Replacing a prior deletes any existing estimates and returns a model to
 an ‘unfitted’ state.
 
 ``` r
+
 is_fitted(mod)
 #> [1] FALSE
 ```
@@ -479,6 +494,7 @@ is_fitted(mod)
 So we re-fit the model.
 
 ``` r
+
 mod <- mod |>
   fit()
 ```
@@ -497,6 +513,7 @@ much less than the total number of parameters (denoted `n_par`) for
 `age` and `age:time`.
 
 ``` r
+
 mod_births <- mod_pois(births ~ age * region + age * time,
                        data = kor_births,
                        exposure = popn) |>
@@ -525,7 +542,7 @@ mod_births
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.69     1.57      1.01   22      TRUE   relative convergence (4)
+#>        2.70     1.56      1.02   22      TRUE   relative convergence (4)
 ```
 
 ## 7 Covariates
@@ -538,6 +555,7 @@ using function
 [`set_covariates()`](https://bayesiandemography.github.io/bage/reference/set_covariates.md):
 
 ``` r
+
 mod_pois(births ~ age * region + age * time,
          data = kor_births,
          exposure = popn) |>
@@ -577,6 +595,7 @@ produces values like those produced by
 [`augment()`](https://generics.r-lib.org/reference/augment.html).
 
 ``` r
+
 aug_forecast <- mod |>
   forecast(labels = 2019:2028)
 names(aug_forecast)
@@ -590,6 +609,7 @@ produces values like those produced by
 [`components()`](https://generics.r-lib.org/reference/components.html).
 
 ``` r
+
 comp_forecast <- mod |>
   forecast(labels = 2019:2028,
            output = "components")
@@ -613,6 +633,7 @@ When the argument `include_estimates` is `TRUE`, the return value
 includes historical estimates. This is useful for plotting.
 
 ``` r
+
 data_forecast <- mod |>
   fit() |>
   forecast(labels = 2019:2028,
@@ -643,6 +664,7 @@ variables. We illustrate with a version of the injuries dataset where
 values for 2010–2014 are set to `NA`.
 
 ``` r
+
 years_mis <- 2010:2014
 
 injuries_mis <- nzl_injuries |>
@@ -652,6 +674,7 @@ injuries_mis <- nzl_injuries |>
 We fit our exactly the same model that we use for the complete dataset.
 
 ``` r
+
 mod_mis <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
                     data = injuries_mis,
                     exposure = popn) |>
@@ -662,6 +685,7 @@ mod_mis <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
 values for the missing outcomes.
 
 ``` r
+
 mod_mis |>
   augment() |>
   filter(year %in% years_mis)
@@ -687,6 +711,7 @@ credible intervals than rates estimates in years where the outcome is
 observed.
 
 ``` r
+
 data_plot_mis <- mod_mis |>
   augment() |>
   filter(age == "20-24") |>
@@ -727,6 +752,7 @@ collection process, responses for females are expected to be inflated by
 extend our base model as follows:
 
 ``` r
+
 prob_under <- data.frame(sex =  c("Female", "Male"),
                          mean = c(0.05,     0.06),
              disp = c(0.02,     0.02))
@@ -749,6 +775,7 @@ To deal with confidentialization, we describe the confidentialization
 process to our model.
 
 ``` r
+
 mod <- mod |>
   set_confidential_rr3() |>
   fit()
@@ -760,6 +787,7 @@ include a variable called `.injuries` with estimated values for the
 true, unrounded injury counts.
 
 ``` r
+
 mod |>
   augment()
 #> # A tibble: 912 × 10
@@ -790,6 +818,7 @@ actual data. Function
 creates multiple sets of simulated data.
 
 ``` r
+
 rep_data <- mod |>
   replicate_data()
 rep_data
@@ -815,6 +844,7 @@ data, and compare those instead. Here we see if the model is properly
 capturing male-female differences in injury rates.
 
 ``` r
+
 sex_ratio <- rep_data |>
   count(.replicate, year, sex, wt = injuries) |>
   pivot_wider(names_from = sex, values_from = n) |>
@@ -840,6 +870,7 @@ We graph the results and see if the original data looks like it was
 drawn from the same underlying distribution as the simulated data.
 
 ``` r
+
 ggplot(sex_ratio, aes(x = year, y = ratio)) +
   facet_wrap(vars(.replicate)) +
   geom_line()
@@ -859,6 +890,7 @@ assumes that the population is generated using a second-order random
 walk.
 
 ``` r
+
 set.seed(0)
 
 ## Create simulated data
@@ -910,6 +942,7 @@ or [`forecast()`](https://generics.r-lib.org/reference/forecast.html) on
 an unfitted version of the model.
 
 ``` r
+
 mod |>
   unfit() |>
   components()

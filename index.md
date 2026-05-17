@@ -13,6 +13,7 @@ Features:
 ## Installation
 
 ``` r
+
 install.packages("bage")
 ```
 
@@ -26,6 +27,7 @@ A road map for the package is
 Fit Poisson model to data on injuries
 
 ``` r
+
 library(bage)
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
@@ -57,6 +59,7 @@ mod
 Extract model-based and direct estimates
 
 ``` r
+
 augment(mod)
 #> # A tibble: 912 × 9
 #>    age   sex    ethnicity  year injuries  popn .observed                    .fitted

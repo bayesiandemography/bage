@@ -1,6 +1,7 @@
 # Singular Value Decomposition
 
 ``` r
+
 library(bage)
 #> Loading required package: rvec
 #> 
@@ -16,6 +17,7 @@ library(ggplot2)
 ```
 
 ``` r
+
 draws <- generate(HFD, n_draw = 200, age_labels = 15:49) |>
   mutate(age = as.integer(age),
          value = exp(value))

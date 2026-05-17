@@ -21,6 +21,7 @@ The overview will use a model of births in a single Korean province in a
 single year. The input data is:
 
 ``` r
+
 births
 #> # A tibble: 9 × 3
 #>   age   births  popn
@@ -42,6 +43,7 @@ Our base model treats the input data as error free. We specify and fit
 the base model as follows.
 
 ``` r
+
 library(bage)
 library(dplyr)
 mod_base <- mod_pois(births ~ age,
@@ -84,13 +86,13 @@ The base model yields the following estimates for birth rates:
 
 `bage` currently implements five generic data models:
 
-| **Model**  | **Assumptions about measurement error**                                       | **Poisson** | **Binomial** | **Normal** |
-|:-----------|:------------------------------------------------------------------------------|:------------|:-------------|:-----------|
-| Miscount   | Reported outcome has undercount and overcount                                 | Yes         | No           | No         |
-| Undercount | Reported outcome has undercount                                               | Yes         | Yes          | No         |
-| Overcount  | Reported outcome has overcount                                                | Yes         | No           | No         |
-| Noise      | Reported outcome unbiased, but with positive and negative measurement errors  | Yes\*       | No           | Yes        |
-| Exposure   | Reported exposure unbiased, but with positive and negative measurement errors | Yes\*       | No           | No         |
+| **Model** | **Assumptions about measurement error** | **Poisson** | **Binomial** | **Normal** |
+|:---|:---|:---|:---|:---|
+| Miscount | Reported outcome has undercount and overcount | Yes | No | No |
+| Undercount | Reported outcome has undercount | Yes | Yes | No |
+| Overcount | Reported outcome has overcount | Yes | No | No |
+| Noise | Reported outcome unbiased, but with positive and negative measurement errors | Yes\* | No | Yes |
+| Exposure | Reported exposure unbiased, but with positive and negative measurement errors | Yes\* | No | No |
 
 \*Models with no dispersion term for rates.
 
@@ -122,6 +124,7 @@ probability, which is drawn from a distribution with mean 0.8 and
 dispersion 0.02.
 
 ``` r
+
 prob_under <- data.frame(mean = 0.8, disp = 0.02)
 ```
 
@@ -129,6 +132,7 @@ We use function \`set_datamod_undercount to add an ‘undercount’ data
 model to our original base model, and then fit the new combined model
 
 ``` r
+
 mod_under <- mod_base |>
   set_datamod_undercount(prob = prob_under) |>
   fit()
@@ -160,6 +164,7 @@ in the `.fitted` and `.expected` columns, but also estimates of true
 births, in the `.births` column:
 
 ``` r
+
 mod_under |>
   augment()
 #> ℹ Adding variable `.births` with true values for `births`.
@@ -191,6 +196,7 @@ The estimated coverage probability can be extracted using function
 [`components()`](https://generics.r-lib.org/reference/components.html):
 
 ``` r
+
 mod_under |>
   components() |>
   filter(term == "datamod")
@@ -229,6 +235,7 @@ rate, which is drawn from a distribution with mean 0.1 and dispersion
 0.05.
 
 ``` r
+
 rate_over <- data.frame(mean = 0.1, disp = 0.05)
 ```
 
@@ -236,6 +243,7 @@ We specify the overcount model using function
 [`set_datamod_overcount()`](https://bayesiandemography.github.io/bage/reference/set_datamod_overcount.md).
 
 ``` r
+
 mod_over <- mod_base |>
   set_datamod_overcount(rate = rate_over)
 ```
@@ -263,6 +271,7 @@ We need to specify priors for inclusion probabilities and overcoverage
 rates. We re-use the priors from the previous models.
 
 ``` r
+
 mod_mis <- mod_base |>
   set_datamod_miscount(prob = prob_under,
                        rate = rate_over)
@@ -279,6 +288,7 @@ We use
 to extract estimates of the inclusion probability and overcount rate.
 
 ``` r
+
 mod_mis |>
   components() |>
   filter(term == "datamod")
@@ -325,6 +335,7 @@ will do this for us, but it is good practice to make the change
 explicit:
 
 ``` r
+
 mod_noise <- mod_base |>
   set_disp(mean = 0) |>
   set_datamod_noise(s = 50)
@@ -368,6 +379,7 @@ The exposure data model is specified using the cv. As with the noise
 data model, dispersion in the base model must be set to 0.
 
 ``` r
+
 mod_expose <- mod_base |>
   set_disp(mean = 0) |>
   set_datamod_exposure(cv = 0.05)
@@ -390,6 +402,7 @@ extended version of our births model. We use a new dataset that includes
 a time variable:
 
 ``` r
+
 births_time
 #> # A tibble: 27 × 4
 #>    age    time births  popn
@@ -411,6 +424,7 @@ We create a new prior for inclusion probabilities where the mean and
 dispersion vary over time:
 
 ``` r
+
 prob_under_time <- data.frame(time = c(2021, 2022, 2023),
                               mean = c(0.99, 0.8,  0.99),
                                     disp = c(0.01, 0.02, 0.01))
@@ -420,6 +434,7 @@ We implement one model with the old time-constant prior, and one with
 the new time-varying prior.
 
 ``` r
+
 mod_timeconst <- mod_pois(births ~ age + time,
                           data = births_time,
                                 exposure = popn) |>
@@ -441,6 +456,7 @@ people aged 10-34, and one for people aged 35+. To implement this, we
 need to create a new, aggregated age group.
 
 ``` r
+
 births_time <- births_time |>
   mutate(agegp = if_else(age %in% c("10-14", "15-19",
                                     "20-24", "25-29",
@@ -475,6 +491,7 @@ easiest with the data model does not contain any time-varying
 parameters, like the `mod_timeconst` constructed above:
 
 ``` r
+
 mod_timeconst |>
   fit() |>
   forecast(label = 2024)
@@ -503,6 +520,7 @@ If future values for population are supplied, then the forecast will
 include true and reported values for the outcome variable:
 
 ``` r
+
 newdata_births <- data.frame(
   age = c("10-14", "15-19", "20-24", "25-29", "30-34",
           "35-39", "40-44", "45-49", "50-54"),
@@ -542,6 +560,7 @@ data model is first created. Here, for, instance, we create a version of
 the `prob_under_time` prior that includes values for 2024.
 
 ``` r
+
 prob_under_time_ext <- rbind(
   prob_under_time,
   data.frame(time = 2024,
@@ -560,6 +579,7 @@ Our dataset only contains values up to 2023. When we fit our model,
 forecast, `bage` uses the prior values for 2024.
 
 ``` r
+
 mod_under_time_ext <- mod_pois(births ~ age + time,
                                data = births_time,
                                exposure = popn) |>
@@ -576,6 +596,7 @@ following model assumes that births have been under-reported, and have
 been randomly rounded to multiples of 3.
 
 ``` r
+
 births_rr3 <- births |>
   mutate(births = rr3(births))
 

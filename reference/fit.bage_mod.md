@@ -223,7 +223,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.48     0.21      0.23   12      TRUE   relative convergence (4)
+#>        0.49     0.21      0.24   12      TRUE   relative convergence (4)
 #> 
 
 ## extract rates
@@ -249,17 +249,17 @@ aug
 comp <- components(mod)
 comp
 #> # A tibble: 37 × 4
-#>    term        component level                   .fitted
-#>    <chr>       <chr>     <chr>              <rdbl<1000>>
-#>  1 (Intercept) effect    (Intercept)     -2.4 (-4, -0.7)
-#>  2 age         effect    0-4          -2.4 (-4.2, -0.74)
-#>  3 age         effect    5-9           -3.8 (-5.6, -2.1)
-#>  4 age         effect    10-14         -3.4 (-5.1, -1.7)
-#>  5 age         effect    15-19          -1.6 (-3.3, 0.1)
-#>  6 age         effect    20-24         -1.5 (-3.3, 0.21)
-#>  7 age         effect    25-29        -1.6 (-3.4, 0.089)
-#>  8 age         effect    30-34        -1.7 (-3.4, 0.063)
-#>  9 age         effect    35-39       -1.7 (-3.5, -0.023)
-#> 10 age         effect    40-44       -1.7 (-3.5, -0.056)
+#>    term        component level                  .fitted
+#>    <chr>       <chr>     <chr>             <rdbl<1000>>
+#>  1 (Intercept) effect    (Intercept) -2.5 (-4.1, -0.77)
+#>  2 age         effect    0-4         -2.4 (-4.1, -0.68)
+#>  3 age         effect    5-9          -3.8 (-5.6, -2.1)
+#>  4 age         effect    10-14        -3.3 (-5.1, -1.6)
+#>  5 age         effect    15-19        -1.5 (-3.3, 0.17)
+#>  6 age         effect    20-24        -1.4 (-3.2, 0.28)
+#>  7 age         effect    25-29        -1.6 (-3.3, 0.17)
+#>  8 age         effect    30-34        -1.6 (-3.4, 0.12)
+#>  9 age         effect    35-39       -1.7 (-3.4, 0.058)
+#> 10 age         effect    40-44       -1.7 (-3.4, 0.066)
 #> # ℹ 27 more rows
 ```

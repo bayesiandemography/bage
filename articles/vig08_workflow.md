@@ -1,6 +1,7 @@
 # Bayesian Workflow
 
 ``` r
+
 library(bage)
 #> Loading required package: rvec
 #> 

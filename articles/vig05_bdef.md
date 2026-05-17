@@ -14,6 +14,7 @@ In addition to `bage`, the vignette uses the tidyverse packages `dplyr`,
 `tidyr`, and `ggplot2`.
 
 ``` r
+
 library(bage)
 library(dplyr)
 library(tidyr)
@@ -41,6 +42,7 @@ BDEF on why this definition is slightly odd.)
 Data for the analysis is in the `swe_infant` dataset in `bage`:
 
 ``` r
+
 swe_infant
 #> # A tibble: 441 × 4
 #>    county     time births deaths
@@ -63,6 +65,7 @@ panel depicts one county. The panels are ordered from top left to bottom
 right by the number of births in each county.
 
 ``` r
+
 ggplot(swe_infant, aes(x = time, y = deaths / births)) +
   facet_wrap(vars(county)) +
   geom_line()
@@ -75,6 +78,7 @@ ggplot(swe_infant, aes(x = time, y = deaths / births)) +
 Our model uses default settings for all priors and parameters.
 
 ``` r
+
 mod <- mod_binom(deaths ~ county + time,
                  data = swe_infant,
                  size = births)
@@ -132,6 +136,7 @@ We fit the model. Fitting in `bage` is a lot faster than fitting in
 `demest`.
 
 ``` r
+
 mod <- mod |>
   fit()
 #> Building log-posterior function...
@@ -156,7 +161,7 @@ mod
 #>    1000     time    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.59     0.32      0.22   14      TRUE   relative convergence (4)
+#>        0.61     0.32      0.22   14      TRUE   relative convergence (4)
 ```
 
 ### 2.3 Extracting parameter estimates
@@ -164,6 +169,7 @@ mod
 We extract the rates estimates.
 
 ``` r
+
 aug_init <- mod |>
   augment()
 aug_init
@@ -189,6 +195,7 @@ We use function
 from package **rvec** to calculate 95% credible intervals.
 
 ``` r
+
 aug_init <- aug_init |>
   mutate(draws_ci(.fitted))
 aug_init
@@ -213,6 +220,7 @@ aug_init
 And we graph the results.
 
 ``` r
+
 ggplot(aug_init, aes(x = time)) +
   facet_wrap(vars(county)) +
   geom_ribbon(aes(ymin = .fitted.lower,
@@ -233,6 +241,7 @@ ggplot(aug_init, aes(x = time)) +
 returns values for hyper-parameters.
 
 ``` r
+
 comp_init <- mod |>
   components()
 comp_init  
@@ -256,6 +265,7 @@ With help from some tidyverse functions we can extract and graph the
 intercept,
 
 ``` r
+
 intercept <- comp_init |>
   filter(term == "(Intercept)") |>
   mutate(draws_ci(.fitted))
@@ -271,6 +281,7 @@ ggplot(intercept, aes(y = level)) +
 the county effect,
 
 ``` r
+
 county_effect <- comp_init |>
   filter(term == "county",
          component == "effect") |>
@@ -288,6 +299,7 @@ ggplot(county_effect, aes(y = county)) +
 and the time effect.
 
 ``` r
+
 time_effect <- comp_init |>
   filter(term == "time",
          component == "effect") |>
@@ -309,6 +321,7 @@ The county effect and time effect each have `sd` parameters, which we
 also extract.
 
 ``` r
+
 comp_init |>
   filter(component == "hyper")
 #> # A tibble: 2 × 4
@@ -342,6 +355,7 @@ prior to 0 fixes the first value of the time effect to 0, leading to a
 more strongly-identified time effect.
 
 ``` r
+
 mod_ident <- mod_binom(deaths ~ county + time,
                        data = swe_infant,
                size = births) |>
@@ -380,6 +394,7 @@ Function
 generates replicate datasets.
 
 ``` r
+
 rep_data <- replicate_data(mod)
 rep_data
 #> # A tibble: 8,820 × 5
@@ -403,6 +418,7 @@ mortality rates, fit a line through these estimates, and collect up the
 slope.
 
 ``` r
+
 calculate_slope <- function(df) coef(lm(rate ~ time, data = df))[["time"]]
 slopes <- rep_data |>
   mutate(rate = deaths / births) |>
@@ -433,6 +449,7 @@ is less than 2.5 per 1000. The
 function from **rvec** makes this easy.
 
 ``` r
+
 prob_25 <- aug_init |>
   mutate(prob = prob(.fitted < 0.0025))
 
@@ -452,6 +469,7 @@ function returns output that looks like a return value from
 `include_estimates` is \`TRUE, the output includes historical values.
 
 ``` r
+
 vals_forecast <- mod |>
   forecast(labels = 2016:2025,
            include_estimates = TRUE)
@@ -481,6 +499,7 @@ In contrast to the all-defaults model in Chapter 11 of BDEF, the
 all-defaults model here does not yield exploding prediction intervals.
 
 ``` r
+
 vals_forecast <- vals_forecast |>
   mutate(draws_ci(.fitted))
   

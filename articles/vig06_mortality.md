@@ -13,6 +13,7 @@ contains functions for calculating life expectancy, and **rvec**, which
 contains data structures and functions for working with random draws.
 
 ``` r
+
 library(bage)
 #> Loading required package: rvec
 #> 
@@ -30,6 +31,7 @@ library(rvec)
 We use standard tidyverse tools for data manipulation and graphing.
 
 ``` r
+
 library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 library(ggplot2)
@@ -42,6 +44,7 @@ counts of deaths, and estimates of the mid-year population,
 disaggregated by age and sex, for the years 1998–2022.
 
 ``` r
+
 dth <- bage::isl_deaths
 dth
 #> # A tibble: 5,300 × 5
@@ -63,6 +66,7 @@ dth
 The oldest age group is 105 years and older.
 
 ``` r
+
 tail(dth, n = 3)
 #> # A tibble: 3 × 5
 #>   age   sex    time deaths  popn
@@ -76,6 +80,7 @@ The data is sparse. Twenty-two percent of death counts are 0, and half
 are 3 or less.
 
 ``` r
+
 dth |>
   count(deaths) |>
   mutate(percent = round(100 * n / sum(n)),
@@ -102,6 +107,7 @@ Random variation obscures any patterns before about age 50. After age
 50, rates increase more or less linearly.
 
 ``` r
+
 dth |>
   filter(time %in% c(1998, 2010, 2022)) |>
   mutate(rate = deaths / popn) |>
@@ -140,6 +146,7 @@ with the data with.
 It turns out there are 5 cases with non-zero deaths but zero population.
 
 ``` r
+
 dth |>
   filter(deaths > 0 & popn == 0)
 #> # A tibble: 5 × 5
@@ -157,6 +164,7 @@ the problematic zeros under the assumption that each person lives 0.5
 person years before dying.
 
 ``` r
+
 dth <- dth |>
   mutate(popn = if_else(deaths > 0 & popn == 0, 0.5, popn))
 ```
@@ -164,6 +172,7 @@ dth <- dth |>
 Our model is then
 
 ``` r
+
 mod_base <- mod_pois(deaths ~ age * sex + time,
                  data = dth,
                  exposure = popn)
@@ -257,6 +266,7 @@ We fit the model by calling function
 [`fit()`](https://generics.r-lib.org/reference/fit.html):
 
 ``` r
+
 mod_base <- fit(mod_base)
 #> Building log-posterior function...
 #> Finding maximum...
@@ -282,7 +292,7 @@ mod_base
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        3.12     1.52      1.41   14      TRUE   relative convergence (4)
+#>        3.14     1.52      1.43   14      TRUE   relative convergence (4)
 ```
 
 ### 3.4 Extracting rates
@@ -291,6 +301,7 @@ To extract estimated rates from the fitted model object, we use function
 [`augment()`](https://generics.r-lib.org/reference/augment.html).
 
 ``` r
+
 aug_base <- augment(mod_base)
 aug_base
 #> # A tibble: 5,300 × 8
@@ -329,6 +340,7 @@ Next we extract rates estimates for selected years, and summarize the
 posterior distributions.
 
 ``` r
+
 rates_base <- aug_base |>
   filter(time %in% c(1998, 2010, 2022)) |>
   select(age, sex, time, .observed, .fitted) |>
@@ -355,6 +367,7 @@ We plot point estimates and 95% credible intervals for the modelled
 estimates, together with the original direct estimates,
 
 ``` r
+
 ggplot(rates_base, aes(x = age_mid(age), 
              ymin = .fitted.lower,
              y = .fitted.mid,
@@ -384,6 +397,7 @@ higher-level parameters, can be obtained with function
 [`components()`](https://generics.r-lib.org/reference/components.html).
 
 ``` r
+
 comp_base <- components(mod_base)
 comp_base
 #> # A tibble: 350 × 4
@@ -407,6 +421,7 @@ returns a tibble contain estimates of all the higher-level parameters.
 To extract the age effect, and prepare it for graphing, we use
 
 ``` r
+
 age_effect <- comp_base |>
   filter(component == "effect",
          term == "age") |>
@@ -416,6 +431,7 @@ age_effect <- comp_base |>
 A graph of the age effect reveals a typical profile for mortality rates,
 
 ``` r
+
 ggplot(age_effect,
        aes(x = age_mid(level),
            y = .fitted.mid,
@@ -456,6 +472,7 @@ sex.
 ### 4.2 Specifying the new model
 
 ``` r
+
 mod_hmd <- mod_pois(deaths ~ age:sex + time,
                     data = dth,
                     exposure = popn) |>
@@ -480,6 +497,7 @@ mod_hmd
 ```
 
 ``` r
+
 mod_hmd <- fit(mod_hmd)
 #> Building log-posterior function...
 #> Finding maximum...
@@ -503,10 +521,11 @@ mod_hmd
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.79     1.35      1.28    9      TRUE   relative convergence (4)
+#>        2.83     1.36      1.30    9      TRUE   relative convergence (4)
 ```
 
 ``` r
+
 aug_hmd <- augment(mod_hmd)
 
 rates_hmd <- aug_hmd |>
@@ -534,6 +553,7 @@ ggplot(rates_hmd, aes(x = age_mid(age),
 ![](vig06_mortality_files/figure-html/unnamed-chunk-19-1.png)
 
 ``` r
+
 comp_hmd <- components(mod_hmd)
 
 age_sex_interact <- comp_hmd |>
@@ -558,6 +578,7 @@ ggplot(age_sex_interact,
 ## 5 Model testing
 
 ``` r
+
 rep_data_base <- replicate_data(mod_base, condition_on = "expected")
 
 data <- rep_data_base |>
@@ -568,6 +589,7 @@ data <- rep_data_base |>
 ```
 
 ``` r
+
 ggplot(data, aes(x = age_mid(age), y = diff)) +
   facet_wrap(vars(.replicate)) +
   geom_point(size = 0.2)
@@ -578,6 +600,7 @@ ggplot(data, aes(x = age_mid(age), y = diff)) +
 ## 6 Life expectancy and life tables
 
 ``` r
+
 lifeexp_hmd <- mod_hmd |>
   augment() |>
   lifeexp(mx = .fitted,
@@ -600,6 +623,7 @@ lifeexp_hmd
 ```
 
 ``` r
+
 lifeexp_hmd <- mod_hmd |>
   augment() |>
   lifeexp(mx = .fitted,

@@ -34,14 +34,14 @@ replicate_data(x, condition_on = NULL, n = 19)
 A [tibble](https://tibble.tidyverse.org/reference/tibble-package.html)
 with the following structure:
 
-|                   |                                                                                                                                                                                                                                                                               |
-|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `.replicate`      | data                                                                                                                                                                                                                                                                          |
-| `"Original"`      | Original data supplied to [`mod_pois()`](https://bayesiandemography.github.io/bage/reference/mod_pois.md), [`mod_binom()`](https://bayesiandemography.github.io/bage/reference/mod_binom.md), [`mod_norm()`](https://bayesiandemography.github.io/bage/reference/mod_norm.md) |
-| `"Replicate 1"`   | Simulated data.                                                                                                                                                                                                                                                               |
-| `"Replicate 2"`   | Simulated data.                                                                                                                                                                                                                                                               |
-| ...               | ...                                                                                                                                                                                                                                                                           |
-| `"Replicate <n>"` | Simulated data.                                                                                                                                                                                                                                                               |
+|  |  |
+|----|----|
+| `.replicate` | data |
+| `"Original"` | Original data supplied to [`mod_pois()`](https://bayesiandemography.github.io/bage/reference/mod_pois.md), [`mod_binom()`](https://bayesiandemography.github.io/bage/reference/mod_binom.md), [`mod_norm()`](https://bayesiandemography.github.io/bage/reference/mod_norm.md) |
+| `"Replicate 1"` | Simulated data. |
+| `"Replicate 2"` | Simulated data. |
+| ... | ... |
+| `"Replicate <n>"` | Simulated data. |
 
 ## Details
 
@@ -147,25 +147,25 @@ rep_data |>
 #>    .replicate       n
 #>    <fct>        <dbl>
 #>  1 Original     21588
-#>  2 Replicate 1  21088
-#>  3 Replicate 2  20918
-#>  4 Replicate 3  21963
-#>  5 Replicate 4  20803
-#>  6 Replicate 5  20738
-#>  7 Replicate 6  21066
-#>  8 Replicate 7  21711
-#>  9 Replicate 8  20784
-#> 10 Replicate 9  20277
-#> 11 Replicate 10 20600
-#> 12 Replicate 11 21293
-#> 13 Replicate 12 21792
-#> 14 Replicate 13 21481
-#> 15 Replicate 14 21390
-#> 16 Replicate 15 20504
-#> 17 Replicate 16 21521
-#> 18 Replicate 17 21354
-#> 19 Replicate 18 21881
-#> 20 Replicate 19 22475
+#>  2 Replicate 1  20775
+#>  3 Replicate 2  21340
+#>  4 Replicate 3  21287
+#>  5 Replicate 4  20494
+#>  6 Replicate 5  20740
+#>  7 Replicate 6  20702
+#>  8 Replicate 7  21396
+#>  9 Replicate 8  21271
+#> 10 Replicate 9  20884
+#> 11 Replicate 10 21508
+#> 12 Replicate 11 21046
+#> 13 Replicate 12 20887
+#> 14 Replicate 13 22049
+#> 15 Replicate 14 20578
+#> 16 Replicate 15 21337
+#> 17 Replicate 16 20824
+#> 18 Replicate 17 21247
+#> 19 Replicate 18 20690
+#> 20 Replicate 19 20588
 
 ## when the overall model includes an rr3 data model,
 ## replicate data are rounded to base 3

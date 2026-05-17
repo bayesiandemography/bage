@@ -5,7 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Autoregressive Prior of Order 1 — AR1"><meta name="description" content="Use an autoregressive process
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Autoregressive Prior of Order 1 — AR1"><meta name="description" content="Use an autoregressive process
 of order 1 to model
 a main effect, or use multiple AR1
 processes to model an interaction.
@@ -23,7 +23,7 @@ interactions that involve time."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,8 +99,7 @@ interactions.</p></dd>
 
 
 <dt id="arg-con">con<a class="anchor" aria-label="anchor" href="#arg-con"></a></dt>
-<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
-Constraints on parameters.
+<dd><p>Constraints on parameters.
 Current choices are <code>"none"</code> and <code>"by"</code>.
 Default is <code>"none"</code>. See below for details.</p></dd>
 
@@ -133,8 +132,8 @@ $$\epsilon_j \sim \text{N}(0, \omega^2),$$</p>
 $$\epsilon_{u,v} \sim \text{N}(0, \omega^2),$$</p>
 <p>where</p><ul><li><p>\(\pmb{\beta}\) is the main effect or interaction;</p></li>
 <li><p>\(j\) denotes position within the main effect;</p></li>
-<li><p>\(v\) denotes position within the 'along' variable of the interaction; and</p></li>
-<li><p>\(u\) denotes position within the 'by' variable(s) of the interaction.</p></li>
+<li><p>\(u\) denotes position within the 'by' variable(s) of the interaction; and</p></li>
+<li><p>\(v\) denotes position within the 'along' variable of the interaction.</p></li>
 </ul><p>Internally, <code>AR1()</code> derives a value for \(\omega\) that
 gives every element of \(\beta\) a marginal
 variance of \(\tau^2\). Parameter \(\tau\)
@@ -153,15 +152,10 @@ Its prior distribution is</p>
 
 
 
-<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a> The specification of
-constraints is likely to change in future versions of <span class="pkg">bage</span>.</p>
 <p>With some combinations of terms and priors, the values of
-the intercept, main effects, and interactions are
+the intercept, main effects, and interactions
 are only weakly identified.
-For instance, it may be possible to increase the value of the
-intercept and reduce the value of the remaining terms in
-the model with no effect on predicted rates and only a tiny
-effect on prior probabilities. This weak identifiability is
+This weak identifiability is
 typically harmless. However, in some applications, such as
 when trying to obtain interpretable values
 for main effects and interactions, it can be helpful to increase
@@ -186,6 +180,7 @@ defaults for <code>forecast::ets()</code>.</p></li>
     <div class="dont-index">
 <ul><li><p><code><a href="AR.html">AR()</a></code> Generalization of <code>AR1()</code></p></li>
 <li><p><code><a href="Lin_AR.html">Lin_AR()</a></code>, <code><a href="Lin_AR1.html">Lin_AR1()</a></code> Line with AR errors</p></li>
+<li><p><code><a href="RW2_AR.html">RW2_AR()</a></code>, <code><a href="RW2_AR1.html">RW2_AR1()</a></code> RW2 with AR errors</p></li>
 <li><p><a href="priors.html">priors</a> Overview of priors implemented in <span class="pkg">bage</span></p></li>
 <li><p><code><a href="set_prior.html">set_prior()</a></code> Specify prior for intercept,
 main effect, or interaction</p></li>
@@ -198,23 +193,29 @@ vignette</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">AR1</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   AR1() </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape1: 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape2: 5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        min: 0.8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        max: 0.98</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
 <span class="r-in"><span><span class="fu">AR1</span><span class="op">(</span>min <span class="op">=</span> <span class="fl">0</span>, max <span class="op">=</span> <span class="fl">1</span>, s <span class="op">=</span> <span class="fl">2.4</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   AR1(s=2.4,min=0,max=1) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 2.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape1: 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape2: 5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        min: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        max: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 2.4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
 <span class="r-in"><span><span class="fu">AR1</span><span class="op">(</span>along <span class="op">=</span> <span class="st">"cohort"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   AR1(along="cohort") </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape1: 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     shape2: 5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        min: 0.8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        max: 0.98</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      along: cohort</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        con: none</span>
 </code></pre></div>

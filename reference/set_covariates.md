@@ -51,9 +51,10 @@ model:
 - All numeric variables are standardized, using `x <- scale(x)`.
 
 - Categorical variables are converted to sets of indicator variables,
-  using treatment contrasts. For instance, variable `x` with categories
-  `"high"`, `"medium"`, and `"low"`, is converted into two indicator
-  variables, one called `xmedium` and one called `xlow`.
+  using [treatment](https://rdrr.io/r/stats/contrast.html) contrasts.
+  For instance, variable `x` with categories `"high"`, `"medium"`, and
+  `"low"`, is converted into two indicator variables, one called
+  `xmedium` and one called `xlow`.
 
 ## Mathematical details
 

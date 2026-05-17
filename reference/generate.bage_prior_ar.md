@@ -59,6 +59,9 @@ generate(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 # S3 method for class 'bage_prior_rw2random'
 generate(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
+# S3 method for class 'bage_prior_rw2randomar'
+generate(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+
 # S3 method for class 'bage_prior_rw2randomseasfix'
 generate(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
@@ -66,6 +69,9 @@ generate(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 generate(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
 # S3 method for class 'bage_prior_rw2zero'
+generate(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+
+# S3 method for class 'bage_prior_rw2zeroar'
 generate(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
 # S3 method for class 'bage_prior_rw2zeroseasfix'
@@ -168,34 +174,34 @@ generate(x, n_along = 10, n_by = 2)
 #> # A tibble: 500 × 4
 #>    draw   by    along   value
 #>    <fct>  <fct> <int>   <dbl>
-#>  1 Draw 1 By 1      1  0.784 
-#>  2 Draw 1 By 1      2  0.761 
-#>  3 Draw 1 By 1      3  1.33  
-#>  4 Draw 1 By 1      4  0.776 
-#>  5 Draw 1 By 1      5 -0.214 
-#>  6 Draw 1 By 1      6  0.576 
-#>  7 Draw 1 By 1      7  0.611 
-#>  8 Draw 1 By 1      8 -0.0431
-#>  9 Draw 1 By 1      9 -1.06  
-#> 10 Draw 1 By 1     10 -1.14  
+#>  1 Draw 1 By 1      1  0.168 
+#>  2 Draw 1 By 1      2  1.35  
+#>  3 Draw 1 By 1      3  1.56  
+#>  4 Draw 1 By 1      4 -1.87  
+#>  5 Draw 1 By 1      5 -1.80  
+#>  6 Draw 1 By 1      6 -1.77  
+#>  7 Draw 1 By 1      7 -0.582 
+#>  8 Draw 1 By 1      8 -0.294 
+#>  9 Draw 1 By 1      9  0.596 
+#> 10 Draw 1 By 1     10 -0.0756
 #> # ℹ 490 more rows
 
 ## prior that does not distinguish
 x <- N()
 generate(x, n_element = 20)
 #> # A tibble: 500 × 3
-#>    draw   element    value
-#>    <fct>    <int>    <dbl>
-#>  1 Draw 1       1 -0.00216
-#>  2 Draw 1       2  0.0598 
-#>  3 Draw 1       3  0.0528 
-#>  4 Draw 1       4  0.0534 
-#>  5 Draw 1       5  0.130  
-#>  6 Draw 1       6 -0.0931 
-#>  7 Draw 1       7 -0.0144 
-#>  8 Draw 1       8  0.0263 
-#>  9 Draw 1       9 -0.00547
-#> 10 Draw 1      10  0.0246 
+#>    draw   element   value
+#>    <fct>    <int>   <dbl>
+#>  1 Draw 1       1 -0.715 
+#>  2 Draw 1       2 -0.0530
+#>  3 Draw 1       3 -1.20  
+#>  4 Draw 1       4 -0.242 
+#>  5 Draw 1       5  0.960 
+#>  6 Draw 1       6 -0.229 
+#>  7 Draw 1       7 -0.445 
+#>  8 Draw 1       8 -1.89  
+#>  9 Draw 1       9 -0.810 
+#> 10 Draw 1      10  0.481 
 #> # ℹ 490 more rows
 
 ## SVD_AR(), SVD_RW(), and SVD_RW2()
@@ -205,16 +211,16 @@ generate(x, n_along = 5, n_by = 2)
 #> # A tibble: 11,000 × 5
 #>    draw   by    along age    value
 #>    <fct>  <fct> <int> <fct>  <dbl>
-#>  1 Draw 1 By 1      1 12    -10.1 
-#>  2 Draw 1 By 1      1 13     -7.58
-#>  3 Draw 1 By 1      1 14     -5.47
-#>  4 Draw 1 By 1      1 15     -4.23
-#>  5 Draw 1 By 1      1 16     -3.35
-#>  6 Draw 1 By 1      1 17     -2.83
-#>  7 Draw 1 By 1      1 18     -2.45
-#>  8 Draw 1 By 1      1 19     -2.18
-#>  9 Draw 1 By 1      1 20     -2.09
-#> 10 Draw 1 By 1      1 21     -2.06
+#>  1 Draw 1 By 1      1 12    -11.9 
+#>  2 Draw 1 By 1      1 13     -9.78
+#>  3 Draw 1 By 1      1 14     -7.91
+#>  4 Draw 1 By 1      1 15     -6.31
+#>  5 Draw 1 By 1      1 16     -4.97
+#>  6 Draw 1 By 1      1 17     -4.03
+#>  7 Draw 1 By 1      1 18     -3.36
+#>  8 Draw 1 By 1      1 19     -2.88
+#>  9 Draw 1 By 1      1 20     -2.59
+#> 10 Draw 1 By 1      1 21     -2.40
 #> # ℹ 10,990 more rows
 
 ## SVD() does not
@@ -223,15 +229,15 @@ generate(x, n_element = 10)
 #> # A tibble: 11,000 × 4
 #>    draw   element age    value
 #>    <fct>    <int> <fct>  <dbl>
-#>  1 Draw 1       1 12    -12.5 
-#>  2 Draw 1       1 13    -10.5 
-#>  3 Draw 1       1 14     -8.67
-#>  4 Draw 1       1 15     -6.90
-#>  5 Draw 1       1 16     -5.40
-#>  6 Draw 1       1 17     -4.29
-#>  7 Draw 1       1 18     -3.52
-#>  8 Draw 1       1 19     -2.97
-#>  9 Draw 1       1 20     -2.62
-#> 10 Draw 1       1 21     -2.39
+#>  1 Draw 1       1 12    -12.8 
+#>  2 Draw 1       1 13    -10.6 
+#>  3 Draw 1       1 14     -9.02
+#>  4 Draw 1       1 15     -7.38
+#>  5 Draw 1       1 16     -5.94
+#>  6 Draw 1       1 17     -4.90
+#>  7 Draw 1       1 18     -4.14
+#>  8 Draw 1       1 19     -3.55
+#>  9 Draw 1       1 20     -3.17
+#> 10 Draw 1       1 21     -2.91
 #> # ℹ 10,990 more rows
 ```

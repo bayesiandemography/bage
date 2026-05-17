@@ -1,6 +1,42 @@
 # Changelog
 
+## bage 0.10.9
+
+### Interface
+
+- Added priors
+  [`RW2_AR()`](https://bayesiandemography.github.io/bage/reference/RW2_AR.md)
+  and `RW2_AR`(), which combine a RW2 trend and an AR residual: a
+  generalization of
+  [`Lin_AR()`](https://bayesiandemography.github.io/bage/reference/Lin_AR.md)
+  and
+  [`Lin_AR1()`](https://bayesiandemography.github.io/bage/reference/Lin_AR1.md).
+- Stricter testing of `newdata` argument to
+  [`forecast()`](https://generics.r-lib.org/reference/forecast.html).
+  `newdata` cannot contain values (except for times) not found in
+  `data`.
+- Change to the behaviour of the
+  [`forecast()`](https://generics.r-lib.org/reference/forecast.html)
+  function when the `label` argument is used. Previously, if called with
+  a `labels` argument,
+  [`forecast()`](https://generics.r-lib.org/reference/forecast.html)
+  returned values for all possible combinations of non-time-varying
+  classification variables. Now, if called with a `labels` argument,
+  [`forecast()`](https://generics.r-lib.org/reference/forecast.html)
+  returns values for the combinations of non-time-varying classification
+  variables that are found in `data`. With the previous behavior,
+  [`forecast()`](https://generics.r-lib.org/reference/forecast.html)
+  could return values for structural zeros, or other unwanted
+  combinations of variables.
+
+### Documentation
+
+- Changed `bage-package` help page to a normal (ie non-internal) page,
+  with `bage` as an alias.
+
 ## bage 0.10.8
+
+CRAN release: 2026-02-22
 
 ### Interface
 
