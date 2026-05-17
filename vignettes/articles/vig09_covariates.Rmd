@@ -75,7 +75,7 @@ where
 - $\pmb{Z}$ is an $I \times P$ matrix of covariates; and
 - $\pmb{\eta}$ is a vector of coefficients. 
 
-The covariate matrix $\pmb{Z}$ is derived from the raw covariate data by scaling any numeric variables to have mean 0 and standard deviation 1, and by converting any categorical variables to sets of indicator variables. The conversion to indicator variables follows the rules that R uses for "treatment" contrasts. If the categorical has $C$ categories, then $C-1$ indicator variabls are constructed, with the first category being omitted.
+The covariate matrix $\pmb{Z}$ is derived from the raw covariate data by scaling any numeric variables to have mean 0 and standard deviation 1, and by converting any categorical variables to sets of indicator variables. The conversion to indicator variables follows the rules that R uses for "treatment" contrasts. If the categorical has $C$ categories, then $C-1$ indicator variables are constructed, with the first category being omitted.
 
 Each element of $\pmb{\eta}$ has prior
 \begin{equation}
@@ -118,7 +118,7 @@ births
 The variables `gdp_pc_2023` and `dens_2020` are both examples of covariates that contribute extra information to the model, beyond what is contained in the outcome, exposure, and classifying variables. 
 
 We use function `set_covariates()` to instruct `mod_pois()` to treat these variables as covariates.
-```{r}
+```{r, message = FALSE}
 mod_gdp_dens <- mod_pois(births ~ (age + region + time)^2,
                          data = births,
                          exposure = popn) |>
@@ -140,7 +140,7 @@ mod_gdp_dens |>
 
 In East Asia, years with the Dragon zodiac sign sometimes have larger-than-usual numbers of births. To allow for this possibility, we create a dragon-year covariate, and incorporate it into a new model.
 
-```{r}
+```{r, message = FALSE}
 births <- births |>
   mutate(is_dragon_year = time == 2012)
 mod_dragon <- mod_pois(births ~ (age + region + time)^2,
@@ -167,9 +167,9 @@ births |>
   filter(time %in% 2011:2013)
 ```
 
-We create a new model with the age-sepcific dragon-year indicator.
+We create a new model with the age-specific dragon-year indicator.
 
-```{r}
+```{r, message = FALSE}
 mod_dragon_age <- mod_pois(births ~ (age + region + time)^2,
                          data = births,
                          exposure = popn) |>
@@ -193,9 +193,10 @@ mod_dragon_age |>
 
 If all the covariates in a model are fixed, then the model can be forecasted as normal. 
 
-```{r}
+```{r, message = FALSE}
 mod_gdp_dens |>
-  forecast(labels = 2024:2025)
+  forecast(labels = 2024:2025) |>
+  select(age, region, time, .fitted)
 ```
 
 If, however, a covariate varies over time, forecasting only works if values for future periods are provided. The following code will result in an error:
@@ -207,16 +208,23 @@ mod_dragon |>
 Instead we need to create a `newdata` data frame...
 
 ```{r}
-newdata <- expand.grid(age = unique(kor_births$age),
-                       region = unique(kor_births$region),
+gdp_dens <- births |>
+  select(region, gdp_pc_2023, dens_2020) |>
+  unique()
+
+newdata <- expand.grid(age = unique(births$age),
+                       region = unique(births$region),
                        time = 2024:2025) |>
-  mutate(is_dragon_year = FALSE)
+  mutate(is_dragon_year = FALSE) |>
+  left_join(gdp_dens, by = "region")
+
 head(newdata)
 ```
 
 ...and supply it to `forecast()`.
 
-```{r}
+```{r, message = FALSE}
 mod_dragon |>
-  forecast(newdata = newdata)
+  forecast(newdata = newdata) |>
+  select(age, region, time, .fitted)
 ```
