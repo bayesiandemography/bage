@@ -1,0 +1,54 @@
+# .github/workflows/valgrind.yaml
+
+on:
+  workflow_dispatch:
+
+name: valgrind
+
+jobs:
+  valgrind:
+
+    if: "! contains(github.event.head_commit.message, '[skip ci]')"
+
+    runs-on: ubuntu-latest
+
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      OPENBLAS_NUM_THREADS: 1
+      OMP_NUM_THREADS: 1
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::testthat
+          needs: check
+
+      - name: Install Valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y valgrind
+
+      - name: Install package
+        run: |
+          R CMD INSTALL .
+
+      - name: Run Valgrind tests
+        run: |
+          R -d "valgrind \
+            --tool=memcheck \
+            --leak-check=full \
+            --show-leak-kinds=definite,possible \
+            --track-origins=yes \
+            --error-exitcode=1" \
+            -q -e 'testthat::test_dir("tests/valgrind")'
