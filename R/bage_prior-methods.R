@@ -826,32 +826,9 @@ draw_vals_effect.bage_prior_rw2randomar <- function(prior,
                                                     var_age,
                                                     var_sexgender,
                                                     n_sim) {
-  sd_init <- prior$specific$sd
-  sd_slope <- prior$specific$sd_slope
-  con <- prior$specific$con
-  sd_rw <- vals_hyper$sd_rw
+  trend <- vals_hyperrand$trend
   error <- vals_hyperrand$error
-  i_along <- make_i_along(prior = prior,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age)
-  dim <- lengths(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_inner(i_along = i_along,
-                                                       dim = dim)
-  levels_effect <- dimnames_to_levels(dimnames_term)
-  rw <- draw_vals_rw2(sd = sd_rw,
-                      sd_init = sd_init,
-                      sd_slope = sd_slope,
-                      matrix_along_by = matrix_along_by_effect,
-                      levels_effect = levels_effect)
-  ans <- rw + error
-  if (con == "by") {
-    m <- make_matrix_con_by(i_along = i_along,
-                            dim = dim)
-    ans <- m %*% ans
-    ans <- Matrix::as.matrix(ans)
-  }
-  ans  
+  trend + error
 }
 
 ## HAS_TESTS
@@ -937,34 +914,10 @@ draw_vals_effect.bage_prior_rw2zeroar <- function(prior,
                                                   var_age,
                                                   var_sexgender,
                                                   n_sim) {
-  sd_slope <- prior$specific$sd_slope
-  con <- prior$specific$con
-  sd_rw <- vals_hyper$sd_rw
+  trend <- vals_hyperrand$trend
   error <- vals_hyperrand$error
-  i_along <- make_i_along(prior = prior,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age)
-  dim <- lengths(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_inner(i_along = i_along,
-                                                       dim = dim)
-  levels_effect <- dimnames_to_levels(dimnames_term)
-  rw <- draw_vals_rw2(sd = sd_rw,
-                      sd_init = 0,
-                      sd_slope = sd_slope,
-                      matrix_along_by = matrix_along_by_effect,
-                      levels_effect = levels_effect)
-  ans <- rw + error
-  if (con == "by") {
-    m <- make_matrix_con_by(i_along = i_along,
-                            dim = dim)
-    ans <- m %*% ans
-    ans <- Matrix::as.matrix(ans)
-  }
-  ans  
+  trend + error
 }
-
-
 
 ## HAS_TESTS
 #' @export
@@ -1919,11 +1872,40 @@ draw_vals_hyperrand.bage_prior_rw2randomar <- function(prior,
                                                        var_age,
                                                        var_sexgender,
                                                        n_sim) {
-  draw_vals_hyperrand_ar(prior = prior,
-                         vals_hyper = vals_hyper,
-                         dimnames_term = dimnames_term,
-                         var_age = var_age,
-                         var_time = var_time)
+  con <- prior$specific$con
+  sd_init <- prior$specific$sd
+  sd_slope <- prior$specific$sd_slope
+  sd_rw <- vals_hyper$sd_rw
+  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  trend <- draw_vals_rw2(sd = sd_rw,
+                         sd_init = sd_init,
+                         sd_slope = sd_slope,
+                         matrix_along_by = matrix_along_by_effect,
+                         levels_effect = levels_effect)
+  error <- draw_vals_hyperrand_ar(prior = prior,
+                                  vals_hyper = vals_hyper,
+                                  dimnames_term = dimnames_term,
+                                  var_age = var_age,
+                                  var_time = var_time)
+  if (con == "by") {
+    i_along <- make_i_along(prior = prior,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    dim <- lengths(dimnames_term)
+    m <- make_matrix_con_by(i_along = i_along,
+                            dim = dim)
+    trend <- m %*% trend
+    error <- m %*% error
+    trend <- Matrix::as.matrix(trend)
+    error <- Matrix::as.matrix(error)
+  }
+  list(trend = trend,
+       error = error)
 }
 
 ## HAS_TESTS
@@ -2028,11 +2010,39 @@ draw_vals_hyperrand.bage_prior_rw2zeroar <- function(prior,
                                                      var_age,
                                                      var_sexgender,
                                                      n_sim) {
-  draw_vals_hyperrand_ar(prior = prior,
-                         vals_hyper = vals_hyper,
-                         dimnames_term = dimnames_term,
-                         var_time = var_time,
-                         var_age = var_age)
+  con <- prior$specific$con
+  sd_slope <- prior$specific$sd_slope
+  sd_rw <- vals_hyper$sd_rw
+  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  trend <- draw_vals_rw2(sd = sd_rw,
+                         sd_init = 0,
+                         sd_slope = sd_slope,
+                         matrix_along_by = matrix_along_by_effect,
+                         levels_effect = levels_effect)
+  error <- draw_vals_hyperrand_ar(prior = prior,
+                                  vals_hyper = vals_hyper,
+                                  dimnames_term = dimnames_term,
+                                  var_age = var_age,
+                                  var_time = var_time)
+  if (con == "by") {
+    i_along <- make_i_along(prior = prior,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    dim <- lengths(dimnames_term)
+    m <- make_matrix_con_by(i_along = i_along,
+                            dim = dim)
+    trend <- m %*% trend
+    error <- m %*% error
+    trend <- Matrix::as.matrix(trend)
+    error <- Matrix::as.matrix(error)
+  }
+  list(trend = trend,
+       error = error)
 }
 
 ## HAS_TESTS

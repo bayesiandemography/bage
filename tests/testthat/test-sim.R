@@ -559,8 +559,7 @@ test_that("'draw_vals_hyperrand_ar' works with bage_prior_rw2randomar - con is '
                                 dimnames_term = dimnames_term,
                                 var_age = var_age,
                                 var_time = var_time)
-  expect_identical(names(ans), "error")
-  expect_identical(nrow(ans$error), 40L)
+  expect_identical(nrow(ans), 40L)
 })
 
 test_that("'draw_vals_hyperrand_ar' works with bage_prior_rw2randomar - con = 'by'", {
@@ -577,9 +576,8 @@ test_that("'draw_vals_hyperrand_ar' works with bage_prior_rw2randomar - con = 'b
                                 dimnames_term = dimnames_term,
                                 var_age = var_age,
                                 var_time = var_time)
-  expect_identical(names(ans), "error")
-  expect_identical(nrow(ans$error), 40L)
-  expect_equal(rowSums(matrix(ans$error[,1], nr = 10)), rep(0, 10))
+  expect_identical(nrow(ans), 40L)
+  expect_equal(rowSums(matrix(ans[,1], nr = 10)), rep(0, 10))
 })
 
 

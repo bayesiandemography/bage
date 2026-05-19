@@ -71,7 +71,8 @@ Change \@ref(eq:prior-mod-no-cov) to
   \mu_i = \sum_{m=0}^M \beta_{j_i^m}^{(m)} + (\pmb{Z} \pmb{\eta})_i (\#eq:prior-mod-no-cov)
 \end{equation}
 
-where 
+where
+
 - $\pmb{Z}$ is an $I \times P$ matrix of covariates; and
 - $\pmb{\eta}$ is a vector of coefficients. 
 

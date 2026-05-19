@@ -612,7 +612,7 @@ draw_vals_hyper_mod <- function(mod, n_sim) {
 
 ## HAS_TESTS
 #' Draw Values for Hyper-Parameters that can be
-#' Treated as Random Effects - in an AR prior
+#' Treated as Random Effects - in a Prior with AR Error
 #'
 #' @param prior Object of class "bage_prior"
 #' @param vals_hyper List of numeric vectors
@@ -651,7 +651,7 @@ draw_vals_hyperrand_ar <- function(prior,
                             dim = dim)
     ans <- m %*% ans
   }
-  list(error = ans)
+  ans
 }
 
 

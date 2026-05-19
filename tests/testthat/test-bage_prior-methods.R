@@ -2969,7 +2969,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomar - con is 'non
                              var_age = var_age,
                              var_time = var_time,
                              n_sim = n_sim)
-  expect_identical(names(ans), "error")
+  expect_identical(names(ans), c("trend", "error"))
   expect_identical(nrow(ans$error), 40L)
 })
 
@@ -2988,9 +2988,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomar - con = 'by'"
                              var_age = var_age,
                              var_time = var_time,
                              n_sim = n_sim)
-  expect_identical(names(ans), "error")
+  expect_identical(names(ans), c("trend", "error"))
   expect_identical(nrow(ans$error), 40L)
-  expect_equal(rowSums(matrix(ans$error[,1], nr = 10)), rep(0, 10))
+  expect_equal(rowSums(matrix(ans$trend[,1], nr = 10)), rep(0, 10))
 })
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - con is 'none'", {
@@ -3088,7 +3088,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroar - con is 'none'
                              var_age = var_age,
                              var_time = var_time,
                              n_sim = n_sim)
-  expect_identical(names(ans), "error")
+  expect_identical(names(ans), c("trend", "error"))
   expect_identical(nrow(ans$error), 40L)
 })
 
@@ -3107,9 +3107,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroar - con = 'by'", 
                              var_age = var_age,
                              var_time = var_time,
                              n_sim = n_sim)
-  expect_identical(names(ans), "error")
+  expect_identical(names(ans), c("trend", "error"))
   expect_identical(nrow(ans$error), 40L)
-  expect_equal(rowSums(matrix(ans$error[,1], nr = 10)), rep(0, 10))
+  expect_equal(rowSums(matrix(ans$trend[,1], nr = 10)), rep(0, 10))
 })
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - con is 'none'", {
