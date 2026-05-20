@@ -374,20 +374,23 @@ Type log_dpois_rr3(Type x, Type rate) {
   return ans;
 }
 
-
-
 template<class Type>
-Type log_dskellam_exact(Type x, Type mu1, Type mu2) {
-  Type nu = fabs(x);
-  Type v = Type(2.0) * sqrt(mu1 * mu2);
-  return -(mu1 + mu2)
-    + Type(0.5) * x * (log(mu1) - log(mu2))
-    + log(besselI(v, nu));
+Type log_dskellam_saddlepoint(Type y, Type mu1, Type mu2) {
+  Type eps = Type(1e-12);
+  mu1 += eps;
+  mu2 += eps;
+  Type disc = sqrt(y * y + Type(4) * mu1 * mu2);
+  Type exp_t = (y + disc) / (Type(2) * mu1);
+  Type t = log(exp_t);
+  Type exp_minus_t = Type(1) / exp_t;
+  Type K = mu1 * (exp_t - Type(1)) + mu2 * (exp_minus_t - Type(1));
+  Type K2 = mu1 * exp_t + mu2 * exp_minus_t;
+  return K - t * y - Type(0.5) * log(Type(2) * M_PI * K2);
 }
 
 // uses saddle point approximation
 template<class Type>
-Type log_dskellam_approx(Type x, Type mu1, Type mu2) {
+Type log_dskellam_normal(Type x, Type mu1, Type mu2) {
   Type s = (x + sqrt(x * x + 4.0 * mu1 * mu2)) / (2.0 * mu1); // positive solution to K'(s) = x, s = e^t
   Type t = log(s);
   Type s_inv = Type(1.0) / s;
@@ -425,9 +428,9 @@ Type log_dskellam(Type x, Type mu1, Type mu2) {
   bool x_small = std::abs(xd) < thresh_small_x;
   bool use_exact = mu_small && x_small;
   if (use_exact)
-    return log_dskellam_exact(x, mu1, mu2);
+    return log_dskellam_saddlepoint(x, mu1, mu2);
   else
-    return log_dskellam_approx(x, mu1, mu2);
+    return log_dskellam_normal(x, mu1, mu2);
 }
 
 template <class Type>
