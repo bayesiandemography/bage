@@ -1,4 +1,13 @@
 
+# Submission, 20 May 2026, version 0.10.9
+
+* Current CRAN checks have a failure for r-release-macos-x86_64.
+  The failure appears to be due to the C++ compiler not liking
+  the use of the IBessel function within the TMB template
+  for the package. I have removed the use of the IBessel function
+  (by using a saddlepoint approximation for the target density,
+  rather than the exact formula).
+
 # Submission, 22 February 2026, version 0.10.8
 
 * Current CRAN checks have notes for the three r-oldrel systems. All
