@@ -1,7 +1,6 @@
 
 # bage 0.10.9
 
-
 ## Interface
 
 * Added priors `RW2_AR()` and `RW2_AR`(), which combine a RW2 trend
