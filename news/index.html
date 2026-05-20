@@ -51,6 +51,10 @@
 <h3 id="documentation-0-10-9">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-10-9"></a></h3>
 <ul><li>Changed <code>bage-package</code> help page to a normal (ie non-internal) page, with <code>bage</code> as an alias.</li>
 </ul></div>
+<div class="section level3">
+<h3 id="computation-0-10-9">Computation<a class="anchor" aria-label="anchor" href="#computation-0-10-9"></a></h3>
+<ul><li>In the “noise” data model for the Poisson distribution, which uses a Skellam distribution to represent errors, we previously used an exact formula for the Skellam density for small means, and a normal approximation for large means. However, the exact formula requires the use of the IBessel function, and some compilers complain when IBessel is used in TMB. We have therefore switched to using a saddlepoint approximation for small means, which avoids the use of the IBessel function.</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.8" id="bage-0108">bage 0.10.8<a class="anchor" aria-label="anchor" href="#bage-0108"></a></h2><p class="text-muted">CRAN release: 2026-02-22</p>

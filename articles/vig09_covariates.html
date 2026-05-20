@@ -120,9 +120,13 @@ where</p>
 <span class="math display" id="eq:prior-mod-no-cov">\[\begin{equation}
   \mu_i = \sum_{m=0}^M \beta_{j_i^m}^{(m)} + (\pmb{Z} \pmb{\eta})_i \tag{2.2}
 \end{equation}\]</span></p>
-<p>where
-- <span class="math inline">\(\pmb{Z}\)</span> is an <span class="math inline">\(I \times P\)</span> matrix of covariates; and
-- <span class="math inline">\(\pmb{\eta}\)</span> is a vector of coefficients.</p>
+<p>where</p>
+<ul>
+<li>
+<span class="math inline">\(\pmb{Z}\)</span> is an <span class="math inline">\(I \times P\)</span> matrix of covariates; and</li>
+<li>
+<span class="math inline">\(\pmb{\eta}\)</span> is a vector of coefficients.</li>
+</ul>
 <p>The covariate matrix <span class="math inline">\(\pmb{Z}\)</span> is derived from the raw covariate data by scaling any numeric variables to have mean 0 and standard deviation 1, and by converting any categorical variables to sets of indicator variables. The conversion to indicator variables follows the rules that R uses for “treatment” contrasts. If the categorical has <span class="math inline">\(C\)</span> categories, then <span class="math inline">\(C-1\)</span> indicator variables are constructed, with the first category being omitted.</p>
 <p>Each element of <span class="math inline">\(\pmb{\eta}\)</span> has prior
 <span class="math display">\[\begin{equation}
@@ -204,7 +208,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.47     0.83      0.50   30      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.49     0.85      0.48   30      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>To obtain estimates of the coefficients (ie estimates of the <span class="math inline">\(\zeta_p\)</span>) we call function <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> and filter out rows for the <code>"covariates"</code> term.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_gdp_dens</span> <span class="op">|&gt;</span></span>
@@ -293,7 +297,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.05     0.43      0.58   22      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.07     0.42      0.60   22      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Rather than a single dragon-year coefficient, we have a coefficient for each age group. We extract them and tidy up the labels.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_dragon_age</span> <span class="op">|&gt;</span></span>

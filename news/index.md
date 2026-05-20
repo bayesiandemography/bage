@@ -34,6 +34,17 @@
 - Changed `bage-package` help page to a normal (ie non-internal) page,
   with `bage` as an alias.
 
+### Computation
+
+- In the “noise” data model for the Poisson distribution, which uses a
+  Skellam distribution to represent errors, we previously used an exact
+  formula for the Skellam density for small means, and a normal
+  approximation for large means. However, the exact formula requires the
+  use of the IBessel function, and some compilers complain when IBessel
+  is used in TMB. We have therefore switched to using a saddlepoint
+  approximation for small means, which avoids the use of the IBessel
+  function.
+
 ## bage 0.10.8
 
 CRAN release: 2026-02-22

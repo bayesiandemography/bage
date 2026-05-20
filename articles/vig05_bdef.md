@@ -161,7 +161,7 @@ mod
 #>    1000     time    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.61     0.32      0.22   14      TRUE   relative convergence (4)
+#>        0.59     0.32      0.21   14      TRUE   relative convergence (4)
 ```
 
 ### 2.3 Extracting parameter estimates

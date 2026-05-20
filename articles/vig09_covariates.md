@@ -49,8 +49,10 @@ Change [(2.2)](#eq:prior-mod-no-cov) to \\\begin{equation} \mu_i =
 \sum\_{m=0}^M \beta\_{j_i^m}^{(m)} + (\pmb{Z} \pmb{\eta})\_i \tag{2.2}
 \end{equation}\\
 
-where - \\\pmb{Z}\\ is an \\I \times P\\ matrix of covariates; and -
-\\\pmb{\eta}\\ is a vector of coefficients.
+where
+
+- \\\pmb{Z}\\ is an \\I \times P\\ matrix of covariates; and
+- \\\pmb{\eta}\\ is a vector of coefficients.
 
 The covariate matrix \\\pmb{Z}\\ is derived from the raw covariate data
 by scaling any numeric variables to have mean 0 and standard deviation
@@ -160,7 +162,7 @@ mod_gdp_dens
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.47     0.83      0.50   30      TRUE   relative convergence (4)
+#>        1.49     0.85      0.48   30      TRUE   relative convergence (4)
 ```
 
 To obtain estimates of the coefficients (ie estimates of the
@@ -273,7 +275,7 @@ mod_dragon_age
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.05     0.43      0.58   22      TRUE   relative convergence (4)
+#>        1.07     0.42      0.60   22      TRUE   relative convergence (4)
 ```
 
 Rather than a single dragon-year coefficient, we have a coefficient for

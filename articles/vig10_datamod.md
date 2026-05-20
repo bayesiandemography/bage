@@ -71,7 +71,7 @@ mod_base
 #>    1000     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged
-#>        0.14     0.05      0.04   15      TRUE
+#>        0.14     0.04      0.05   15      TRUE
 #>                                            message
 #>    both X-convergence and relative convergence (5)
 ```
@@ -155,7 +155,7 @@ mod_under
 #>    1000     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.06     0.02      0.02   13      TRUE   relative convergence (4)
+#>        0.05     0.02      0.02   13      TRUE   relative convergence (4)
 ```
 
 Calling [`augment()`](https://generics.r-lib.org/reference/augment.html)
