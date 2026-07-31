@@ -1,6 +1,6 @@
 ## 'augment' ---------------------------------------------------------------
 
-test_that("'augment' works with Poisson, disp - has data", {
+test_that("'augment' works with Poisson, disp", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                         KEEP.OUT.ATTRS = FALSE)
@@ -15,6 +15,78 @@ test_that("'augment' works with Poisson, disp - has data", {
     expect_true(is.data.frame(ans))
     expect_identical(names(ans),
                      c(names(data), c(".observed", ".fitted", ".expected")))
+})
+
+test_that("'augment' works with Poisson, disp, count has NAs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$deaths[1] <- NA
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod_fitted <- fit(mod)
+    ans <- augment(mod_fitted, quiet = TRUE)
+    expect_true(is.data.frame(ans))
+    expect_identical(names(ans),
+                     c(names(data), c(".deaths", ".observed", ".fitted", ".expected")))
+})
+
+
+test_that("'augment' works with Poisson, disp, count has NAs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$deaths[1] <- NA
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod_fitted <- fit(mod)
+    ans <- augment(mod_fitted, quiet = TRUE)
+    expect_true(is.data.frame(ans))
+    expect_identical(names(ans),
+                     c(names(data), c(".deaths", ".observed", ".fitted", ".expected")))
+})
+
+test_that("'augment' works with Binomial, disp, count has NAs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                      KEEP.OUT.ATTRS = FALSE)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+  data$deaths[1] <- NA
+  formula <- deaths ~ age + sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  mod_fitted <- fit(mod)
+  ans <- augment(mod_fitted, quiet = TRUE)
+  expect_true(is.data.frame(ans))
+  expect_identical(names(ans),
+                   c(names(data), c(".deaths", ".observed", ".fitted", ".expected")))
+})
+
+test_that("'augment' works with Poisson, disp, count has NAs, no exposure", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$deaths[1] <- NA
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = NULL)
+    mod_fitted <- fit(mod)
+    ans <- augment(mod_fitted, quiet = TRUE)
+    expect_true(is.data.frame(ans))
+    expect_identical(names(ans),
+                     c(names(data), c(".deaths", ".fitted", ".expected")))
 })
 
 test_that("'augment' works with Poisson, disp - has data, rows non-NULL", {
@@ -2002,6 +2074,23 @@ test_that("'forecast' works with fitted model - output is 'augment'", {
     ans_no_est <- forecast(mod, labels = 2005:2006)
     ans_est <- forecast(mod, labels = 2005:2006, include_estimates = TRUE)
     expect_identical(names(ans_est), names(ans_no_est))
+})
+
+test_that("'forecast' works with character-numeric region labels - output is 'augment'", {
+    set.seed(0)
+    data <- expand.grid(age = 0:4,
+                        region = c("1", "2"),
+                        time = 2000:2004,
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + region + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- fit(mod)
+    ans <- forecast(mod, labels = "2005", include_estimates = TRUE)
+    expect_identical(names(ans), names(augment(mod)))
 })
 
 test_that("'forecast' works with fitted model - output is 'augment', rows non-NULL", {

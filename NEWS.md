@@ -1,4 +1,15 @@
 
+# bage 0.10.10
+
+## Bug fix
+
+* Fixed bug in 'forecast()`, which was failing if `labels` was
+  a character vector and the original time variable was a numeric
+  vector, or vice versa. Forecast now tries to retain the original
+  class of the time variable, but coerces it to character when
+  necessary to accommodate character labels.
+
+
 # bage 0.10.9
 
 ## Interface

@@ -1481,6 +1481,75 @@ test_that("'make_data_forecast_labels' works - no covariates", {
   expect_setequal(ans$age, data$age)
   expect_setequal(ans$sex, data$sex)
   expect_setequal(ans$time, 2006:2008)
+  expect_true(is.integer(ans$time))
+})
+
+test_that("'make_data_forecast_labels' works - original timevar is factor", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$time <- factor(data$time)
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  ans <- make_data_forecast_labels(mod = mod,
+                                   labels_forecast = 2006:2008)
+  expect_identical(names(ans), names(data))
+  expect_true(all(is.na(ans$deaths)))
+  expect_true(all(is.na(ans$exposure)))
+  expect_true(all(is.na(ans$unused)))
+  expect_setequal(ans$age, data$age)
+  expect_setequal(ans$sex, data$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_true(is.factor(ans$time))
+})
+
+test_that("'make_data_forecast_labels' works - original timevar is integer, labels is character", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  ans <- make_data_forecast_labels(mod = mod,
+                                   labels_forecast = as.character(2006:2008))
+  expect_identical(names(ans), names(data))
+  expect_true(all(is.na(ans$deaths)))
+  expect_true(all(is.na(ans$exposure)))
+  expect_true(all(is.na(ans$unused)))
+  expect_setequal(ans$age, data$age)
+  expect_setequal(ans$sex, data$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_true(is.integer(ans$time))
+})
+
+test_that("'make_data_forecast_labels' works - original timevar is character, labels is integer", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$time <- as.character(data$time)
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  ans <- make_data_forecast_labels(mod = mod,
+                                   labels_forecast = as.character(2006:2008))
+  expect_identical(names(ans), names(data))
+  expect_true(all(is.na(ans$deaths)))
+  expect_true(all(is.na(ans$exposure)))
+  expect_true(all(is.na(ans$unused)))
+  expect_setequal(ans$age, data$age)
+  expect_setequal(ans$sex, data$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_true(is.character(ans$time))
 })
 
 test_that("'make_data_forecast_labels' works - with covariates", {
@@ -1522,6 +1591,24 @@ test_that("'make_data_forecast_labels' throws error when only variable is time",
   expect_error(make_data_forecast_labels(mod = mod,
                                          labels_forecast = 2006:2008),
                "Unable to derive covariate values for forecasted periods.")
+})
+
+test_that("'make_data_forecast_labels' throws error when label overlaps", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$time <- as.character(data$time)
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  expect_error(
+    make_data_forecast_labels(mod = mod,
+                              labels_forecast = as.character(2005:2008)),
+    "`labels` has value already present in `time`."
+  )
 })
 
 
@@ -1689,7 +1776,8 @@ test_that("'make_data_forecast_newdata' raises correct error when periods overla
                   exposure = exposure)
   mod <- set_n_draw(mod, n = 10)
   newdata <- make_data_forecast_labels(mod = mod,
-                                       labels_forecast = 2005:2008)
+                                       labels_forecast = 2006:2008)
+  newdata$time <- newdata$time - 1L
   expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
                "Times in `newdata` and `data` overlap.")
 })
@@ -1708,7 +1796,8 @@ test_that("'make_data_forecast_newdata' raises correct error when periods overla
                   exposure = exposure)
   mod <- set_n_draw(mod, n = 10)
   newdata <- make_data_forecast_labels(mod = mod,
-                                       labels_forecast = as.Date(paste0(2005:2008, "-01-01")))
+                                       labels_forecast = as.Date(paste0(2006:2008, "-01-01")))
+  newdata$time <- newdata$time - 365
   expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
                "Times in `newdata` and `data` overlap.")
 })

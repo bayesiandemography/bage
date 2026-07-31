@@ -1492,9 +1492,10 @@ forecast.bage_mod <- function(object,
                                                 newdata = newdata)
     labels <- unique(data_forecast[[var_time]])
   }
-  if (has_labels)
+  if (has_labels) {
     data_forecast <- make_data_forecast_labels(mod = object,
                                                labels_forecast = labels)
+  }
   nms_data_forecast <- names(data_forecast)
   seed_forecast_components <- object$seed_forecast_components
   if (is_not_testing_or_snapshot())

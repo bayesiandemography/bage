@@ -889,6 +889,9 @@ forecast_term_drw2 <- function(prior,
 #' Create Extra Rows for 'data' that Hold Values for
 #' Predictor Variables Used in Forecast
 #'
+#' Where possible preserve existing class
+#' of time variable in combined data.
+#'
 #' @param mod Object of class 'bage_mod'
 #' @param labels_forecast Vector
 #' with labels for future time periods
@@ -901,6 +904,38 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
   data <- mod$data
   var_time <- mod$var_time
   vars <- all.vars(formula[-2L])
+  time_est <- data[[var_time]]
+  is_dup <- labels_forecast %in% time_est
+  i_dup <- match(TRUE, is_dup, nomatch = 0L)
+  if (i_dup > 0L)
+    cli::cli_abort(c("{.arg labels} has value already present in {.var {var_time}}.",
+                     i = "Value: {.val {labels_forecast[[i_dup]]}}."))
+  if (is.factor(time_est)) {
+    labels_forecast <- factor(labels_forecast)
+  }
+  else if (is.numeric(time_est) && is.character(labels_forecast)) {
+    is_na_old <- is.na(labels_forecast)
+    labels_forecast_tmp <- suppressWarnings(as.numeric(labels_forecast))
+    is_na_new <- is.na(labels_forecast_tmp) & !is_na_old
+    can_convert <- !any(is_na_new)
+    if (can_convert) {
+      labels_forecast <- labels_forecast_tmp
+      is_est_inc <- is.integer(time_est)
+      can_lab_be_inc <- all(labels_forecast == as.integer(labels_forecast),
+                            na.rm = TRUE)
+      convert_to_int <- is_est_inc && can_lab_be_inc
+      if (convert_to_int) {
+        labels_forecast <- as.integer(labels_forecast)
+      }
+    }
+    else {
+      time_est <- as.character(time_est)
+    }
+  }
+  else if (is.numeric(labels_forecast) && is.character(time_est)) {
+    labels_forecast <- as.character(labels_forecast)
+  }
+  data[[var_time]] <- time_est
   if (length(vars) > 1L) {
     ans <- data[vars]
     ans <- ans[-match(var_time, names(ans))]
@@ -914,7 +949,6 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
     ans <- tibble::tibble(labels_forecast)
     names(ans) <- var_time
   }
-  ans <- chr_to_int(ans)
   ans <- vctrs::vec_rbind(data, ans)
   i_original <- seq_len(nrow(data))
   ans <- ans[-i_original, , drop = FALSE]
