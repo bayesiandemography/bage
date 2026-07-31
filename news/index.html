@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,14 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.10.9" id="bage-0109">bage 0.10.9<a class="anchor" aria-label="anchor" href="#bage-0109"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.10.10" id="bage-01010">bage 0.10.10<a class="anchor" aria-label="anchor" href="#bage-01010"></a></h2>
+<div class="section level3">
+<h3 id="bug-fix-0-10-10">Bug fix<a class="anchor" aria-label="anchor" href="#bug-fix-0-10-10"></a></h3>
+<ul><li>Fixed bug in ’forecast()<code>, which was failing if</code>labels` was a character vector and the original time variable was a numeric vector, or vice versa. Forecast now tries to retain the original class of the time variable, but coerces it to character when necessary to accommodate character labels.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.9" id="bage-0109">bage 0.10.9<a class="anchor" aria-label="anchor" href="#bage-0109"></a></h2><p class="text-muted">CRAN release: 2026-05-20</p>
 <div class="section level3">
 <h3 id="interface-0-10-9">Interface<a class="anchor" aria-label="anchor" href="#interface-0-10-9"></a></h3>
 <ul><li>Added priors <code><a href="../reference/RW2_AR.html">RW2_AR()</a></code> and <code>RW2_AR</code>(), which combine a RW2 trend and an AR residual: a generalization of <code><a href="../reference/Lin_AR.html">Lin_AR()</a></code> and <code><a href="../reference/Lin_AR1.html">Lin_AR1()</a></code>.</li>
@@ -632,7 +639,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

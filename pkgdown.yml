@@ -1,5 +1,5 @@
 pandoc: 3.8.3
-pkgdown: 2.2.0
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   vig01_intro: vig01_intro.html
@@ -12,7 +12,7 @@ articles:
   articles/vig08_workflow: vig08_workflow.html
   articles/vig09_covariates: vig09_covariates.html
   articles/vig10_datamod: vig10_datamod.html
-last_built: 2026-05-20T05:35Z
+last_built: 2026-07-31T10:25Z
 urls:
   reference: https://bayesiandemography.github.io/bage/reference
   article: https://bayesiandemography.github.io/bage/articles

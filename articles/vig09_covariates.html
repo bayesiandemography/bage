@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -208,7 +208,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.49     0.85      0.48   30      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.51     0.84      0.52   30      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>To obtain estimates of the coefficients (ie estimates of the <span class="math inline">\(\zeta_p\)</span>) we call function <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> and filter out rows for the <code>"covariates"</code> term.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_gdp_dens</span> <span class="op">|&gt;</span></span>
@@ -297,7 +297,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.07     0.42      0.60   22      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.92     0.44      0.43   22      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Rather than a single dragon-year coefficient, we have a coefficient for each age group. We extract them and tidy up the labels.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_dragon_age</span> <span class="op">|&gt;</span></span>
@@ -396,7 +396,7 @@ where</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
