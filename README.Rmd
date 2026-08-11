@@ -23,7 +23,6 @@ opts_chunk$set(
 # bage
 
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/bayesiandemography/bage/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bayesiandemography/bage/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/bayesiandemography/bage/branch/main/graph/badge.svg)](https://app.codecov.io/gh/bayesiandemography/bage?branch=main)
 [![CRAN status](https://www.r-pkg.org/badges/version/bage)](https://CRAN.R-project.org/package=bage)
@@ -31,26 +30,12 @@ opts_chunk$set(
 
 Fast Bayesian estimation and forecasting of age-specific rates.
 
-Features:
-
 - Incorporates substantive demographic knowledge via priors
 - Supports full Bayesian workflow
 - Allows for measurement errors and missing values
 
 
-## Installation
-
-``` r
-install.packages("bage")
-```
-
-## Development
-
-A road map for the package is [here](https://github.com/bayesiandemography/bage/blob/main/.github/ROADMAP.md).
-
-## Example
-
-Fit Poisson model to data on injuries
+*Fit Poisson model to data on injuries:*
 
 ```{r echo = FALSE}
 options(width = 100)
@@ -65,7 +50,7 @@ mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 mod
 ```
 
-Extract model-based and direct estimates
+*Extract model-based and direct estimates:*
 
 ```{r augment}
 augment(mod)

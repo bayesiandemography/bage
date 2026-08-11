@@ -1,3 +1,9 @@
+# Submission, 12 August 2026, version 0.10.10
+
+* Current CRAN checks all pass.
+* This version of the package fixes a bug in the
+  `forecast()` function.
+
 
 # Submission, 20 May 2026, version 0.10.9
 

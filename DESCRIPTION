@@ -55,4 +55,4 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 URL: https://bayesiandemography.github.io/bage/, https://github.com/bayesiandemography/bage
 BugReports: https://github.com/bayesiandemography/bage/issues
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0

@@ -976,12 +976,14 @@ export(set_var_time)
 export(ssvd)
 export(tidy)
 export(unfit)
-importFrom(generics,augment)
-importFrom(generics,components)
-importFrom(generics,fit)
-importFrom(generics,forecast)
-importFrom(generics,generate)
-importFrom(generics,tidy)
+importFrom(generics,
+  augment,
+  components,
+  fit,
+  forecast,
+  generate,
+  tidy
+)
 importFrom(lifecycle,deprecated)
 importFrom(rvec,n_draw)
 importFrom(tibble,tibble)

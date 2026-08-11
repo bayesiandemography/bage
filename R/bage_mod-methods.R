@@ -99,10 +99,10 @@ generics::augment
 #' set.seed(0)
 #'
 #' ## specify model
-#' mod <- mod_pois(divorces ~ age + sex + time,
+#' mod <- mod_pois(divorces ~ age + sex,
 #'                 data = nzl_divorces,
 #'                 exposure = population) |>
-#'   set_n_draw(n_draw = 100) ## smaller sample, so 'augment' faster
+#'   set_n_draw(n_draw = 50) ## small sample, for speed
 #'
 #' ## fit model
 #' mod <- mod |>
@@ -120,22 +120,13 @@ generics::augment
 #' divorces_missing <- nzl_divorces
 #' divorces_missing$divorces[1] <- NA
 #'
-#' ## fitting model and calling 'augument'A
+#' ## fitting model and calling 'augument'
 #' ## creates a new variable called '.divorces'
 #' ## holding observed and imputed values
-#' mod_pois(divorces ~ age + sex + time,
+#' mod_pois(divorces ~ age + sex,
 #'          data = divorces_missing,
 #'          exposure = population) |>
-#'   fit() |>
-#'   augment()
-#'
-#' ## specifying a data model for the
-#' ## original data also leads to a new
-#' ## variable called '.divorces'
-#' mod_pois(divorces ~ age + sex + time,
-#'          data = nzl_divorces,
-#'          exposure = population) |>
-#'   set_datamod_outcome_rr3() |>
+#'   set_n_draw(n_draw = 50) |>
 #'   fit() |>
 #'   augment()
 #' @export
@@ -2982,7 +2973,7 @@ remove_covariates.bage_mod <- function(mod) {
 #' If a [data model][datamods] has been provided for
 #' the outcome variable, then creation of replicate
 #' data will include a step where errors are added
-#' to outcomes. For instance, the a [rr3][set_datamod_outcome_rr3()]
+#' to outcomes. For instance, if a [rr3][set_confidential_rr3()]
 #' data model is used, then `replicate_data()` rounds
 #' the outcomes to base 3.
 #'

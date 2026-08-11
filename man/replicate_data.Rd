@@ -84,7 +84,7 @@ data.
 If a \link[=datamods]{data model} has been provided for
 the outcome variable, then creation of replicate
 data will include a step where errors are added
-to outcomes. For instance, the a \link[=set_datamod_outcome_rr3]{rr3}
+to outcomes. For instance, if a \link[=set_confidential_rr3]{rr3}
 data model is used, then \code{replicate_data()} rounds
 the outcomes to base 3.
 }
