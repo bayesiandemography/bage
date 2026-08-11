@@ -86,8 +86,8 @@ If a [data
 model](https://bayesiandemography.github.io/bage/reference/datamods.md)
 has been provided for the outcome variable, then creation of replicate
 data will include a step where errors are added to outcomes. For
-instance, the a
-[rr3](https://bayesiandemography.github.io/bage/reference/set_datamod_outcome_rr3.md)
+instance, if a
+[rr3](https://bayesiandemography.github.io/bage/reference/set_confidential_rr3.md)
 data model is used, then `replicate_data()` rounds the outcomes to base
 3.
 
@@ -175,6 +175,8 @@ mod_pois(injuries ~ age:sex + ethnicity + year,
   set_datamod_outcome_rr3() |>
   fit() |>
   replicate_data()
+#> Warning: `set_datamod_outcome_rr3()` was deprecated in bage 0.9.4.
+#> ℹ Please use `set_confidential_rr3()` instead.
 #> Building log-posterior function...
 #> Finding maximum...
 #> Drawing values for hyper-parameters...

@@ -162,7 +162,7 @@ mod_gdp_dens
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.51     0.84      0.52   30      TRUE   relative convergence (4)
+#>        1.47     0.83      0.49   30      TRUE   relative convergence (4)
 ```
 
 To obtain estimates of the coefficients (ie estimates of the
@@ -275,7 +275,7 @@ mod_dragon_age
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.92     0.44      0.43   22      TRUE   relative convergence (4)
+#>        0.87     0.42      0.40   22      TRUE   relative convergence (4)
 ```
 
 Rather than a single dragon-year coefficient, we have a coefficient for

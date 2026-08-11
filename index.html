@@ -60,28 +60,13 @@
 <!-- badges: start -->
 
 <p>Fast Bayesian estimation and forecasting of age-specific rates.</p>
-<p>Features:</p>
 <ul>
 <li>Incorporates substantive demographic knowledge via priors</li>
 <li>Supports full Bayesian workflow</li>
 <li>Allows for measurement errors and missing values</li>
 </ul>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
+<p><em>Fit Poisson model to data on injuries:</em></p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"bage"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
-</h2>
-<p>A road map for the package is <a href="https://github.com/bayesiandemography/bage/blob/main/.github/ROADMAP.md" class="external-link">here</a>.</p>
-</div>
-<div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
-</h2>
-<p>Fit Poisson model to data on injuries</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
 <span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span>
 <span>                data <span class="op">=</span> <span class="va">nzl_injuries</span>,</span>
@@ -107,26 +92,25 @@
 <span><span class="co">#&gt;    1000     year     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.69     0.89      0.68   13      TRUE   relative convergence (4)</span></span></code></pre></div>
-<p>Extract model-based and direct estimates</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt;        1.78     0.93      0.72   13      TRUE   relative convergence (4)</span></span></code></pre></div>
+<p><em>Extract model-based and direct estimates:</em></p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 912 × 9</span></span>
 <span><span class="co">#&gt;    age   sex    ethnicity  year injuries  popn .observed                    .fitted</span></span>
 <span><span class="co">#&gt;    &lt;fct&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;int&gt;    &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;               &lt;rdbl&lt;1000&gt;&gt;</span></span>
 <span><span class="co">#&gt;  1 0-4   Female Maori      2000       12 35830 0.000335  0.00026 (0.00019, 0.00034)</span></span>
-<span><span class="co">#&gt;  2 5-9   Female Maori      2000        6 35120 0.000171    7.3e-05 (5.2e-05, 1e-04)</span></span>
-<span><span class="co">#&gt;  3 10-14 Female Maori      2000        3 32830 0.0000914 9.2e-05 (6.4e-05, 0.00012)</span></span>
-<span><span class="co">#&gt;  4 15-19 Female Maori      2000        6 27130 0.000221    0.00039 (0.00029, 5e-04)</span></span>
-<span><span class="co">#&gt;  5 20-24 Female Maori      2000        6 24380 0.000246  0.00039 (0.00029, 0.00051)</span></span>
+<span><span class="co">#&gt;  2 5-9   Female Maori      2000        6 35120 0.000171    7.3e-05 (5.3e-05, 1e-04)</span></span>
+<span><span class="co">#&gt;  3 10-14 Female Maori      2000        3 32830 0.0000914 9.2e-05 (6.7e-05, 0.00013)</span></span>
+<span><span class="co">#&gt;  4 15-19 Female Maori      2000        6 27130 0.000221  0.00039 (0.00029, 0.00051)</span></span>
+<span><span class="co">#&gt;  5 20-24 Female Maori      2000        6 24380 0.000246  0.00039 (0.00029, 0.00052)</span></span>
 <span><span class="co">#&gt;  6 25-29 Female Maori      2000        6 24160 0.000248  0.00033 (0.00025, 0.00044)</span></span>
-<span><span class="co">#&gt;  7 30-34 Female Maori      2000       12 22560 0.000532  0.00035 (0.00026, 0.00046)</span></span>
-<span><span class="co">#&gt;  8 35-39 Female Maori      2000        3 22230 0.000135  0.00032 (0.00023, 0.00041)</span></span>
-<span><span class="co">#&gt;  9 40-44 Female Maori      2000        6 18130 0.000331  0.00034 (0.00025, 0.00046)</span></span>
-<span><span class="co">#&gt; 10 45-49 Female Maori      2000        6 13770 0.000436  0.00036 (0.00027, 0.00048)</span></span>
+<span><span class="co">#&gt;  7 30-34 Female Maori      2000       12 22560 0.000532  0.00035 (0.00026, 0.00047)</span></span>
+<span><span class="co">#&gt;  8 35-39 Female Maori      2000        3 22230 0.000135  0.00032 (0.00023, 0.00042)</span></span>
+<span><span class="co">#&gt;  9 40-44 Female Maori      2000        6 18130 0.000331  0.00034 (0.00025, 0.00047)</span></span>
+<span><span class="co">#&gt; 10 45-49 Female Maori      2000        6 13770 0.000436  0.00037 (0.00027, 0.00048)</span></span>
 <span><span class="co">#&gt; # ℹ 902 more rows</span></span>
 <span><span class="co">#&gt; # ℹ 1 more variable: .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></code></pre></div>
-</div>
 </div>
 
   </main><aside class="col-md-3"><div class="links">
@@ -166,7 +150,6 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 <li><a href="https://github.com/bayesiandemography/bage/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/bayesiandemography/bage/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://app.codecov.io/gh/bayesiandemography/bage?branch=main" class="external-link"><img src="https://codecov.io/gh/bayesiandemography/bage/branch/main/graph/badge.svg" alt="Codecov test coverage"></a></li>
 <li><a href="https://CRAN.R-project.org/package=bage" class="external-link"><img src="https://www.r-pkg.org/badges/version/bage" alt="CRAN status"></a></li>

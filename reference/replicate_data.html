@@ -128,7 +128,7 @@ data.</p>
 <p>If a <a href="datamods.html">data model</a> has been provided for
 the outcome variable, then creation of replicate
 data will include a step where errors are added
-to outcomes. For instance, the a <a href="set_datamod_outcome_rr3.html">rr3</a>
+to outcomes. For instance, if a <a href="set_confidential_rr3.html">rr3</a>
 data model is used, then <code>replicate_data()</code> rounds
 the outcomes to base 3.</p>
     </div>
@@ -201,6 +201,8 @@ vignette</p></li>
 <span class="r-in"><span>  <span class="fu"><a href="set_datamod_outcome_rr3.html">set_datamod_outcome_rr3</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">replicate_data</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`set_datamod_outcome_rr3()` was deprecated in bage 0.9.4.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Please use `set_confidential_rr3()` instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Building log-posterior function...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Finding maximum...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Drawing values for hyper-parameters...</span>
