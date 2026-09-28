@@ -1862,12 +1862,35 @@ make_lin_trend <- function(slope,
 
 
 ## HAS_TESTS
+#' Number of Draw Columns to Expand at Once
+#'
+#' Keeps each temporary near 64 MB of doubles. One column is
+#' always allowed, including when that column alone is larger.
+#'
+#' @param n_row Number of observations
+#' @param n_draw Number of draws
+#'
+#' @returns An integer scalar
+#'
+#' @noRd
+chunk_size_linpred <- function(n_row, n_draw) {
+  target_cells <- 8000000L
+  n_row <- max(n_row, 1L)
+  chunk <- target_cells %/% n_row
+  chunk <- max(chunk, 1L)
+  chunk <- min(chunk, n_draw)
+  as.integer(chunk)
+}
+
+
+## HAS_TESTS
 #' Make Linear Predictor from Components
 #'
-#' Working with matrices rather than rvecs
-#' seems to reduce chance of hitting
-#' memory limits.
-#' 
+#' The accumulator is one matrix. Each term is expanded and
+#' added in blocks of draw columns, so the temporary stays
+#' a small fraction of the accumulator. The result is wrapped
+#' in an rvec only after the additions are finished.
+#'
 #' @param mod Object of class 'bage_mod'
 #' @param components Data frame with estimates for hyper-parameters
 #' @param data Data frame with raw data
@@ -1885,36 +1908,52 @@ make_linpred_from_components <- function(mod, components, data, dimnames_terms, 
     data[["(Intercept)"]] <- "(Intercept)"
   n_draw <- rvec::n_draw(fitted)
   n_row <- if (is.null(rows)) nrow(data) else length(rows)
-  ans <- rvec::new_rvec_dbl(length = n_row, n_draw = n_draw)
-  for (i_term in seq_along(dimnames_terms)) {
-    dimnames_term <- dimnames_terms[[i_term]]
-    nm_split <- dimnames_to_nm_split(dimnames_term)
-    nm <- dimnames_to_nm(dimnames_term)
-    levels_term <- dimnames_to_levels(dimnames_term)
-    key_term <- paste(nm, "effect", levels_term)
-    indices_comp <- match(key_term, key_comp)
-    val_term <- fitted[indices_comp]
-    data_term <- data[nm_split]
-    if (!is.null(rows))
-      data_term <- data_term[rows, , drop = FALSE]
-    levels_data <- Reduce(paste_dot, data_term)
-    indices_term <- match(levels_data, levels_term)
-    val_term_linpred <- val_term[indices_term]
-    ans <- ans + val_term_linpred
+  ans <- matrix(0, nrow = n_row, ncol = n_draw)
+  if (n_draw > 0L && n_row > 0L) {
+    draw_chunk <- chunk_size_linpred(n_row = n_row, n_draw = n_draw)
+    for (i_term in seq_along(dimnames_terms)) {
+      dimnames_term <- dimnames_terms[[i_term]]
+      nm_split <- dimnames_to_nm_split(dimnames_term)
+      nm <- dimnames_to_nm(dimnames_term)
+      levels_term <- dimnames_to_levels(dimnames_term)
+      key_term <- paste(nm, "effect", levels_term)
+      indices_comp <- match(key_term, key_comp)
+      val_term <- fitted[indices_comp]
+      data_term <- data[nm_split]
+      if (!is.null(rows))
+        data_term <- data_term[rows, , drop = FALSE]
+      levels_data <- Reduce(paste_dot, data_term)
+      indices_term <- match(levels_data, levels_term)
+      draws_term <- vctrs::field(val_term, "data")
+      for (start in seq.int(from = 1L, to = n_draw, by = draw_chunk)) {
+        end <- min(start + draw_chunk - 1L, n_draw)
+        cols <- seq.int(from = start, to = end)
+        contrib <- draws_term[indices_term, cols, drop = FALSE]
+        dimnames(contrib) <- NULL
+        ans[, cols] <- ans[, cols] + contrib
+      }
+    }
+    if (has_covariates(mod)) {
+      formula_covariates <- mod$formula_covariates
+      covariates_nms <- mod$covariates_nms
+      key_covariates <- paste("covariates", "coef", covariates_nms)
+      indices_covariates <- match(key_covariates, key_comp)
+      coef_covariates <- fitted[indices_covariates]
+      matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
+                                                  data = data,
+                                                  rows = rows)
+      coef_draws <- vctrs::field(coef_covariates, "data")
+      for (start in seq.int(from = 1L, to = n_draw, by = draw_chunk)) {
+        end <- min(start + draw_chunk - 1L, n_draw)
+        cols <- seq.int(from = start, to = end)
+        contrib <- matrix_covariates %*% coef_draws[, cols, drop = FALSE]
+        contrib <- as.matrix(contrib)
+        dimnames(contrib) <- NULL
+        ans[, cols] <- ans[, cols] + contrib
+      }
+    }
   }
-  if (has_covariates(mod)) {
-    formula_covariates <- mod$formula_covariates
-    covariates_nms <- mod$covariates_nms
-    key_covariates <- paste("covariates", "coef", covariates_nms)
-    indices_covariates <- match(key_covariates, key_comp)
-    coef_covariates <- fitted[indices_covariates]
-    matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
-                                                data = data,
-                                                rows = rows)
-    val_covariates_linpred <- matrix_covariates %*% coef_covariates
-    ans <- ans + val_covariates_linpred
-  }
-  ans
+  rvec::rvec_dbl(ans)
 }
 
 
