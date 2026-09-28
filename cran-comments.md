@@ -1,4 +1,4 @@
-# Submission, 12 August 2026, version 0.10.10
+# Submission, 22 August 2026, version 0.10.10
 
 * Current CRAN checks all pass.
 * This version of the package fixes a bug in the
