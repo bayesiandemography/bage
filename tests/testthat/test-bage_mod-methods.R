@@ -1438,6 +1438,70 @@ test_that("'draw_fitted_given_outcome' works with 'bage_mod_binom'", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'draw_fitted_given_outcome' matches the full-vector calculations", {
+  draw_reference <- function(distribution, outcome, offset, expected, disp) {
+    n_val <- length(expected)
+    n_draw <- rvec::n_draw(expected)
+    if (rvec::is_rvec(outcome))
+      outcome <- as.numeric(outcome)
+    else
+      outcome <- rep(outcome, times = n_draw)
+    if (rvec::is_rvec(offset))
+      offset <- as.numeric(offset)
+    else
+      offset <- rep(offset, times = n_draw)
+    expected <- as.numeric(expected)
+    disp <- as.numeric(disp)
+    disp <- rep(disp, each = n_val)
+    is_na <- is.na(outcome) | is.na(offset)
+    outcome[is_na] <- 0
+    offset[is_na] <- 0
+    if (distribution == "pois")
+      ans <- stats::rgamma(n = length(expected),
+                           shape = outcome + 1 / disp,
+                           rate = offset + 1 / (disp * expected))
+    else
+      ans <- stats::rbeta(n = length(expected),
+                          shape1 = outcome + expected / disp,
+                          shape2 = offset - outcome + (1 - expected) / disp)
+    rvec::rvec_dbl(matrix(ans, nrow = n_val, ncol = n_draw))
+  }
+  compare_one <- function(mod, distribution, outcome, offset, expected, disp) {
+    set.seed(1)
+    obtained <- draw_fitted_given_outcome(mod,
+                                          outcome = outcome,
+                                          offset = offset,
+                                          expected = expected,
+                                          disp = disp)
+    set.seed(1)
+    reference <- draw_reference(distribution = distribution,
+                                outcome = outcome,
+                                offset = offset,
+                                expected = expected,
+                                disp = disp)
+    expect_identical(obtained, reference)
+  }
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- 100
+  data$deaths <- 10
+  data$popn[1] <- NA
+  data$deaths[2] <- NA
+  mod_pois <- mod_pois(deaths ~ age + sex + time, data = data, exposure = popn)
+  mod_binom <- mod_binom(deaths ~ age + sex + time, data = data, size = popn)
+  n_val <- nrow(data)
+  expected_rate <- exp(rvec::rnorm_rvec(n = n_val, n_draw = 10))
+  expected_prob <- rvec::runif_rvec(n = n_val, n_draw = 10, min = 0.05, max = 0.8)
+  disp <- rvec::runif_rvec(n = 1, n_draw = 10, min = 0.2, max = 2)
+  offset_rvec <- rvec::rpois_rvec(n = n_val, lambda = 100, n_draw = 10)
+  offset_rvec[1] <- NA
+  outcome_rvec <- rvec::rpois_rvec(n = n_val, lambda = 8, n_draw = 10)
+  outcome_rvec[3] <- NA
+  compare_one(mod_pois, "pois", data$deaths, offset_rvec, expected_rate, disp)
+  compare_one(mod_pois, "pois", outcome_rvec, data$popn, expected_rate, disp)
+  compare_one(mod_binom, "binom", data$deaths, offset_rvec, expected_prob, disp)
+  compare_one(mod_binom, "binom", outcome_rvec, data$popn, expected_prob, disp)
+})
+
 
 ## 'fit' -----------------------------------------------------------------
 

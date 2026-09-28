@@ -1,4 +1,16 @@
 
+# bage 0.10.11
+
+## Changes to internal calculations
+
+* `make_linpred_from_components()` now accumulates the linear predictor
+  in one matrix, adding each term in blocks of draw columns. This lowers
+  peak memory use when `augment()` and `forecast()` are applied to large
+  datasets.
+* `draw_fitted_given_outcome()` for Poisson and binomial models now
+  generates `.fitted` in blocks of draws. This lowers peak memory use
+  when `augment()` is applied to large datasets with dispersion.
+
 # bage 0.10.9
 
 ## Interface
