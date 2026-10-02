@@ -1,6 +1,35 @@
 # Changelog
 
+## bage 0.10.11
+
+### Bug fixes
+
+- Fixed cell/year alignment when
+  [`forecast()`](https://generics.r-lib.org/reference/forecast.html) is
+  called with multiple `labels`. Each forecast year now contains every
+  observed combination of classification variables once, without
+  duplicate or missing cells. This bug affected versions 0.10.9 and
+  0.10.10; affected forecasts should be regenerated.
+- Forecast labels are checked for empty, missing, infinite, and
+  duplicated values. Overlap with historical periods is checked after
+  label conversion.
+
+### Changes to internal calculations
+
+- `make_linpred_from_components()` now accumulates the linear predictor
+  in one matrix, adding each term in blocks of draw columns. This lowers
+  peak memory use when
+  [`augment()`](https://generics.r-lib.org/reference/augment.html) and
+  [`forecast()`](https://generics.r-lib.org/reference/forecast.html) are
+  applied to large datasets.
+- `draw_fitted_given_outcome()` for Poisson and binomial models now
+  generates `.fitted` in blocks of draws. This lowers peak memory use
+  when [`augment()`](https://generics.r-lib.org/reference/augment.html)
+  is applied to large datasets with dispersion.
+
 ## bage 0.10.10
+
+CRAN release: 2026-08-21
 
 ### Bug fix
 

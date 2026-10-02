@@ -162,7 +162,7 @@ mod_gdp_dens
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        1.47     0.83      0.49   30      TRUE   relative convergence (4)
+#>        1.19     0.69      0.37   30      TRUE   relative convergence (4)
 ```
 
 To obtain estimates of the coefficients (ie estimates of the
@@ -179,7 +179,7 @@ mod_gdp_dens |>
 #>   term       component level                      .fitted
 #>   <chr>      <chr>     <chr>                 <rdbl<1000>>
 #> 1 covariates coef      gdp_pc_2023     -0.23 (-1.4, 0.99)
-#> 2 covariates coef      dens_2020Medium -0.93 (-2.5, 0.73)
+#> 2 covariates coef      dens_2020Medium -0.95 (-2.6, 0.72)
 ```
 
 ### 3.3 Covariates that allow for unusual subsets
@@ -204,7 +204,7 @@ mod_dragon |>
 #> # A tibble: 1 × 4
 #>   term       component level                           .fitted
 #>   <chr>      <chr>     <chr>                      <rdbl<1000>>
-#> 1 covariates coef      is_dragon_yearTRUE 0.069 (-0.045, 0.18)
+#> 1 covariates coef      is_dragon_yearTRUE 0.071 (-0.046, 0.18)
 ```
 
 There is some evidence for extra births, though there is substantial
@@ -275,7 +275,7 @@ mod_dragon_age
 #>    1000     time     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.87     0.42      0.40   22      TRUE   relative convergence (4)
+#>        0.68     0.33      0.31   22      TRUE   relative convergence (4)
 ```
 
 Rather than a single dragon-year coefficient, we have a coefficient for
@@ -289,17 +289,17 @@ mod_dragon_age |>
   mutate(age = sub("is_dragon_year_age", "", level)) |>
   select(age, .fitted)
 #> # A tibble: 9 × 2
-#>   age               .fitted
-#>   <chr>        <rdbl<1000>>
-#> 1 10-14  0.58 (-0.024, 1.3)
-#> 2 15-19 -0.012 (-0.21, 0.2)
-#> 3 20-24 0.045 (-0.16, 0.23)
-#> 4 25-29 0.065 (-0.12, 0.25)
-#> 5 30-34 0.079 (-0.11, 0.26)
-#> 6 35-39 0.043 (-0.15, 0.25)
-#> 7 40-44  0.072 (-0.1, 0.26)
-#> 8 45-49  0.083 (-0.2, 0.35)
-#> 9 50-54  0.33 (-0.25, 0.92)
+#>   age                 .fitted
+#>   <chr>          <rdbl<1000>>
+#> 1 10-14    0.58 (-0.048, 1.2)
+#> 2 15-19 -0.0071 (-0.21, 0.19)
+#> 3 20-24   0.043 (-0.14, 0.23)
+#> 4 25-29   0.065 (-0.12, 0.25)
+#> 5 30-34   0.086 (-0.11, 0.27)
+#> 6 35-39   0.047 (-0.14, 0.23)
+#> 7 40-44   0.071 (-0.11, 0.26)
+#> 8 45-49   0.094 (-0.18, 0.35)
+#> 9 50-54    0.33 (-0.23, 0.88)
 ```
 
 ### 3.4 Forecasting
@@ -315,16 +315,16 @@ mod_gdp_dens |>
 #> # A tibble: 90 × 4
 #>    age   region   time                    .fitted
 #>    <chr> <fct>   <int>               <rdbl<1000>>
-#>  1 10-14 Busan    2024 6.1e-06 (3.3e-06, 1.1e-05)
-#>  2 10-14 Busan    2024 6.1e-06 (3.3e-06, 1.1e-05)
-#>  3 10-14 Daegu    2024   5.5e-06 (2.9e-06, 1e-05)
-#>  4 10-14 Daegu    2024   5.4e-06 (2.9e-06, 1e-05)
-#>  5 10-14 Gwangju  2024 7.4e-06 (3.9e-06, 1.4e-05)
-#>  6 10-14 Gwangju  2024 7.5e-06 (3.8e-06, 1.4e-05)
-#>  7 10-14 Incheon  2024 7.2e-06 (3.8e-06, 1.4e-05)
-#>  8 10-14 Incheon  2024 7.3e-06 (3.9e-06, 1.4e-05)
-#>  9 10-14 Seoul    2024   4e-06 (2.1e-06, 7.5e-06)
-#> 10 10-14 Seoul    2024   4e-06 (2.1e-06, 7.3e-06)
+#>  1 10-14 Busan    2024 6.2e-06 (3.3e-06, 1.1e-05)
+#>  2 10-14 Daegu    2024   5.6e-06 (3e-06, 9.8e-06)
+#>  3 10-14 Gwangju  2024   7.6e-06 (4e-06, 1.4e-05)
+#>  4 10-14 Incheon  2024 7.4e-06 (3.8e-06, 1.3e-05)
+#>  5 10-14 Seoul    2024 4.1e-06 (2.1e-06, 7.4e-06)
+#>  6 15-19 Busan    2024 0.00034 (0.00024, 0.00047)
+#>  7 15-19 Daegu    2024 0.00027 (0.00019, 0.00038)
+#>  8 15-19 Gwangju  2024 0.00038 (0.00026, 0.00052)
+#>  9 15-19 Incheon  2024 0.00038 (0.00027, 0.00053)
+#> 10 15-19 Seoul    2024 0.00019 (0.00013, 0.00026)
 #> # ℹ 80 more rows
 ```
 
@@ -370,15 +370,15 @@ mod_dragon |>
 #> # A tibble: 90 × 4
 #>    age   region  time                    .fitted
 #>    <chr> <fct>  <int>               <rdbl<1000>>
-#>  1 10-14 Busan   2024 6.3e-06 (3.3e-06, 1.1e-05)
+#>  1 10-14 Busan   2024 6.2e-06 (3.5e-06, 1.2e-05)
 #>  2 15-19 Busan   2024 0.00034 (0.00024, 0.00047)
 #>  3 20-24 Busan   2024    0.0029 (0.0021, 0.0039)
-#>  4 25-29 Busan   2024       0.017 (0.013, 0.022)
-#>  5 30-34 Busan   2024         0.06 (0.045, 0.08)
+#>  4 25-29 Busan   2024       0.017 (0.013, 0.023)
+#>  5 30-34 Busan   2024        0.06 (0.045, 0.079)
 #>  6 35-39 Busan   2024       0.043 (0.032, 0.057)
 #>  7 40-44 Busan   2024      0.0077 (0.0057, 0.01)
-#>  8 45-49 Busan   2024 0.00018 (0.00013, 0.00024)
-#>  9 50-54 Busan   2024 4.8e-06 (2.8e-06, 8.9e-06)
-#> 10 10-14 Daegu   2024   5.7e-06 (3e-06, 9.9e-06)
+#>  8 45-49 Busan   2024 0.00018 (0.00013, 0.00025)
+#>  9 50-54 Busan   2024 4.7e-06 (2.9e-06, 8.7e-06)
+#> 10 10-14 Daegu   2024   5.6e-06 (3e-06, 1.1e-05)
 #> # ℹ 80 more rows
 ```

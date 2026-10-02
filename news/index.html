@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.11</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,22 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.10.10" id="bage-01010">bage 0.10.10<a class="anchor" aria-label="anchor" href="#bage-01010"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.10.11" id="bage-01011">bage 0.10.11<a class="anchor" aria-label="anchor" href="#bage-01011"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-0-10-11">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-10-11"></a></h3>
+<ul><li>Fixed cell/year alignment when <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> is called with multiple <code>labels</code>. Each forecast year now contains every observed combination of classification variables once, without duplicate or missing cells. This bug affected versions 0.10.9 and 0.10.10; affected forecasts should be regenerated.</li>
+<li>Forecast labels are checked for empty, missing, infinite, and duplicated values. Overlap with historical periods is checked after label conversion.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-to-internal-calculations-0-10-11">Changes to internal calculations<a class="anchor" aria-label="anchor" href="#changes-to-internal-calculations-0-10-11"></a></h3>
+<ul><li>
+<code>make_linpred_from_components()</code> now accumulates the linear predictor in one matrix, adding each term in blocks of draw columns. This lowers peak memory use when <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> and <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> are applied to large datasets.</li>
+<li>
+<code>draw_fitted_given_outcome()</code> for Poisson and binomial models now generates <code>.fitted</code> in blocks of draws. This lowers peak memory use when <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> is applied to large datasets with dispersion.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.10" id="bage-01010">bage 0.10.10<a class="anchor" aria-label="anchor" href="#bage-01010"></a></h2><p class="text-muted">CRAN release: 2026-08-21</p>
 <div class="section level3">
 <h3 id="bug-fix-0-10-10">Bug fix<a class="anchor" aria-label="anchor" href="#bug-fix-0-10-10"></a></h3>
 <ul><li>Fixed bug in ’forecast()<code>, which was failing if</code>labels` was a character vector and the original time variable was a numeric vector, or vice versa. Forecast now tries to retain the original class of the time variable, but coerces it to character when necessary to accommodate character labels.</li>

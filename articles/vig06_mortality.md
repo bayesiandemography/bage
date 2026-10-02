@@ -21,9 +21,9 @@ library(bage)
 #> The following objects are masked from 'package:stats':
 #> 
 #>     sd, var
-#> The following object is masked from 'package:base':
+#> The following objects are masked from 'package:base':
 #> 
-#>     rank
+#>     pmax, pmin, rank, which.max, which.min
 library(poputils)
 library(rvec)
 ```
@@ -292,7 +292,7 @@ mod_base
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        3.10     1.50      1.41   14      TRUE   relative convergence (4)
+#>        2.26     1.07      1.03   14      TRUE   relative convergence (4)
 ```
 
 ### 3.4 Extracting rates
@@ -521,7 +521,7 @@ mod_hmd
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        2.99     1.52      1.31    9      TRUE   relative convergence (4)
+#>        1.98     0.90      0.95    9      TRUE   relative convergence (4)
 ```
 
 ``` r

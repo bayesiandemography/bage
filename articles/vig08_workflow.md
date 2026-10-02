@@ -9,9 +9,9 @@ library(bage)
 #> The following objects are masked from 'package:stats':
 #> 
 #>     sd, var
-#> The following object is masked from 'package:base':
+#> The following objects are masked from 'package:base':
 #> 
-#>     rank
+#>     pmax, pmin, rank, which.max, which.min
 ```
 
 ## Prior predictive checking
