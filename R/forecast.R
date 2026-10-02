@@ -915,7 +915,7 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
   if (anyNA(labels_forecast))
     cli::cli_abort("{.arg labels} must not contain missing values.")
   if ((is.numeric(labels_forecast) || inherits(labels_forecast, c("Date", "POSIXt")))
-      && any(!is.finite(labels_forecast)))
+      && any(!is.finite(as.numeric(labels_forecast))))
     cli::cli_abort("{.arg labels} must not contain infinite values.")
   if (is.factor(time_est)) {
     labels_forecast <- factor(labels_forecast)
