@@ -541,16 +541,121 @@ draw_fitted_given_outcome <- function(mod,
   UseMethod("draw_fitted_given_outcome")
 }
 
-## HAS_TESTS
-#' @export
-draw_fitted_given_outcome.bage_mod_pois <- function(mod,
-                                                    outcome,
-                                                    offset,
-                                                    expected,
-                                                    disp) {
-  ## reformat everything to numeric vectors of
-  ## same length to deal with NAs
-  ## in 'outcome' and 'offset'
+#' Whether Outcome or Offset Lines Up with 'expected'
+#'
+#' Blocked draws repeat a length-'n_val' vector once per draw,
+#' or take columns from an rvec with the same dimensions.
+#' Other lengths keep the original full-vector calculation,
+#' including its recycling rules.
+#'
+#' @param x Outcome or offset.
+#' @param n_val Number of observations.
+#' @param n_draw Number of draws.
+#'
+#' @returns TRUE or FALSE.
+#'
+#' @noRd
+aligned_fitted_input <- function(x, n_val, n_draw) {
+  if (rvec::is_rvec(x))
+    length(x) == n_val && rvec::n_draw(x) == n_draw
+  else
+    length(x) == n_val
+}
+
+
+#' Values of a Fitted-Draw Input for a Contiguous Block of Draws
+#'
+#' 'x' is known to line up with 'expected'.
+#'
+#' @param x Outcome or offset. A numeric vector or an rvec.
+#' @param cols Draw columns to extract. Contiguous.
+#'
+#' @returns A numeric vector of length 'length(x) * length(cols)'
+#' for a plain vector, or the selected columns of an rvec.
+#'
+#' @noRd
+param_block_fitted <- function(x, cols) {
+  if (rvec::is_rvec(x)) {
+    m <- as.matrix(x)
+    as.vector(m[, cols, drop = FALSE])
+  } else {
+    rep(x, times = length(cols))
+  }
+}
+
+
+#' Draw '.fitted' in Blocks of Draw Columns
+#'
+#' A single full-length 'rgamma()' or 'rbeta()' call holds
+#' expanded copies of every input at once. Generating contiguous
+#' blocks, in column order, keeps those temporaries small and
+#' consumes the random-number stream in the same order.
+#'
+#' @param outcome Values for the outcome.
+#' @param offset Values for the offset.
+#' @param expected Backtransformed linear predictor. An rvec.
+#' @param disp Dispersion. An rvec.
+#' @param calc Function returning draws from outcome, offset,
+#' expected, and disp vectors for one block.
+#'
+#' @returns An rvec.
+#'
+#' @noRd
+draw_fitted_in_blocks <- function(outcome, offset, expected, disp, calc) {
+  n_val <- length(expected)
+  n_draw <- rvec::n_draw(expected)
+  aligned <- (aligned_fitted_input(outcome, n_val, n_draw)
+              && aligned_fitted_input(offset, n_val, n_draw))
+  if (!aligned)
+    return(draw_fitted_full(outcome = outcome,
+                            offset = offset,
+                            expected = expected,
+                            disp = disp,
+                            calc = calc))
+  expected_m <- as.matrix(expected)
+  disp_v <- as.numeric(disp)
+  ans <- matrix(0, nrow = n_val, ncol = n_draw)
+  if (n_val > 0L && n_draw > 0L) {
+    draw_chunk <- chunk_size_linpred(n_row = n_val, n_draw = n_draw)
+    for (start in seq.int(from = 1L, to = n_draw, by = draw_chunk)) {
+      end <- min(start + draw_chunk - 1L, n_draw)
+      cols <- seq.int(from = start, to = end)
+      outcome_block <- param_block_fitted(x = outcome, cols = cols)
+      offset_block <- param_block_fitted(x = offset, cols = cols)
+      expected_block <- as.vector(expected_m[, cols, drop = FALSE])
+      disp_block <- disp_v[((cols - 1L) %% length(disp_v)) + 1L]
+      disp_block <- rep(disp_block, each = n_val)
+      is_na <- is.na(outcome_block) | is.na(offset_block)
+      outcome_block[is_na] <- 0
+      offset_block[is_na] <- 0
+      draws <- calc(outcome = outcome_block,
+                    offset = offset_block,
+                    expected = expected_block,
+                    disp = disp_block)
+      ans[, cols] <- draws
+    }
+  }
+  rvec::rvec_dbl(ans)
+}
+
+
+#' Draw '.fitted' from Full-Length Vectors
+#'
+#' Used when 'outcome' or 'offset' does not have one value
+#' per observation. This preserves the recycling behavior
+#' of the original calculation.
+#'
+#' @param outcome Values for the outcome.
+#' @param offset Values for the offset.
+#' @param expected Backtransformed linear predictor. An rvec.
+#' @param disp Dispersion. An rvec or a numeric vector.
+#' @param calc Function returning draws from outcome, offset,
+#' expected, and disp.
+#'
+#' @returns An rvec.
+#'
+#' @noRd
+draw_fitted_full <- function(outcome, offset, expected, disp, calc) {
   n_val <- length(expected)
   n_draw <- rvec::n_draw(expected)
   if (rvec::is_rvec(outcome))
@@ -567,12 +672,60 @@ draw_fitted_given_outcome.bage_mod_pois <- function(mod,
   is_na <- is.na(outcome) | is.na(offset)
   outcome[is_na] <- 0
   offset[is_na] <- 0
-  ans <- stats::rgamma(n = length(expected),
-                       shape = outcome + 1 / disp,
-                       rate = offset + 1 / (disp * expected))
-  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
-  ans <- rvec::rvec_dbl(ans)
-  ans
+  ans <- calc(outcome = outcome,
+              offset = offset,
+              expected = expected,
+              disp = disp)
+  rvec::rvec_dbl(matrix(ans, nrow = n_val, ncol = n_draw))
+}
+
+
+#' Gamma Draws for One Block of the Poisson '.fitted' Values
+#'
+#' @param outcome Outcome values, with NAs replaced by 0.
+#' @param offset Offset values, with NAs replaced by 0.
+#' @param expected Expected rates.
+#' @param disp Dispersion values.
+#'
+#' @returns A numeric vector.
+#'
+#' @noRd
+calc_fitted_pois <- function(outcome, offset, expected, disp) {
+  stats::rgamma(n = length(expected),
+                shape = outcome + 1 / disp,
+                rate = offset + 1 / (disp * expected))
+}
+
+
+#' Beta Draws for One Block of the Binomial '.fitted' Values
+#'
+#' @param outcome Outcome values, with NAs replaced by 0.
+#' @param offset Offset values, with NAs replaced by 0.
+#' @param expected Expected probabilities.
+#' @param disp Dispersion values.
+#'
+#' @returns A numeric vector.
+#'
+#' @noRd
+calc_fitted_binom <- function(outcome, offset, expected, disp) {
+  stats::rbeta(n = length(expected),
+               shape1 = outcome + expected / disp,
+               shape2 = offset - outcome + (1 - expected) / disp)
+}
+
+
+## HAS_TESTS
+#' @export
+draw_fitted_given_outcome.bage_mod_pois <- function(mod,
+                                                    outcome,
+                                                    offset,
+                                                    expected,
+                                                    disp) {
+  draw_fitted_in_blocks(outcome = outcome,
+                        offset = offset,
+                        expected = expected,
+                        disp = disp,
+                        calc = calc_fitted_pois)
 }
 
 
@@ -583,31 +736,11 @@ draw_fitted_given_outcome.bage_mod_binom <- function(mod,
                                                      offset,
                                                      expected,
                                                      disp) {
-  ## reformat everything to numeric vectors of
-  ## same length to deal with NAs
-  ## in 'outcome' and 'offset'
-  n_val <- length(expected)
-  n_draw <- rvec::n_draw(expected)
-  if (rvec::is_rvec(outcome))
-    outcome <- as.numeric(outcome)
-  else
-    outcome <- rep(outcome, times = n_draw)
-  if (rvec::is_rvec(offset))
-    offset <- as.numeric(offset)
-  else
-    offset <- rep(offset, times = n_draw)
-  expected <- as.numeric(expected)
-  disp <- as.numeric(disp)
-  disp <- rep(disp, each = n_val)
-  is_na <- is.na(outcome) | is.na(offset)
-  outcome[is_na] <- 0
-  offset[is_na] <- 0
-  ans <- stats::rbeta(n = length(expected),
-                      shape1 = outcome + expected / disp,
-                      shape2 = offset - outcome + (1 - expected) / disp)
-  ans <- matrix(ans, nrow = n_val, ncol = n_draw)
-  ans <- rvec::rvec_dbl(ans)
-  ans
+  draw_fitted_in_blocks(outcome = outcome,
+                        offset = offset,
+                        expected = expected,
+                        disp = disp,
+                        calc = calc_fitted_binom)
 }
 
 
@@ -1354,7 +1487,8 @@ generics::forecast
 #' [mod_binom()], or [mod_norm()].
 #' @param newdata Data frame with data for
 #' future periods.
-#' @param labels Labels for future time periods.
+#' @param labels A non-empty vector of distinct, non-missing labels for
+#' future time periods. Labels must not overlap with historical periods.
 #' @param output Type of output returned.
 #' `"augment"` (the default) or `"components"`.
 #' @param include_estimates Whether to
@@ -1486,6 +1620,7 @@ forecast.bage_mod <- function(object,
   if (has_labels) {
     data_forecast <- make_data_forecast_labels(mod = object,
                                                labels_forecast = labels)
+    labels <- unique(data_forecast[[var_time]])
   }
   nms_data_forecast <- names(data_forecast)
   seed_forecast_components <- object$seed_forecast_components

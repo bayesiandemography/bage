@@ -1,4 +1,17 @@
-# Submission, 12 August 2026, version 0.10.10
+# Submission, 2 October 2026, version 0.10.11
+
+* Fixes incorrect cell/year combinations in forecasts requested with multiple
+  labels, affecting versions 0.10.9 and 0.10.10. Regression tests compare
+  complete keys, including incomplete grids, label classes, and covariates.
+* Includes memory-saving blocked calculations for fitted draws and linear
+  predictors, checked against the original calculations.
+* Local R CMD check --as-cran on macOS arm64, R 4.6.1: Status: OK
+  (0 errors, 0 warnings, 0 notes).
+* The full development test suite passes. The England migration workflow
+  was validated with all 1,000 draws and 78,624 forecast rows.
+* Cross-platform CI results will be recorded before submission.
+
+# Submission, 22 August 2026, version 0.10.10
 
 * Current CRAN checks all pass.
 * This version of the package fixes a bug in the

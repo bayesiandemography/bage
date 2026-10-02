@@ -905,11 +905,18 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
   var_time <- mod$var_time
   vars <- all.vars(formula[-2L])
   time_est <- data[[var_time]]
-  is_dup <- labels_forecast %in% time_est
-  i_dup <- match(TRUE, is_dup, nomatch = 0L)
-  if (i_dup > 0L)
-    cli::cli_abort(c("{.arg labels} has value already present in {.var {var_time}}.",
-                     i = "Value: {.val {labels_forecast[[i_dup]]}}."))
+  if (!(is.numeric(labels_forecast) || is.character(labels_forecast)
+        || is.factor(labels_forecast)
+        || inherits(labels_forecast, c("Date", "POSIXt")))
+      || !is.null(dim(labels_forecast)))
+    cli::cli_abort("{.arg labels} must be a numeric, character, factor, Date, or date-time vector.")
+  if (length(labels_forecast) == 0L)
+    cli::cli_abort("{.arg labels} must contain at least one value.")
+  if (anyNA(labels_forecast))
+    cli::cli_abort("{.arg labels} must not contain missing values.")
+  if ((is.numeric(labels_forecast) || inherits(labels_forecast, c("Date", "POSIXt")))
+      && any(!is.finite(as.numeric(labels_forecast))))
+    cli::cli_abort("{.arg labels} must not contain infinite values.")
   if (is.factor(time_est)) {
     labels_forecast <- factor(labels_forecast)
   }
@@ -919,10 +926,13 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
     is_na_new <- is.na(labels_forecast_tmp) & !is_na_old
     can_convert <- !any(is_na_new)
     if (can_convert) {
+      if (any(!is.finite(labels_forecast_tmp)))
+        cli::cli_abort("{.arg labels} must not contain infinite values.")
       labels_forecast <- labels_forecast_tmp
       is_est_inc <- is.integer(time_est)
-      can_lab_be_inc <- all(labels_forecast == as.integer(labels_forecast),
-                            na.rm = TRUE)
+      can_lab_be_inc <- all(labels_forecast >= -.Machine$integer.max
+                            & labels_forecast <= .Machine$integer.max
+                            & labels_forecast == trunc(labels_forecast))
       convert_to_int <- is_est_inc && can_lab_be_inc
       if (convert_to_int) {
         labels_forecast <- as.integer(labels_forecast)
@@ -935,6 +945,13 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
   else if (is.numeric(labels_forecast) && is.character(time_est)) {
     labels_forecast <- as.character(labels_forecast)
   }
+  if (vctrs::vec_duplicate_any(labels_forecast))
+    cli::cli_abort("{.arg labels} must not contain duplicated values.")
+  is_dup <- labels_forecast %in% time_est
+  i_dup <- match(TRUE, is_dup, nomatch = 0L)
+  if (i_dup > 0L)
+    cli::cli_abort(c("{.arg labels} has value already present in {.var {var_time}}.",
+                     i = "Value: {.val {labels_forecast[[i_dup]]}}."))
   data[[var_time]] <- time_est
   if (length(vars) > 1L) {
     ans <- data[vars]
@@ -942,7 +959,8 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
     ans <- unique(ans)
     n_forecast <- length(labels_forecast)
     n_data <- nrow(ans)
-    ans <- vctrs::vec_rep_each(ans, times = n_forecast)
+    ## Repeat the whole cell table once per label, matching the year blocks.
+    ans <- vctrs::vec_rep(ans, times = n_forecast)
     ans[[var_time]] <- rep(labels_forecast, each = n_data)
   }
   else {

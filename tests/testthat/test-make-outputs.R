@@ -2369,6 +2369,16 @@ test_that("'make_levels_replicate' works", {
 })
 
 
+## 'chunk_size_linpred' -------------------------------------------------------
+
+test_that("'chunk_size_linpred' bounds the temporary and respects n_draw", {
+  expect_identical(chunk_size_linpred(n_row = 100L, n_draw = 10L), 10L)
+  expect_identical(chunk_size_linpred(n_row = 1000000L, n_draw = 1000L), 8L)
+  expect_identical(chunk_size_linpred(n_row = 0L, n_draw = 5L), 5L)
+  expect_identical(chunk_size_linpred(n_row = 20000000L, n_draw = 4L), 1L)
+})
+
+
 ## 'make_linpred_from_components' ---------------------------------------------
 
 test_that("'make_linpred_from_components' works with valid inputs - no covariates, rows is NULL", {

@@ -1481,6 +1481,13 @@ test_that("'make_data_forecast_labels' works - no covariates", {
   expect_setequal(ans$age, data$age)
   expect_setequal(ans$sex, data$sex)
   expect_setequal(ans$time, 2006:2008)
+  cells <- unique(data[c("age", "sex")])
+  expect_equal(nrow(ans), nrow(cells) * 3L)
+  expect_false(anyDuplicated(ans[c("age", "sex", "time")]) > 0L)
+  for (year in 2006:2008)
+    expect_equal(ans[ans$time == year, c("age", "sex")],
+                 tibble::as_tibble(cells))
+
   expect_true(is.integer(ans$time))
 })
 
