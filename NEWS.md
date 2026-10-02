@@ -1,6 +1,16 @@
 
 # bage 0.10.11
 
+## Bug fixes
+
+* Fixed cell/year alignment when `forecast()` is called with multiple
+  `labels`. Each forecast year now contains every observed combination
+  of classification variables once, without duplicate or missing cells.
+  This bug affected versions 0.10.9 and 0.10.10; affected forecasts
+  should be regenerated.
+* Forecast labels are checked for empty, missing, infinite, and duplicated
+  values. Overlap with historical periods is checked after label conversion.
+
 ## Changes to internal calculations
 
 * `make_linpred_from_components()` now accumulates the linear predictor
@@ -10,6 +20,17 @@
 * `draw_fitted_given_outcome()` for Poisson and binomial models now
   generates `.fitted` in blocks of draws. This lowers peak memory use
   when `augment()` is applied to large datasets with dispersion.
+
+# bage 0.10.10
+
+## Bug fix
+
+* Fixed bug in 'forecast()`, which was failing if `labels` was
+  a character vector and the original time variable was a numeric
+  vector, or vice versa. Forecast now tries to retain the original
+  class of the time variable, but coerces it to character when
+  necessary to accommodate character labels.
+
 
 # bage 0.10.9
 
@@ -32,6 +53,18 @@
 
 * Changed `bage-package` help page to a normal (ie non-internal) page,
   with `bage` as an alias.
+
+## Computation
+
+* In the "noise" data model for the Poisson distribution, which uses a
+  Skellam distribution to represent errors, we previously used an
+  exact formula for the Skellam density for small means,
+  and a normal approximation for large means. However, the exact formula
+  requires the use of the IBessel function, and some compilers
+  complain when IBessel is used in TMB. We have therefore
+  switched to using a saddlepoint approximation for small means,
+  which avoids the use of the IBessel function.
+  
 
 # bage 0.10.8
 
