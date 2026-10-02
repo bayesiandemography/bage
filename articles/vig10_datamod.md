@@ -155,7 +155,7 @@ mod_under
 #>    1000     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.06     0.02      0.03   13      TRUE   relative convergence (4)
+#>        0.05     0.02      0.03   13      TRUE   relative convergence (4)
 ```
 
 Calling [`augment()`](https://generics.r-lib.org/reference/augment.html)

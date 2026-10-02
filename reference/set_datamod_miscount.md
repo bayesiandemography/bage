@@ -219,7 +219,7 @@ mod
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.25     0.13      0.09   17      TRUE   relative convergence (4)
+#>        0.29     0.16      0.11   17      TRUE   relative convergence (4)
 #> 
 
 ## original data, plus imputed values for outcome
@@ -287,6 +287,6 @@ mod
 #>    1000     time     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.53     0.28      0.23   17      TRUE   relative convergence (4)
+#>        0.62     0.33      0.26   17      TRUE   relative convergence (4)
 #> 
 ```

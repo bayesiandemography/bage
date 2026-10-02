@@ -168,7 +168,7 @@ mod
 #>    1000     year     age    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.29     0.12      0.14   20      TRUE   relative convergence (4)
+#>        0.30     0.12      0.15   20      TRUE   relative convergence (4)
 #> 
 
 ## create new aggregated diagnositic
