@@ -6,8 +6,7 @@
 * Fixed cell/year alignment when `forecast()` is called with multiple
   `labels`. Each forecast year now contains every observed combination
   of classification variables once, without duplicate or missing cells.
-  This bug affected versions 0.10.9 and 0.10.10; affected forecasts
-  should be regenerated.
+  This bug affected versions 0.10.9 and 0.10.10.
 * Forecast labels are checked for empty, missing, infinite, and duplicated
   values. Overlap with historical periods is checked after label conversion.
 

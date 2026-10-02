@@ -1,26 +1,9 @@
-# Submission draft: bage 0.10.11
+# Submission, 3 October 2026, version 0.10.11
 
-This is a patch release fixing a forecasting bug present in versions 0.10.9
-and 0.10.10. When `forecast()` was called with multiple `labels`, some
-classification-cell/year combinations were duplicated and others omitted.
-The correction returns each observed combination of classification variables
-once per forecast period, without introducing unobserved combinations.
-
-The release also includes memory-saving blocked calculations for Poisson
-and binomial fitted draws and for linear predictors. Regression tests compare
-these with the previous calculations, including random-number state for
-fitted draws.
-
-Validation:
-
-* Local `R CMD check --as-cran` on macOS arm64 with R 4.6.1:
-  0 errors, 0 warnings, 0 notes.
-* GitHub CI package checks passed on macOS and Windows R-release, and on
-  Ubuntu with R-release, R-oldrel-1, R-devel, and R 4.2.2.
-* Regression tests check complete cell/year combinations, incomplete grids,
-  covariate alignment, label classes and validation, and equivalence between
-  forecasts requested through `labels` and independently constructed
-  `newdata`.
+* Bug fix for bug present in versions 0.10.9 andnd 0.10.10
+  when `forecast()` was called with multiple `labels`.
+* Also includes more refactoring of calculations for Poisson
+  and binomial fitted draws and for linear predictors. 
 
 # Submission, 22 August 2026, version 0.10.10
 
