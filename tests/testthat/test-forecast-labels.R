@@ -60,11 +60,13 @@ test_that("forecast labels preserve cells in randomized incomplete panels", {
 })
 
 test_that("forecast labels preserve supported classes and covariate alignment", {
-  for (type in c("integer", "double", "character", "factor", "Date")) {
+  for (type in c("integer", "double", "character", "factor", "Date", "POSIXct", "POSIXlt")) {
     data <- forecast_label_fixture()
     convert <- switch(type, integer = as.integer, double = as.double,
                        character = as.character, factor = factor,
-                       Date = function(x) as.Date(paste0(x, "-01-01")))
+                       Date = function(x) as.Date(paste0(x, "-01-01")),
+                       POSIXct = function(x) as.POSIXct(paste0(x, "-01-01"), tz = "UTC"),
+                       POSIXlt = function(x) as.POSIXlt(paste0(x, "-01-01"), tz = "UTC"))
     data$time <- convert(data$time)
     data$region <- factor(data$region, levels = c("b", "a", "unused"))
     data$income <- data$age * 3 + as.integer(data$region)

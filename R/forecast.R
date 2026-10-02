@@ -906,14 +906,15 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
   vars <- all.vars(formula[-2L])
   time_est <- data[[var_time]]
   if (!(is.numeric(labels_forecast) || is.character(labels_forecast)
-        || is.factor(labels_forecast) || inherits(labels_forecast, "Date"))
+        || is.factor(labels_forecast)
+        || inherits(labels_forecast, c("Date", "POSIXt")))
       || !is.null(dim(labels_forecast)))
-    cli::cli_abort("{.arg labels} must be a numeric, character, factor, or Date vector.")
+    cli::cli_abort("{.arg labels} must be a numeric, character, factor, Date, or date-time vector.")
   if (length(labels_forecast) == 0L)
     cli::cli_abort("{.arg labels} must contain at least one value.")
   if (anyNA(labels_forecast))
     cli::cli_abort("{.arg labels} must not contain missing values.")
-  if ((is.numeric(labels_forecast) || inherits(labels_forecast, "Date"))
+  if ((is.numeric(labels_forecast) || inherits(labels_forecast, c("Date", "POSIXt")))
       && any(!is.finite(labels_forecast)))
     cli::cli_abort("{.arg labels} must not contain infinite values.")
   if (is.factor(time_est)) {
@@ -944,7 +945,7 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
   else if (is.numeric(labels_forecast) && is.character(time_est)) {
     labels_forecast <- as.character(labels_forecast)
   }
-  if (anyDuplicated(labels_forecast))
+  if (vctrs::vec_duplicate_any(labels_forecast))
     cli::cli_abort("{.arg labels} must not contain duplicated values.")
   is_dup <- labels_forecast %in% time_est
   i_dup <- match(TRUE, is_dup, nomatch = 0L)
