@@ -208,7 +208,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.29     0.76      0.40   30      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.50     0.82      0.51   30      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>To obtain estimates of the coefficients (ie estimates of the <span class="math inline">\(\zeta_p\)</span>) we call function <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> and filter out rows for the <code>"covariates"</code> term.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_gdp_dens</span> <span class="op">|&gt;</span></span>
@@ -218,7 +218,7 @@ where</p>
 <span><span class="co">#&gt;   term       component level                      .fitted</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      gdp_pc_2023     -0.23 (-1.4, 0.99)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> covariates coef      dens_2020Medium -0.95 (-2.6, 0.72)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> covariates coef      dens_2020Medium -0.93 (-2.5, 0.73)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="3.3">
 <h3 id="covariates-that-allow-for-unusual-subsets">
@@ -240,7 +240,7 @@ where</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 4</span></span></span>
 <span><span class="co">#&gt;   term       component level                           .fitted</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                      <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      is_dragon_yearTRUE 0.071 (-0.046, 0.18)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> covariates coef      is_dragon_yearTRUE 0.069 (-0.045, 0.18)</span></span></code></pre></div>
 <p>There is some evidence for extra births, though there is substantial uncertainty about the size of the effect.</p>
 <p>Next we expand the model to allow the dragon-year effect to differ across age groups. We create a variable that takes the values <code>"baseline"</code> in all years, except in dragon years, when it takes the name of the age group. We turn this variable into a factor with <code>"baseline"</code> as its first level.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -297,7 +297,7 @@ where</p>
 <span><span class="co">#&gt;    1000     time     age    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_max time_draw iter converged                    message</span></span>
-<span><span class="co">#&gt;        0.72     0.35      0.33   22      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.92     0.43      0.43   22      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Rather than a single dragon-year coefficient, we have a coefficient for each age group. We extract them and tidy up the labels.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_dragon_age</span> <span class="op">|&gt;</span></span>
@@ -306,17 +306,17 @@ where</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"is_dragon_year_age"</span>, <span class="st">""</span>, <span class="va">level</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">.fitted</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 9 × 2</span></span></span>
-<span><span class="co">#&gt;   age                 .fitted</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 10-14    0.58 (-0.048, 1.2)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 15-19 -0.0071 (-0.21, 0.19)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 20-24   0.043 (-0.14, 0.23)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 25-29   0.065 (-0.12, 0.25)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 30-34   0.086 (-0.11, 0.27)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 35-39   0.047 (-0.14, 0.23)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 40-44   0.071 (-0.11, 0.26)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 45-49   0.094 (-0.18, 0.35)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> 50-54    0.33 (-0.23, 0.88)</span></span></code></pre></div>
+<span><span class="co">#&gt;   age               .fitted</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 10-14  0.58 (-0.024, 1.3)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 15-19 -0.012 (-0.21, 0.2)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 20-24 0.045 (-0.16, 0.23)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 25-29 0.065 (-0.12, 0.25)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 30-34 0.079 (-0.11, 0.26)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 35-39 0.043 (-0.15, 0.25)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 40-44  0.072 (-0.1, 0.26)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 45-49  0.083 (-0.2, 0.35)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> 50-54  0.33 (-0.25, 0.92)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="3.4">
 <h3 id="forecasting">
@@ -330,16 +330,16 @@ where</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 90 × 4</span></span></span>
 <span><span class="co">#&gt;    age   region   time                    .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10-14 Busan    <span style="text-decoration: underline;">2</span>024 6.2e-06 (3.3e-06, 1.1e-05)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 10-14 Daegu    <span style="text-decoration: underline;">2</span>024   5.6e-06 (3e-06, 9.8e-06)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Gwangju  <span style="text-decoration: underline;">2</span>024   7.6e-06 (4e-06, 1.4e-05)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 10-14 Incheon  <span style="text-decoration: underline;">2</span>024 7.4e-06 (3.8e-06, 1.3e-05)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 10-14 Seoul    <span style="text-decoration: underline;">2</span>024 4.1e-06 (2.1e-06, 7.4e-06)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 15-19 Busan    <span style="text-decoration: underline;">2</span>024 0.00034 (0.00024, 0.00047)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 15-19 Daegu    <span style="text-decoration: underline;">2</span>024 0.00027 (0.00019, 0.00038)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 15-19 Gwangju  <span style="text-decoration: underline;">2</span>024 0.00038 (0.00026, 0.00052)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 15-19 Incheon  <span style="text-decoration: underline;">2</span>024 0.00038 (0.00027, 0.00053)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 15-19 Seoul    <span style="text-decoration: underline;">2</span>024 0.00019 (0.00013, 0.00026)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10-14 Busan    <span style="text-decoration: underline;">2</span>024 6.1e-06 (3.3e-06, 1.1e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 10-14 Daegu    <span style="text-decoration: underline;">2</span>024   5.5e-06 (2.9e-06, 1e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Gwangju  <span style="text-decoration: underline;">2</span>024 7.4e-06 (3.8e-06, 1.4e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 10-14 Incheon  <span style="text-decoration: underline;">2</span>024 7.3e-06 (3.9e-06, 1.4e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 10-14 Seoul    <span style="text-decoration: underline;">2</span>024   4e-06 (2.1e-06, 7.4e-06)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 15-19 Busan    <span style="text-decoration: underline;">2</span>024 0.00034 (0.00025, 0.00047)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 15-19 Daegu    <span style="text-decoration: underline;">2</span>024 0.00027 (0.00019, 0.00037)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 15-19 Gwangju  <span style="text-decoration: underline;">2</span>024 0.00038 (0.00027, 0.00053)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 15-19 Incheon  <span style="text-decoration: underline;">2</span>024 0.00039 (0.00028, 0.00054)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 15-19 Seoul    <span style="text-decoration: underline;">2</span>024 0.00019 (0.00014, 0.00026)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 80 more rows</span></span></span></code></pre></div>
 <p>If, however, a covariate varies over time, forecasting only works if values for future periods are provided. The following code will result in an error:</p>
 <pre><code><span><span class="va">mod_dragon</span> <span class="op">|&gt;</span></span>
@@ -372,16 +372,16 @@ where</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 90 × 4</span></span></span>
 <span><span class="co">#&gt;    age   region  time                    .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10-14 Busan   <span style="text-decoration: underline;">2</span>024 6.2e-06 (3.5e-06, 1.2e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10-14 Busan   <span style="text-decoration: underline;">2</span>024 6.3e-06 (3.3e-06, 1.1e-05)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 15-19 Busan   <span style="text-decoration: underline;">2</span>024 0.00034 (0.00024, 0.00047)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 20-24 Busan   <span style="text-decoration: underline;">2</span>024    0.0029 (0.0021, 0.0039)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 25-29 Busan   <span style="text-decoration: underline;">2</span>024       0.017 (0.013, 0.023)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 30-34 Busan   <span style="text-decoration: underline;">2</span>024        0.06 (0.045, 0.079)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 25-29 Busan   <span style="text-decoration: underline;">2</span>024       0.017 (0.013, 0.022)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 30-34 Busan   <span style="text-decoration: underline;">2</span>024         0.06 (0.045, 0.08)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 35-39 Busan   <span style="text-decoration: underline;">2</span>024       0.043 (0.032, 0.057)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 40-44 Busan   <span style="text-decoration: underline;">2</span>024      0.0077 (0.0057, 0.01)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 45-49 Busan   <span style="text-decoration: underline;">2</span>024 0.00018 (0.00013, 0.00025)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 50-54 Busan   <span style="text-decoration: underline;">2</span>024 4.7e-06 (2.9e-06, 8.7e-06)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10-14 Daegu   <span style="text-decoration: underline;">2</span>024   5.6e-06 (3e-06, 1.1e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 45-49 Busan   <span style="text-decoration: underline;">2</span>024 0.00018 (0.00013, 0.00024)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 50-54 Busan   <span style="text-decoration: underline;">2</span>024 4.8e-06 (2.8e-06, 8.9e-06)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10-14 Daegu   <span style="text-decoration: underline;">2</span>024   5.7e-06 (3e-06, 9.9e-06)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 80 more rows</span></span></span></code></pre></div>
 </div>
 </div>

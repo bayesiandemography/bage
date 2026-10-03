@@ -217,7 +217,7 @@ mod
 #>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_max time_draw iter converged                    message
-#>        0.52     0.24      0.24   15      TRUE   relative convergence (4)
+#>        0.67     0.30      0.32   15      TRUE   relative convergence (4)
 #> 
 
 ## forecasts
@@ -298,12 +298,12 @@ mod |>
 #> # A tibble: 6 × 4
 #>   term  component level            .fitted
 #>   <chr> <chr>     <chr>       <rdbl<1000>>
-#> 1 year  effect    2019  -2.1 (-3.9, -0.34)
-#> 2 year  effect    2020  -2.1 (-3.9, -0.33)
-#> 3 year  effect    2021  -2.1 (-3.8, -0.35)
-#> 4 year  effect    2022  -2.1 (-3.8, -0.38)
-#> 5 year  effect    2023  -2.1 (-3.9, -0.37)
-#> 6 year  effect    2024   -2.1 (-3.8, -0.4)
+#> 1 year  effect    2019  -2.1 (-3.8, -0.35)
+#> 2 year  effect    2020  -2.1 (-3.8, -0.36)
+#> 3 year  effect    2021  -2.1 (-3.8, -0.38)
+#> 4 year  effect    2022  -2.1 (-3.8, -0.37)
+#> 5 year  effect    2023  -2.1 (-3.8, -0.37)
+#> 6 year  effect    2024  -2.1 (-3.8, -0.38)
 
 ## hold back some data and forecast
 library(dplyr, warn.conflicts = FALSE)
@@ -328,13 +328,13 @@ mod_pois(injuries ~ age * sex + ethnicity + year,
 #>    <fct> <chr>  <chr>     <int> <rdbl<1000>> <int>     <dbl>
 #>  1 0-4   Female Maori      2016    8 (3, 15) 41220        NA
 #>  2 5-9   Female Maori      2016     2 (0, 6) 43230        NA
-#>  3 10-14 Female Maori      2016     2 (0, 7) 37640        NA
-#>  4 15-19 Female Maori      2016   12 (5, 21) 36040        NA
-#>  5 20-24 Female Maori      2016   10 (4, 18) 33760        NA
+#>  3 10-14 Female Maori      2016     2 (0, 6) 37640        NA
+#>  4 15-19 Female Maori      2016   12 (5, 20) 36040        NA
+#>  5 20-24 Female Maori      2016   11 (4, 19) 33760        NA
 #>  6 25-29 Female Maori      2016    8 (3, 15) 30530        NA
 #>  7 30-34 Female Maori      2016    6 (2, 12) 24480        NA
 #>  8 35-39 Female Maori      2016    6 (1, 12) 23170        NA
-#>  9 40-44 Female Maori      2016    6 (2, 12) 23940        NA
+#>  9 40-44 Female Maori      2016    6 (2, 13) 23940        NA
 #> 10 45-49 Female Maori      2016    6 (2, 12) 23580        NA
 #> # ℹ 134 more rows
 #> # ℹ 2 more variables: .fitted <rdbl<1000>>, .expected <rdbl<1000>>
